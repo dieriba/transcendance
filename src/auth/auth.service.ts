@@ -1,3 +1,4 @@
+import { RegisterUserDto } from './dto/registerUser.dto';
 import { GetOAuthDto } from './dto/getOAuth.dto';
 import {
   BadRequestException,
@@ -9,6 +10,7 @@ import {
 import { HttpService } from '@nestjs/axios';
 import { HttpStatusCode } from 'axios';
 import { UserService } from 'src/user/user.service';
+import { LoginUserDto } from './dto/loginUser.dto';
 
 @Injectable()
 export class AuthService {
@@ -16,6 +18,25 @@ export class AuthService {
     private httpService: HttpService,
     private userService: UserService,
   ) {}
+
+  async signup(registerUserDto: RegisterUserDto) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { confirmPassword, ...data } = registerUserDto;
+
+    try {
+      const newUser = await this.userService.createUser(data);
+
+      console.log(newUser);
+
+      return { success: true, message: 'User created successfully' };
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async login(loginUserDto: LoginUserDto): Promise<any> {}
+
   async oauth(getOAuthDto: GetOAuthDto) {
     try {
       const response = await this.httpService.axiosRef.post(
@@ -47,4 +68,6 @@ export class AuthService {
       throw new InternalServerErrorException();
     }
   }
+
+  async refresh() {}
 }
