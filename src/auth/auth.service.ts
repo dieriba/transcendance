@@ -1,7 +1,6 @@
 import { RegisterUserDto } from './dto/registerUser.dto';
 import { GetOAuthDto } from './dto/getOAuth.dto';
 import {
-  BadRequestException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -11,6 +10,8 @@ import { HttpService } from '@nestjs/axios';
 import { HttpStatusCode } from 'axios';
 import { UserService } from 'src/user/user.service';
 import { LoginUserDto } from './dto/loginUser.dto';
+import { ApiUser } from 'src/user/user.types';
+import * as randomstring from 'randomstring';
 
 @Injectable()
 export class AuthService {
@@ -26,7 +27,7 @@ export class AuthService {
     try {
       const newUser = await this.userService.createUser(data);
 
-      console.log(newUser);
+      console.log({ newUser });
 
       return { success: true, message: 'User created successfully' };
     } catch (error) {
@@ -53,18 +54,41 @@ export class AuthService {
       const { access_token } = response.data;
 
       if (!access_token || access_token === undefined)
-        throw new BadRequestException();
+        throw new UnauthorizedException();
 
-      const res = await this.httpService.axiosRef.get(process.env.API_URI, {
-        headers: { Authorization: `Bearer ${access_token}` },
-      });
+      const { data } = await this.httpService.axiosRef.get(
+        process.env.API_URI,
+        {
+          headers: { Authorization: `Bearer ${access_token}` },
+        },
+      );
 
-      if (res.data === undefined || res.data === null)
-        throw new NotFoundException();
+      if (data === undefined || data === null) throw new NotFoundException();
+
+      const user: ApiUser = {
+        email: data.email,
+        nickName: randomstring.generate({
+          length: 16,
+          charset: 'alphabetic',
+        }),
+        lastName: data.last_name,
+        firstName: data.firs_tName,
+        fullName: data.displayname,
+      };
+
+      const newUser = await this.userService.createOrReturn42User(user);
+
+      console.log({ newUser });
+
+      return {
+        success: 'true',
+        message: 'User API 42 created succesfully',
+        newUser,
+      };
     } catch (error) {
       if (error.response?.status == HttpStatusCode.Unauthorized)
         throw new UnauthorizedException();
-
+      console.log(error);
       throw new InternalServerErrorException();
     }
   }

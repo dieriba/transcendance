@@ -5,6 +5,8 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
+import { BcryptModule } from './bcrypt/bcrypt.module';
+import { JwtTokenModule } from './jwt-token/jwtToken.module';
 
 @Module({
   imports: [
@@ -12,6 +14,8 @@ import { ConfigModule } from '@nestjs/config';
     AuthModule,
     UserModule,
     PrismaModule,
+    BcryptModule,
+    JwtTokenModule,
   ],
   controllers: [AppController],
   providers: [AppService],

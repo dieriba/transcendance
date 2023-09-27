@@ -10,7 +10,7 @@ import { Match } from '../../validation-decorator/match.decorator';
 export class RegisterUserDto {
   @IsString()
   @MinLength(3)
-  @MaxLength(12)
+  @MaxLength(16)
   @Matches('^[a-zA-Z][a-zA-Z0-9_.]*$')
   readonly nickName: string;
 

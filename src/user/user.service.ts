@@ -1,6 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreatedUser } from './user.types';
+import { ApiUser, CreatedUser } from './user.types';
+import { Tokens } from 'src/jwt-token/jwt.type';
 
 @Injectable()
 export class UserService {
@@ -22,5 +27,19 @@ export class UserService {
     if (field === 'email') return this.findUserByEmail(field);
 
     return this.findUserByNickName(field);
+  }
+
+  async createOrReturn42User(user: ApiUser) {
+    const foundUser = await this.prismaService.user.findUnique({
+      where: { email: user.email },
+    });
+
+    if (foundUser) return foundUser;
+
+    const newUser = await this.prismaService.user.create({
+      data: { ...user },
+    });
+
+    return newUser;
   }
 }

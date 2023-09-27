@@ -11,18 +11,21 @@ datasource db {
 }
 
 model User {
-  id String @id @default(uuid())
-  email String @unique
-  nickName String @unique
-  password String
-  refreshToken String?
+  id             String   @id @default(uuid())
+  email          String   @unique
+  name           String?  @default("Unknown")
+  lastName       String?  @default("Unknown")
+  fullName       String?  @default("Unknown")
+  nickName       String   @unique
+  password       String?
+  refreshToken   String?
   profilePicture String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
-model GroupChat{
-  id String @id @default(uuid())
+model GroupChat {
+  id          String   @id @default(uuid())
   bannedUsers String[]
-  mutedUsers String[]
+  mutedUsers  String[]
 }

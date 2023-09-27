@@ -11,5 +11,6 @@ declare namespace NodeJS {
     ACCESS_TOKEN_EXP: string;
     REFRESH_TOKEN_SECRET: string;
     REFRESH_TOKEN_EXP: string;
+    BCRYPT_SALT: string;
   }
 }

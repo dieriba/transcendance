@@ -1,5 +1,5 @@
 import { RegisterUserDto } from './dto/registerUser.dto';
-import { EmailExists, OAuthPipe } from './pipe/auth.pipe';
+import { CheckEmailValidity, HashPassword, OAuthPipe } from './pipe/auth.pipe';
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { GetOAuthDto } from './dto/getOAuth.dto';
 import { AuthService } from './auth.service';
@@ -11,8 +11,8 @@ export class AuthController {
 
   @Post('signup')
   async signup(
-    @Body(EmailExists) registerUserDto: RegisterUserDto,
-  ): Promise<any> {
+    @Body(CheckEmailValidity, HashPassword) registerUserDto: RegisterUserDto,
+  ) {
     return await this.authService.signup(registerUserDto);
   }
 
