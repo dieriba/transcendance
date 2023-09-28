@@ -12,5 +12,12 @@ declare namespace NodeJS {
     REFRESH_TOKEN_SECRET: string;
     REFRESH_TOKEN_EXP: string;
     BCRYPT_SALT: string;
+    OTP_ISSUER: string;
+    OTP_LABEL: stringn;
+    OTP_ALGORITHM: string;
+    OTP_DIGITS: string;
+    OTP_PERIOD: string;
+    RANDOMSTRING_LENGTH: string;
+    RANDOMSTRING_CHARSET: string;
   }
 }

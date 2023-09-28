@@ -2,12 +2,14 @@ import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { HttpModule } from '@nestjs/axios';
+import { BcryptModule } from 'src/bcrypt/bcrypt.module';
 import { UserModule } from 'src/user/user.module';
-import { BcryptService } from 'src/bcrypt/bcrypt.service';
+import { JwtTokenModule } from 'src/jwt-token/jwtToken.module';
 
 @Module({
-  imports: [HttpModule, UserModule],
-  providers: [AuthService, BcryptService],
+  imports: [HttpModule, BcryptModule, UserModule, JwtTokenModule],
+  providers: [AuthService],
   controllers: [AuthController],
+  exports: [AuthService],
 })
 export class AuthModule {}

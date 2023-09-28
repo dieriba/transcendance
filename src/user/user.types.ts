@@ -1,16 +1,16 @@
 export type CreatedUser = {
   email: string;
-  nickName: string;
-  lastName?: string;
-  fullName?: string;
+  nickname: string;
+  lastname?: string;
+  fullname?: string;
   password?: string;
-  profilePicture?: string;
+  profile_picture?: string;
 };
 
 export type ApiUser = {
   email: string;
-  nickName: string;
-  lastName?: string;
-  firstName?: string;
-  fullName?: string;
+  nickname: string;
+  last_name?: string;
+  first_name?: string;
+  fullname?: string;
 };

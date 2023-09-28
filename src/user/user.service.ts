@@ -1,11 +1,7 @@
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ApiUser, CreatedUser } from './user.types';
-import { Tokens } from 'src/jwt-token/jwt.type';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class UserService {
@@ -19,8 +15,12 @@ export class UserService {
     return await this.prismaService.user.findUnique({ where: { email } });
   }
 
-  async findUserByNickName(nickName: string) {
-    return await this.prismaService.user.findUnique({ where: { nickName } });
+  async findUserByNickName(nickname: string) {
+    return await this.prismaService.user.findUnique({ where: { nickname } });
+  }
+
+  async findUserById(id: string) {
+    return await this.prismaService.user.findUnique({ where: { id } });
   }
 
   async findUserByEmailOrNickName(value: string, field: string) {
@@ -29,7 +29,21 @@ export class UserService {
     return this.findUserByNickName(field);
   }
 
-  async createOrReturn42User(user: ApiUser) {
+  async updateUserByEmail(email: string, update) {
+    return await this.prismaService.user.update({
+      where: { email },
+      data: { ...update },
+    });
+  }
+
+  async updateUserById(id: string, update) {
+    return await this.prismaService.user.update({
+      where: { id },
+      data: { ...update },
+    });
+  }
+
+  async createOrReturn42User(user: ApiUser): Promise<User> {
     const foundUser = await this.prismaService.user.findUnique({
       where: { email: user.email },
     });

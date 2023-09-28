@@ -1,24 +1,44 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { IJwtServicePayload } from './jwt.type';
+import { JwtPayload, Tokens } from './jwt.type';
 
 @Injectable()
 export class JwtTokenService {
   constructor(private readonly jwtService: JwtService) {}
 
-  async checkToken(token: string): Promise<any> {
-    const decode = await this.jwtService.verifyAsync(token);
-    return decode;
+  async checkToken(token: string, secret: string): Promise<any> {
+    return await this.jwtService.verifyAsync(token, { secret });
   }
 
-  createToken(
-    payload: IJwtServicePayload,
-    secret: string,
-    expiresIn: string,
-  ): string {
-    return this.jwtService.sign(payload, {
+  async createToken(payload: JwtPayload, secret: string, expiresIn: string) {
+    return await this.jwtService.signAsync(payload, {
       secret: secret,
       expiresIn: expiresIn,
     });
+  }
+
+  async getTokens(id: string, email: string): Promise<Tokens> {
+    const jwtPayload: JwtPayload = {
+      id,
+      email,
+    };
+
+    const [access_token, refresh_token] = await Promise.all([
+      this.createToken(
+        jwtPayload,
+        process.env.ACCESS_TOKEN_SECRET,
+        process.env.ACCESS_TOKEN_EXP,
+      ),
+      this.createToken(
+        jwtPayload,
+        process.env.REFRESH_TOKEN_SECRET,
+        process.env.REFRESH_TOKEN_EXP,
+      ),
+    ]);
+
+    return {
+      access_token,
+      refresh_token,
+    };
   }
 }

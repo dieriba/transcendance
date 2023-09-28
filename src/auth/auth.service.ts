@@ -1,6 +1,6 @@
-import { RegisterUserDto } from './dto/registerUser.dto';
-import { GetOAuthDto } from './dto/getOAuth.dto';
+import { GetOAuthDto, LoginUserDto, RegisterUserDto } from './dto/auth.dto';
 import {
+  Body,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -9,15 +9,18 @@ import {
 import { HttpService } from '@nestjs/axios';
 import { HttpStatusCode } from 'axios';
 import { UserService } from 'src/user/user.service';
-import { LoginUserDto } from './dto/loginUser.dto';
 import { ApiUser } from 'src/user/user.types';
 import * as randomstring from 'randomstring';
+import { Tokens } from 'src/jwt-token/jwt.type';
+import { JwtTokenService } from 'src/jwt-token/jwtToken.service';
+import { LoginValidation } from './pipe/login-validation.pipe';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private httpService: HttpService,
-    private userService: UserService,
+    private readonly httpService: HttpService,
+    private readonly userService: UserService,
+    private readonly jwtTokenService: JwtTokenService,
   ) {}
 
   async signup(registerUserDto: RegisterUserDto) {
@@ -36,59 +39,52 @@ export class AuthService {
     }
   }
 
-  async login(loginUserDto: LoginUserDto): Promise<any> {}
+  async login(
+    @Body(LoginValidation) { id, email }: LoginUserDto,
+  ): Promise<Tokens> {
+    return await this.jwtTokenService.getTokens(id, email);
+  }
 
   async oauth(getOAuthDto: GetOAuthDto) {
+    const response = await this.httpService.axiosRef.post(
+      process.env.TOKEN_URI,
+      {
+        client_secret: process.env.CLIENT_SECRET,
+        client_id: process.env.CLIENT_ID,
+        grant_type: process.env.GRANT_TYPE,
+        redirect_uri: process.env.REDIRECT_URI,
+        code: getOAuthDto,
+      },
+    );
+
+    if (response?.status == HttpStatusCode.Unauthorized)
+      throw new UnauthorizedException();
+
+    const { access_token } = response.data;
+
+    const { data } = await this.httpService.axiosRef.get(process.env.API_URI, {
+      headers: { Authorization: `Bearer ${access_token}` },
+    });
+
+    if (data === undefined || data === null) throw new NotFoundException();
+
+    const user: ApiUser = {
+      email: data.email,
+      nickname: randomstring.generate({
+        length: parseInt(process.env.RANDOMSTRING_LENGTH),
+        charset: process.env.RANDOMSTRING_CHARSET,
+      }),
+      last_name: data.last_name,
+      first_name: data.first_Name,
+      fullname: data.displayname,
+    };
+
     try {
-      const response = await this.httpService.axiosRef.post(
-        process.env.TOKEN_URI,
-        {
-          client_secret: process.env.CLIENT_SECRET,
-          client_id: process.env.CLIENT_ID,
-          grant_type: process.env.GRANT_TYPE,
-          redirect_uri: process.env.REDIRECT_URI,
-          code: getOAuthDto,
-        },
-      );
-
-      const { access_token } = response.data;
-
-      if (!access_token || access_token === undefined)
-        throw new UnauthorizedException();
-
-      const { data } = await this.httpService.axiosRef.get(
-        process.env.API_URI,
-        {
-          headers: { Authorization: `Bearer ${access_token}` },
-        },
-      );
-
-      if (data === undefined || data === null) throw new NotFoundException();
-
-      const user: ApiUser = {
-        email: data.email,
-        nickName: randomstring.generate({
-          length: 16,
-          charset: 'alphabetic',
-        }),
-        lastName: data.last_name,
-        firstName: data.firs_tName,
-        fullName: data.displayname,
-      };
-
       const newUser = await this.userService.createOrReturn42User(user);
-
       console.log({ newUser });
 
-      return {
-        success: 'true',
-        message: 'User API 42 created succesfully',
-        newUser,
-      };
+      return await this.jwtTokenService.getTokens(newUser.id, newUser.email);
     } catch (error) {
-      if (error.response?.status == HttpStatusCode.Unauthorized)
-        throw new UnauthorizedException();
-      console.log(error);
       throw new InternalServerErrorException();
     }
   }

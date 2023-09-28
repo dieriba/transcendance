@@ -11,17 +11,25 @@ datasource db {
 }
 
 model User {
-  id             String   @id @default(uuid())
-  email          String   @unique
-  name           String?  @default("Unknown")
-  lastName       String?  @default("Unknown")
-  fullName       String?  @default("Unknown")
-  nickName       String   @unique
-  password       String?
-  refreshToken   String?
-  profilePicture String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id        String  @id @default(uuid())
+  email     String  @unique
+  first_name String? @default("Unknown")
+  last_name  String? @default("Unknown")
+  fullname  String? @default("Unknown")
+  nickname  String  @unique
+  password  String?
+
+  refresh_token   String?
+  profile_picture String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  otp_secret  String?
+  otp_auth_url String?
+
+  otp_enabled   Boolean @default(false)
+  otp_validated Boolean @default(false)
 }
 
 model GroupChat {

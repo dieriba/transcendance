@@ -1,9 +1,11 @@
-import { RegisterUserDto } from './dto/registerUser.dto';
-import { CheckEmailValidity, HashPassword, OAuthPipe } from './pipe/auth.pipe';
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
-import { GetOAuthDto } from './dto/getOAuth.dto';
+import { GetOAuthDto, LoginUserDto, RegisterUserDto } from './dto/auth.dto';
 import { AuthService } from './auth.service';
-import { LoginUserDto } from './dto/loginUser.dto';
+import { Tokens } from 'src/jwt-token/jwt.type';
+import { CheckEmailNicknameValidity } from './pipe/auth.pipe';
+import { HashPassword } from './pipe/hash-password.pipe';
+import { OAuthPipe } from './pipe/oauth.pipe';
+import { LoginValidation } from './pipe/login-validation.pipe';
 
 @Controller('auth')
 export class AuthController {
@@ -11,13 +13,16 @@ export class AuthController {
 
   @Post('signup')
   async signup(
-    @Body(CheckEmailValidity, HashPassword) registerUserDto: RegisterUserDto,
+    @Body(CheckEmailNicknameValidity, HashPassword)
+    registerUserDto: RegisterUserDto,
   ) {
     return await this.authService.signup(registerUserDto);
   }
 
   @Post('login')
-  async login(@Body() loginUserDto: LoginUserDto): Promise<any> {
+  async login(
+    @Body(LoginValidation) loginUserDto: LoginUserDto,
+  ): Promise<Tokens> {
     return await this.authService.login(loginUserDto);
   }
 

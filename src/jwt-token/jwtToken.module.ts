@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { JwtTokenService } from './jwtToken.service';
-import { JwtService } from '@nestjs/jwt';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  providers: [JwtTokenService, JwtService],
+  imports: [JwtModule],
+  providers: [JwtTokenService],
   exports: [JwtTokenService],
 })
 export class JwtTokenModule {}
