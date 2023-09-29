@@ -7,6 +7,8 @@ import { BcryptModule } from './bcrypt/bcrypt.module';
 import { JwtTokenModule } from './jwt-token/jwtToken.module';
 import { LibModule } from './lib/lib.module';
 import { TwoFaModule } from './two-fa/two-fa.module';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAccessTokenGuard } from './common/guards/jwt.guard';
 
 @Module({
   imports: [
@@ -19,6 +21,11 @@ import { TwoFaModule } from './two-fa/two-fa.module';
     LibModule,
     TwoFaModule,
   ],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtAccessTokenGuard,
+    },
+  ],
 })
 export class AppModule {}

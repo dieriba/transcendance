@@ -1,11 +1,10 @@
 import { UserService } from 'src/user/user.service';
-import { GenOtpDto } from './dto/gen-otp.dto';
 import { LibService } from './../lib/lib.service';
 import {
   BadRequestException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import * as OTPAuth from 'otpauth';
 import { OTP } from './two-fa.types';
@@ -17,22 +16,18 @@ export class TwoFaService {
     private readonly userService: UserService,
   ) {}
 
-  async generateOtp({ id }: GenOtpDto): Promise<OTP> {
+  async generateOtp(id: string): Promise<OTP> {
     const user = await this.userService.findUserById(id);
 
     if (!user) throw new NotFoundException('User not found');
+
+    if (!user.otp_enabled) throw new UnauthorizedException('Activa 2fa first!');
 
     const otp_secret = this.libService.generateRandomSecretInBase32();
 
     const totp: OTPAuth.TOTP = this.generateNewTotpObject(otp_secret);
 
-    // Create a new TOTP object.
-
-    // Convert to Google Authenticator key URI:
-    // otpauth://totp/ACME:AzureDiamond?issuer=ACME&secret=NB2W45DFOIZA&algorithm=SHA1&digits=6&period=30
-    const otp_auth_url = totp.toString(); // or 'OTPAuth.URI.stringify(totp)'
-
-    //update user opt_secret
+    const otp_auth_url = totp.toString();
 
     const otp: OTP = { otp_secret, otp_auth_url };
     console.log(otp_secret);
@@ -42,56 +37,26 @@ export class TwoFaService {
     return otp;
   }
 
-  async verifyOtp(id: string, token: string) {
-    const user = await this.userService.findUserById(id);
-
-    if (!user) throw new NotFoundException('User not found');
-
-    const totp: OTPAuth.TOTP = this.generateNewTotpObject(user.otp_secret);
-
-    console.log(user.otp_secret);
-
-    console.log(token);
-
-    const delta = totp.validate({ token });
-
-    if (delta === null) throw new BadRequestException('Invalid token');
-
-    try {
-      const user = await this.userService.updateUserById(id, {
-        otp_enabled: true,
-      });
-
-      return { otp_enabled: user.otp_enabled };
-    } catch (error) {
-      throw new InternalServerErrorException();
-    }
-  }
-
   async validateOtp(id: string, token: string) {
     const user = await this.userService.findUserById(id);
 
     if (!user) throw new NotFoundException('User not found');
 
+    if (!user.otp_enabled) throw new UnauthorizedException('Activa 2fa first!');
+
+    if (user.otp_secret === null)
+      throw new BadRequestException('Missing secret');
+
     const totp: OTPAuth.TOTP = this.generateNewTotpObject(user.otp_secret);
-
-    console.log(user.otp_secret);
-
-    console.log(token);
 
     const delta = totp.validate({ token });
 
     if (delta === null) throw new BadRequestException('Invalid token');
 
-    try {
-      const user = await this.userService.updateUserById(id, {
-        otp_enabled: true,
-      });
-
-      return { otp_validated: user.otp_validated };
-    } catch (error) {
-      throw new InternalServerErrorException();
-    }
+    await this.userService.updateUserById(id, {
+      otp_validated: true,
+    });
+    return { otp_validated: user.otp_validated };
   }
 
   generateNewTotpObject(otp_secret: string): OTPAuth.TOTP {

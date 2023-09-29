@@ -6,11 +6,13 @@ import { CheckEmailNicknameValidity } from './pipe/auth.pipe';
 import { HashPassword } from './pipe/hash-password.pipe';
 import { OAuthPipe } from './pipe/oauth.pipe';
 import { LoginValidation } from './pipe/login-validation.pipe';
+import { Public } from 'src/common/custom-decorator/public.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  @Public()
   @Post('signup')
   async signup(
     @Body(CheckEmailNicknameValidity, HashPassword)
@@ -19,6 +21,7 @@ export class AuthController {
     return await this.authService.signup(registerUserDto);
   }
 
+  @Public()
   @Post('login')
   async login(
     @Body(LoginValidation) loginUserDto: LoginUserDto,
@@ -26,6 +29,7 @@ export class AuthController {
     return await this.authService.login(loginUserDto);
   }
 
+  @Public()
   @Get('oauth_callback')
   async oauth(@Query('code', OAuthPipe) getOAuthDto: GetOAuthDto) {
     return await this.authService.oauth(getOAuthDto);
