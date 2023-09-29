@@ -1,4 +1,3 @@
-import { JwtTokenService } from 'src/jwt-token/jwtToken.service';
 import {
   CanActivate,
   ExecutionContext,
@@ -7,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { Reflector } from '@nestjs/core';
+import { JwtTokenService } from 'src/jwt-token/jwtToken.service';
 
 @Injectable()
 export class JwtAccessTokenGuard implements CanActivate {

@@ -2,7 +2,7 @@ version: '3.1'
 
 services:
   postgres:
-    image: postgres:16.0-alpine3.18
+    image: postgres:16.0
     container_name: postgres_db
     environment:
       POSTGRES_DB: transcendance
@@ -11,4 +11,4 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./database:/var/lib/postgresql/data
+      - ./backend/database:/var/lib/postgresql/data

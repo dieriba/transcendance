@@ -1,5 +1,4 @@
-import { UserService } from 'src/user/user.service';
-import { LibService } from './../lib/lib.service';
+import { LibService } from '../lib/lib.service';
 import {
   BadRequestException,
   Injectable,
@@ -9,6 +8,7 @@ import {
 import * as OTPAuth from 'otpauth';
 import { OTP } from './two-fa.types';
 import { User } from '@prisma/client';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class TwoFaService {

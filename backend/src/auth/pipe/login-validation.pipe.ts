@@ -4,9 +4,9 @@ import {
   ArgumentMetadata,
   BadRequestException,
 } from '@nestjs/common';
+import { LoginUserDto } from '../dto';
 import { BcryptService } from 'src/bcrypt/bcrypt.service';
 import { UserService } from 'src/user/user.service';
-import { LoginUserDto } from '../dto';
 
 @Injectable()
 export class LoginValidation implements PipeTransform {

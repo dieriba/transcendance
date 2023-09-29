@@ -1,11 +1,11 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { GetOAuthDto, LoginUserDto, RegisterUserDto } from './dto/auth.dto';
 import { AuthService } from './auth.service';
-import { Tokens } from 'src/jwt-token/jwt.type';
 import { CheckEmailNicknameValidity } from './pipe/auth.pipe';
 import { HashPassword } from './pipe/hash-password.pipe';
 import { OAuthPipe } from './pipe/oauth.pipe';
 import { LoginValidation } from './pipe/login-validation.pipe';
+import { Tokens } from 'src/jwt-token/jwt.type';
 import { PublicRoute } from 'src/common/custom-decorator/public.decorator';
 
 @Controller('auth')

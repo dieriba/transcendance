@@ -8,12 +8,12 @@ import {
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { HttpStatusCode } from 'axios';
-import { UserService } from 'src/user/user.service';
-import { ApiUser } from 'src/user/user.types';
 import * as randomstring from 'randomstring';
+import { LoginValidation } from './pipe/login-validation.pipe';
 import { Tokens } from 'src/jwt-token/jwt.type';
 import { JwtTokenService } from 'src/jwt-token/jwtToken.service';
-import { LoginValidation } from './pipe/login-validation.pipe';
+import { UserService } from 'src/user/user.service';
+import { ApiUser } from 'src/user/user.types';
 
 @Injectable()
 export class AuthService {
