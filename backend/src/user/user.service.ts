@@ -78,4 +78,11 @@ export class UserService {
 
     return newUser;
   }
+
+  async clearHashedToken(id: string) {
+    await this.prismaService.user.update({
+      where: { id, hashed_refresh_token: { not: null } },
+      data: { hashed_refresh_token: null },
+    });
+  }
 }

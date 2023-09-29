@@ -16,7 +16,6 @@ import { CustomException } from 'src/common/custom-exception/custom-exception';
 import {
   INTERNAL_SERVER_ERROR,
   RESSOURCE_NOT_FOUND,
-  UNAUTHORIZED,
   FORBIDDEN,
 } from 'src/common/constant/constant';
 import { Argon2Service } from 'src/argon2/argon2.service';
@@ -69,10 +68,7 @@ export class AuthService {
       throw new CustomException(RESSOURCE_NOT_FOUND, HttpStatus.NOT_FOUND);
 
     try {
-      await this.prismaService.user.update({
-        where: { id, hashed_refresh_token: { not: null } },
-        data: { hashed_refresh_token: null },
-      });
+      await this.userService.clearHashedToken(id);
     } catch (error) {
       throw new CustomException(
         INTERNAL_SERVER_ERROR,
@@ -134,7 +130,8 @@ export class AuthService {
 
     const user = await this.userService.findUserById(sub);
 
-    if (!user) throw new CustomException(UNAUTHORIZED, HttpStatus.UNAUTHORIZED);
+    if (!user)
+      throw new CustomException(RESSOURCE_NOT_FOUND, HttpStatus.NOT_FOUND);
 
     const isMatch = await this.argon2.compare(
       user.hashed_refresh_token,
