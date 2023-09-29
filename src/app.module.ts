@@ -1,3 +1,4 @@
+import { ResponseMessageInterceptor } from './common/global-interceptros/response.interceptor';
 import { Module } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
@@ -7,7 +8,7 @@ import { BcryptModule } from './bcrypt/bcrypt.module';
 import { JwtTokenModule } from './jwt-token/jwtToken.module';
 import { LibModule } from './lib/lib.module';
 import { TwoFaModule } from './two-fa/two-fa.module';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { JwtAccessTokenGuard } from './common/guards/jwt.guard';
 
 @Module({
@@ -25,6 +26,10 @@ import { JwtAccessTokenGuard } from './common/guards/jwt.guard';
     {
       provide: APP_GUARD,
       useClass: JwtAccessTokenGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ResponseMessageInterceptor,
     },
   ],
 })

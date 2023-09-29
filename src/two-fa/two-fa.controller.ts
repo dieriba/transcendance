@@ -2,7 +2,7 @@ import { TwoFaService } from './two-fa.service';
 import { Body, Controller, Post } from '@nestjs/common';
 import { OTP } from './two-fa.types';
 import { VerifyOtpDto } from './dto/verify-opt.dto';
-import { GetUser } from 'src/common/custom-decorator/get-user';
+import { GetUser } from 'src/common/custom-decorator/get-user.decorator';
 
 @Controller('/auth/2fa')
 export class TwoFaController {
