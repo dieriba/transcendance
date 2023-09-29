@@ -13,14 +13,14 @@ datasource db {
 model User {
   id String @id @default(uuid())
 
-  nickname        String  @unique
+  nickname String  @unique
   email    String  @unique
   password String?
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+  hashed_refresh_token   String?  
 
-  token   Token[]  @relation("user_refresh_tokens")
   two_fa  TwoFa?   @relation("user_two_fa")
   profile Profile? @relation("user_profile")
 }
@@ -28,26 +28,16 @@ model User {
 model Profile {
   id String @id @default(uuid())
 
-  first_name      String? @default("Unknown")
-  last_name       String? @default("Unknown")
-  fullname        String? @default("Unknown")
-  profile_picture String?
+  avatar     String?
+  first_name String? @default("Unknown")
+  last_name  String? @default("Unknown")
+  fullname   String? @default("Unknown")
 
   user   User   @relation("user_profile", fields: [userId], references: [id], onDelete: Cascade)
   userId String @unique
 }
 
-model Token {
-  id String @id @default(uuid())
 
-  refreshToken String
-  expiresAt    DateTime
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  user   User   @relation("user_refresh_tokens", fields: [userId], references: [id], onDelete: Cascade)
-  userId String
-}
 
 model TwoFa {
   id String @id @default(uuid())

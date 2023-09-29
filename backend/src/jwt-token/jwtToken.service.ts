@@ -17,9 +17,9 @@ export class JwtTokenService {
     });
   }
 
-  async getTokens(id: string, email: string): Promise<Tokens> {
+  async getTokens(sub: string, email: string): Promise<Tokens> {
     const jwtPayload: JwtPayload = {
-      id,
+      sub,
       email,
     };
 

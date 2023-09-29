@@ -59,7 +59,6 @@ export class PrismaExceptionFilter implements ExceptionFilter {
         .replace(/\n/g, '')
         .trim(),
     });
-    console.log(exception.code);
 
     const errorResponse = {
       code: exception?.code,

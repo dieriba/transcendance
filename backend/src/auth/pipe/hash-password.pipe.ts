@@ -5,16 +5,16 @@ import {
   InternalServerErrorException,
   BadRequestException,
 } from '@nestjs/common';
-import { BcryptService } from 'src/bcrypt/bcrypt.service';
-import { CreatedUser } from 'src/user/user.types';
+import { Argon2Service } from 'src/argon2/argon2.service';
+import { CreatedUser } from 'src/user/types/user.types';
 
 @Injectable()
 export class HashPassword implements PipeTransform {
-  constructor(private bcryptService: BcryptService) {}
+  constructor(private argon2Service: Argon2Service) {}
   async transform(user: CreatedUser, metadata: ArgumentMetadata) {
     if (metadata.type === 'body') {
       try {
-        user.password = await this.bcryptService.hash(user.password);
+        user.password = await this.argon2Service.hash(user.password);
 
         return user;
       } catch (error) {

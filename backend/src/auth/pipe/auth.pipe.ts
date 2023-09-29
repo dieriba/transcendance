@@ -4,8 +4,8 @@ import {
   Injectable,
   PipeTransform,
 } from '@nestjs/common';
+import { CreatedUser } from 'src/user/types/user.types';
 import { UserService } from 'src/user/user.service';
-import { CreatedUser } from 'src/user/user.types';
 
 @Injectable()
 export class CheckEmailNicknameValidity implements PipeTransform {

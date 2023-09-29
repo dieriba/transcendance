@@ -4,6 +4,12 @@ export type Tokens = {
 };
 
 export type JwtPayload = {
-  id: string;
+  sub: string;
   email: string;
+};
+
+export type JwtPayloadRefreshToken = {
+  sub: string;
+  email: string;
+  refresh_token: string;
 };

@@ -5,13 +5,13 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { LoginUserDto } from '../dto';
-import { BcryptService } from 'src/bcrypt/bcrypt.service';
+import { Argon2Service } from 'src/argon2/argon2.service';
 import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class LoginValidation implements PipeTransform {
   constructor(
-    private readonly bcryptService: BcryptService,
+    private readonly argon2Service: Argon2Service,
     private readonly userService: UserService,
   ) {}
 
@@ -27,7 +27,7 @@ export class LoginValidation implements PipeTransform {
 
     if (!user) throw new BadRequestException('Wrong Credentials!');
 
-    if (!(await this.bcryptService.compare(body.password, user.password)))
+    if (!(await this.argon2Service.compare(user.password, body.password)))
       throw new BadRequestException('Wrong Credentials');
 
     return { ...body, id: user.id };

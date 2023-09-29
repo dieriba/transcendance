@@ -3,18 +3,27 @@ import { Body, Controller, Post } from '@nestjs/common';
 import { OTP } from './two-fa.types';
 import { VerifyOtpDto } from './dto/verify-opt.dto';
 import { GetUser } from 'src/common/custom-decorator/get-user.decorator';
+import { ResponseMessage } from 'src/common/custom-decorator/respone-message.decorator';
 
 @Controller('/auth/2fa')
 export class TwoFaController {
   constructor(private readonly twoFaService: TwoFaService) {}
+
+  /* @Put('/activate-two-fa')
+  @ResponseMessage('2fa Enabled successfully !')
+  async updateUser2fa(@GetUser('sub') id: string) {
+    return await this.twoFaService.updateUser2Fa(id);
+  } */
+
   @Post('generate')
-  async generateOtp(@GetUser('id') id: string): Promise<OTP> {
+  async generateOtp(@GetUser('sub') id: string): Promise<OTP> {
     return await this.twoFaService.generateOtp(id);
   }
 
   @Post('validate-otp')
+  @ResponseMessage('Authenticated Successfully')
   async validateOtp(
-    @GetUser('id') id: string,
+    @GetUser('sub') id: string,
     @Body() { token }: VerifyOtpDto,
   ) {
     return await this.twoFaService.validateOtp(id, token);

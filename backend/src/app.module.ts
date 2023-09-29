@@ -4,7 +4,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
-import { BcryptModule } from './bcrypt/bcrypt.module';
+import { Argon2Module } from './argon2/argon2.module';
 import { JwtTokenModule } from './jwt-token/jwtToken.module';
 import { LibModule } from './lib/lib.module';
 import { TwoFaModule } from './two-fa/two-fa.module';
@@ -17,7 +17,7 @@ import { JwtAccessTokenGuard } from './common/guards/jwt.guard';
     AuthModule,
     UserModule,
     PrismaModule,
-    BcryptModule,
+    Argon2Module,
     JwtTokenModule,
     LibModule,
     TwoFaModule,

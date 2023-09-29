@@ -31,9 +31,8 @@ export class TwoFaService {
     const otp_auth_url = totp.toString();
 
     const otp: OTP = { otp_secret, otp_auth_url };
-    console.log(otp_secret);
 
-    await this.userService.updateUserByEmail(user.email, otp);
+    await this.userService.updateUser2fa(user.id, otp);
 
     return otp;
   }
@@ -56,7 +55,7 @@ export class TwoFaService {
 
     if (delta === null) throw new BadRequestException('Invalid token');
 
-    await this.userService.updateUserById(id, {
+    await this.userService.updateUser2fa(id, {
       otp_validated: true,
     });
     return { otp_validated: true };

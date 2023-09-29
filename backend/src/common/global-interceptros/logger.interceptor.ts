@@ -8,8 +8,6 @@ import { Observable, map } from 'rxjs';
 
 export class LoggerInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    console.log('Before...');
-
     const req = context.switchToHttp().getRequest();
     const method = req.method;
     const url = req.url;
