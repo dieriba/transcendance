@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import * as OTPAuth from 'otpauth';
 import { OTP } from './two-fa.types';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class TwoFaService {
@@ -17,11 +18,11 @@ export class TwoFaService {
   ) {}
 
   async generateOtp(id: string): Promise<OTP> {
-    const user = await this.userService.findUserById(id);
+    const user: User = await this.userService.findUserById(id);
 
     if (!user) throw new NotFoundException('User not found');
 
-    if (!user.otp_enabled) throw new UnauthorizedException('Activa 2fa first!');
+    if (!user) throw new UnauthorizedException('Activa 2fa first!');
 
     const otp_secret = this.libService.generateRandomSecretInBase32();
 
@@ -42,12 +43,14 @@ export class TwoFaService {
 
     if (!user) throw new NotFoundException('User not found');
 
-    if (!user.otp_enabled) throw new UnauthorizedException('Activa 2fa first!');
+    const userTwoFa = await this.userService.findUserTwoFaById(id);
 
-    if (user.otp_secret === null)
+    if (!userTwoFa) throw new UnauthorizedException('Activa 2fa first!');
+
+    if (userTwoFa.otp_secret === null)
       throw new BadRequestException('Missing secret');
 
-    const totp: OTPAuth.TOTP = this.generateNewTotpObject(user.otp_secret);
+    const totp: OTPAuth.TOTP = this.generateNewTotpObject(userTwoFa.otp_secret);
 
     const delta = totp.validate({ token });
 
@@ -56,7 +59,7 @@ export class TwoFaService {
     await this.userService.updateUserById(id, {
       otp_validated: true,
     });
-    return { otp_validated: user.otp_validated };
+    return { otp_validated: true };
   }
 
   generateNewTotpObject(otp_secret: string): OTPAuth.TOTP {

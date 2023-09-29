@@ -29,6 +29,10 @@ export class UserService {
     return this.findUserByNickName(field);
   }
 
+  async findUserTwoFaById(id: string) {
+    return this.prismaService.twoFa.findUnique({ where: { id } });
+  }
+
   async updateUserByEmail(email: string, update) {
     return await this.prismaService.user.update({
       where: { email },
