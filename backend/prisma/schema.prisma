@@ -17,12 +17,16 @@ model User {
   email    String  @unique
   password String?
 
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  hashed_refresh_token   String?  
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+  hashed_refresh_token String?
 
-  two_fa  TwoFa?   @relation("user_two_fa")
   profile Profile? @relation("user_profile")
+  two_fa  TwoFa?   @relation("user_two_fa")
+
+  chatrooms     Chatroom[]      @relation("ChatroomUsers")
+  messages      Message[]
+  ChatroomUsers ChatroomUsers[]
 }
 
 model Profile {
@@ -32,12 +36,9 @@ model Profile {
   first_name String? @default("Unknown")
   last_name  String? @default("Unknown")
   fullname   String? @default("Unknown")
-
-  user   User   @relation("user_profile", fields: [userId], references: [id], onDelete: Cascade)
-  userId String @unique
+  user       User    @relation("user_profile", fields: [userId], references: [id], onDelete: Cascade)
+  userId     String  @unique
 }
-
-
 
 model TwoFa {
   id String @id @default(uuid())
@@ -48,13 +49,39 @@ model TwoFa {
   otp_enabled   Boolean @default(false)
   otp_validated Boolean @default(false)
 
-  user   User   @relation("user_two_fa", fields: [userId], references: [id], onDelete: Cascade)
-  userId String @unique
+  sender    User   @relation("user_two_fa", fields: [sender_id], references: [id], onDelete: Cascade)
+  sender_id String @unique
 }
 
-model GroupChat {
-  id String @id @default(uuid())
+model Chatroom {
+  id            String          @id @default(uuid())
+  name          String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  users         User[]          @relation("ChatroomUsers")
+  messages      Message[]
+  ChatroomUsers ChatroomUsers[]
+}
 
-  bannedUsers String[]
-  mutedUsers  String[]
+model Message {
+  id         String   @id @default(uuid())
+  content    String
+  imageUrl   String?
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  chatroom   Chatroom @relation(fields: [chatroomId], references: [id], onDelete: Cascade)
+  chatroomId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model ChatroomUsers {
+  chatroom   Chatroom @relation(fields: [chatroomId], references: [id], onDelete: Cascade)
+  chatroomId String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@id([chatroomId, userId])
 }
