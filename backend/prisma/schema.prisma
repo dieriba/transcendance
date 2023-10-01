@@ -21,23 +21,70 @@ model User {
   updated_at           DateTime @updatedAt
   hashed_refresh_token String?
 
-  profile Profile? @relation("user_profile")
   two_fa  TwoFa?   @relation("user_two_fa")
+  profile Profile? @relation("user_profile")
 
-  chatrooms     Chatroom[]      @relation("ChatroomUsers")
-  messages      Message[]
-  ChatroomUsers ChatroomUsers[]
+  chatrooms         ChatroomUser[]
+  messages          Message[]
+  restricted_groups RestrictedUser[]
 }
 
 model Profile {
   id String @id @default(uuid())
 
   avatar     String?
-  first_name String? @default("Unknown")
-  last_name  String? @default("Unknown")
-  fullname   String? @default("Unknown")
-  user       User    @relation("user_profile", fields: [userId], references: [id], onDelete: Cascade)
-  userId     String  @unique
+  first_name String?
+  last_name  String?
+  fullname   String?
+  gender     Gender?
+  age        Int?
+  user       User    @relation("user_profile", fields: [user_id], references: [id], onDelete: Cascade)
+  user_id    String  @unique
+}
+
+model Chatroom {
+  id               String           @id @default(uuid())
+  name             String
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  users            ChatroomUser[]
+  messages         Message[]
+  restricted_users RestrictedUser[]
+}
+
+model Message {
+  id          String   @id @default(uuid())
+  content     String
+  image_url   String?
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id     String
+  chatroom    Chatroom @relation(fields: [chatroom_id], references: [id], onDelete: Cascade)
+  chatroom_id String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ChatroomUser {
+  user        User         @relation(fields: [user_id], references: [id])
+  user_id     String
+  chatroom    Chatroom     @relation(fields: [chatroom_id], references: [id])
+  chatroom_id String
+  created_at  DateTime     @default(now())
+  privilege   Role?
+  restriction Restriction?
+
+  @@unique([user_id, chatroom_id])
+}
+
+model RestrictedUser {
+  user        User         @relation(fields: [user_id], references: [id])
+  user_id     String
+  chatroom    Chatroom     @relation(fields: [chatroom_id], references: [id])
+  chatroom_id String
+  created_at  DateTime     @default(now())
+  restriction Restriction?
+
+  @@unique([user_id, chatroom_id])
 }
 
 model TwoFa {
@@ -49,39 +96,28 @@ model TwoFa {
   otp_enabled   Boolean @default(false)
   otp_validated Boolean @default(false)
 
-  sender    User   @relation("user_two_fa", fields: [sender_id], references: [id], onDelete: Cascade)
-  sender_id String @unique
+  user    User   @relation("user_two_fa", fields: [user_id], references: [id], onDelete: Cascade)
+  user_id String @unique
 }
 
-model Chatroom {
-  id            String          @id @default(uuid())
-  name          String
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  users         User[]          @relation("ChatroomUsers")
-  messages      Message[]
-  ChatroomUsers ChatroomUsers[]
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  GENDERFLUID
+  NON_BINARY
+  MULTIGENDER
+  TRANSGENDER
+  DOG
+  HORSE
 }
 
-model Message {
-  id         String   @id @default(uuid())
-  content    String
-  imageUrl   String?
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId     String
-  chatroom   Chatroom @relation(fields: [chatroomId], references: [id], onDelete: Cascade)
-  chatroomId String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+enum Role {
+  ADMIN
+  MODERATOR
+  REGULAR_USER
 }
 
-model ChatroomUsers {
-  chatroom   Chatroom @relation(fields: [chatroomId], references: [id], onDelete: Cascade)
-  chatroomId String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId     String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  @@id([chatroomId, userId])
+enum Restriction {
+  MUTED
 }
