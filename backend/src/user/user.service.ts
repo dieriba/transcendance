@@ -60,7 +60,7 @@ export class UserService {
 
   async updateUser2fa(id: string, twofa: TwoFa) {
     return await this.prismaService.twoFa.update({
-      where: { userId: id },
+      where: { user_id: id },
       data: { ...twofa },
     });
   }

@@ -44,7 +44,7 @@ model Profile {
 
 model Chatroom {
   id               String           @id @default(uuid())
-  name             String
+  name             String?
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
   users            ChatroomUser[]
