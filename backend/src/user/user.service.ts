@@ -9,7 +9,10 @@ export class UserService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async createUser(user: CreatedUser) {
-    return await this.prismaService.user.create({ data: { ...user } });
+    return await this.prismaService.user.create({
+      data: { ...user },
+      select: { id: true, nickname: true, email: true, created_at: true },
+    });
   }
 
   async findUserByEmail(email: string) {

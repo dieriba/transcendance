@@ -150,5 +150,3 @@ export class AuthService {
     return tokens;
   }
 }
-
-// $2b$10$IhUctsFN6CTkDXj7U6lYh..9JMQuyAdu4W9pwvldBiRaLn4aDRcZm

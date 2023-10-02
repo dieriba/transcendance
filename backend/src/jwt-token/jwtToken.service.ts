@@ -6,8 +6,8 @@ import { JwtPayload, Tokens } from './jwt.type';
 export class JwtTokenService {
   constructor(private readonly jwtService: JwtService) {}
 
-  public async checkToken(token: string, secret: string): Promise<any> {
-    return await this.jwtService.verifyAsync(token, { secret });
+  async checkToken(token: string, secret: string): Promise<any> {
+    return this.jwtService.verify(token, { secret });
   }
 
   async createToken(payload: JwtPayload, secret: string, expiresIn: string) {
