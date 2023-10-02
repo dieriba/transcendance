@@ -5,7 +5,7 @@ import { useContainer } from 'class-validator';
 import { PrismaExceptionFilter } from './common/global-filters/prisma-exception.filter';
 import { HttpExceptionFilter } from './common/global-filters/http-exception-filter';
 import { allLeftOverException } from './common/global-filters/all-leftover-exception-filter';
-import { SocketIOAdapter } from './chat/socket-io-adapter';
+import { SocketIOAdapter } from './common/io-adapter/socket-io-adapter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
