@@ -1,25 +1,37 @@
-import { ArgumentsHost, Catch, HttpException } from '@nestjs/common';
-import { BaseWsExceptionFilter, WsException } from '@nestjs/websockets';
+import {
+  ArgumentsHost,
+  BadRequestException,
+  Catch,
+  ExceptionFilter,
+} from '@nestjs/common';
+import {
+  WsBadRequestException,
+  WsTypeException,
+  WsUnknownException,
+} from '../custom-exception/ws-exception';
+import { SocketWithAuth } from 'src/auth/type';
 
-@Catch(WsException, HttpException)
-export class WebsocketExceptionsFilter extends BaseWsExceptionFilter {
-  catch(exception: WsException | HttpException, host: ArgumentsHost) {
-    const client = host.switchToWs().getClient() as WebSocket;
-    const data = host.switchToWs().getData();
-    const error =
-      exception instanceof WsException
-        ? exception.getError()
-        : exception.getResponse();
-    const details = error instanceof Object ? { ...error } : { message: error };
-    client.send(
-      JSON.stringify({
-        event: 'error',
-        data: {
-          id: (client as any).id,
-          rid: data.rid,
-          ...details,
-        },
-      }),
-    );
+@Catch()
+export class WsCatchAllFilter implements ExceptionFilter {
+  catch(exception: Error, host: ArgumentsHost) {
+    const socket: SocketWithAuth = host.switchToWs().getClient();
+
+    if (exception instanceof BadRequestException) {
+      const exceptionData = exception.getResponse();
+      const exceptionMessage =
+        exceptionData['message'] ?? exceptionData ?? exception.name;
+
+      const wsException = new WsBadRequestException(exceptionMessage);
+      socket.emit('exception', wsException.getError());
+      return;
+    }
+
+    if (exception instanceof WsTypeException) {
+      socket.emit('exception', exception.getError());
+      return;
+    }
+
+    const wsException = new WsUnknownException(exception.message);
+    socket.emit('exception', wsException.getError());
   }
 }
