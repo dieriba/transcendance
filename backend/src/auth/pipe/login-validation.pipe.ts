@@ -30,6 +30,6 @@ export class LoginValidation implements PipeTransform {
     if (!(await this.argon2Service.compare(user.password, body.password)))
       throw new BadRequestException('Wrong Credentials');
 
-    return { ...body, id: user.id };
+    return { ...body, id: user.id, nickname: user.nickname };
   }
 }

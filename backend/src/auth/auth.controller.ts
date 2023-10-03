@@ -46,7 +46,7 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   @ResponseMessage('Logged Out, succesfully')
-  logout(@GetUser('sub') id: string) {
+  logout(@GetUser('userId') id: string) {
     return this.authService.logout(id);
   }
 

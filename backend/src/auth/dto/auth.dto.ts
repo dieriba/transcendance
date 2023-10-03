@@ -37,6 +37,9 @@ export class LoginUserDto {
 
   @IsOptional()
   readonly id: string;
+
+  @IsOptional()
+  readonly nickname: string;
 }
 
 export class GetOAuthDto {

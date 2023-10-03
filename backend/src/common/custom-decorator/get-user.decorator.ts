@@ -1,14 +1,17 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { JwtPayloadRefreshToken } from 'src/jwt-token/jwt.type';
+import { AuthPayloadRefresh, RequestWithAuthRefresh } from 'src/auth/type';
 
 export const GetUser = createParamDecorator(
-  (
-    data: keyof JwtPayloadRefreshToken | undefined,
-    context: ExecutionContext,
-  ) => {
-    const request = context.switchToHttp().getRequest();
+  (key: keyof AuthPayloadRefresh | undefined, context: ExecutionContext) => {
+    const request: RequestWithAuthRefresh = context.switchToHttp().getRequest();
 
-    if (!data) return request.user;
-    return request.user[data];
+    if (!key)
+      return {
+        id: request.userId,
+        nickname: request.nickname,
+        email: request.email,
+        refresh_token: request.refresh_token,
+      };
+    return request[key];
   },
 );

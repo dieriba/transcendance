@@ -13,9 +13,10 @@ datasource db {
 model User {
   id String @id @default(uuid())
 
-  nickname String  @unique
-  email    String  @unique
-  password String?
+  nickname  String  @unique
+  email     String  @unique
+  password  String?
+  is_online Boolean @default(false)
 
   created_at           DateTime @default(now())
   updated_at           DateTime @updatedAt
@@ -36,7 +37,7 @@ model Profile {
   first_name String?
   last_name  String?
   fullname   String?
-  gender     Gender?
+  gender     Gender
   age        Int?
   user       User    @relation("user_profile", fields: [user_id], references: [id], onDelete: Cascade)
   user_id    String  @unique
@@ -47,6 +48,7 @@ model Chatroom {
   name             String?
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
+  number_of_user   Int              @default(0)
   users            ChatroomUser[]
   messages         Message[]
   restricted_users RestrictedUser[]
@@ -65,15 +67,16 @@ model Message {
 }
 
 model ChatroomUser {
-  user        User         @relation(fields: [user_id], references: [id])
-  user_id     String
-  chatroom    Chatroom     @relation(fields: [chatroom_id], references: [id])
-  chatroom_id String
-  created_at  DateTime     @default(now())
-  privilege   Role?
-  restriction Restriction?
+  user          User         @relation(fields: [user_nickname], references: [nickname])
+  user_nickname String
+  chatroom      Chatroom     @relation(fields: [chatroom_id], references: [id])
+  chatroom_id   String
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
+  privilege     Role?
+  restriction   Restriction?
 
-  @@unique([user_id, chatroom_id])
+  @@unique([user_nickname, chatroom_id])
 }
 
 model RestrictedUser {

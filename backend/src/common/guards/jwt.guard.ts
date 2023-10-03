@@ -7,6 +7,8 @@ import {
 import { Request } from 'express';
 import { Reflector } from '@nestjs/core';
 import { JwtTokenService } from 'src/jwt-token/jwtToken.service';
+import { JwtPayload } from 'src/jwt-token/jwt.type';
+import { RequestWithAuth } from 'src/auth/type';
 
 @Injectable()
 export class JwtAccessTokenGuard implements CanActivate {
@@ -23,17 +25,19 @@ export class JwtAccessTokenGuard implements CanActivate {
 
     if (isPublic) return true;
 
-    const request = context.switchToHttp().getRequest();
+    const request: RequestWithAuth = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
 
     if (!token) throw new UnauthorizedException();
 
-    const payload = await this.jwtTokenService.checkToken(
+    const payload: JwtPayload = await this.jwtTokenService.checkToken(
       token,
       process.env.ACCESS_TOKEN_SECRET,
     );
 
-    request['user'] = payload;
+    request.userId = payload.sub;
+    request.nickname = payload.nickname;
+    request.email = request.email;
     return true;
   }
 

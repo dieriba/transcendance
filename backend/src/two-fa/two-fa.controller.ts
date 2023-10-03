@@ -16,14 +16,14 @@ export class TwoFaController {
   } */
 
   @Post('generate')
-  async generateOtp(@GetUser('sub') id: string): Promise<OTP> {
+  async generateOtp(@GetUser('userId') id: string): Promise<OTP> {
     return await this.twoFaService.generateOtp(id);
   }
 
   @Post('validate-otp')
   @ResponseMessage('Authenticated Successfully')
   async validateOtp(
-    @GetUser('sub') id: string,
+    @GetUser('userId') id: string,
     @Body() { token }: VerifyOtpDto,
   ) {
     return await this.twoFaService.validateOtp(id, token);

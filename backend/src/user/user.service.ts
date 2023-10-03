@@ -37,6 +37,29 @@ export class UserService {
     return this.prismaService.twoFa.findUnique({ where: { id } });
   }
 
+  async findChatroomsByUserNickname(nickname: string) {
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        nickname,
+      },
+      include: {
+        chatrooms: {
+          select: {
+            chatroom: true,
+            privilege: true,
+          },
+          orderBy: {
+            created_at: 'desc',
+          },
+        },
+      },
+    });
+
+    if (!user) return null;
+
+    return user;
+  }
+
   async updateUserByEmail(email: string, user: UserModel) {
     return await this.prismaService.user.update({
       where: { email },
