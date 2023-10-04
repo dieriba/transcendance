@@ -4,7 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { useContainer } from 'class-validator';
 import { PrismaExceptionFilter } from './common/global-filters/prisma-exception.filter';
 import { HttpExceptionFilter } from './common/global-filters/http-exception-filter';
-import { allLeftOverException } from './common/global-filters/all-leftover-exception-filter';
+import { allLeftOverExceptionFilter } from './common/global-filters/all-leftover-exception-filter';
 import { SocketIOAdapter } from './common/io-adapter/socket-io-adapter';
 
 async function bootstrap() {
@@ -20,7 +20,7 @@ async function bootstrap() {
   app.useWebSocketAdapter(new SocketIOAdapter(app));
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalFilters(
-    new allLeftOverException(),
+    new allLeftOverExceptionFilter(),
     new HttpExceptionFilter(),
     new PrismaExceptionFilter(httpAdapterHost),
   );

@@ -14,14 +14,13 @@ import { JwtPayloadRefreshToken, Tokens } from 'src/jwt-token/jwt.type';
 import { JwtTokenService } from 'src/jwt-token/jwtToken.service';
 import { UserService } from 'src/user/user.service';
 import { CustomException } from 'src/common/custom-exception/custom-exception';
-import {
-  INTERNAL_SERVER_ERROR,
-  RESSOURCE_NOT_FOUND,
-  FORBIDDEN,
-} from 'src/common/constant/constant';
 import { Argon2Service } from 'src/argon2/argon2.service';
 import { ApiUser, Profile } from 'src/user/types/user.types';
-import { PrismaService } from 'src/prisma/prisma.service';
+import {
+  FORBIDDEN,
+  INTERNAL_SERVER_ERROR,
+  RESSOURCE_NOT_FOUND,
+} from 'src/common/constant/http-error.constant';
 @Injectable()
 export class AuthService {
   constructor(
@@ -29,7 +28,6 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtTokenService: JwtTokenService,
     private readonly argon2: Argon2Service,
-    private readonly prismaService: PrismaService,
   ) {}
 
   private readonly logger = new Logger(AuthService.name);

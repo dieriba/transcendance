@@ -1,4 +1,4 @@
-import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, Logger } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 import { Prisma } from '@prisma/client';
 
@@ -11,6 +11,9 @@ import { Prisma } from '@prisma/client';
 )
 export class PrismaExceptionFilter implements ExceptionFilter {
   constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
+
+  private readonly logger = new Logger(PrismaExceptionFilter.name);
+
   catch(
     exception:
       | Prisma.PrismaClientRustPanicError
@@ -22,6 +25,7 @@ export class PrismaExceptionFilter implements ExceptionFilter {
       | any,
     host: ArgumentsHost,
   ) {
+    this.logger.log('Excepetion catched in PrismaExceptionFilter');
     let errorMessage: string;
     let httpStatus: number;
     const ctx = host.switchToHttp();

@@ -1,4 +1,4 @@
-import { Logger, UseFilters } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -8,12 +8,10 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Socket, Namespace } from 'socket.io';
-import { WebsocketExceptionsFilter } from 'src/common/global-filters/ws-exception-filter';
 
 @WebSocketGateway({
   namespace: 'chats',
 })
-@UseFilters(WebsocketExceptionsFilter)
 export class ChatGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {

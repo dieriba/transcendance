@@ -4,9 +4,9 @@ import {
   ArgumentMetadata,
   BadRequestException,
 } from '@nestjs/common';
-import { LoginUserDto } from '../dto';
 import { Argon2Service } from 'src/argon2/argon2.service';
 import { UserService } from 'src/user/user.service';
+import { LoginUserDto } from '../dto/auth.dto';
 
 @Injectable()
 export class LoginValidation implements PipeTransform {

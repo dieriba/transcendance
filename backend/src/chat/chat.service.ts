@@ -3,9 +3,9 @@ import { UserService } from './../user/user.service';
 import { ChatRoomDto } from './dto/chatroom.dto';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { INTERNAL_SERVER_ERROR } from 'src/common/constant/constant';
 import { ChatRoomData, Message } from './types/chatroom.types';
-import { REGULAR_CHAT_USER } from 'src/common/constant/chat.constant';
+import { ROLE } from '@prisma/client';
+import { INTERNAL_SERVER_ERROR } from 'src/common/constant/http-error.constant';
 
 @Injectable()
 export class ChatService {
@@ -65,7 +65,7 @@ export class ChatService {
             user: {
               connect: { nickname },
             },
-            privilege: creator === nickname ? 'ADMIN' : 'REGULAR_USER',
+            privilege: creator === nickname ? ROLE.DIERIBA : ROLE.REGULAR_USER,
           })),
         },
         number_of_user: existingUser.length,
@@ -96,7 +96,7 @@ export class ChatService {
             create: {
               user_nickname: nickname,
               chatroom_id: chatroom_id,
-              privilege: REGULAR_CHAT_USER,
+              privilege: ROLE.REGULAR_USER,
             },
           }),
         ),

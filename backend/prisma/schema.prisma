@@ -13,10 +13,10 @@ datasource db {
 model User {
   id String @id @default(uuid())
 
-  nickname  String  @unique
-  email     String  @unique
-  password  String?
-  is_online Boolean @default(false)
+  nickname String  @unique
+  email    String  @unique
+  password String?
+  status   STATUS  @default(OFFLINE)
 
   created_at           DateTime @default(now())
   updated_at           DateTime @updatedAt
@@ -37,7 +37,7 @@ model Profile {
   first_name String?
   last_name  String?
   fullname   String?
-  gender     Gender
+  gender     Gender?
   age        Int?
   user       User    @relation("user_profile", fields: [user_id], references: [id], onDelete: Cascade)
   user_id    String  @unique
@@ -46,6 +46,8 @@ model Profile {
 model Chatroom {
   id               String           @id @default(uuid())
   name             String?
+  password         String?
+  type             TYPE?
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
   number_of_user   Int              @default(0)
@@ -73,8 +75,8 @@ model ChatroomUser {
   chatroom_id   String
   created_at    DateTime     @default(now())
   updated_at    DateTime     @updatedAt
-  privilege     Role?
-  restriction   Restriction?
+  privilege     ROLE?
+  restriction   RESTRICTION?
 
   @@unique([user_nickname, chatroom_id])
 }
@@ -85,7 +87,7 @@ model RestrictedUser {
   chatroom    Chatroom     @relation(fields: [chatroom_id], references: [id])
   chatroom_id String
   created_at  DateTime     @default(now())
-  restriction Restriction?
+  restriction RESTRICTION?
 
   @@unique([user_id, chatroom_id])
 }
@@ -115,12 +117,25 @@ enum Gender {
   HORSE
 }
 
-enum Role {
-  ADMIN
+enum ROLE {
+  DIERIBA
+  CHAT_ADMIN
   MODERATOR
   REGULAR_USER
 }
 
-enum Restriction {
+enum RESTRICTION {
   MUTED
+}
+
+enum STATUS {
+  ONLINE
+  OFFLINE
+  PLAYING
+}
+
+enum TYPE {
+  PUBLIC
+  PRIVATE
+  PROTECTED
 }

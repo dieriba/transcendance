@@ -2,9 +2,9 @@ import { HttpStatus, Injectable, Logger, PipeTransform } from '@nestjs/common';
 import { UserService } from 'src/user/user.service';
 import { RequestWithAuth } from 'src/auth/type';
 import { CustomException } from 'src/common/custom-exception/custom-exception';
-import { CHAT_ADMIN } from 'src/common/constant/chat.constant';
 import { ChatService } from '../chat.service';
-import { BAD_REQUEST } from 'src/common/constant/constant';
+import { ROLE } from '@prisma/client';
+import { BAD_REQUEST } from 'src/common/constant/http-error.constant';
 
 @Injectable()
 export class CheckUserPrivileges implements PipeTransform {
@@ -42,7 +42,7 @@ export class CheckUserPrivileges implements PipeTransform {
         HttpStatus.NOT_FOUND,
       );
 
-    if (chatroom.privilege !== CHAT_ADMIN)
+    if (chatroom.privilege !== ROLE.DIERIBA)
       throw new CustomException(
         `You have no right to perform the requested action in the groupe named ${chatroom.chatroom.name}`,
         HttpStatus.FORBIDDEN,

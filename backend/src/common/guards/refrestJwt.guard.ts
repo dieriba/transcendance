@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { CustomException } from '../custom-exception/custom-exception';
-import { UNAUTHORIZED } from '../constant/constant';
+import { UNAUTHORIZED } from '../constant/http-error.constant';
 import { JwtPayload } from 'src/jwt-token/jwt.type';
 import { RequestWithAuthRefresh } from 'src/auth/type';
 

@@ -25,11 +25,11 @@ export class ResponseMessageInterceptor<T>
     return next.handle().pipe(
       map((data) => ({
         message:
-          this.reflector.get<string>(
+          (this.reflector.get<string>(
             'response_message',
             context.getHandler(),
           ) ||
-          data.message ||
+            data?.message) ??
           '',
         statusCode: context.switchToHttp().getResponse().statusCode,
         data,
