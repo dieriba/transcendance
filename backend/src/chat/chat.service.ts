@@ -1,26 +1,32 @@
 import { CustomException } from 'src/common/custom-exception/custom-exception';
 import { UserService } from './../user/user.service';
-import { ChatRoomDto } from './dto/chatroom.dto';
+import {
+  ChatRoomDto,
+  ChatroomMessageDto,
+  JoinChatroomDto,
+} from './dto/chatroom.dto';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ChatRoomData, Message } from './types/chatroom.types';
-import { ROLE } from '@prisma/client';
+import { ROLE, TYPE } from '@prisma/client';
 import { INTERNAL_SERVER_ERROR } from 'src/common/constant/http-error.constant';
+import { Argon2Service } from 'src/argon2/argon2.service';
 
 @Injectable()
 export class ChatService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly userService: UserService,
+    private readonly argon2Service: Argon2Service,
   ) {}
   private readonly logger = new Logger(ChatService.name);
 
-  async findAllUsersChat(nickname: string) {
+  async findAllUsersChat(userId: string) {
     try {
-      return await this.userService.findChatroomsByUserNickname(nickname);
+      return await this.userService.findUsersAndHisChatroom(userId);
     } catch (error) {
       this.logger.error(
-        `An error occured while trying to fetch all ${nickname}'s chats`,
+        `An error occured while trying to fetch all user's chats`,
       );
       throw new CustomException(
         INTERNAL_SERVER_ERROR,
@@ -29,26 +35,28 @@ export class ChatService {
     }
   }
 
-  async createChatRoom(creator: string, { chatroomName, users }: ChatRoomDto) {
-    const user = this.userService.findUserByNickName(creator);
+  async createChatRoom(creatorId: string, chatroomDto: ChatRoomDto) {
+    const { users, ...chatroom } = chatroomDto;
+    const { chatroomName } = chatroom;
+    const user = this.userService.findUserById(creatorId);
 
     if (!user)
       throw new CustomException('User Not found', HttpStatus.NOT_FOUND);
 
     this.logger.log(
-      `Attempting to create the chatroom: ${chatroomName} where ${creator} will be the admin`,
+      `Attempting to create the chatroom: ${chatroomName} where ${creatorId} will be the admin`,
     );
 
-    let existingUser = await this.getExistingUsers(users);
+    let existingUserId = await this.getExistingUsers(users);
 
-    existingUser = existingUser.filter((nickname) => nickname !== creator);
+    existingUserId = Array.from(new Set(existingUserId));
 
-    existingUser.push(creator);
+    existingUserId.push(creatorId);
 
-    this.logger.log(existingUser);
+    this.logger.log(existingUserId);
 
     const chatRoom = await this.prismaService.chatroom.findFirst({
-      where: { name: chatroomName },
+      where: { chatroomName },
     });
 
     if (chatRoom)
@@ -59,16 +67,16 @@ export class ChatService {
 
     const newChatroom = await this.prismaService.chatroom.create({
       data: {
-        name: chatroomName,
+        ...chatroom,
         users: {
-          create: existingUser.map((nickname) => ({
+          create: existingUserId.map((userId) => ({
             user: {
-              connect: { nickname },
+              connect: { id: userId },
             },
-            privilege: creator === nickname ? ROLE.DIERIBA : ROLE.REGULAR_USER,
+            privilege: creatorId === userId ? ROLE.DIERIBA : ROLE.REGULAR_USER,
           })),
         },
-        number_of_user: existingUser.length,
+        numberOfUser: existingUserId.length,
       },
       include: {
         users: true,
@@ -80,29 +88,29 @@ export class ChatService {
   }
 
   async addNewUserToChatroom(chatRoomData: ChatRoomData) {
-    const { users, chatroom_id } = chatRoomData;
-
+    const { users, chatroomId } = chatRoomData;
+    this.logger.log(chatroomId);
     try {
       const newUsers = await this.prismaService.$transaction(
-        users.map((nickname) =>
+        users.map((userId) =>
           this.prismaService.chatroomUser.upsert({
             where: {
-              user_nickname_chatroom_id: {
-                user_nickname: nickname,
-                chatroom_id: chatroom_id,
+              userId_chatroomId: {
+                userId,
+                chatroomId,
               },
             },
             update: {},
             create: {
-              user_nickname: nickname,
-              chatroom_id: chatroom_id,
-              privilege: ROLE.REGULAR_USER,
+              userId,
+              chatroomId,
             },
           }),
         ),
       );
       return newUsers;
     } catch (error) {
+      this.logger.error(error);
       throw new CustomException(
         INTERNAL_SERVER_ERROR,
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -110,8 +118,45 @@ export class ChatService {
     }
   }
 
+  async joinChatroom(id: string, joinChatroomDto: JoinChatroomDto) {
+    const chatroom = await this.userService.findChatroom(
+      joinChatroomDto.chatroomId,
+    );
+
+    if (!chatroom) {
+      throw new CustomException(
+        "Can't join a chatroom that does not exists",
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const users = chatroom.users;
+
+    const foundUser = users.find((user) => user.userId === id);
+
+    if (!foundUser)
+      throw new CustomException(
+        "You can't join this chatroom, you're either not part of the chatroom or it is private",
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    if (chatroom.type === TYPE.PROTECTED) {
+      const match = await this.argon2Service.compare(
+        joinChatroomDto.roomPassword,
+        chatroom.password,
+      );
+      if (!match)
+        throw new CustomException(
+          "Wrong password, you can't acces that chatroom",
+          HttpStatus.UNAUTHORIZED,
+        );
+    }
+
+    return chatroom;
+  }
+
   async deleteUserFromChatromm(chatroomData: ChatRoomData) {
-    const { users, chatroom_id, nickname } = chatroomData;
+    const { users, chatroomId, nickname } = chatroomData;
 
     const creator = users.find((userNickname) => userNickname == nickname);
 
@@ -123,8 +168,8 @@ export class ChatService {
 
     const deletedUsers = await this.prismaService.chatroomUser.deleteMany({
       where: {
-        chatroom_id,
-        user_nickname: {
+        chatroomId: chatroomId,
+        userId: {
           in: users,
         },
       },
@@ -133,30 +178,127 @@ export class ChatService {
     return deletedUsers;
   }
 
-  async sendPrivateMessage({ sender, receiver, content }: Message) {}
+  async sendMessageToChatroom({
+    chatroomId,
+    senderId,
+    content,
+  }: ChatroomMessageDto) {
+    try {
+      const updatedChatrooms = await this.prismaService.chatroom.update({
+        where: {
+          id: chatroomId,
+        },
+        data: {
+          messages: {
+            create: {
+              content: content,
+              imageUrl: null,
+              userId: senderId,
+            },
+          },
+        },
+      });
 
-  async sendGroupMessage() {}
+      return updatedChatrooms;
+    } catch (error) {
+      throw new CustomException(
+        INTERNAL_SERVER_ERROR,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 
-  async getExistingUsers(usernames: string[]): Promise<string[]> {
+  async sendDmToPenfriend(message: Message) {
+    const chatroom = await this.userService.findChatroomUserDm(
+      message.senderId,
+      message.receiverId,
+    );
+
+    try {
+      if (!chatroom) return await this.createChatroomDm(message);
+
+      return await this.prismaService.chatroom.update({
+        where: {
+          id: chatroom.chatroomId,
+        },
+        data: {
+          messages: {
+            create: {
+              content: message.content,
+              imageUrl: null,
+              user: {
+                connect: {
+                  id: message.senderId,
+                },
+              },
+            },
+          },
+        },
+      });
+    } catch (error) {
+      throw new CustomException(
+        INTERNAL_SERVER_ERROR,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async getExistingUsers(usersId: string[]): Promise<string[]> {
+    console.log({ usersId });
+
     const foundUsers = await this.prismaService.user.findMany({
       where: {
-        nickname: {
-          in: usernames,
+        id: {
+          in: usersId,
         },
       },
       select: {
         nickname: true,
       },
     });
+    console.log({ foundUsers });
 
     return foundUsers.map((user) => user.nickname);
   }
 
-  private async getNonExistingUsers(usernames: string[]): Promise<string[]> {
+  private async createChatroomDm({ senderId, receiverId, content }: Message) {
+    return await this.prismaService.chatroom.create({
+      data: {
+        type: TYPE.DM,
+        users: {
+          create: [
+            {
+              userId: senderId,
+              penFriend: receiverId,
+            },
+            {
+              userId: receiverId,
+              penFriend: senderId,
+            },
+          ],
+        },
+        messages: {
+          create: [
+            {
+              content: content,
+              imageUrl: null,
+              user: {
+                connect: {
+                  id: senderId,
+                },
+              },
+            },
+          ],
+        },
+      },
+    });
+  }
+
+  private async getNonExistingUsers(usersId: string[]): Promise<string[]> {
     const foundUsers = await this.prismaService.user.findMany({
       where: {
         nickname: {
-          notIn: usernames,
+          notIn: usersId,
         },
       },
       select: {

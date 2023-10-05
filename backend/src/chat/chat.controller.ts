@@ -1,25 +1,40 @@
 import { Controller, Post, Get, Body, Put, Delete } from '@nestjs/common';
 import { GetUser } from 'src/common/custom-decorator/get-user.decorator';
-import { ChatRoomDto } from './dto/chatroom.dto';
+import {
+  ChatRoomDto,
+  ChatroomMessageDto,
+  DmMessageDto,
+  JoinChatroomDto,
+} from './dto/chatroom.dto';
 import { ChatService } from './chat.service';
 import { ReqDec } from 'src/common/custom-decorator/get-header.decorator';
-import { CheckUserPrivileges } from './pipes/checkPrivileges.pipes';
+import { CheckUserPrivileges } from './pipes/check-privileges.pipe';
 import { ChatRoomData } from './types/chatroom.types';
+import { CheckGroupCreationValidity } from './pipes/check-group-creation-validity.pipe';
+import { IsExistingUserAndGroup } from './pipes/is-existing-goup.pipe';
 
 @Controller('chat')
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
   @Post()
   async createChatRoom(
-    @GetUser('nickname') nickname: string,
-    @Body() chatRoomDto: ChatRoomDto,
+    @Body(CheckGroupCreationValidity) chatRoomDto: ChatRoomDto,
+    @GetUser('userId') userId: string,
   ) {
-    return await this.chatService.createChatRoom(nickname, chatRoomDto);
+    return await this.chatService.createChatRoom(userId, chatRoomDto);
+  }
+
+  @Post()
+  async joinChatroom(
+    @GetUser('userId') id: string,
+    joinChatroomDto: JoinChatroomDto,
+  ) {
+    return await this.chatService.joinChatroom(id, joinChatroomDto);
   }
 
   @Get()
-  async findAllUserChats(@GetUser('nickname') nickname: string) {
-    return await this.chatService.findAllUsersChat(nickname);
+  async findAllUserChats(@GetUser('userId') userId: string) {
+    return await this.chatService.findAllUsersChat(userId);
   }
 
   @Put()
@@ -32,5 +47,17 @@ export class ChatController {
     @ReqDec(CheckUserPrivileges) body: ChatRoomData,
   ) {
     return await this.chatService.deleteUserFromChatromm(body);
+  }
+
+  @Post()
+  async sendDmToPenfriend(@Body() dmMessageDto: DmMessageDto) {
+    return await this.chatService.sendDmToPenfriend(dmMessageDto);
+  }
+
+  @Post()
+  async sendMessageToChatroom(
+    @Body(IsExistingUserAndGroup) chatroomMessageDto: ChatroomMessageDto,
+  ) {
+    return await this.chatService.sendMessageToChatroom(chatroomMessageDto);
   }
 }

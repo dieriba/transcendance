@@ -1,6 +1,6 @@
 export class Message {
-  sender: string;
-  receiver: string;
+  senderId: string;
+  receiverId: string;
   content: string;
 }
 
@@ -9,11 +9,9 @@ export type User = {
 };
 
 export type ChatRoomData = {
-  chatroomName: string;
-
   users: string[];
 
   nickname: string;
 
-  chatroom_id: string;
+  chatroomId: string;
 };

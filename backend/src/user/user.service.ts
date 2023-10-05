@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { ApiUser, CreatedUser, Profile, TwoFa } from './types/user.types';
 import { User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserModel } from './types/user.types';
+import { CustomException } from 'src/common/custom-exception/custom-exception';
+import { INTERNAL_SERVER_ERROR } from 'src/common/constant/http-error.constant';
 
 @Injectable()
 export class UserService {
@@ -11,7 +13,7 @@ export class UserService {
   async createUser(user: CreatedUser) {
     return await this.prismaService.user.create({
       data: { ...user },
-      select: { id: true, nickname: true, email: true, created_at: true },
+      select: { id: true, nickname: true, email: true, createdAt: true },
     });
   }
 
@@ -37,6 +39,27 @@ export class UserService {
     return this.prismaService.twoFa.findUnique({ where: { id } });
   }
 
+  async findChatroomUserDm(senderId: string, receiverId: string) {
+    try {
+      const chatroom = await this.prismaService.chatroomUser.findFirst({
+        where: {
+          userId: senderId,
+          penFriend: receiverId,
+        },
+        include: {
+          chatroom: true,
+        },
+      });
+
+      return chatroom;
+    } catch (error) {
+      throw new CustomException(
+        INTERNAL_SERVER_ERROR,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async findChatroomsByUserNickname(nickname: string) {
     const user = await this.prismaService.user.findUnique({
       where: {
@@ -49,7 +72,7 @@ export class UserService {
             privilege: true,
           },
           orderBy: {
-            created_at: 'desc',
+            createdAt: 'desc',
           },
         },
       },
@@ -60,13 +83,50 @@ export class UserService {
     return user;
   }
 
+  async findChatroom(chatroomId: string) {
+    return await this.prismaService.chatroom.findFirst({
+      where: { id: chatroomId },
+      select: {
+        id: true,
+        chatroomName: true,
+        type: true,
+        numberOfUser: true,
+        users: true,
+        messages: true,
+        invitedUser: true,
+        password: true,
+      },
+    });
+  }
+
+  async findUsersAndHisChatroom(userId: string) {
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        id: userId,
+      },
+      include: {
+        chatrooms: {
+          select: {
+            chatroom: true,
+            privilege: true,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+      },
+    });
+
+    return user;
+  }
+
   async updateUserByEmail(email: string, user: UserModel) {
     return await this.prismaService.user.update({
       where: { email },
       data: {
         email: user.email || undefined,
         nickname: user.nickname || undefined,
-        hashed_refresh_token: user.hashed_refresh_token || undefined,
+        hashedRefreshToken: user.hashedRefreshToken || undefined,
         password: user.password || undefined,
       },
     });
@@ -78,7 +138,7 @@ export class UserService {
       data: {
         email: update.email || undefined,
         nickname: update.nickname || undefined,
-        hashed_refresh_token: update.hashed_refresh_token || undefined,
+        hashedRefreshToken: update.hashedRefreshToken || undefined,
         password: update.password || undefined,
       },
     });
@@ -86,7 +146,7 @@ export class UserService {
 
   async updateUser2fa(id: string, twofa: TwoFa) {
     return await this.prismaService.twoFa.update({
-      where: { user_id: id },
+      where: { userId: id },
       data: { ...twofa },
     });
   }
@@ -107,8 +167,8 @@ export class UserService {
 
   async clearHashedToken(id: string) {
     await this.prismaService.user.update({
-      where: { id, hashed_refresh_token: { not: null } },
-      data: { hashed_refresh_token: null },
+      where: { id, hashedRefreshToken: { not: null } },
+      data: { hashedRefreshToken: null },
     });
   }
 }

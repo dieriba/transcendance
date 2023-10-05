@@ -55,7 +55,6 @@ const createTokenMiddleware =
       );
       socket.userId = payload.sub;
       socket.email = payload.email;
-      socket.nickname = payload.nickname;
       next();
     } catch {
       next(new WsException('Unauthorized'));

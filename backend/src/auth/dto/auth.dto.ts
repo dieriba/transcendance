@@ -7,7 +7,7 @@ import {
   IsNotEmpty,
   IsOptional,
 } from 'class-validator';
-import { Match } from '../../validation-decorator/match.decorator';
+import { Match } from '../../common/validation-decorator/match.decorator';
 
 export class RegisterUserDto {
   @IsString()

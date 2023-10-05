@@ -30,13 +30,12 @@ export class JwtRefreshTokenGuard implements CanActivate {
       // 💡 We're assigning the payload to the request object here
       // so that we can access it in our route handlers
       request.userId = payload.sub;
-      request.nickname = payload.nickname;
       request.email = request.email;
       request.refresh_token = refresh_token;
+      return true;
     } catch {
       throw new CustomException(UNAUTHORIZED, HttpStatus.UNAUTHORIZED);
     }
-    return true;
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {

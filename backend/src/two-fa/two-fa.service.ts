@@ -24,13 +24,13 @@ export class TwoFaService {
 
     if (!user) throw new UnauthorizedException('Activa 2fa first!');
 
-    const otp_secret = this.libService.generateRandomSecretInBase32();
+    const otpSecret = this.libService.generateRandomSecretInBase32();
 
-    const totp: OTPAuth.TOTP = this.generateNewTotpObject(otp_secret);
+    const totp: OTPAuth.TOTP = this.generateNewTotpObject(otpSecret);
 
-    const otp_auth_url = totp.toString();
+    const otpAuthUrl = totp.toString();
 
-    const otp: OTP = { otp_secret, otp_auth_url };
+    const otp: OTP = { otpSecret, otpAuthUrl };
 
     await this.userService.updateUser2fa(user.id, otp);
 
@@ -46,17 +46,17 @@ export class TwoFaService {
 
     if (!userTwoFa) throw new UnauthorizedException('Activa 2fa first!');
 
-    if (userTwoFa.otp_secret === null)
+    if (userTwoFa.otpSecret === null)
       throw new BadRequestException('Missing secret');
 
-    const totp: OTPAuth.TOTP = this.generateNewTotpObject(userTwoFa.otp_secret);
+    const totp: OTPAuth.TOTP = this.generateNewTotpObject(userTwoFa.otpSecret);
 
     const delta = totp.validate({ token });
 
     if (delta === null) throw new BadRequestException('Invalid token');
 
     await this.userService.updateUser2fa(id, {
-      otp_validated: true,
+      otpValidated: true,
     });
     return { otp_validated: true };
   }

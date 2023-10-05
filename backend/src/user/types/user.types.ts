@@ -1,15 +1,15 @@
 export type TwoFa = {
-  otp_secret?: string;
-  otp_auth_url?: string;
+  otpSecret?: string;
+  otpAuth_url?: string;
 
-  otp_enabled?: boolean;
-  otp_validated?: boolean;
+  otpEnabled?: boolean;
+  otpValidated?: boolean;
 };
 
 export type Profile = {
   avatar?: string;
-  first_name?: string;
-  last_name?: string;
+  firstName?: string;
+  lastName?: string;
   fullname?: string;
 };
 
@@ -28,5 +28,5 @@ export type UserModel = {
   nickname?: string;
   email?: string;
   password?: string;
-  hashed_refresh_token?: string;
+  hashedRefreshToken?: string;
 };

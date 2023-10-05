@@ -14,43 +14,45 @@ export class CheckUserPrivileges implements PipeTransform {
   ) {}
   private readonly logger = new Logger(CheckUserPrivileges.name);
   async transform(request: RequestWithAuth) {
-    const { nickname } = request;
-    const { chatroomName, users } = request.body;
+    const { userId } = request;
+    const { chatroomId } = request.body;
 
-    if (!Array.isArray(users))
+    if (!Array.isArray(request.body.users))
       throw new CustomException(BAD_REQUEST, HttpStatus.BAD_REQUEST);
 
-    if (typeof chatroomName !== 'string' || chatroomName.length === 0)
+    if (typeof chatroomId !== 'string' || chatroomId.length === 0)
       throw new CustomException(BAD_REQUEST, HttpStatus.BAD_REQUEST);
 
-    const user = await this.userService.findChatroomsByUserNickname(nickname);
+    const user = await this.userService.findUsersAndHisChatroom(userId);
 
     if (!user)
-      throw new CustomException(
-        `The nickname ${nickname} does not exists`,
-        HttpStatus.NOT_FOUND,
-      );
+      throw new CustomException('User not found', HttpStatus.NOT_FOUND);
 
+    /*A modifier*/
     const chatroom = user.chatrooms.find((chatroom) => {
-      const { name } = chatroom.chatroom;
-      return name === chatroomName;
+      return chatroom.chatroom.id === chatroomId;
     });
 
     if (chatroom === undefined)
       throw new CustomException(
-        `The chatroom ${chatroomName} does not exists`,
+        'The chatroom does not exists or user is not part of it',
         HttpStatus.NOT_FOUND,
       );
 
     if (chatroom.privilege !== ROLE.DIERIBA)
       throw new CustomException(
-        `You have no right to perform the requested action in the groupe named ${chatroom.chatroom.name}`,
+        `You have no right to perform the requested action in the groupe named ${chatroom.chatroom.chatroomName}`,
         HttpStatus.FORBIDDEN,
       );
 
-    if (request.method !== 'DELETE') {
-      const foundUsers = await this.chatService.getExistingUsers(users);
+    request.body.users = Array.from(new Set(request.body.users));
 
+    if (request.method !== 'DELETE') {
+      const { users } = request.body;
+      const foundUsers = await this.chatService.getExistingUsers(
+        request.body.users,
+      );
+      this.logger.log({ users, foundUsers });
       this.logger.log(
         `Base length: ${users.length} and foundUser Length ${foundUsers.length}`,
       );
@@ -59,8 +61,8 @@ export class CheckUserPrivileges implements PipeTransform {
         throw new CustomException(BAD_REQUEST, HttpStatus.BAD_REQUEST);
     }
 
-    request.body.nickname = nickname;
-    request.body.chatroom_id = chatroom.chatroom.id;
+    request.body.chatroomId = chatroom.chatroom.id;
+    request.body.nickname = user.nickname;
 
     return request.body;
   }
