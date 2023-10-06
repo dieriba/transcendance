@@ -6,9 +6,9 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import * as OTPAuth from 'otpauth';
-import { OTP } from './two-fa.types';
-import { User } from '@prisma/client';
+import { OTP } from './types/two-fa.types';
 import { UserService } from 'src/user/user.service';
+import { UserData, UserTwoFa } from 'src/common/types/user-info.type';
 
 @Injectable()
 export class TwoFaService {
@@ -18,7 +18,7 @@ export class TwoFaService {
   ) {}
 
   async generateOtp(id: string): Promise<OTP> {
-    const user: User = await this.userService.findUserById(id);
+    const user = await this.userService.findUserById(id, UserData);
 
     if (!user) throw new NotFoundException('User not found');
 
@@ -38,18 +38,16 @@ export class TwoFaService {
   }
 
   async validateOtp(id: string, token: string) {
-    const user = await this.userService.findUserById(id);
+    const user = await this.userService.findUserById(id, UserTwoFa);
 
     if (!user) throw new NotFoundException('User not found');
 
-    const userTwoFa = await this.userService.findUserTwoFaById(id);
+    if (!user.twoFa) throw new UnauthorizedException('Activa 2fa first!');
 
-    if (!userTwoFa) throw new UnauthorizedException('Activa 2fa first!');
-
-    if (userTwoFa.otpSecret === null)
+    if (user.twoFa.otpSecret === null)
       throw new BadRequestException('Missing secret');
 
-    const totp: OTPAuth.TOTP = this.generateNewTotpObject(userTwoFa.otpSecret);
+    const totp: OTPAuth.TOTP = this.generateNewTotpObject(user.twoFa.otpSecret);
 
     const delta = totp.validate({ token });
 

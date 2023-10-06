@@ -35,7 +35,7 @@ export class SocketIOAdapter extends IoAdapter {
     const server: Server = super.createIOServer(port, optionsWithCORS);
 
     server.of('chats').use(createTokenMiddleware(jwtService, this.logger));
-
+    server.of('friends').use(createTokenMiddleware(jwtService, this.logger));
     return server;
   }
 }

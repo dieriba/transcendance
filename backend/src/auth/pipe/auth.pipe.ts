@@ -4,6 +4,7 @@ import {
   Injectable,
   PipeTransform,
 } from '@nestjs/common';
+import { UserData } from 'src/common/types/user-info.type';
 import { CreatedUser } from 'src/user/types/user.types';
 import { UserService } from 'src/user/user.service';
 
@@ -17,7 +18,7 @@ export class CheckEmailNicknameValidity implements PipeTransform {
       if (await this.userService.findUserByEmail(email))
         throw new BadRequestException(`Email ${email} is already taken`);
 
-      if (await this.userService.findUserByNickName(nickname))
+      if (await this.userService.findUserByNickName(nickname, UserData))
         throw new BadRequestException(`Nickname ${nickname} is already taken`);
 
       const endEmail = email.endsWith('42.fr');

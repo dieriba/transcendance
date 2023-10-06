@@ -11,6 +11,11 @@ import { ChatRoomData, Message } from './types/chatroom.types';
 import { ROLE, TYPE } from '@prisma/client';
 import { INTERNAL_SERVER_ERROR } from 'src/common/constant/http-error.constant';
 import { Argon2Service } from 'src/argon2/argon2.service';
+import { UserData } from 'src/common/types/user-info.type';
+import {
+  ChatroomUserBaseData,
+  ChatroomUserInfo,
+} from 'src/common/types/chatroom-user-type';
 
 @Injectable()
 export class ChatService {
@@ -23,7 +28,10 @@ export class ChatService {
 
   async findAllUsersChat(userId: string) {
     try {
-      return await this.userService.findUsersAndHisChatroom(userId);
+      return await this.userService.findUsersAndHisChatroom(
+        userId,
+        ChatroomUserBaseData,
+      );
     } catch (error) {
       this.logger.error(
         `An error occured while trying to fetch all user's chats`,
@@ -38,7 +46,7 @@ export class ChatService {
   async createChatRoom(creatorId: string, chatroomDto: ChatRoomDto) {
     const { users, ...chatroom } = chatroomDto;
     const { chatroomName } = chatroom;
-    const user = this.userService.findUserById(creatorId);
+    const user = this.userService.findUserById(creatorId, UserData);
 
     if (!user)
       throw new CustomException('User Not found', HttpStatus.NOT_FOUND);
@@ -208,13 +216,13 @@ export class ChatService {
     }
   }
 
-  async sendDmToPenfriend(message: Message) {
-    const chatroom = await this.userService.findChatroomUserDm(
-      message.senderId,
-      message.receiverId,
-    );
-
+  async sendDmToPenfriend(message: Message, select: ChatroomUserInfo) {
     try {
+      const chatroom = await this.userService.findChatroomUserDm(
+        message.senderId,
+        message.receiverId,
+        select,
+      );
       if (!chatroom) return await this.createChatroomDm(message);
 
       return await this.prismaService.chatroom.update({

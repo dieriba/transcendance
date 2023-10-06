@@ -12,6 +12,7 @@ import { CheckUserPrivileges } from './pipes/check-privileges.pipe';
 import { ChatRoomData } from './types/chatroom.types';
 import { CheckGroupCreationValidity } from './pipes/check-group-creation-validity.pipe';
 import { IsExistingUserAndGroup } from './pipes/is-existing-goup.pipe';
+import { ChatroomUserBaseData } from 'src/common/types/chatroom-user-type';
 
 @Controller('chat')
 export class ChatController {
@@ -51,7 +52,10 @@ export class ChatController {
 
   @Post()
   async sendDmToPenfriend(@Body() dmMessageDto: DmMessageDto) {
-    return await this.chatService.sendDmToPenfriend(dmMessageDto);
+    return await this.chatService.sendDmToPenfriend(
+      dmMessageDto,
+      ChatroomUserBaseData,
+    );
   }
 
   @Post()

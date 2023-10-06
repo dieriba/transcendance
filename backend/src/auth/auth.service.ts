@@ -21,6 +21,7 @@ import {
   INTERNAL_SERVER_ERROR,
   RESSOURCE_NOT_FOUND,
 } from 'src/common/constant/http-error.constant';
+import { UserData, UserRefreshToken } from 'src/common/types/user-info.type';
 @Injectable()
 export class AuthService {
   constructor(
@@ -74,7 +75,7 @@ export class AuthService {
   }
 
   async logout(id: string) {
-    const user = await this.userService.findUserById(id);
+    const user = await this.userService.findUserById(id, UserData);
 
     if (!user)
       throw new CustomException(RESSOURCE_NOT_FOUND, HttpStatus.NOT_FOUND);
@@ -140,7 +141,7 @@ export class AuthService {
   async refresh(payload: JwtPayloadRefreshToken): Promise<Tokens> {
     const { sub, email, refresh_token } = payload;
 
-    const user = await this.userService.findUserById(sub);
+    const user = await this.userService.findUserById(sub, UserRefreshToken);
 
     if (!user)
       throw new CustomException(RESSOURCE_NOT_FOUND, HttpStatus.NOT_FOUND);

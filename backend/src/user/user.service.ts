@@ -1,10 +1,10 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ApiUser, CreatedUser, Profile, TwoFa } from './types/user.types';
 import { User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserModel } from './types/user.types';
-import { CustomException } from 'src/common/custom-exception/custom-exception';
-import { INTERNAL_SERVER_ERROR } from 'src/common/constant/http-error.constant';
+import { UserInfo } from 'src/common/types/user-info.type';
+import { ChatroomUserInfo } from 'src/common/types/chatroom-user-type';
 
 @Injectable()
 export class UserService {
@@ -21,66 +21,46 @@ export class UserService {
     return await this.prismaService.user.findUnique({ where: { email } });
   }
 
-  async findUserByNickName(nickname: string) {
-    return await this.prismaService.user.findUnique({ where: { nickname } });
+  async findUserByNickName(nickname: string, select: UserInfo) {
+    return await this.prismaService.user.findUnique({
+      where: { nickname },
+      select: { ...select },
+    });
   }
 
-  async findUserById(id: string) {
-    return await this.prismaService.user.findUnique({ where: { id } });
-  }
-
-  async findUserByEmailOrNickName(value: string, field: string) {
-    if (field === 'email') return this.findUserByEmail(field);
-
-    return this.findUserByNickName(field);
-  }
-
-  async findUserTwoFaById(id: string) {
-    return this.prismaService.twoFa.findUnique({ where: { id } });
-  }
-
-  async findChatroomUserDm(senderId: string, receiverId: string) {
-    try {
-      const chatroom = await this.prismaService.chatroomUser.findFirst({
-        where: {
-          userId: senderId,
-          penFriend: receiverId,
-        },
-        include: {
-          chatroom: true,
-        },
-      });
-
-      return chatroom;
-    } catch (error) {
-      throw new CustomException(
-        INTERNAL_SERVER_ERROR,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  async findChatroomsByUserNickname(nickname: string) {
-    const user = await this.prismaService.user.findUnique({
-      where: {
-        nickname,
+  async findUserById(id: string, select: UserInfo) {
+    return await this.prismaService.user.findUnique({
+      where: { id },
+      select: {
+        ...select,
       },
-      include: {
-        chatrooms: {
-          select: {
-            chatroom: true,
-            privilege: true,
+    });
+  }
+
+  async findChatroomUserDm(
+    senderId: string,
+    receiverId: string,
+    select: ChatroomUserInfo,
+  ) {
+    const chatroom = await this.prismaService.chatroomUser.findFirst({
+      where: {
+        OR: [
+          {
+            userId: senderId,
+            penFriend: receiverId,
           },
-          orderBy: {
-            createdAt: 'desc',
+          {
+            userId: receiverId,
+            penFriend: senderId,
           },
-        },
+        ],
+      },
+      select: {
+        ...select,
       },
     });
 
-    if (!user) return null;
-
-    return user;
+    return chatroom;
   }
 
   async findChatroom(chatroomId: string) {
@@ -99,7 +79,7 @@ export class UserService {
     });
   }
 
-  async findUsersAndHisChatroom(userId: string) {
+  async findUsersAndHisChatroom(userId: string, select: ChatroomUserInfo) {
     const user = await this.prismaService.user.findUnique({
       where: {
         id: userId,
@@ -107,8 +87,7 @@ export class UserService {
       include: {
         chatrooms: {
           select: {
-            chatroom: true,
-            privilege: true,
+            ...select,
           },
           orderBy: {
             createdAt: 'desc',

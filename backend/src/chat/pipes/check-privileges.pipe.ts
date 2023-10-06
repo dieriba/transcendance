@@ -5,6 +5,7 @@ import { CustomException } from 'src/common/custom-exception/custom-exception';
 import { ChatService } from '../chat.service';
 import { ROLE } from '@prisma/client';
 import { BAD_REQUEST } from 'src/common/constant/http-error.constant';
+import { ChatroomUserBaseData } from 'src/common/types/chatroom-user-type';
 
 @Injectable()
 export class CheckUserPrivileges implements PipeTransform {
@@ -23,7 +24,10 @@ export class CheckUserPrivileges implements PipeTransform {
     if (typeof chatroomId !== 'string' || chatroomId.length === 0)
       throw new CustomException(BAD_REQUEST, HttpStatus.BAD_REQUEST);
 
-    const user = await this.userService.findUsersAndHisChatroom(userId);
+    const user = await this.userService.findUsersAndHisChatroom(
+      userId,
+      ChatroomUserBaseData,
+    );
 
     if (!user)
       throw new CustomException('User not found', HttpStatus.NOT_FOUND);
