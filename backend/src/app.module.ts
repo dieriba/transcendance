@@ -12,6 +12,8 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { JwtAccessTokenGuard } from './common/guards/jwt.guard';
 import { ChatModule } from './chat/chat.module';
 import { FriendsModule } from './friends/friends.module';
+import { ChatroomModule } from './chatroom/chatroom.module';
+import { ChatroomUserModule } from './chatroom-user/chatroom-user.module';
 
 @Module({
   imports: [
@@ -25,6 +27,8 @@ import { FriendsModule } from './friends/friends.module';
     TwoFaModule,
     ChatModule,
     FriendsModule,
+    ChatroomModule,
+    ChatroomUserModule,
   ],
   providers: [
     {

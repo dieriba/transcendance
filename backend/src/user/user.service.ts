@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { ApiUser, CreatedUser, Profile, TwoFa } from './types/user.types';
-import { User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserModel } from './types/user.types';
 import { UserInfo } from 'src/common/types/user-info.type';
@@ -10,10 +9,10 @@ import { ChatroomUserInfo } from 'src/common/types/chatroom-user-type';
 export class UserService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async createUser(user: CreatedUser) {
+  async createUser(user: CreatedUser, select: UserInfo) {
     return await this.prismaService.user.create({
       data: { ...user },
-      select: { id: true, nickname: true, email: true, createdAt: true },
+      select,
     });
   }
 
@@ -24,58 +23,14 @@ export class UserService {
   async findUserByNickName(nickname: string, select: UserInfo) {
     return await this.prismaService.user.findUnique({
       where: { nickname },
-      select: { ...select },
+      select,
     });
   }
 
   async findUserById(id: string, select: UserInfo) {
     return await this.prismaService.user.findUnique({
       where: { id },
-      select: {
-        ...select,
-      },
-    });
-  }
-
-  async findChatroomUserDm(
-    senderId: string,
-    receiverId: string,
-    select: ChatroomUserInfo,
-  ) {
-    const chatroom = await this.prismaService.chatroomUser.findFirst({
-      where: {
-        OR: [
-          {
-            userId: senderId,
-            penFriend: receiverId,
-          },
-          {
-            userId: receiverId,
-            penFriend: senderId,
-          },
-        ],
-      },
-      select: {
-        ...select,
-      },
-    });
-
-    return chatroom;
-  }
-
-  async findChatroom(chatroomId: string) {
-    return await this.prismaService.chatroom.findFirst({
-      where: { id: chatroomId },
-      select: {
-        id: true,
-        chatroomName: true,
-        type: true,
-        numberOfUser: true,
-        users: true,
-        messages: true,
-        invitedUser: true,
-        password: true,
-      },
+      select,
     });
   }
 
@@ -86,9 +41,7 @@ export class UserService {
       },
       include: {
         chatrooms: {
-          select: {
-            ...select,
-          },
+          select,
           orderBy: {
             createdAt: 'desc',
           },
@@ -130,7 +83,11 @@ export class UserService {
     });
   }
 
-  async createOrReturn42User(user: ApiUser, profile: Profile): Promise<User> {
+  async createOrReturn42User(
+    user: ApiUser,
+    profile: Profile,
+    select: UserInfo,
+  ) {
     const foundUser = await this.prismaService.user.findUnique({
       where: { email: user.email },
     });
@@ -139,6 +96,7 @@ export class UserService {
 
     const newUser = await this.prismaService.user.create({
       data: { ...user, profile: { create: profile } },
+      select,
     });
 
     return newUser;

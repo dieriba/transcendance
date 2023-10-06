@@ -40,7 +40,7 @@ export class AuthService {
       this.logger.log(
         `Attempting to create new user with email: ${data.email} and nickname: ${data.nickname}`,
       );
-      const newUser = await this.userService.createUser(data);
+      const newUser = await this.userService.createUser(data, UserData);
 
       return { success: true, message: 'User created successfully', newUser };
     } catch (error) {
@@ -130,6 +130,7 @@ export class AuthService {
       const { id, email } = await this.userService.createOrReturn42User(
         user,
         profile,
+        UserData,
       );
 
       return await this.jwtTokenService.getTokens(id, email);

@@ -17,11 +17,11 @@ export const ChatroomBaseData: ChatroomInfo = {
   chatRoomName: true,
   password: false,
   type: true,
-  createdAt: false,
+  createdAt: true,
   updatedAt: false,
   numberOfUser: false,
   invitedUser: true,
   users: true,
   messages: true,
-  restrictedUsers: false,
+  restrictedUsers: true,
 };

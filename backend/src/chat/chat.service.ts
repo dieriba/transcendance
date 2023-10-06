@@ -16,12 +16,17 @@ import {
   ChatroomUserBaseData,
   ChatroomUserInfo,
 } from 'src/common/types/chatroom-user-type';
+import { ChatroomService } from 'src/chatroom/chatroom.service';
+import { ChatroomBaseData } from 'src/common/types/chatroom-info-type';
+import { ChatroomUserService } from 'src/chatroom-user/chatroom-user.service';
 
 @Injectable()
 export class ChatService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly userService: UserService,
+    private readonly chatroomService: ChatroomService,
+    private readonly chatroomUserService: ChatroomUserService,
     private readonly argon2Service: Argon2Service,
   ) {}
   private readonly logger = new Logger(ChatService.name);
@@ -127,8 +132,9 @@ export class ChatService {
   }
 
   async joinChatroom(id: string, joinChatroomDto: JoinChatroomDto) {
-    const chatroom = await this.userService.findChatroom(
+    const chatroom = await this.chatroomService.findChatroom(
       joinChatroomDto.chatroomId,
+      ChatroomBaseData,
     );
 
     if (!chatroom) {
@@ -218,7 +224,7 @@ export class ChatService {
 
   async sendDmToPenfriend(message: Message, select: ChatroomUserInfo) {
     try {
-      const chatroom = await this.userService.findChatroomUserDm(
+      const chatroom = await this.chatroomUserService.findChatroomUserDm(
         message.senderId,
         message.receiverId,
         select,
