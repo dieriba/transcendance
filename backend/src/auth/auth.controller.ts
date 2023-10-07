@@ -27,6 +27,7 @@ export class AuthController {
 
   @PublicRoute()
   @Post('signup')
+  @ResponseMessage('Signed Up!')
   async signup(
     @Body(CheckEmailNicknameValidity, HashPassword)
     registerUserDto: RegisterUserDto,
@@ -37,6 +38,7 @@ export class AuthController {
   @PublicRoute()
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @ResponseMessage('Logged In Succesfully')
   async login(
     @Body(LoginValidation) loginUserDto: LoginUserDto,
   ): Promise<Tokens> {

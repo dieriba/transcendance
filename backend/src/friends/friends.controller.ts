@@ -1,19 +1,38 @@
-import { Controller, Post } from '@nestjs/common';
-import { BlockUserDto } from './dto/friends.dto';
+import { Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { FriendsService } from './friends.service';
+import { ResponseMessage } from 'src/common/custom-decorator/respone-message.decorator';
 import { ReqDec } from 'src/common/custom-decorator/get-header.decorator';
-import { checkExisistingUser } from 'src/common/pipes/check-existing-users';
+import { checkExisistingUser } from './pipes/check-existing-users';
+import { FriendsType } from './types/friends.type';
 
 @Controller('friends')
 export class FriendsController {
   constructor(private readonly friendService: FriendsService) {}
   @Post('block')
-  async blockUser(@ReqDec(checkExisistingUser) blockedUser: BlockUserDto) {
-    return await this.friendService.blockUser(blockedUser);
+  @HttpCode(HttpStatus.OK)
+  @ResponseMessage('User Blocked!')
+  async blockUser(@ReqDec(checkExisistingUser) body: FriendsType) {
+    return await this.friendService.blockUser(body);
   }
 
   @Post('unblock')
-  async unblockUser(@ReqDec(checkExisistingUser) blockedUser: BlockUserDto) {
-    return await this.friendService.unblockUser(blockedUser);
+  @HttpCode(HttpStatus.OK)
+  @ResponseMessage('User Unblocked!')
+  async unblockUser(@ReqDec(checkExisistingUser) body: FriendsType) {
+    return await this.friendService.unblockUser(body);
+  }
+
+  @Post('follow')
+  @HttpCode(HttpStatus.OK)
+  @ResponseMessage('User followed')
+  async followUser(@ReqDec(checkExisistingUser) body: FriendsType) {
+    return await this.friendService.followUser(body);
+  }
+
+  @Post('unfollow')
+  @HttpCode(HttpStatus.OK)
+  @ResponseMessage('User unfollowed')
+  async unfollowUser(@ReqDec(checkExisistingUser) body: FriendsType) {
+    return await this.friendService.unfollowUser(body);
   }
 }

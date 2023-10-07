@@ -9,7 +9,7 @@ export type UserInfo = {
   twoFa: boolean;
   profile: boolean;
   blockedUsers: boolean;
-  blockingUsers: boolean;
+  blockedBy: boolean;
   followedBy: boolean;
   following: boolean;
   chatrooms: boolean;
@@ -28,7 +28,7 @@ export const UserData: UserInfo = {
   twoFa: false,
   profile: false,
   blockedUsers: false,
-  blockingUsers: false,
+  blockedBy: false,
   followedBy: false,
   following: false,
   chatrooms: false,
@@ -47,7 +47,7 @@ export const UserTwoFa: UserInfo = {
   twoFa: true,
   profile: false,
   blockedUsers: false,
-  blockingUsers: false,
+  blockedBy: false,
   followedBy: false,
   following: false,
   chatrooms: false,
@@ -56,17 +56,17 @@ export const UserTwoFa: UserInfo = {
 };
 
 export const UserBlockList: UserInfo = {
-  id: false,
+  id: true,
   nickname: false,
   email: false,
   password: false,
-  createdAt: true,
-  updatedAt: true,
+  createdAt: false,
+  updatedAt: false,
   hashedRefreshToken: false,
   twoFa: false,
   profile: false,
   blockedUsers: true,
-  blockingUsers: true,
+  blockedBy: true,
   followedBy: true,
   following: true,
   chatrooms: false,
@@ -76,16 +76,16 @@ export const UserBlockList: UserInfo = {
 
 export const UserChatRoom: UserInfo = {
   id: true,
-  nickname: true,
-  email: true,
-  password: true,
-  createdAt: true,
-  updatedAt: true,
-  hashedRefreshToken: true,
-  twoFa: true,
-  profile: true,
+  nickname: false,
+  email: false,
+  password: false,
+  createdAt: false,
+  updatedAt: false,
+  hashedRefreshToken: false,
+  twoFa: false,
+  profile: false,
   blockedUsers: true,
-  blockingUsers: true,
+  blockedBy: true,
   followedBy: true,
   following: true,
   chatrooms: true,
@@ -104,7 +104,7 @@ export const UserRefreshToken: UserInfo = {
   twoFa: false,
   profile: false,
   blockedUsers: false,
-  blockingUsers: false,
+  blockedBy: false,
   followedBy: false,
   following: false,
   chatrooms: true,

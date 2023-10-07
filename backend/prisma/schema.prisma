@@ -25,8 +25,8 @@ model User {
   twoFa   TwoFa?   @relation("userTwoFa")
   profile Profile? @relation("userProfile")
 
-  blockedUsers  User[] @relation("BlockedUsers")
-  blockingUsers User[] @relation("BlockedUsers")
+  blockedBy    User[] @relation("blockUser")
+  blockedUsers User[] @relation("blockUser")
 
   followedBy Follows[] @relation("following")
   following  Follows[] @relation("follower")
@@ -35,6 +35,8 @@ model User {
   messages         Message[]
   restrictedGroups RestrictedUser[]
 }
+
+
 
 model Follows {
   follower    User   @relation("follower", fields: [followerId], references: [id])

@@ -34,6 +34,24 @@ export class UserService {
     });
   }
 
+  async findManyUsers(ids: string[], select: UserInfo) {
+    return await this.prismaService.user.findMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+      select,
+    });
+  }
+
+  async findBlockedUser(userId: string, id: string) {
+    return await this.prismaService.user.findUnique({
+      where: { id: userId },
+      select: { blockedUsers: { where: { id } } },
+    });
+  }
+
   async findUsersAndHisChatroom(userId: string, select: ChatroomUserInfo) {
     const user = await this.prismaService.user.findUnique({
       where: {
@@ -90,6 +108,7 @@ export class UserService {
   ) {
     const foundUser = await this.prismaService.user.findUnique({
       where: { email: user.email },
+      select,
     });
 
     if (foundUser) return foundUser;

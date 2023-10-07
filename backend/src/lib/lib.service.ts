@@ -14,4 +14,8 @@ export class LibService {
 
     return truncatedBase32;
   }
+
+  checkIfString(data: any): boolean {
+    return typeof data !== 'string' || data.length === 0;
+  }
 }

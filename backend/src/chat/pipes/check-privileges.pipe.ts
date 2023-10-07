@@ -6,12 +6,14 @@ import { ChatService } from '../chat.service';
 import { ROLE } from '@prisma/client';
 import { BAD_REQUEST } from 'src/common/constant/http-error.constant';
 import { ChatroomUserBaseData } from 'src/common/types/chatroom-user-type';
+import { LibService } from 'src/lib/lib.service';
 
 @Injectable()
 export class CheckUserPrivileges implements PipeTransform {
   constructor(
     private userService: UserService,
     private chatService: ChatService,
+    private libService: LibService,
   ) {}
   private readonly logger = new Logger(CheckUserPrivileges.name);
   async transform(request: RequestWithAuth) {
@@ -21,7 +23,7 @@ export class CheckUserPrivileges implements PipeTransform {
     if (!Array.isArray(request.body.users))
       throw new CustomException(BAD_REQUEST, HttpStatus.BAD_REQUEST);
 
-    if (typeof chatroomId !== 'string' || chatroomId.length === 0)
+    if (this.libService.checkIfString(chatroomId))
       throw new CustomException(BAD_REQUEST, HttpStatus.BAD_REQUEST);
 
     const user = await this.userService.findUsersAndHisChatroom(
