@@ -40,7 +40,7 @@ export class ChatController {
 
   @Put()
   async addNewUserToChatroom(@ReqDec(CheckUserPrivileges) body: ChatRoomData) {
-    return await this.chatService.addNewUserToChatroom(body);
+    return await this.chatService.addNewUserToChatroom(body.userId, body);
   }
 
   @Delete()
@@ -63,5 +63,15 @@ export class ChatController {
     @Body(IsExistingUserAndGroup) chatroomMessageDto: ChatroomMessageDto,
   ) {
     return await this.chatService.sendMessageToChatroom(chatroomMessageDto);
+  }
+
+  @Post()
+  async blockUser() {
+    return await this.chatService.blockUser();
+  }
+
+  @Post()
+  async restrictUser() {
+    return await this.chatService.restrictUser();
   }
 }

@@ -69,7 +69,7 @@ export class CheckUserPrivileges implements PipeTransform {
 
     request.body.chatroomId = chatroom.chatroom.id;
     request.body.nickname = user.nickname;
-
+    request.body.userId = request.userId;
     return request.body;
   }
 }

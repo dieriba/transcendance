@@ -14,4 +14,6 @@ export type ChatRoomData = {
   nickname: string;
 
   chatroomId: string;
+
+  userId: string;
 };

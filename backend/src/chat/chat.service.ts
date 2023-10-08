@@ -19,6 +19,7 @@ import {
 import { ChatroomService } from 'src/chatroom/chatroom.service';
 import { ChatroomBaseData } from 'src/common/types/chatroom-info-type';
 import { ChatroomUserService } from 'src/chatroom-user/chatroom-user.service';
+import { FriendsService } from 'src/friends/friends.service';
 
 @Injectable()
 export class ChatService {
@@ -28,6 +29,7 @@ export class ChatService {
     private readonly chatroomService: ChatroomService,
     private readonly chatroomUserService: ChatroomUserService,
     private readonly argon2Service: Argon2Service,
+    private readonly friendService: FriendsService,
   ) {}
   private readonly logger = new Logger(ChatService.name);
 
@@ -48,6 +50,10 @@ export class ChatService {
     }
   }
 
+  async blockUser() {}
+
+  async restrictUser() {}
+
   async createChatRoom(creatorId: string, chatroomDto: ChatRoomDto) {
     const { users, ...chatroom } = chatroomDto;
     const { chatroomName } = chatroom;
@@ -60,7 +66,7 @@ export class ChatService {
       `Attempting to create the chatroom: ${chatroomName} where ${creatorId} will be the admin`,
     );
 
-    let existingUserId = await this.getExistingUsers(users);
+    let existingUserId = await this.getExistingUserNonBlocked(creatorId, users);
 
     existingUserId = Array.from(new Set(existingUserId));
 
@@ -100,12 +106,16 @@ export class ChatService {
     return newChatroom;
   }
 
-  async addNewUserToChatroom(chatRoomData: ChatRoomData) {
+  async addNewUserToChatroom(userId: string, chatRoomData: ChatRoomData) {
     const { users, chatroomId } = chatRoomData;
     this.logger.log(chatroomId);
+    const existingUserAndNonBlocked = await this.getExistingUserNonBlocked(
+      userId,
+      users,
+    );
     try {
       const newUsers = await this.prismaService.$transaction(
-        users.map((userId) =>
+        existingUserAndNonBlocked.map((userId) =>
           this.prismaService.chatroomUser.upsert({
             where: {
               userId_chatroomId: {
@@ -144,17 +154,18 @@ export class ChatService {
       );
     }
 
-    const users = chatroom.users;
-
-    const foundUser = users.find((user) => user.userId === id);
-
-    if (!foundUser)
-      throw new CustomException(
-        "You can't join this chatroom, you're either not part of the chatroom or it is private",
-        HttpStatus.UNAUTHORIZED,
+    if (chatroom.type === TYPE.PRIVATE) {
+      const foundUser = await this.chatroomService.findChatroomUser(
+        id,
+        joinChatroomDto.chatroomId,
       );
 
-    if (chatroom.type === TYPE.PROTECTED) {
+      if (!foundUser)
+        throw new CustomException(
+          "You can't join that private chatroom, you need to be invited first",
+          HttpStatus.UNAUTHORIZED,
+        );
+    } else if (chatroom.type === TYPE.PROTECTED) {
       const match = await this.argon2Service.compare(
         joinChatroomDto.roomPassword,
         chatroom.password,
@@ -257,6 +268,38 @@ export class ChatService {
     }
   }
 
+  async getExistingUserNonBlocked(
+    userId: string,
+    usersId: string[],
+  ): Promise<string[]> {
+    const foundUsers = await this.prismaService.user.findMany({
+      where: {
+        id: {
+          in: usersId,
+        },
+        NOT: {
+          AND: [
+            {
+              blockedBy: {
+                some: {
+                  id: userId,
+                },
+              },
+            },
+            {
+              blockedUsers: {
+                some: {
+                  id: userId,
+                },
+              },
+            },
+          ],
+        },
+      },
+    });
+    return foundUsers.map((user) => user.nickname);
+  }
+
   async getExistingUsers(usersId: string[]): Promise<string[]> {
     console.log({ usersId });
 
@@ -265,9 +308,6 @@ export class ChatService {
         id: {
           in: usersId,
         },
-      },
-      select: {
-        nickname: true,
       },
     });
     console.log({ foundUsers });

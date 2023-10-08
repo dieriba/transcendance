@@ -31,12 +31,11 @@ model User {
   followedBy Follows[] @relation("following")
   following  Follows[] @relation("follower")
 
-  chatrooms        ChatroomUser[]
-  messages         Message[]
-  restrictedGroups RestrictedUser[]
+  blockedChatroomUser Chatroom[]       @relation("blockedUsers")
+  chatrooms           ChatroomUser[]
+  messages            Message[]
+  restrictedGroups    RestrictedUser[]
 }
-
-
 
 model Follows {
   follower    User   @relation("follower", fields: [followerId], references: [id])
@@ -71,6 +70,7 @@ model Chatroom {
   invitedUser  String[]
 
   users           ChatroomUser[]   @relation("chatroomUsers")
+  blockedUsers    User[]           @relation("blockedUsers")
   messages        Message[]
   restrictedUsers RestrictedUser[]
 }

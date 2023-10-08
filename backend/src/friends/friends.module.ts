@@ -9,5 +9,6 @@ import { PrismaModule } from 'src/prisma/prisma.module';
   imports: [UserModule, PrismaModule],
   providers: [FriendsService, FriendsGateway],
   controllers: [FriendsController],
+  exports: [FriendsService],
 })
 export class FriendsModule {}
