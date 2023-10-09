@@ -32,8 +32,8 @@ export class PrismaExceptionFilter implements ExceptionFilter {
 
     const { httpAdapter } = this.httpAdapterHost;
 
-    errorMessage = exception.message;
-
+    errorMessage =
+      'Sorry! something went to wrong on our end, Please try again later';
     if (exception instanceof Prisma.PrismaClientRustPanicError) {
       httpStatus = 400;
     } else if (exception instanceof Prisma.PrismaClientValidationError) {
@@ -53,20 +53,16 @@ export class PrismaExceptionFilter implements ExceptionFilter {
       httpStatus = exception.statusCode;
     } else {
       httpStatus = 500;
-      errorMessage =
-        'Sorry! something went to wrong on our end, Please try again later';
     }
-    console.log({
+
+    this.logger.log({
       httpStatus,
-      message: exception.message
-        .substring(exception.message.indexOf('\n'))
-        .replace(/\n/g, '')
-        .trim(),
+      message: exception.message,
     });
 
     const errorResponse = {
       code: exception?.code,
-      errors: errorMessage.split('\n').pop().trim(),
+      errors: errorMessage,
     };
 
     httpAdapter.reply(ctx.getResponse(), errorResponse, httpStatus);

@@ -28,8 +28,10 @@ model User {
   blockedBy    User[] @relation("blockUser")
   blockedUsers User[] @relation("blockUser")
 
-  followedBy Follows[] @relation("following")
-  following  Follows[] @relation("follower")
+  friendRequestsReceived FriendRequest[] @relation("recipient")
+  friendRequestsSent     FriendRequest[] @relation("sender")
+  friends                Friends[]       @relation("users")
+  friendUserFriends      Friends[]       @relation("friendUsers")
 
   blockedChatroomUser Chatroom[]       @relation("blockedUsers")
   chatrooms           ChatroomUser[]
@@ -37,13 +39,27 @@ model User {
   restrictedGroups    RestrictedUser[]
 }
 
-model Follows {
-  follower    User   @relation("follower", fields: [followerId], references: [id])
-  followerId  String
-  following   User   @relation("following", fields: [followingId], references: [id])
-  followingId String
+model Friends {
+  user      User     @relation("users", fields: [userId], references: [id])
+  userId    String
+  friend    User     @relation("friendUsers", fields: [friendId], references: [id])
+  friendId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@id([followerId, followingId])
+  @@unique([userId, friendId])
+}
+
+model FriendRequest {
+  sender      User           @relation("sender", fields: [senderId], references: [id])
+  senderId    String
+  recipient   User           @relation("recipient", fields: [recipientId], references: [id])
+  recipientId String
+  status      REQUEST_STATUS @default(PENDING)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@unique([senderId, recipientId])
 }
 
 model Profile {
@@ -159,4 +175,9 @@ enum TYPE {
   PRIVATE
   PROTECTED
   DM
+}
+
+enum REQUEST_STATUS {
+  PENDING
+  ACCEPTED
 }

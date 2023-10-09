@@ -47,8 +47,27 @@ export class UserService {
 
   async findBlockedUser(userId: string, id: string) {
     return await this.prismaService.user.findUnique({
-      where: { id: userId },
-      select: { blockedUsers: { where: { id } } },
+      where: {
+        id: userId,
+        AND: {
+          OR: [
+            {
+              blockedBy: {
+                some: { id },
+              },
+            },
+            {
+              blockedUsers: {
+                some: { id },
+              },
+            },
+          ],
+        },
+      },
+      select: {
+        blockedBy: true,
+        blockedUsers: true,
+      },
     });
   }
 

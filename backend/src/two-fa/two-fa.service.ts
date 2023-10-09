@@ -2,13 +2,13 @@ import { LibService } from '../lib/lib.service';
 import {
   BadRequestException,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import * as OTPAuth from 'otpauth';
 import { OTP } from './types/two-fa.types';
 import { UserService } from 'src/user/user.service';
 import { UserData, UserTwoFa } from 'src/common/types/user-info.type';
+import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
 
 @Injectable()
 export class TwoFaService {
@@ -20,7 +20,7 @@ export class TwoFaService {
   async generateOtp(id: string): Promise<OTP> {
     const user = await this.userService.findUserById(id, UserData);
 
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) new UserNotFoundException();
 
     if (!user) throw new UnauthorizedException('Activa 2fa first!');
 
@@ -40,7 +40,7 @@ export class TwoFaService {
   async validateOtp(id: string, token: string) {
     const user = await this.userService.findUserById(id, UserTwoFa);
 
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new UserNotFoundException();
 
     if (!user.twoFa) throw new UnauthorizedException('Activa 2fa first!');
 

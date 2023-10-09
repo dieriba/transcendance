@@ -26,11 +26,7 @@ export class checkExisistingUser implements PipeTransform {
       UserBlockList,
     );
 
-    if (users.length === 1)
-      throw new CustomException(
-        'Cannot perform that action on myself',
-        HttpStatus.BAD_REQUEST,
-      );
+    this.logger.log({ users });
 
     if (users.length != 2)
       throw new CustomException(

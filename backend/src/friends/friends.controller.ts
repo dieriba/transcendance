@@ -8,6 +8,34 @@ import { FriendsType } from './types/friends.type';
 @Controller('friends')
 export class FriendsController {
   constructor(private readonly friendService: FriendsService) {}
+  @Post('send-request')
+  @HttpCode(HttpStatus.OK)
+  @ResponseMessage('Friends Request sent!')
+  async sendFriendRequest(@ReqDec(checkExisistingUser) body: FriendsType) {
+    return await this.friendService.sendFriendRequest(body);
+  }
+
+  @Post('cancel-request')
+  @HttpCode(HttpStatus.OK)
+  @ResponseMessage('Friends Request Canceled!')
+  async cancelFriendRequest(@ReqDec(checkExisistingUser) body: FriendsType) {
+    return await this.friendService.cancelFriendRequest(body);
+  }
+
+  @Post('add')
+  @HttpCode(HttpStatus.OK)
+  @ResponseMessage('Friends Added!')
+  async addFriends(@ReqDec(checkExisistingUser) body: FriendsType) {
+    return await this.friendService.acceptFriend(body);
+  }
+
+  @Post('delete')
+  @HttpCode(HttpStatus.OK)
+  @ResponseMessage('Friends deleted!')
+  async DeleteFriends(@ReqDec(checkExisistingUser) body: FriendsType) {
+    return await this.friendService.deleteFriends(body);
+  }
+
   @Post('block')
   @HttpCode(HttpStatus.OK)
   @ResponseMessage('User Blocked!')
@@ -20,19 +48,5 @@ export class FriendsController {
   @ResponseMessage('User Unblocked!')
   async unblockUser(@ReqDec(checkExisistingUser) body: FriendsType) {
     return await this.friendService.unblockUser(body);
-  }
-
-  @Post('follow')
-  @HttpCode(HttpStatus.OK)
-  @ResponseMessage('User followed')
-  async followUser(@ReqDec(checkExisistingUser) body: FriendsType) {
-    return await this.friendService.followUser(body);
-  }
-
-  @Post('unfollow')
-  @HttpCode(HttpStatus.OK)
-  @ResponseMessage('User unfollowed')
-  async unfollowUser(@ReqDec(checkExisistingUser) body: FriendsType) {
-    return await this.friendService.unfollowUser(body);
   }
 }

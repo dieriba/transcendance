@@ -9,7 +9,6 @@ import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ChatRoomData, Message } from './types/chatroom.types';
 import { ROLE, TYPE } from '@prisma/client';
-import { INTERNAL_SERVER_ERROR } from 'src/common/constant/http-error.constant';
 import { Argon2Service } from 'src/argon2/argon2.service';
 import { UserData } from 'src/common/types/user-info.type';
 import {
@@ -20,6 +19,7 @@ import { ChatroomService } from 'src/chatroom/chatroom.service';
 import { ChatroomBaseData } from 'src/common/types/chatroom-info-type';
 import { ChatroomUserService } from 'src/chatroom-user/chatroom-user.service';
 import { FriendsService } from 'src/friends/friends.service';
+import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
 
 @Injectable()
 export class ChatService {
@@ -34,20 +34,10 @@ export class ChatService {
   private readonly logger = new Logger(ChatService.name);
 
   async findAllUsersChat(userId: string) {
-    try {
-      return await this.userService.findUsersAndHisChatroom(
-        userId,
-        ChatroomUserBaseData,
-      );
-    } catch (error) {
-      this.logger.error(
-        `An error occured while trying to fetch all user's chats`,
-      );
-      throw new CustomException(
-        INTERNAL_SERVER_ERROR,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+    return await this.userService.findUsersAndHisChatroom(
+      userId,
+      ChatroomUserBaseData,
+    );
   }
 
   async blockUser() {}
@@ -59,8 +49,7 @@ export class ChatService {
     const { chatroomName } = chatroom;
     const user = this.userService.findUserById(creatorId, UserData);
 
-    if (!user)
-      throw new CustomException('User Not found', HttpStatus.NOT_FOUND);
+    if (!user) throw new UserNotFoundException();
 
     this.logger.log(
       `Attempting to create the chatroom: ${chatroomName} where ${creatorId} will be the admin`,
@@ -113,32 +102,24 @@ export class ChatService {
       userId,
       users,
     );
-    try {
-      const newUsers = await this.prismaService.$transaction(
-        existingUserAndNonBlocked.map((userId) =>
-          this.prismaService.chatroomUser.upsert({
-            where: {
-              userId_chatroomId: {
-                userId,
-                chatroomId,
-              },
-            },
-            update: {},
-            create: {
+    const newUsers = await this.prismaService.$transaction(
+      existingUserAndNonBlocked.map((userId) =>
+        this.prismaService.chatroomUser.upsert({
+          where: {
+            userId_chatroomId: {
               userId,
               chatroomId,
             },
-          }),
-        ),
-      );
-      return newUsers;
-    } catch (error) {
-      this.logger.error(error);
-      throw new CustomException(
-        INTERNAL_SERVER_ERROR,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+          },
+          update: {},
+          create: {
+            userId,
+            chatroomId,
+          },
+        }),
+      ),
+    );
+    return newUsers;
   }
 
   async joinChatroom(id: string, joinChatroomDto: JoinChatroomDto) {
@@ -208,64 +189,50 @@ export class ChatService {
     senderId,
     content,
   }: ChatroomMessageDto) {
-    try {
-      const updatedChatrooms = await this.prismaService.chatroom.update({
-        where: {
-          id: chatroomId,
-        },
-        data: {
-          messages: {
-            create: {
-              content: content,
-              imageUrl: null,
-              userId: senderId,
-            },
+    const updatedChatrooms = await this.prismaService.chatroom.update({
+      where: {
+        id: chatroomId,
+      },
+      data: {
+        messages: {
+          create: {
+            content: content,
+            imageUrl: null,
+            userId: senderId,
           },
         },
-      });
+      },
+    });
 
-      return updatedChatrooms;
-    } catch (error) {
-      throw new CustomException(
-        INTERNAL_SERVER_ERROR,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+    return updatedChatrooms;
   }
 
   async sendDmToPenfriend(message: Message, select: ChatroomUserInfo) {
-    try {
-      const chatroom = await this.chatroomUserService.findChatroomUserDm(
-        message.senderId,
-        message.receiverId,
-        select,
-      );
-      if (!chatroom) return await this.createChatroomDm(message);
+    const chatroom = await this.chatroomUserService.findChatroomUserDm(
+      message.senderId,
+      message.receiverId,
+      select,
+    );
+    if (!chatroom) return await this.createChatroomDm(message);
 
-      return await this.prismaService.chatroom.update({
-        where: {
-          id: chatroom.chatroomId,
-        },
-        data: {
-          messages: {
-            create: {
-              content: message.content,
-              imageUrl: null,
-              user: {
-                connect: {
-                  id: message.senderId,
-                },
+    return await this.prismaService.chatroom.update({
+      where: {
+        id: chatroom.chatroomId,
+      },
+      data: {
+        messages: {
+          create: {
+            content: message.content,
+            imageUrl: null,
+            user: {
+              connect: {
+                id: message.senderId,
               },
             },
           },
         },
-      });
-    } catch (error) {
-      throw new CustomException(
-        INTERNAL_SERVER_ERROR,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+      },
+    });
   }
 
   async getExistingUserNonBlocked(

@@ -10,8 +10,8 @@ export type UserInfo = {
   profile: boolean;
   blockedUsers: boolean;
   blockedBy: boolean;
-  followedBy: boolean;
-  following: boolean;
+  friendRequestsReceived: boolean;
+  friendRequestsSent: boolean;
   chatrooms: boolean;
   messages: boolean;
   restrictedGroups: boolean;
@@ -29,8 +29,8 @@ export const UserData: UserInfo = {
   profile: false,
   blockedUsers: false,
   blockedBy: false,
-  followedBy: false,
-  following: false,
+  friendRequestsReceived: false,
+  friendRequestsSent: false,
   chatrooms: false,
   messages: false,
   restrictedGroups: false,
@@ -48,8 +48,8 @@ export const UserTwoFa: UserInfo = {
   profile: false,
   blockedUsers: false,
   blockedBy: false,
-  followedBy: false,
-  following: false,
+  friendRequestsReceived: false,
+  friendRequestsSent: false,
   chatrooms: false,
   messages: false,
   restrictedGroups: false,
@@ -67,8 +67,8 @@ export const UserBlockList: UserInfo = {
   profile: false,
   blockedUsers: true,
   blockedBy: true,
-  followedBy: true,
-  following: true,
+  friendRequestsReceived: true,
+  friendRequestsSent: true,
   chatrooms: false,
   messages: false,
   restrictedGroups: false,
@@ -86,8 +86,8 @@ export const UserChatRoom: UserInfo = {
   profile: false,
   blockedUsers: true,
   blockedBy: true,
-  followedBy: true,
-  following: true,
+  friendRequestsReceived: true,
+  friendRequestsSent: true,
   chatrooms: true,
   messages: true,
   restrictedGroups: true,
@@ -105,8 +105,8 @@ export const UserRefreshToken: UserInfo = {
   profile: false,
   blockedUsers: false,
   blockedBy: false,
-  followedBy: false,
-  following: false,
+  friendRequestsReceived: false,
+  friendRequestsSent: false,
   chatrooms: true,
   messages: false,
   restrictedGroups: true,

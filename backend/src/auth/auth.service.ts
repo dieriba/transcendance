@@ -18,7 +18,6 @@ import { Argon2Service } from 'src/argon2/argon2.service';
 import { ApiUser, Profile } from 'src/user/types/user.types';
 import {
   FORBIDDEN,
-  INTERNAL_SERVER_ERROR,
   RESSOURCE_NOT_FOUND,
 } from 'src/common/constant/http-error.constant';
 import { UserData, UserRefreshToken } from 'src/common/types/user-info.type';
@@ -67,10 +66,7 @@ export class AuthService {
       this.logger.log(
         `Failled to create new tokens for user identified by email: ${email}`,
       );
-      throw new CustomException(
-        INTERNAL_SERVER_ERROR,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw new InternalServerErrorException();
     }
   }
 
@@ -83,10 +79,7 @@ export class AuthService {
     try {
       await this.userService.clearHashedToken(id);
     } catch (error) {
-      throw new CustomException(
-        INTERNAL_SERVER_ERROR,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw new InternalServerErrorException();
     }
   }
 
