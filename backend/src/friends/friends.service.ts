@@ -20,7 +20,6 @@ export class FriendsService {
 
   async sendFriendRequest(body: FriendsType) {
     const { userId, id } = body;
-    console.log({ userId, id });
 
     const existingBlockedUser = await this.userService.findBlockedUser(
       userId,
@@ -229,7 +228,6 @@ export class FriendsService {
     this.logger.log({ existingFriendShip });
 
     const existingFriendRequest = await this.isRequestBetweenUser(userId, id);
-    this.logger.log({ existingFriendRequest, userId, id });
     if (existingFriendShip) {
       await this.prismaService.$transaction([
         this.prismaService.user.update({

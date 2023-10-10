@@ -24,6 +24,12 @@ export class CheckUserPrivileges implements PipeTransform {
     if (!Array.isArray(request.body.users))
       throw new CustomException(BAD_REQUEST, HttpStatus.BAD_REQUEST);
 
+    if (request.body.users.length === 0)
+      throw new CustomException(
+        'Array must at least contains 1 element',
+        HttpStatus.BAD_REQUEST,
+      );
+
     if (this.libService.checkIfString(chatroomId))
       throw new CustomException(BAD_REQUEST, HttpStatus.BAD_REQUEST);
 

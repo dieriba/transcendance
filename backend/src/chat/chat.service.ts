@@ -4,6 +4,7 @@ import {
   ChatRoomDto,
   ChatroomMessageDto,
   JoinChatroomDto,
+  RestrictedUsersDto,
 } from './dto/chatroom.dto';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -20,6 +21,7 @@ import { ChatroomBaseData } from 'src/common/types/chatroom-info-type';
 import { ChatroomUserService } from 'src/chatroom-user/chatroom-user.service';
 import { FriendsService } from 'src/friends/friends.service';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
+import { ChatRoomNotFoundException } from './exception/chatroom-not-found.exception';
 
 @Injectable()
 export class ChatService {
@@ -33,17 +35,6 @@ export class ChatService {
   ) {}
   private readonly logger = new Logger(ChatService.name);
 
-  async findAllUsersChat(userId: string) {
-    return await this.userService.findUsersAndHisChatroom(
-      userId,
-      ChatroomUserBaseData,
-    );
-  }
-
-  async blockUser() {}
-
-  async restrictUser() {}
-
   async createChatRoom(creatorId: string, chatroomDto: ChatRoomDto) {
     const { users, ...chatroom } = chatroomDto;
     const { chatroomName } = chatroom;
@@ -55,14 +46,6 @@ export class ChatService {
       `Attempting to create the chatroom: ${chatroomName} where ${creatorId} will be the admin`,
     );
 
-    let existingUserId = await this.getExistingUserNonBlocked(creatorId, users);
-
-    existingUserId = Array.from(new Set(existingUserId));
-
-    existingUserId.push(creatorId);
-
-    this.logger.log(existingUserId);
-
     const chatRoom = await this.prismaService.chatroom.findFirst({
       where: { chatroomName },
     });
@@ -73,6 +56,14 @@ export class ChatService {
         HttpStatus.BAD_REQUEST,
       );
 
+    let existingUserId = await this.getExistingUserNonBlocked(creatorId, users);
+
+    existingUserId = Array.from(new Set(existingUserId));
+
+    existingUserId.push(creatorId);
+
+    this.logger.log(existingUserId);
+
     const newChatroom = await this.prismaService.chatroom.create({
       data: {
         ...chatroom,
@@ -81,12 +72,14 @@ export class ChatService {
             user: {
               connect: { id: userId },
             },
-            privilege: creatorId === userId ? ROLE.DIERIBA : ROLE.REGULAR_USER,
+            role: creatorId === userId ? ROLE.DIERIBA : ROLE.REGULAR_USER,
           })),
         },
-        numberOfUser: existingUserId.length,
       },
-      include: {
+      select: {
+        id: true,
+        chatroomName: true,
+        type: true,
         users: true,
       },
     });
@@ -94,6 +87,34 @@ export class ChatService {
     this.logger.log('New chatroom created and users linked:', newChatroom);
     return newChatroom;
   }
+
+  async setNewAdminUser(userId: string, chatroomData: ChatRoomData) {
+    const { users, chatroomId } = chatroomData;
+
+    const chatroom = await this.prismaService.chatroom.findUnique({
+      where: { id: chatroomId },
+    });
+
+    if (!chatroom) throw new ChatRoomNotFoundException();
+
+    const existingUserAndNonBlocked = await this.getExistingUserNonBlocked(
+      userId,
+      users,
+    );
+
+    const updatedChatrooms = await this.prismaService.chatroomUser.updateMany({
+      where: {
+        userId: { in: existingUserAndNonBlocked },
+      },
+      data: {
+        role: ROLE.CHAT_ADMIN,
+      },
+    });
+
+    return updatedChatrooms;
+  }
+
+  async restrictUsers(restrictedUsersDto: RestrictedUsersDto) {}
 
   async addNewUserToChatroom(userId: string, chatRoomData: ChatRoomData) {
     const { users, chatroomId } = chatRoomData;
@@ -128,12 +149,7 @@ export class ChatService {
       ChatroomBaseData,
     );
 
-    if (!chatroom) {
-      throw new CustomException(
-        "Can't join a chatroom that does not exists",
-        HttpStatus.NOT_FOUND,
-      );
-    }
+    if (!chatroom) throw new ChatRoomNotFoundException();
 
     if (chatroom.type === TYPE.PRIVATE) {
       const foundUser = await this.chatroomService.findChatroomUser(
@@ -159,6 +175,13 @@ export class ChatService {
     }
 
     return chatroom;
+  }
+
+  async findAllUsersChat(userId: string) {
+    return await this.userService.findUsersAndHisChatroom(
+      userId,
+      ChatroomUserBaseData,
+    );
   }
 
   async deleteUserFromChatromm(chatroomData: ChatRoomData) {

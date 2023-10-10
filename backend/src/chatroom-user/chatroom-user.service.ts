@@ -30,4 +30,26 @@ export class ChatroomUserService {
 
     return chatroom;
   }
+
+  async findChatChatroomUsers(chatroomId: string, usersId: string[]) {
+    const chatroomUser = await this.prismaService.chatroomUser.findMany({
+      where: { chatroomId, user: { id: { in: usersId } } },
+      select: { userId: true },
+    });
+
+    return chatroomUser.map((user) => user.userId);
+  }
+
+  async findChatroomUser(chatroomId: string, userId: string) {
+    const user = await this.prismaService.chatroomUser.findFirst({
+      where: {
+        chatroomId,
+        userId,
+      },
+      select: {
+        role: true,
+      },
+    });
+    return user;
+  }
 }

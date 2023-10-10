@@ -8,7 +8,7 @@ export type User = {
   nickname: string;
 };
 
-export type ChatRoomData = {
+export class ChatRoomData {
   users: string[];
 
   nickname: string;
@@ -16,4 +16,4 @@ export type ChatRoomData = {
   chatroomId: string;
 
   userId: string;
-};
+}

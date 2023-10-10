@@ -21,7 +21,7 @@ export class ChatroomService {
         include: {
           users: {
             where: {
-              privilege: ROLE.DIERIBA,
+              role: ROLE.DIERIBA,
             },
           },
         },

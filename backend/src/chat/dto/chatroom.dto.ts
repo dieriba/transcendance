@@ -1,12 +1,18 @@
 import {
+  ArrayMinSize,
   IsArray,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
+  IsPositive,
   IsString,
   MinLength,
+  ValidateNested,
 } from 'class-validator';
 import { IsRightChatTypes } from '../validation-decorator/is-right-group-type.validation';
 import { TYPE } from '@prisma/client';
+import { Type } from 'class-transformer';
+import { isRightRestrictionTypes } from '../validation-decorator/is-right-restrict-type.validation';
 
 export class ChatRoomDto {
   @IsString()
@@ -14,6 +20,7 @@ export class ChatRoomDto {
   chatroomName: string;
 
   @IsArray()
+  @ArrayMinSize(1)
   users: string[];
 
   @IsRightChatTypes()
@@ -51,4 +58,26 @@ export class JoinChatroomDto {
   @IsOptional()
   @IsString()
   roomPassword: string;
+}
+
+export class RestrictUser {
+  @IsString()
+  @IsNotEmpty()
+  id: string;
+  @IsString()
+  @IsNotEmpty()
+  @isRightRestrictionTypes()
+  restriction: string;
+
+  @IsNumber()
+  @IsPositive()
+  duration: number;
+}
+
+export class RestrictedUsersDto {
+  chatroomId: string;
+  @ValidateNested({ each: true })
+  @Type(() => RestrictUser)
+  @ArrayMinSize(1)
+  restrictedUser: RestrictUser[];
 }
