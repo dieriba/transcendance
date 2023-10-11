@@ -146,4 +146,51 @@ export class UserService {
       data: { hashedRefreshToken: null },
     });
   }
+
+  async getExistingUsers(usersId: string[]): Promise<string[]> {
+    const foundUsers = await this.prismaService.user.findMany({
+      where: {
+        id: {
+          in: usersId,
+        },
+      },
+    });
+
+    return foundUsers.map((user) => user.nickname);
+  }
+
+  async getNonExistingUsers(usersId: string[]): Promise<string[]> {
+    const foundUsers = await this.prismaService.user.findMany({
+      where: {
+        nickname: {
+          notIn: usersId,
+        },
+      },
+      select: {
+        nickname: true,
+      },
+    });
+
+    return foundUsers.map((user) => user.nickname);
+  }
+
+  async getExistingUserNonBlocked(
+    userId: string,
+    usersId: string[],
+    select: UserInfo,
+  ): Promise<string[]> {
+    const foundUsers = await this.prismaService.user.findMany({
+      where: {
+        id: {
+          in: usersId,
+        },
+        AND: [
+          { blockedBy: { none: { id: userId } } },
+          { blockedUsers: { none: { id: userId } } },
+        ],
+      },
+      select,
+    });
+    return foundUsers.map((user) => user.id);
+  }
 }

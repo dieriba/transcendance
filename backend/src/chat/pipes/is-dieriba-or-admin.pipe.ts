@@ -33,14 +33,22 @@ export class isDieribaOrAdmin implements PipeTransform {
       throw new CustomException('Unauthorized', HttpStatus.BAD_REQUEST);
     }
 
-    if (
-      userToRestrict.role === ROLE.DIERIBA ||
-      userToRestrict.role === ROLE.CHAT_ADMIN
-    )
+    if (chatroomUser.user.id === userId)
       throw new CustomException(
-        'Cannot Restrict chat admin',
-        HttpStatus.UNAUTHORIZED,
+        'Cannot restrict myself',
+        HttpStatus.BAD_REQUEST,
       );
+
+    if (chatroomUser.role !== ROLE.DIERIBA) {
+      if (
+        userToRestrict.role === ROLE.DIERIBA ||
+        userToRestrict.role === ROLE.CHAT_ADMIN
+      )
+        throw new CustomException(
+          'Cannot Restrict chat admin',
+          HttpStatus.UNAUTHORIZED,
+        );
+    }
 
     return restrictedUsersDto;
   }

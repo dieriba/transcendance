@@ -40,6 +40,24 @@ export class ChatroomUserService {
     return chatroomUser.map((user) => user.userId);
   }
 
+  createNewChatroomUser(userId: string, chatroomId: string) {
+    const user = this.prismaService.chatroomUser.upsert({
+      where: {
+        userId_chatroomId: {
+          userId,
+          chatroomId,
+        },
+      },
+      update: {},
+      create: {
+        userId,
+        chatroomId,
+      },
+    });
+
+    return user;
+  }
+
   async findChatroomUser(chatroomId: string, userId: string) {
     const user = await this.prismaService.chatroomUser.findFirst({
       where: {
@@ -48,7 +66,12 @@ export class ChatroomUserService {
       },
       select: {
         user: {
-          select: { id: true, nickname: true },
+          select: {
+            id: true,
+            nickname: true,
+            blockedBy: { where: { id: userId } },
+            blockedUsers: { where: { id: userId } },
+          },
         },
         role: true,
         chatroom: {

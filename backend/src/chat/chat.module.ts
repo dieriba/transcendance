@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ChatGateway } from './chat.gateway';
-import { JwtTokenModule } from 'src/jwt-token/jwtToken.module';
 import { ChatService } from './chat.service';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { ChatController } from './chat.controller';
@@ -12,12 +11,11 @@ import { FriendsModule } from 'src/friends/friends.module';
 
 @Module({
   imports: [
-    JwtTokenModule,
     PrismaModule,
     UserModule,
-    Argon2Module,
     ChatroomModule,
     ChatroomUserModule,
+    Argon2Module,
     FriendsModule,
   ],
   providers: [ChatGateway, ChatService],

@@ -12,6 +12,14 @@ export class ChatroomService {
       select,
     });
   }
+
+  async findChatroomWithSpecificUser(userId: string, chatroomId: string) {
+    return await this.prismaService.chatroom.findFirst({
+      where: { id: chatroomId },
+      select: { users: { where: { userId } }, type: true, password: true },
+    });
+  }
+
   async findChatroomAndSuperAdmin(chatroomId: string) {
     const chatroomWithSuperadmin = await this.prismaService.chatroom.findUnique(
       {

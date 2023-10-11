@@ -161,7 +161,6 @@ enum Gender {
 enum ROLE {
   DIERIBA
   CHAT_ADMIN
-  MODERATOR
   REGULAR_USER
 }
 

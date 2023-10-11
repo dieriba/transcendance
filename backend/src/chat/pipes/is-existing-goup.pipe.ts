@@ -14,9 +14,13 @@ export class IsExistingUserAndGroup implements PipeTransform {
   ) {}
   private readonly logger = new Logger(IsExistingUserAndGroup.name);
   async transform(chatroomMessageDto: ChatroomMessageDto) {
+    this.logger.log({
+      id: chatroomMessageDto.chatroomId,
+      userId: chatroomMessageDto.userId,
+    });
     if (
       !(await this.userService.findUserById(
-        chatroomMessageDto.senderId,
+        chatroomMessageDto.userId,
         UserData,
       ))
     )

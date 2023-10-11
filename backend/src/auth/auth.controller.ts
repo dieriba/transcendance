@@ -16,10 +16,10 @@ import { HashPassword } from './pipe/hash-password.pipe';
 import { OAuthPipe } from './pipe/oauth.pipe';
 import { LoginValidation } from './pipe/login-validation.pipe';
 import { Tokens } from 'src/jwt-token/jwt.type';
-import { PublicRoute } from 'src/common/custom-decorator/public.decorator';
 import { GetUser } from 'src/common/custom-decorator/get-user.decorator';
 import { ResponseMessage } from 'src/common/custom-decorator/respone-message.decorator';
 import { JwtRefreshTokenGuard } from 'src/common/guards/refrestJwt.guard';
+import { PublicRoute } from 'src/common/custom-decorator/metadata.decorator';
 
 @Controller('auth')
 export class AuthController {

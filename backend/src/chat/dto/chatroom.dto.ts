@@ -2,6 +2,7 @@ import {
   ArrayMinSize,
   IsArray,
   IsEnum,
+  IsIn,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -9,29 +10,37 @@ import {
   IsString,
   MaxLength,
   MinLength,
+  ValidateNested,
 } from 'class-validator';
-import { IsRightChatTypes } from '../validation-decorator/is-right-group-type.validation';
-import { RESTRICTION, TYPE } from '@prisma/client';
+import { RESTRICTION, ROLE, TYPE } from '@prisma/client';
 import { DAYS, HOURS, MIN } from 'src/common/constant/enum.constant';
 import { isValidDuration } from '../validation-decorator/is-valid-duration.validation';
+import { Type } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
 
 export enum DURATION_UNIT {
   MINUTES = MIN,
   HOUR = HOURS,
   DAY = DAYS,
 }
+
 export class ChatRoomDto {
+  @ApiProperty()
   @IsString()
   @IsNotEmpty()
   chatroomName: string;
 
+  @ApiProperty()
   @IsArray()
   @ArrayMinSize(1)
   users: string[];
 
-  @IsRightChatTypes()
+  @ApiProperty()
+  @IsEnum(TYPE)
+  @IsNotEmpty()
   type: TYPE;
 
+  @ApiProperty()
   @IsOptional()
   @IsString()
   @MinLength(8)
@@ -39,54 +48,73 @@ export class ChatRoomDto {
 }
 
 export class DmMessageDto {
+  @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  senderId: string;
-  @IsString()
-  @IsNotEmpty()
-  receiverId: string;
+  recipientId: string;
+
+  @ApiProperty()
   @IsString()
   @IsNotEmpty()
   content: string;
 }
 
 export class ChatroomMessageDto {
-  senderId: string;
+  @IsString()
+  @ApiProperty()
   chatroomId: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
   content: string;
+
+  @IsOptional()
+  userId: string;
+
+  @IsOptional()
+  nickname: string;
 }
 
 export class JoinChatroomDto {
+  @ApiProperty()
   @IsString()
   @IsNotEmpty()
   chatroomId: string;
 
+  @ApiProperty()
   @IsOptional()
   @IsString()
   roomPassword: string;
 }
 
 export class RestrictedUsersDto {
+  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   chatroomId: string;
 
+  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   id: string;
 
+  @ApiProperty()
   @IsNotEmpty()
   @IsEnum(RESTRICTION)
   restriction: RESTRICTION;
 
+  @ApiProperty()
   @IsInt()
   @IsPositive()
   @isValidDuration('restriction')
   duration: number;
 
+  @ApiProperty()
   @IsEnum(DURATION_UNIT)
   durationUnit: DURATION_UNIT;
 
+  @ApiProperty()
   @IsOptional()
   @IsString()
   @MaxLength(255)
@@ -99,29 +127,71 @@ export class RestrictedUsersDto {
   nickname: string;
 }
 
-export class ChatroomDataDto {
+export class ChangeUserRole {
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsArray()
+  id: string;
+
+  @ApiProperty()
+  @IsIn([ROLE.CHAT_ADMIN, ROLE.REGULAR_USER])
+  role: ROLE;
+}
+
+export class ChangeUserRoleDto {
+  @ApiProperty()
   @IsArray()
   @ArrayMinSize(1)
-  users: string[];
+  @ValidateNested({ each: true })
+  @Type(() => ChangeUserRole)
+  users: ChangeUserRole[];
+
+  @ApiProperty()
+  @IsString()
+  chatroomId: string;
 
   @IsOptional()
   @IsString()
   nickname: string;
-
-  @IsString()
-  chatroomId: string;
 
   @IsOptional()
   @IsString()
   userId: string;
 }
 
-export class ChatroomData {
-  users: string[];
+export class DieribaDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  id: string;
 
-  nickname: string;
-
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
   chatroomId: string;
 
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  userId: string;
+}
+
+export class ChatroomDataDto {
+  @ApiProperty()
+  @IsArray()
+  @ArrayMinSize(1)
+  users: string[];
+
+  @ApiProperty()
+  @IsString()
+  chatroomId: string;
+
+  @IsOptional()
+  @IsString()
+  nickname: string;
+
+  @IsOptional()
+  @IsString()
   userId: string;
 }

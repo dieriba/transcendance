@@ -17,6 +17,25 @@ export type UserInfo = {
   restrictedGroups: boolean;
 };
 
+export const UserId: UserInfo = {
+  id: true,
+  nickname: false,
+  email: false,
+  password: false,
+  createdAt: false,
+  updatedAt: false,
+  hashedRefreshToken: false,
+  twoFa: false,
+  profile: false,
+  blockedUsers: false,
+  blockedBy: false,
+  friendRequestsReceived: false,
+  friendRequestsSent: false,
+  chatrooms: false,
+  messages: false,
+  restrictedGroups: false,
+};
+
 export const UserData: UserInfo = {
   id: true,
   nickname: true,

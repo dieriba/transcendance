@@ -7,12 +7,15 @@ import {
   UseInterceptors,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { GetUser } from 'src/common/custom-decorator/get-user.decorator';
 import {
+  ChangeUserRoleDto,
   ChatRoomDto,
   ChatroomDataDto,
   ChatroomMessageDto,
+  DieribaDto,
   DmMessageDto,
   JoinChatroomDto,
   RestrictedUsersDto,
@@ -23,8 +26,10 @@ import { IsExistingUserAndGroup } from './pipes/is-existing-goup.pipe';
 import { ChatroomUserBaseData } from 'src/common/types/chatroom-user-type';
 import { isDieribaOrAdmin } from './pipes/is-dieriba-or-admin.pipe';
 import { PassUserDataToBody } from 'src/common/interceptor/pass-user-data-to-body.interceptor';
-import { CheckUserPrivileges } from './pipes/check-user-privilege.pipe';
 import { ResponseMessage } from 'src/common/custom-decorator/respone-message.decorator';
+import { IsDieriba } from './pipes/is-dieriba.pipe';
+import { IsRestrictedUserGuard } from './guards/is-restricted-user.guard';
+import { ChatRoute } from 'src/common/custom-decorator/metadata.decorator';
 
 @Controller('chat')
 export class ChatController {
@@ -39,17 +44,34 @@ export class ChatController {
   }
 
   @Post('add-user')
+  @ResponseMessage('Success')
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(PassUserDataToBody)
-  async addNewUserToChatroom(@Body(CheckUserPrivileges) body: ChatroomDataDto) {
+  async addNewUserToChatroom(@Body(IsDieriba) body: ChatroomDataDto) {
     return await this.chatService.addNewUserToChatroom(body.userId, body);
   }
 
-  @Post('set-admin')
+  @Post('set-chatroom-dieriba')
+  @ResponseMessage('Success')
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(PassUserDataToBody)
-  async setNewAdminUser(@Body(CheckUserPrivileges) body: ChatroomDataDto) {
-    return await this.chatService.setNewAdminUser(body.userId, body);
+  async setNewChatroomDieriba(@Body(IsDieriba) dieribaDto: DieribaDto) {
+    return await this.chatService.setNewChatroomDieriba(dieribaDto);
+  }
+
+  @Delete('delete-user')
+  @UseInterceptors(PassUserDataToBody)
+  @HttpCode(HttpStatus.OK)
+  @ResponseMessage('Users Deleted')
+  async deleteUserFromChatroom(@Body(IsDieriba) body: ChatroomDataDto) {
+    return await this.chatService.deleteUserFromChatromm(body);
+  }
+
+  @Post('change-user-role')
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(PassUserDataToBody)
+  async setNewAdminUser(@Body(IsDieriba) body: ChangeUserRoleDto) {
+    return await this.chatService.changeUserRole(body);
   }
 
   @Post('restrict-users')
@@ -63,6 +85,7 @@ export class ChatController {
   }
 
   @Post('join-chat')
+  @UseGuards(IsRestrictedUserGuard)
   @HttpCode(HttpStatus.OK)
   async joinChatroom(
     @GetUser('userId') id: string,
@@ -77,29 +100,27 @@ export class ChatController {
     return await this.chatService.findAllUsersChat(userId);
   }
 
-  @Delete('delete-user')
-  @UseInterceptors(PassUserDataToBody)
-  @HttpCode(HttpStatus.OK)
-  @ResponseMessage('Users Deleted')
-  async deleteUserFromChatroom(
-    @Body(CheckUserPrivileges) body: ChatroomDataDto,
-  ) {
-    return await this.chatService.deleteUserFromChatromm(body);
-  }
-
   @Post('send-dm')
   @HttpCode(HttpStatus.OK)
-  async sendDmToPenfriend(@Body() dmMessageDto: DmMessageDto) {
+  async sendDmToPenfriend(
+    @GetUser('userId') id: string,
+    @Body() dmMessageDto: DmMessageDto,
+  ) {
     return await this.chatService.sendDmToPenfriend(
+      id,
       dmMessageDto,
       ChatroomUserBaseData,
     );
   }
 
   @Post('send-chatroom')
+  @ChatRoute()
+  @UseInterceptors(PassUserDataToBody)
+  @UseGuards(IsRestrictedUserGuard)
   @HttpCode(HttpStatus.OK)
   async sendMessageToChatroom(
-    @Body(IsExistingUserAndGroup) chatroomMessageDto: ChatroomMessageDto,
+    @Body(IsExistingUserAndGroup)
+    chatroomMessageDto: ChatroomMessageDto,
   ) {
     return await this.chatService.sendMessageToChatroom(chatroomMessageDto);
   }
