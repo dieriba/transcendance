@@ -104,19 +104,22 @@ model Message {
 }
 
 model ChatroomUser {
-  user       User     @relation(fields: [userId], references: [id])
-  userId     String
-  chatroom   Chatroom @relation("chatroomUsers", fields: [chatroomId], references: [id])
-  chatroomId String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  penFriend  String?
-  role       ROLE?    @default(REGULAR_USER)
+  user        User             @relation(fields: [userId], references: [id])
+  userId      String
+  chatroom    Chatroom         @relation("chatroomUsers", fields: [chatroomId], references: [id])
+  chatroomId  String
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  penFriend   String?
+  role        ROLE?            @default(REGULAR_USER)
+  userIBanned RestrictedUser[]
 
   @@unique([userId, chatroomId])
 }
 
 model RestrictedUser {
+  admin                ChatroomUser @relation(fields: [adminId, chatroomId], references: [userId, chatroomId])
+  adminId              String
   user                 User         @relation(fields: [userId], references: [id])
   userId               String
   chatroom             Chatroom     @relation(fields: [chatroomId], references: [id])
@@ -125,6 +128,7 @@ model RestrictedUser {
   restriction          RESTRICTION?
   restrictionTimeStart DateTime?
   restrictionTimeEnd   DateTime?
+  reason               String?      @db.VarChar(255)
 
   @@unique([userId, chatroomId])
 }
@@ -162,9 +166,9 @@ enum ROLE {
 }
 
 enum RESTRICTION {
-  BAN
+  BANNED
   MUTED
-  KICK
+  KICKED
 }
 
 enum STATUS {

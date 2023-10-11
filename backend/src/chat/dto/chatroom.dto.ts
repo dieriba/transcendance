@@ -1,19 +1,25 @@
 import {
   ArrayMinSize,
   IsArray,
+  IsEnum,
+  IsInt,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsPositive,
   IsString,
+  MaxLength,
   MinLength,
-  ValidateNested,
 } from 'class-validator';
 import { IsRightChatTypes } from '../validation-decorator/is-right-group-type.validation';
-import { TYPE } from '@prisma/client';
-import { Type } from 'class-transformer';
-import { isRightRestrictionTypes } from '../validation-decorator/is-right-restrict-type.validation';
+import { RESTRICTION, TYPE } from '@prisma/client';
+import { DAYS, HOURS, MIN } from 'src/common/constant/enum.constant';
+import { isValidDuration } from '../validation-decorator/is-valid-duration.validation';
 
+export enum DURATION_UNIT {
+  MINUTES = MIN,
+  HOUR = HOURS,
+  DAY = DAYS,
+}
 export class ChatRoomDto {
   @IsString()
   @IsNotEmpty()
@@ -60,24 +66,62 @@ export class JoinChatroomDto {
   roomPassword: string;
 }
 
-export class RestrictUser {
-  @IsString()
+export class RestrictedUsersDto {
   @IsNotEmpty()
-  id: string;
   @IsString()
-  @IsNotEmpty()
-  @isRightRestrictionTypes()
-  restriction: string;
+  chatroomId: string;
 
-  @IsNumber()
+  @IsNotEmpty()
+  @IsString()
+  id: string;
+
+  @IsNotEmpty()
+  @IsEnum(RESTRICTION)
+  restriction: RESTRICTION;
+
+  @IsInt()
   @IsPositive()
+  @isValidDuration('restriction')
   duration: number;
+
+  @IsEnum(DURATION_UNIT)
+  durationUnit: DURATION_UNIT;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  reason: string;
+
+  @IsOptional()
+  userId: string;
+
+  @IsOptional()
+  nickname: string;
 }
 
-export class RestrictedUsersDto {
-  chatroomId: string;
-  @ValidateNested({ each: true })
-  @Type(() => RestrictUser)
+export class ChatroomDataDto {
+  @IsArray()
   @ArrayMinSize(1)
-  restrictedUser: RestrictUser[];
+  users: string[];
+
+  @IsOptional()
+  @IsString()
+  nickname: string;
+
+  @IsString()
+  chatroomId: string;
+
+  @IsOptional()
+  @IsString()
+  userId: string;
+}
+
+export class ChatroomData {
+  users: string[];
+
+  nickname: string;
+
+  chatroomId: string;
+
+  userId: string;
 }

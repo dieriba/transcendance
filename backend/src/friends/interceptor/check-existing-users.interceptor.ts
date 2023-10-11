@@ -1,28 +1,40 @@
 import { LibService } from 'src/lib/lib.service';
-import { Injectable, PipeTransform, Logger, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  CallHandler,
+  ExecutionContext,
+  NestInterceptor,
+  Logger,
+  HttpStatus,
+} from '@nestjs/common';
 import { RequestWithAuth } from 'src/auth/type';
 import { UserService } from 'src/user/user.service';
 import { CustomException } from '../../common/custom-exception/custom-exception';
 import { UserBlockList } from '../../common/types/user-info.type';
+import { Observable } from 'rxjs';
 
 @Injectable()
-export class checkExisistingUser implements PipeTransform {
+export class CheckExisistingUser implements NestInterceptor {
+  readonly logger = new Logger(CheckExisistingUser.name);
   constructor(
     private readonly userService: UserService,
     private readonly libService: LibService,
   ) {}
-  private readonly logger = new Logger(checkExisistingUser.name);
-  async transform(req: RequestWithAuth) {
-    this.logger.log({ req: req.userId, user: req.body.id });
+  async intercept(
+    context: ExecutionContext,
+    next: CallHandler,
+  ): Promise<Observable<any>> {
+    const request: RequestWithAuth = context.switchToHttp().getRequest();
+    this.logger.log({ req: request.userId, user: request.body.id });
 
-    if (this.libService.checkIfString(req.body.id))
+    if (this.libService.checkIfString(request.body.id))
       throw new CustomException(
         'Id should be an non empty string',
         HttpStatus.BAD_REQUEST,
       );
 
     const users = await this.userService.findManyUsers(
-      [req.userId, req.body.id],
+      [request.userId, request.body.id],
       UserBlockList,
     );
 
@@ -34,7 +46,8 @@ export class checkExisistingUser implements PipeTransform {
         HttpStatus.NOT_FOUND,
       );
 
-    req.body.userId = req.userId;
-    return req.body;
+    request.body.userId = request.userId;
+
+    return next.handle();
   }
 }

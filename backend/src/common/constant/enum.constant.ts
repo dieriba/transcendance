@@ -8,3 +8,7 @@ export const PLAYING = 'PLAYING';
 export const PUBLIC = 'PUBLIC';
 export const PRIVATE = 'PRIVATE';
 export const PROTECTED = 'PROTECTED';
+
+export const MIN = 'MIN';
+export const DAYS = 'DAYS';
+export const HOURS = 'HOURS';

@@ -7,13 +7,3 @@ export class Message {
 export type User = {
   nickname: string;
 };
-
-export class ChatRoomData {
-  users: string[];
-
-  nickname: string;
-
-  chatroomId: string;
-
-  userId: string;
-}

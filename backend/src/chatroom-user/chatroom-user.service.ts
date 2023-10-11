@@ -31,7 +31,7 @@ export class ChatroomUserService {
     return chatroom;
   }
 
-  async findChatChatroomUsers(chatroomId: string, usersId: string[]) {
+  async findChatChatroomUsersId(chatroomId: string, usersId: string[]) {
     const chatroomUser = await this.prismaService.chatroomUser.findMany({
       where: { chatroomId, user: { id: { in: usersId } } },
       select: { userId: true },
@@ -47,7 +47,15 @@ export class ChatroomUserService {
         userId,
       },
       select: {
+        user: {
+          select: { id: true, nickname: true },
+        },
         role: true,
+        chatroom: {
+          select: {
+            chatroomName: true,
+          },
+        },
       },
     });
     return user;

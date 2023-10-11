@@ -2,13 +2,14 @@ import { CustomException } from 'src/common/custom-exception/custom-exception';
 import { UserService } from './../user/user.service';
 import {
   ChatRoomDto,
+  ChatroomDataDto,
   ChatroomMessageDto,
   JoinChatroomDto,
   RestrictedUsersDto,
 } from './dto/chatroom.dto';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ChatRoomData, Message } from './types/chatroom.types';
+import { Message } from './types/chatroom.types';
 import { ROLE, TYPE } from '@prisma/client';
 import { Argon2Service } from 'src/argon2/argon2.service';
 import { UserData } from 'src/common/types/user-info.type';
@@ -22,6 +23,7 @@ import { ChatroomUserService } from 'src/chatroom-user/chatroom-user.service';
 import { FriendsService } from 'src/friends/friends.service';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
 import { ChatRoomNotFoundException } from './exception/chatroom-not-found.exception';
+import { LibService } from 'src/lib/lib.service';
 
 @Injectable()
 export class ChatService {
@@ -32,6 +34,7 @@ export class ChatService {
     private readonly chatroomUserService: ChatroomUserService,
     private readonly argon2Service: Argon2Service,
     private readonly friendService: FriendsService,
+    private readonly libService: LibService,
   ) {}
   private readonly logger = new Logger(ChatService.name);
 
@@ -58,23 +61,17 @@ export class ChatService {
 
     let existingUserId = await this.getExistingUserNonBlocked(creatorId, users);
 
+    this.logger.log({ existingUserId });
+
     existingUserId = Array.from(new Set(existingUserId));
 
     existingUserId.push(creatorId);
 
-    this.logger.log(existingUserId);
+    this.logger.log({ existingUserId });
 
     const newChatroom = await this.prismaService.chatroom.create({
       data: {
         ...chatroom,
-        users: {
-          create: existingUserId.map((userId) => ({
-            user: {
-              connect: { id: userId },
-            },
-            role: creatorId === userId ? ROLE.DIERIBA : ROLE.REGULAR_USER,
-          })),
-        },
       },
       select: {
         id: true,
@@ -88,7 +85,36 @@ export class ChatService {
     return newChatroom;
   }
 
-  async setNewAdminUser(userId: string, chatroomData: ChatRoomData) {
+  async addNewUserToChatroom(userId: string, chatRoomData: ChatroomDataDto) {
+    const { users, chatroomId } = chatRoomData;
+    this.logger.log(chatroomId);
+    const existingUserAndNonBlocked = await this.getExistingUserNonBlocked(
+      userId,
+      users,
+    );
+
+    this.logger.log({ existingUserAndNonBlocked });
+    const newUsers = await this.prismaService.$transaction(
+      existingUserAndNonBlocked.map((userId) =>
+        this.prismaService.chatroomUser.upsert({
+          where: {
+            userId_chatroomId: {
+              userId,
+              chatroomId,
+            },
+          },
+          update: {},
+          create: {
+            userId,
+            chatroomId,
+          },
+        }),
+      ),
+    );
+    return newUsers;
+  }
+
+  async setNewAdminUser(userId: string, chatroomData: ChatroomDataDto) {
     const { users, chatroomId } = chatroomData;
 
     const chatroom = await this.prismaService.chatroom.findUnique({
@@ -114,33 +140,44 @@ export class ChatService {
     return updatedChatrooms;
   }
 
-  async restrictUsers(restrictedUsersDto: RestrictedUsersDto) {}
+  async restrictUsers(restrictedUsersDto: RestrictedUsersDto) {
+    const { chatroomId, id, duration, restriction, durationUnit, userId } =
+      restrictedUsersDto;
 
-  async addNewUserToChatroom(userId: string, chatRoomData: ChatRoomData) {
-    const { users, chatroomId } = chatRoomData;
-    this.logger.log(chatroomId);
-    const existingUserAndNonBlocked = await this.getExistingUserNonBlocked(
-      userId,
-      users,
-    );
-    const newUsers = await this.prismaService.$transaction(
-      existingUserAndNonBlocked.map((userId) =>
-        this.prismaService.chatroomUser.upsert({
-          where: {
-            userId_chatroomId: {
-              userId,
-              chatroomId,
-            },
-          },
-          update: {},
-          create: {
-            userId,
-            chatroomId,
-          },
-        }),
-      ),
-    );
-    return newUsers;
+    const date = new Date();
+
+    const updatedChatrooms = await this.prismaService.restrictedUser.upsert({
+      where: {
+        userId_chatroomId: {
+          userId: id,
+          chatroomId: chatroomId,
+        },
+      },
+      update: {
+        adminId: userId,
+        restriction: restriction,
+        restrictionTimeStart: date,
+        restrictionTimeEnd: this.libService.getEndBanTime(
+          durationUnit,
+          date,
+          duration,
+        ),
+      },
+      create: {
+        adminId: userId,
+        userId: id,
+        chatroomId,
+        restriction: restriction,
+        restrictionTimeStart: date,
+        restrictionTimeEnd: this.libService.getEndBanTime(
+          durationUnit,
+          date,
+          duration,
+        ),
+      },
+    });
+
+    return updatedChatrooms;
   }
 
   async joinChatroom(id: string, joinChatroomDto: JoinChatroomDto) {
@@ -184,14 +221,14 @@ export class ChatService {
     );
   }
 
-  async deleteUserFromChatromm(chatroomData: ChatRoomData) {
+  async deleteUserFromChatromm(chatroomData: ChatroomDataDto) {
     const { users, chatroomId, nickname } = chatroomData;
 
     const creator = users.find((userNickname) => userNickname == nickname);
 
     if (creator)
       throw new CustomException(
-        'Cannot delete the admin of that room',
+        'Cannot delete DIERIBA of that room',
         HttpStatus.BAD_REQUEST,
       );
 
@@ -267,27 +304,13 @@ export class ChatService {
         id: {
           in: usersId,
         },
-        NOT: {
-          AND: [
-            {
-              blockedBy: {
-                some: {
-                  id: userId,
-                },
-              },
-            },
-            {
-              blockedUsers: {
-                some: {
-                  id: userId,
-                },
-              },
-            },
-          ],
-        },
+        AND: [
+          { blockedBy: { none: { id: userId } } },
+          { blockedUsers: { none: { id: userId } } },
+        ],
       },
     });
-    return foundUsers.map((user) => user.nickname);
+    return foundUsers.map((user) => user.id);
   }
 
   async getExistingUsers(usersId: string[]): Promise<string[]> {

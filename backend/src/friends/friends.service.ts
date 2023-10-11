@@ -29,7 +29,7 @@ export class FriendsService {
     if (existingBlockedUser) {
       const { blockedBy, blockedUsers } = existingBlockedUser;
 
-      if (blockedBy.length && blockedBy.length)
+      if (blockedBy.length && blockedUsers.length)
         throw new CustomException(
           'You both blocked each other',
           HttpStatus.BAD_REQUEST,
@@ -64,7 +64,7 @@ export class FriendsService {
         );
       else
         throw new BadRequestException(
-          'That user already send you a friend request',
+          'You already sent a friend request to that user',
         );
     }
 
@@ -91,7 +91,7 @@ export class FriendsService {
 
     if (!existingFriendRequest)
       throw new BadRequestException(
-        'That user did not send you a friend request',
+        'There is not friend request between you and that user to cancel',
       );
 
     const existingFriendship = await this.isFriends(userId, id);
