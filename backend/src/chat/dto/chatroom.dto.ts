@@ -130,6 +130,27 @@ export class RestrictedUsersDto {
   nickname: string;
 }
 
+export class UnrestrictedUsersDto {
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  chatroomId: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  id: string;
+
+  @IsOptional()
+  isChatAdmin: boolean;
+
+  @IsOptional()
+  userId: string;
+
+  @IsOptional()
+  nickname: string;
+}
+
 export class ChangeUserRole {
   @ApiProperty()
   @IsNotEmpty()

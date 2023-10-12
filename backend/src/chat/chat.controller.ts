@@ -19,6 +19,7 @@ import {
   DmMessageDto,
   JoinChatroomDto,
   RestrictedUsersDto,
+  UnrestrictedUsersDto,
 } from './dto/chatroom.dto';
 import { ChatService } from './chat.service';
 import { CheckGroupCreationValidity } from './pipes/check-group-creation-validity.pipe';
@@ -86,12 +87,22 @@ export class ChatController {
 
   @Post('restrict-users')
   @HttpCode(HttpStatus.OK)
-  @ResponseMessage('User restricted')
+  @ResponseMessage('User have successfully been restricted')
   @UseInterceptors(PassUserDataToBody)
   async restrictUsers(
     @Body(isDieribaOrAdmin) restrictedUsersDto: RestrictedUsersDto,
   ) {
-    return await this.chatService.restrictUsers(restrictedUsersDto);
+    return await this.chatService.restrictUser(restrictedUsersDto);
+  }
+
+  @Post('unrestrict-users')
+  @HttpCode(HttpStatus.OK)
+  @ResponseMessage('User have successfully been unrestricted')
+  @UseInterceptors(PassUserDataToBody)
+  async unrestrictUsers(
+    @Body(isDieribaOrAdmin) unrestrictedUsersDto: UnrestrictedUsersDto,
+  ) {
+    return await this.chatService.unrestrictUser(unrestrictedUsersDto);
   }
 
   @Post('join-chat')

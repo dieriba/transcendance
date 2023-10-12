@@ -9,6 +9,7 @@ import {
   DmMessageDto,
   JoinChatroomDto,
   RestrictedUsersDto,
+  UnrestrictedUsersDto,
 } from './dto/chatroom.dto';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -239,7 +240,7 @@ export class ChatService {
     return updatedChatroomsUser;
   }
 
-  async restrictUsers(restrictedUserDto: RestrictedUsersDto) {
+  async restrictUser(restrictedUserDto: RestrictedUsersDto) {
     const date = new Date();
 
     const {
@@ -316,6 +317,36 @@ export class ChatService {
     } else {
       return await restrictedUser;
     }
+  }
+
+  async unrestrictUser(unrestrictedUserDto: UnrestrictedUsersDto) {
+    const { chatroomId, id, isChatAdmin, userId } = unrestrictedUserDto;
+
+    const unrestrictedUser = await this.prismaService.restrictedUser.findFirst({
+      where: { userId: id },
+    });
+
+    if (!unrestrictedUser)
+      throw new CustomException(
+        "The user either don't exist or have not been restricted",
+        HttpStatus.NOT_FOUND,
+      );
+
+    if (isChatAdmin && userId !== unrestrictedUser.adminId) {
+      throw new CustomException(
+        'Only Dieriba or admin who restricted that use can unrestrict him',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    await this.prismaService.restrictedUser.delete({
+      where: {
+        userId_chatroomId: {
+          userId: id,
+          chatroomId,
+        },
+      },
+    });
   }
 
   async joinChatroom(id: string, joinChatroomDto: JoinChatroomDto) {
