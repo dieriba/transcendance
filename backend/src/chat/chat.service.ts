@@ -26,6 +26,7 @@ import { UserNotFoundException } from 'src/common/custom-exception/user-not-foun
 import { ChatRoomNotFoundException } from './exception/chatroom-not-found.exception';
 import { LibService } from 'src/lib/lib.service';
 import { BAD_REQUEST } from 'src/common/constant/http-error.constant';
+import { ChatroomBaseData } from 'src/common/types/chatroom-info-type';
 
 @Injectable()
 export class ChatService {
@@ -61,6 +62,10 @@ export class ChatService {
         HttpStatus.BAD_REQUEST,
       );
 
+    users.push(creatorId);
+
+    this.logger.log({ users });
+
     const existingUserId = await this.userService.getExistingUserNonBlocked(
       creatorId,
       users,
@@ -69,7 +74,7 @@ export class ChatService {
 
     this.logger.log({ existingUserId });
 
-    existingUserId.push(creatorId);
+    this.logger.log({ existingUserId });
 
     const newChatroom = await this.prismaService.chatroom.create({
       data: {
@@ -97,7 +102,7 @@ export class ChatService {
 
   async addNewUserToChatroom(userId: string, chatRoomData: ChatroomDataDto) {
     const { users, chatroomId } = chatRoomData;
-    this.logger.log(chatroomId);
+    this.logger.log({ chatroomId, users });
 
     const existingUserAndNonBlocked =
       await this.userService.getExistingUserNonBlocked(userId, users, UserData);
@@ -114,12 +119,28 @@ export class ChatService {
   async setNewChatroomDieriba(dieribaDto: DieribaDto) {
     const { id, userId, chatroomId } = dieribaDto;
 
-    const chatroomUser = await this.chatroomUserService.findChatroomUser(
-      userId,
-      id,
-    );
+    if (id === userId)
+      throw new CustomException(
+        'You already are the DIERIBA of that chatroom',
+        HttpStatus.BAD_REQUEST,
+      );
+
+    const [chatroomUser, restrictedUser] = await Promise.all([
+      this.chatroomUserService.findChatroomUser(chatroomId, id),
+      this.prismaService.restrictedUser.findFirst({ where: { userId: id } }),
+    ]);
+
+    this.logger.log({ chatroomUser, id, userId, restrictedUser });
 
     if (!chatroomUser) throw new UserNotFoundException();
+
+    const now = new Date();
+
+    if (restrictedUser && restrictedUser.restrictionTimeEnd > now)
+      throw new CustomException(
+        "Can't set as DIERIBA someone that is currently on a restriction, please remove the restriction first",
+        HttpStatus.BAD_REQUEST,
+      );
 
     if (chatroomUser.user.blockedUsers.length)
       throw new CustomException(
@@ -147,13 +168,13 @@ export class ChatService {
   }
 
   async deleteUserFromChatromm(chatroomData: ChatroomDataDto) {
-    const { users, chatroomId, nickname } = chatroomData;
+    const { users, chatroomId, userId } = chatroomData;
 
-    const creator = users.find((userNickname) => userNickname == nickname);
+    const creator = users.find((user) => user == userId);
 
     if (creator)
       throw new CustomException(
-        'Cannot delete DIERIBA Role of that room',
+        'Cannot delete the group owner of that room',
         HttpStatus.BAD_REQUEST,
       );
 
@@ -201,17 +222,16 @@ export class ChatService {
 
     const updatedChatroomsUser = await this.prismaService.$transaction(
       existingUsers.map((user) =>
-        this.prismaService.chatroomUser.upsert({
+        this.prismaService.chatroomUser.update({
           where: {
             userId_chatroomId: {
               userId: user.id,
               chatroomId,
             },
           },
-          update: {
+          data: {
             role: user.role,
           },
-          create: undefined,
         }),
       ),
     );
@@ -219,7 +239,9 @@ export class ChatService {
     return updatedChatroomsUser;
   }
 
-  async restrictUsers(restrictedUsersDto: RestrictedUsersDto) {
+  async restrictUsers(restrictedUserDto: RestrictedUsersDto) {
+    const date = new Date();
+
     const {
       chatroomId,
       id,
@@ -228,11 +250,10 @@ export class ChatService {
       durationUnit,
       userId,
       reason,
-    } = restrictedUsersDto;
+      isChatAdmin,
+    } = restrictedUserDto;
 
-    const date = new Date();
-
-    const updatedChatrooms = await this.prismaService.restrictedUser.upsert({
+    const restrictedUser = this.prismaService.restrictedUser.upsert({
       where: {
         userId_chatroomId: {
           userId: id,
@@ -265,31 +286,69 @@ export class ChatService {
       },
     });
 
-    return updatedChatrooms;
+    if (duration === Number.MAX_SAFE_INTEGER) {
+      const deletedUser = this.prismaService.chatroomUser.delete({
+        where: {
+          userId_chatroomId: {
+            userId: id,
+            chatroomId,
+          },
+        },
+      });
+
+      return await this.prismaService.$transaction([
+        restrictedUser,
+        deletedUser,
+      ]);
+    } else if (isChatAdmin) {
+      const oldAdmin = this.prismaService.chatroomUser.update({
+        where: {
+          userId_chatroomId: {
+            userId: id,
+            chatroomId,
+          },
+        },
+        data: {
+          role: ROLE.REGULAR_USER,
+        },
+      });
+      return await this.prismaService.$transaction([restrictedUser, oldAdmin]);
+    } else {
+      return await restrictedUser;
+    }
   }
 
   async joinChatroom(id: string, joinChatroomDto: JoinChatroomDto) {
-    const { chatroomId, roomPassword } = joinChatroomDto;
+    const { chatroomId } = joinChatroomDto;
 
-    const chatroom = await this.chatroomService.findChatroomWithSpecificUser(
-      id,
+    this.logger.log(`password: [${joinChatroomDto.password}]`);
+
+    const chatroom = await this.chatroomService.findChatroom(
       chatroomId,
+      ChatroomBaseData,
     );
 
     if (!chatroom) throw new ChatRoomNotFoundException();
 
     this.logger.log({ chatroom });
 
+    const foundChatroomUser = await this.chatroomUserService.findChatroomUser(
+      chatroomId,
+      id,
+    );
+
+    this.logger.log({ foundChatroomUser });
+
     if (chatroom.type !== TYPE.PUBLIC) {
-      if (chatroom.type === TYPE.PRIVATE && chatroom.users.length === 0) {
+      if (chatroom.type === TYPE.PRIVATE && !foundChatroomUser) {
         throw new CustomException(
           "You can't join that private chatroom, you need to be invited first",
           HttpStatus.UNAUTHORIZED,
         );
       } else if (chatroom.type === TYPE.PROTECTED) {
         const match = await this.argon2Service.compare(
-          roomPassword,
           chatroom.password,
+          joinChatroomDto.password,
         );
 
         if (!match)
@@ -298,13 +357,16 @@ export class ChatService {
             HttpStatus.UNAUTHORIZED,
           );
 
-        if (chatroom.users.length === 0) {
+        if (!foundChatroomUser) {
           await this.chatroomUserService.createNewChatroomUser(id, chatroomId);
         }
       }
     }
 
-    return chatroom;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...data } = chatroom;
+
+    return data;
   }
 
   async findAllUsersChat(userId: string) {

@@ -77,6 +77,7 @@ export class ChatroomUserService {
         chatroom: {
           select: {
             chatroomName: true,
+            password: true,
           },
         },
       },

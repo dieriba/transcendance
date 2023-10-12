@@ -15,7 +15,7 @@ export type ChatroomInfo = {
 export const ChatroomBaseData: ChatroomInfo = {
   id: true,
   chatroomName: true,
-  password: false,
+  password: true,
   type: true,
   createdAt: true,
   updatedAt: false,
@@ -23,7 +23,7 @@ export const ChatroomBaseData: ChatroomInfo = {
   invitedUser: true,
   users: true,
   messages: true,
-  restrictedUsers: true,
+  restrictedUsers: false,
 };
 
 export const ChatroomWithSpecificUser: ChatroomInfo = {

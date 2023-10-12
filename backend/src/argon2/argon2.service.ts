@@ -19,10 +19,12 @@ export class Argon2Service {
     }
   }
 
-  async compare(value: string, hashedValue: string): Promise<boolean> {
+  async compare(hashedValue: string, value: string): Promise<boolean> {
     try {
-      this.logger.log('Comparing value to hash Value');
-      const isMatch = await argon2.verify(value, hashedValue);
+      this.logger.log(
+        `Comparing value to value ${value} to hash value : ${hashedValue}`,
+      );
+      const isMatch = await argon2.verify(hashedValue, value);
       return isMatch;
     } catch (error) {
       this.logger.log(

@@ -44,7 +44,7 @@ export class ChatRoomDto {
   @IsOptional()
   @IsString()
   @MinLength(8)
-  roomPassword: string;
+  password: string;
 }
 
 export class DmMessageDto {
@@ -85,7 +85,7 @@ export class JoinChatroomDto {
   @ApiProperty()
   @IsOptional()
   @IsString()
-  roomPassword: string;
+  password: string;
 }
 
 export class RestrictedUsersDto {
@@ -121,6 +121,9 @@ export class RestrictedUsersDto {
   reason: string;
 
   @IsOptional()
+  isChatAdmin: boolean;
+
+  @IsOptional()
   userId: string;
 
   @IsOptional()
@@ -130,7 +133,7 @@ export class RestrictedUsersDto {
 export class ChangeUserRole {
   @ApiProperty()
   @IsNotEmpty()
-  @IsArray()
+  @IsString()
   id: string;
 
   @ApiProperty()
@@ -170,11 +173,15 @@ export class DieribaDto {
   @IsNotEmpty()
   chatroomId: string;
 
-  @ApiProperty()
   @IsOptional()
   @IsString()
   @IsNotEmpty()
   userId: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  nickname: string;
 }
 
 export class ChatroomDataDto {

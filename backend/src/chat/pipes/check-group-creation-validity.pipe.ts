@@ -9,15 +9,15 @@ export class CheckGroupCreationValidity implements PipeTransform {
   constructor(private readonly argon2Service: Argon2Service) {}
   private readonly logger = new Logger(CheckGroupCreationValidity.name);
   async transform(chatroomDto: ChatRoomDto) {
-    const { type, roomPassword } = chatroomDto;
+    const { type, password } = chatroomDto;
 
-    if (roomPassword !== undefined) {
+    if (password !== undefined) {
       if (type !== TYPE.PROTECTED)
         throw new CustomException(
           'Only protected chatroom can set password',
           HttpStatus.BAD_REQUEST,
         );
-      chatroomDto.roomPassword = await this.argon2Service.hash(roomPassword);
+      chatroomDto.password = await this.argon2Service.hash(password);
     }
     return chatroomDto;
   }

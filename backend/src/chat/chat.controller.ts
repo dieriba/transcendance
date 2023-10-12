@@ -36,6 +36,9 @@ export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
   @Post('create-chatroom')
+  @ResponseMessage(
+    'Successfully created chatroom and added user meeting the following criteria: not blocked you, not have blocked you and existing',
+  )
   async createChatRoom(
     @Body(CheckGroupCreationValidity) chatRoomDto: ChatRoomDto,
     @GetUser('userId') userId: string,
@@ -44,7 +47,9 @@ export class ChatController {
   }
 
   @Post('add-user')
-  @ResponseMessage('Success')
+  @ResponseMessage(
+    'Successfully added user meeting the following criteria: not blocked you, not have blocked you, not already in chatroom and existing',
+  )
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(PassUserDataToBody)
   async addNewUserToChatroom(@Body(IsDieriba) body: ChatroomDataDto) {
@@ -52,7 +57,7 @@ export class ChatController {
   }
 
   @Post('set-chatroom-dieriba')
-  @ResponseMessage('Success')
+  @ResponseMessage('Ownership given successfully')
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(PassUserDataToBody)
   async setNewChatroomDieriba(@Body(IsDieriba) dieribaDto: DieribaDto) {
@@ -62,13 +67,18 @@ export class ChatController {
   @Delete('delete-user')
   @UseInterceptors(PassUserDataToBody)
   @HttpCode(HttpStatus.OK)
-  @ResponseMessage('Users Deleted')
+  @ResponseMessage(
+    'Successfully deleted user from chatroom meeting the following criteria: existing and in chatroom',
+  )
   async deleteUserFromChatroom(@Body(IsDieriba) body: ChatroomDataDto) {
     return await this.chatService.deleteUserFromChatromm(body);
   }
 
   @Post('change-user-role')
   @HttpCode(HttpStatus.OK)
+  @ResponseMessage(
+    'Successfully change the role of user meeting the following criteria: existing in chatroom and not have blocked you',
+  )
   @UseInterceptors(PassUserDataToBody)
   async setNewAdminUser(@Body(IsDieriba) body: ChangeUserRoleDto) {
     return await this.chatService.changeUserRole(body);
@@ -89,7 +99,7 @@ export class ChatController {
   @HttpCode(HttpStatus.OK)
   async joinChatroom(
     @GetUser('userId') id: string,
-    joinChatroomDto: JoinChatroomDto,
+    @Body() joinChatroomDto: JoinChatroomDto,
   ) {
     return await this.chatService.joinChatroom(id, joinChatroomDto);
   }

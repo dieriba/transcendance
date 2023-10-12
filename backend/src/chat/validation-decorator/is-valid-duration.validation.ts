@@ -54,7 +54,11 @@ export class isValidDurationConstraint implements ValidatorConstraintInterface {
       else if (durationUnit === DURATION_UNIT.DAY && duration > MUTE_MAX_DAYS)
         return this.setResponse(`Can't kick a user more than ${MUTE_MAX_DAYS}`);
     } else if (restriction === RESTRICTION.BANNED) {
-      if (durationUnit === DURATION_UNIT.DAY && duration > BAN_MAX_DAYS)
+      if (
+        durationUnit === DURATION_UNIT.DAY &&
+        duration > BAN_MAX_DAYS &&
+        duration !== Number.MAX_SAFE_INTEGER
+      )
         return this.setResponse(
           `Can't ban a user more than ${BAN_MAX_DAYS} days`,
         );

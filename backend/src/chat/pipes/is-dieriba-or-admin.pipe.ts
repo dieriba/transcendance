@@ -33,7 +33,7 @@ export class isDieribaOrAdmin implements PipeTransform {
       throw new CustomException('Unauthorized', HttpStatus.BAD_REQUEST);
     }
 
-    if (chatroomUser.user.id === userId)
+    if (userToRestrict.user.id === userId)
       throw new CustomException(
         'Cannot restrict myself',
         HttpStatus.BAD_REQUEST,
@@ -50,6 +50,9 @@ export class isDieribaOrAdmin implements PipeTransform {
         );
     }
 
-    return restrictedUsersDto;
+    return {
+      ...restrictedUsersDto,
+      isChatAdmin: userToRestrict.role === ROLE.CHAT_ADMIN ? true : false,
+    };
   }
 }
