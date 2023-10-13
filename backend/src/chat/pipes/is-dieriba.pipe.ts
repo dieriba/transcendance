@@ -1,4 +1,3 @@
-import { ChatService } from '../chat.service';
 import { Injectable, PipeTransform, Logger } from '@nestjs/common';
 import { ROLE } from '@prisma/client';
 import { ChatroomUserService } from 'src/chatroom-user/chatroom-user.service';
@@ -10,18 +9,17 @@ import {
 
 @Injectable()
 export class IsDieriba implements PipeTransform {
-  constructor(
-    private readonly chatService: ChatService,
-    private readonly chatroomUserService: ChatroomUserService,
-  ) {}
+  constructor(private readonly chatroomUserService: ChatroomUserService) {}
   private readonly logger = new Logger(IsDieriba.name);
   async transform(data: ChatroomDataDto | ChangeUserRoleDto) {
     const { chatroomId, userId } = data;
-
+    this.logger.log(`User is undefined ${userId}`);
     const chatroomUser = await this.chatroomUserService.findChatroomUser(
       chatroomId,
       userId,
     );
+
+    this.logger.log({ chatroomUser });
 
     if (!chatroomUser)
       throw new WsNotFoundException(

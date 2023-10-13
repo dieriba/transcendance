@@ -1,15 +1,33 @@
 import {
-  GROUP_ADD_USER,
-  GROUP_CHANGE_USER_ROLE,
-  GROUP_CREATE,
-  GROUP_DELETE_USER,
-  GROUP_JOIN_CHATROOM,
-  GROUP_RESTRICT_USER,
-  GROUP_SEND_MESSAGE,
-  GROUP_SET_DIERIBA,
-  GROUP_UNRESTRICT_USER,
+  CHATROOM_JOIN,
+  CHATROOM_USER_JOINED,
+  CHATROOM_USER_RESTRICTED,
+  CHATROOM_USER_UNRESTRICTED,
+} from './../../shared/socket.events';
+import {
+  CHATROOM_ADD_USER,
+  CHATROOM_CHANGE_USER_ROLE,
+  CHATROOM_CREATE,
+  CHATROOM_CREATED,
+  CHATROOM_DELETE_USER,
+  CHATROOM_NEW_DIERIBA,
+  CHATROOM_RESTRICT_USER,
+  CHATROOM_SEND_MESSAGE,
+  CHATROOM_SET_DIERIBA,
+  CHATROOM_UNRESTRICT_USER,
+  CHATROOM_USER_ADDED,
+  CHATROOM_USER_DELETED,
+  CHATROOM_USER_RESTRICT_CHAT_ADMIN,
+  CHATROOM_USER_RESTRICT_LIFE,
+  CHATROOM_USER_ROLE_CHANGED,
 } from '../../shared/socket.events';
-import { Logger, UseFilters, UseInterceptors } from '@nestjs/common';
+import {
+  Logger,
+  UseFilters,
+  UseGuards,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -27,6 +45,7 @@ import { ChatroomUserService } from 'src/chatroom-user/chatroom-user.service';
 import { ChatroomService } from 'src/chatroom/chatroom.service';
 import {
   WsBadRequestException,
+  WsNotFoundException,
   WsUnauthorizedException,
   WsUnknownException,
 } from 'src/common/custom-exception/ws-exception';
@@ -52,12 +71,15 @@ import {
 import { BAD_REQUEST } from 'src/common/constant/http-error.constant';
 import { CheckGroupCreationValidity } from './pipes/check-group-creation-validity.pipe';
 import { IsDieriba } from './pipes/is-dieriba.pipe';
-import { PassUserDataToBody } from 'src/common/interceptor/pass-user-data-to-body.interceptor';
 import { isDieribaOrAdmin } from './pipes/is-dieriba-or-admin.pipe';
 import { IsExistingUserAndGroup } from './pipes/is-existing-goup.pipe';
+import { WsAccessTokenGuard } from 'src/common/guards/ws.guard';
+import { IsRestrictedUserGuard } from './guards/is-restricted-user.guard';
+import { ChatRoute } from 'src/common/custom-decorator/metadata.decorator';
 
+@UseGuards(WsAccessTokenGuard)
 @UseFilters(WsCatchAllFilter)
-@UseInterceptors(PassUserDataToBody)
+@UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 @WebSocketGateway({
   namespace: 'chats',
 })
@@ -86,7 +108,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(`Socket data: `, sockets);
     this.logger.debug(`Number of connected sockets: ${sockets.size}`);
     this.gatewayService.setUserSocket(client.userId, client);
-    this.server.emit('greetings', `Hello from: ${client.id}`);
   }
 
   handleDisconnect(client: SocketWithAuth) {
@@ -98,7 +119,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.gatewayService.removeUserSocket(client.userId);
   }
 
-  @SubscribeMessage(GROUP_CREATE)
+  @SubscribeMessage(CHATROOM_CREATE)
   async createChatRoom(
     @MessageBody(CheckGroupCreationValidity) chatroomDto: ChatRoomDto,
     @ConnectedSocket() client: SocketWithAuth,
@@ -106,6 +127,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const { users, ...chatroom } = chatroomDto;
     const { chatroomName } = chatroom;
     const { userId } = client;
+
     const user = await this.userService.findUserById(client.userId, UserData);
 
     if (!user) throw new WsUnknownException('User not found');
@@ -134,9 +156,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
 
     this.logger.log({ existingUserId });
-
-    this.logger.log({ existingUserId });
-
     const newChatroom = await this.prismaService.chatroom.create({
       data: {
         ...chatroom,
@@ -158,17 +177,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
 
     this.logger.log('New chatroom created and users linked:', newChatroom);
-    this.server.emit('group.created', newChatroom);
+    this.server.emit(CHATROOM_CREATED, newChatroom);
   }
 
-  @SubscribeMessage(GROUP_ADD_USER)
+  @SubscribeMessage(CHATROOM_ADD_USER)
   async addNewUserToChatroom(
-    @MessageBody(IsDieriba) chatRoomData: ChatroomDataDto,
+    @MessageBody() chatRoomData: ChatroomDataDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
     const { users, chatroomId } = chatRoomData;
     this.logger.log({ chatroomId, users });
     const { userId } = client;
+
+    /*CHECK IF USER IS CHAT OWNER */
+    await this.isDieriba(userId, chatroomId);
+
     const existingUserAndNonBlocked =
       await this.userService.getExistingUserNonBlocked(userId, users, UserData);
 
@@ -178,16 +201,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.chatroomUserService.createNewChatroomUser(userId, chatroomId),
       ),
     );
-    return newUsers;
+    this.server.emit(CHATROOM_USER_ADDED, newUsers);
   }
 
-  @SubscribeMessage(GROUP_SET_DIERIBA)
+  @SubscribeMessage(CHATROOM_SET_DIERIBA)
   async setNewChatroomDieriba(
     @MessageBody(IsDieriba) dieribaDto: DieribaDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
     const { id, chatroomId } = dieribaDto;
     const { userId } = client;
+    await this.isDieriba(userId, chatroomId);
     if (id === userId)
       throw new WsBadRequestException(
         'You already are the DIERIBA of that chatroom',
@@ -229,10 +253,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }),
     ]);
 
-    return { updateMe, updateNewDieriba };
+    this.server.emit(CHATROOM_NEW_DIERIBA, { updateMe, updateNewDieriba });
   }
 
-  @SubscribeMessage(GROUP_DELETE_USER)
+  @SubscribeMessage(CHATROOM_DELETE_USER)
   async deleteUserFromChatromm(
     @MessageBody(IsDieriba) chatroomData: ChatroomDataDto,
     @ConnectedSocket() client: SocketWithAuth,
@@ -240,11 +264,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const { userId } = client;
     const { users, chatroomId } = chatroomData;
 
+    await this.isDieriba(userId, chatroomId);
     const creator = users.find((user) => user == userId);
 
     if (creator)
       throw new WsBadRequestException(
-        'Cannot delete the group owner of that room',
+        'Cannot delete the CHATROOM owner of that room',
       );
 
     const deletedUsers = await this.prismaService.chatroomUser.deleteMany({
@@ -256,17 +281,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       },
     });
 
-    return deletedUsers;
+    this.server.emit(CHATROOM_USER_DELETED, deletedUsers);
   }
 
-  @SubscribeMessage(GROUP_CHANGE_USER_ROLE)
+  @SubscribeMessage(CHATROOM_CHANGE_USER_ROLE)
   async changeUserRole(
     @MessageBody(IsDieriba) changeUserRoleDto: ChangeUserRoleDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
     const { users, chatroomId } = changeUserRoleDto;
     const { userId } = client;
-
+    await this.isDieriba(userId, chatroomId);
     const idSet = new Set(users.map((user) => user.id));
 
     if (idSet.size !== users.length)
@@ -307,14 +332,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       ),
     );
 
-    return updatedChatroomsUser;
+    this.server.emit(CHATROOM_USER_ROLE_CHANGED, updatedChatroomsUser);
   }
 
-  @SubscribeMessage(GROUP_RESTRICT_USER)
+  @SubscribeMessage(CHATROOM_RESTRICT_USER)
   async restrictUser(
-    @MessageBody(isDieribaOrAdmin) restrictedUserDto: RestrictedUsersDto,
+    @MessageBody() restrictedUserDto: RestrictedUsersDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
+    await this.isDieribaOrAdmin(restrictedUserDto);
+
     const date = new Date();
     const { userId } = client;
     const {
@@ -370,10 +397,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         },
       });
 
-      return await this.prismaService.$transaction([
+      const data = await this.prismaService.$transaction([
         restrictedUser,
         deletedUser,
       ]);
+      this.server.emit(CHATROOM_USER_RESTRICT_LIFE, data);
     } else if (isChatAdmin) {
       const oldAdmin = this.prismaService.chatroomUser.update({
         where: {
@@ -386,17 +414,24 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           role: ROLE.REGULAR_USER,
         },
       });
-      return await this.prismaService.$transaction([restrictedUser, oldAdmin]);
+      const data = await this.prismaService.$transaction([
+        restrictedUser,
+        oldAdmin,
+      ]);
+      this.server.emit(CHATROOM_USER_RESTRICT_CHAT_ADMIN, data);
     } else {
-      return await restrictedUser;
+      const data = await restrictedUser;
+      this.server.emit(CHATROOM_USER_RESTRICTED, data);
     }
   }
 
-  @SubscribeMessage(GROUP_UNRESTRICT_USER)
+  @SubscribeMessage(CHATROOM_UNRESTRICT_USER)
   async unrestrictUser(
     @MessageBody(isDieribaOrAdmin) unrestrictedUserDto: UnrestrictedUsersDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
+    await this.isDieribaOrAdmin(unrestrictedUserDto);
+
     const { userId } = client;
     const { chatroomId, id, isChatAdmin } = unrestrictedUserDto;
 
@@ -415,7 +450,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
     }
 
-    await this.prismaService.restrictedUser.delete({
+    const data = await this.prismaService.restrictedUser.delete({
       where: {
         userId_chatroomId: {
           userId: id,
@@ -423,9 +458,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         },
       },
     });
+    this.server.emit(CHATROOM_USER_UNRESTRICTED, data);
   }
 
-  @SubscribeMessage(GROUP_JOIN_CHATROOM)
+  @SubscribeMessage(CHATROOM_JOIN)
+  //@UseGuards(IsRestrictedUserGuard)
   async joinChatroom(
     @MessageBody() joinChatroomDto: JoinChatroomDto,
     @ConnectedSocket() client: SocketWithAuth,
@@ -478,10 +515,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...data } = chatroom;
 
-    return data;
+    this.server.emit(
+      CHATROOM_USER_JOINED,
+      `${foundChatroomUser.user.nickname} joined the room`,
+    );
   }
 
-  @SubscribeMessage(GROUP_SEND_MESSAGE)
+  @SubscribeMessage(CHATROOM_SEND_MESSAGE)
+  @ChatRoute()
   async sendMessageToChatroom(
     @MessageBody(IsExistingUserAndGroup) chatroomMessageDto: ChatroomMessageDto,
     @ConnectedSocket() client: SocketWithAuth,
@@ -574,5 +615,68 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         },
       },
     });
+  }
+
+  private async isDieribaOrAdmin(
+    data: RestrictedUsersDto | UnrestrictedUsersDto,
+  ): Promise<RestrictedUsersDto | UnrestrictedUsersDto> {
+    const { chatroomId, userId, id } = data;
+    this.logger.log({ data });
+
+    const [chatroomUser, userToRestrict] = await Promise.all([
+      this.chatroomUserService.findChatroomUser(chatroomId, userId),
+      this.chatroomUserService.findChatroomUser(chatroomId, id),
+    ]);
+
+    if (!chatroomUser)
+      throw new WsNotFoundException(
+        'You are not part of that group or that group does not exist',
+      );
+
+    if (!userToRestrict)
+      throw new WsNotFoundException('User to restrict not found');
+
+    if (
+      chatroomUser.role !== ROLE.DIERIBA &&
+      chatroomUser.role !== ROLE.CHAT_ADMIN
+    ) {
+      throw new WsBadRequestException('Unauthorized');
+    }
+
+    if (userToRestrict.user.id === userId)
+      throw new WsBadRequestException('Cannot restrict myself');
+
+    if (chatroomUser.role !== ROLE.DIERIBA) {
+      if (
+        userToRestrict.role === ROLE.DIERIBA ||
+        userToRestrict.role === ROLE.CHAT_ADMIN
+      )
+        throw new WsBadRequestException('Cannot Restrict chat admin');
+    }
+
+    return {
+      ...data,
+      isChatAdmin: userToRestrict.role === ROLE.CHAT_ADMIN ? true : false,
+    };
+  }
+
+  private async isDieriba(userId: string, chatroomId: string): Promise<void> {
+    this.logger.log(`User is undefined ${userId}`);
+    const chatroomUser = await this.chatroomUserService.findChatroomUser(
+      chatroomId,
+      userId,
+    );
+
+    this.logger.log({ chatroomUser });
+
+    if (!chatroomUser)
+      throw new WsNotFoundException(
+        'The chatroom does not exists or User is not part of it',
+      );
+
+    if (chatroomUser.role !== ROLE.DIERIBA)
+      throw new WsUnauthorizedException(
+        `You have no right to perform the requested action in the groupe named ${chatroomUser.chatroom.chatroomName}`,
+      );
   }
 }

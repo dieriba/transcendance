@@ -9,6 +9,7 @@ import { ChatroomModule } from 'src/chatroom/chatroom.module';
 import { ChatroomUserModule } from 'src/chatroom-user/chatroom-user.module';
 import { FriendsModule } from 'src/friends/friends.module';
 import { GatewayModule } from 'src/gateway/gateway.module';
+import { JwtTokenModule } from 'src/jwt-token/jwtToken.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { GatewayModule } from 'src/gateway/gateway.module';
     Argon2Module,
     FriendsModule,
     GatewayModule,
+    JwtTokenModule,
   ],
   providers: [ChatGateway, ChatService],
   exports: [ChatGateway, ChatService],

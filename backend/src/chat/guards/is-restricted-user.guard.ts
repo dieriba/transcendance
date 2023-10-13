@@ -1,14 +1,16 @@
 import {
   CanActivate,
   ExecutionContext,
-  HttpStatus,
   Injectable,
   Logger,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { RESTRICTION } from '@prisma/client';
 import { RequestWithAuth } from 'src/auth/type';
-import { CustomException } from 'src/common/custom-exception/custom-exception';
+import {
+  WsBadRequestException,
+  WsUnauthorizedException,
+} from 'src/common/custom-exception/ws-exception';
 import { LibService } from 'src/lib/lib.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -21,19 +23,21 @@ export class IsRestrictedUserGuard implements CanActivate {
   ) {}
   private readonly logger = new Logger(IsRestrictedUserGuard.name);
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request: RequestWithAuth = context.switchToHttp().getRequest();
+    const client: RequestWithAuth = context.switchToWs().getClient();
 
     const isChat = this.reflector.getAllAndOverride('CHAT', [
       context.getHandler(),
       context.getClass(),
     ]);
 
-    const chatroomId: string = request.body.chatroomId;
-    const { userId } = request;
+    this.logger.log({ isChat });
+
+    const { chatroomId } = context.switchToWs().getData();
+    const { userId } = client;
+    this.logger.log({ chatroomId, userId });
     if (chatroomId === undefined || this.libService.checkIfString(chatroomId)) {
-      throw new CustomException(
+      throw new WsBadRequestException(
         'chatroomId property must be an non empty string',
-        HttpStatus.BAD_REQUEST,
       );
     }
 
@@ -50,25 +54,22 @@ export class IsRestrictedUserGuard implements CanActivate {
 
     if (isRestricted && isRestricted.restrictionTimeEnd > now) {
       if (isChat && isRestricted.restriction === RESTRICTION.MUTED) {
-        throw new CustomException(
+        throw new WsUnauthorizedException(
           `You are muted until: ${isRestricted.restrictionTimeEnd.toLocaleDateString(
             'fr-FR',
           )}`,
-          HttpStatus.FORBIDDEN,
         );
       } else if (isRestricted.restriction === RESTRICTION.KICKED)
-        throw new CustomException(
+        throw new WsUnauthorizedException(
           `You are Kicked from that room until: ${isRestricted.restrictionTimeEnd.toLocaleDateString(
             'fr-FR',
           )}`,
-          HttpStatus.FORBIDDEN,
         );
       else if (isRestricted.restriction === RESTRICTION.BANNED) {
-        throw new CustomException(
+        throw new WsUnauthorizedException(
           `You are Banned from that room until: ${isRestricted.restrictionTimeEnd.toLocaleDateString(
             'fr-FR',
           )}`,
-          HttpStatus.FORBIDDEN,
         );
       }
     }

@@ -10,7 +10,11 @@ export class CheckGroupCreationValidity implements PipeTransform {
   private readonly logger = new Logger(CheckGroupCreationValidity.name);
   async transform(chatroomDto: ChatRoomDto) {
     const { type, password } = chatroomDto;
-
+    this.logger.log({ type });
+    if (type === TYPE.PROTECTED && password === undefined)
+      throw new WsBadRequestException(
+        'Protected room must have a password set',
+      );
     if (password !== undefined) {
       if (type !== TYPE.PROTECTED)
         throw new WsBadRequestException(

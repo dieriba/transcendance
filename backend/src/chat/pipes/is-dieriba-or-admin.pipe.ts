@@ -1,4 +1,7 @@
-import { RestrictedUsersDto } from './../dto/chatroom.dto';
+import {
+  RestrictedUsersDto,
+  UnrestrictedUsersDto,
+} from './../dto/chatroom.dto';
 import { Injectable, PipeTransform, Logger, HttpStatus } from '@nestjs/common';
 import { CustomException } from 'src/common/custom-exception/custom-exception';
 import { ROLE } from '@prisma/client';
@@ -13,7 +16,9 @@ import {
 export class isDieribaOrAdmin implements PipeTransform {
   readonly logger = new Logger(isDieribaOrAdmin.name);
   constructor(private readonly chatroomUserService: ChatroomUserService) {}
-  async transform(restrictedUsersDto: RestrictedUsersDto) {
+  async transform(
+    restrictedUsersDto: RestrictedUsersDto | UnrestrictedUsersDto,
+  ) {
     const { chatroomId, userId, id } = restrictedUsersDto;
     this.logger.log({ restrictedUsersDto });
 

@@ -78,6 +78,8 @@ export class ChatroomUserService {
   }
 
   async findChatroomUser(chatroomId: string, userId: string) {
+    console.log({ chatroomId, userId });
+
     const user = await this.prismaService.chatroomUser.findFirst({
       where: {
         chatroomId,

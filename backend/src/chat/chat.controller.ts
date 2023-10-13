@@ -26,11 +26,11 @@ import { CheckGroupCreationValidity } from './pipes/check-group-creation-validit
 import { IsExistingUserAndGroup } from './pipes/is-existing-goup.pipe';
 import { ChatroomUserBaseData } from 'src/common/types/chatroom-user-type';
 import { isDieribaOrAdmin } from './pipes/is-dieriba-or-admin.pipe';
-import { PassUserDataToBody } from 'src/common/interceptor/pass-user-data-to-body.interceptor';
 import { ResponseMessage } from 'src/common/custom-decorator/respone-message.decorator';
 import { IsDieriba } from './pipes/is-dieriba.pipe';
 import { IsRestrictedUserGuard } from './guards/is-restricted-user.guard';
 import { ChatRoute } from 'src/common/custom-decorator/metadata.decorator';
+import { PassUserDataToBody } from 'src/common/interceptor/pass-user-data-to-body.interceptor';
 
 @Controller('chat')
 export class ChatController {
@@ -52,6 +52,7 @@ export class ChatController {
     'Successfully added user meeting the following criteria: not blocked you, not have blocked you, not already in chatroom and existing',
   )
   @HttpCode(HttpStatus.OK)
+  @UseInterceptors(PassUserDataToBody)
   async addNewUserToChatroom(@Body(IsDieriba) body: ChatroomDataDto) {
     return await this.chatService.addNewUserToChatroom(body.userId, body);
   }
