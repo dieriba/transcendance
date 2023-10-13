@@ -8,6 +8,7 @@ import { Argon2Module } from 'src/argon2/argon2.module';
 import { ChatroomModule } from 'src/chatroom/chatroom.module';
 import { ChatroomUserModule } from 'src/chatroom-user/chatroom-user.module';
 import { FriendsModule } from 'src/friends/friends.module';
+import { GatewayModule } from 'src/gateway/gateway.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { FriendsModule } from 'src/friends/friends.module';
     ChatroomUserModule,
     Argon2Module,
     FriendsModule,
+    GatewayModule,
   ],
   providers: [ChatGateway, ChatService],
   exports: [ChatGateway, ChatService],

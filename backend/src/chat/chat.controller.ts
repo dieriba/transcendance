@@ -109,10 +109,10 @@ export class ChatController {
   @UseGuards(IsRestrictedUserGuard)
   @HttpCode(HttpStatus.OK)
   async joinChatroom(
-    @GetUser('userId') id: string,
+    @GetUser('userId') userId: string,
     @Body() joinChatroomDto: JoinChatroomDto,
   ) {
-    return await this.chatService.joinChatroom(id, joinChatroomDto);
+    return await this.chatService.joinChatroom(userId, joinChatroomDto);
   }
 
   @Get('all-users')
@@ -137,7 +137,6 @@ export class ChatController {
   @Post('send-chatroom')
   @ChatRoute()
   @UseInterceptors(PassUserDataToBody)
-  @UseGuards(IsRestrictedUserGuard)
   @HttpCode(HttpStatus.OK)
   async sendMessageToChatroom(
     @Body(IsExistingUserAndGroup)

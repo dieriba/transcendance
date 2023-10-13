@@ -31,6 +31,25 @@ export class ChatroomUserService {
     return chatroom;
   }
 
+  async findChatroomUserDmWithoutSelect(senderId: string, receiverId: string) {
+    const chatroom = await this.prismaService.chatroomUser.findFirst({
+      where: {
+        OR: [
+          {
+            userId: senderId,
+            penFriend: receiverId,
+          },
+          {
+            userId: receiverId,
+            penFriend: senderId,
+          },
+        ],
+      },
+    });
+
+    return chatroom;
+  }
+
   async findChatChatroomUsersId(chatroomId: string, usersId: string[]) {
     const chatroomUser = await this.prismaService.chatroomUser.findMany({
       where: { chatroomId, user: { id: { in: usersId } } },

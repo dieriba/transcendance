@@ -22,7 +22,6 @@ import {
 } from 'src/common/types/chatroom-user-type';
 import { ChatroomService } from 'src/chatroom/chatroom.service';
 import { ChatroomUserService } from 'src/chatroom-user/chatroom-user.service';
-import { FriendsService } from 'src/friends/friends.service';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
 import { ChatRoomNotFoundException } from './exception/chatroom-not-found.exception';
 import { LibService } from 'src/lib/lib.service';
@@ -37,7 +36,6 @@ export class ChatService {
     private readonly chatroomService: ChatroomService,
     private readonly chatroomUserService: ChatroomUserService,
     private readonly argon2Service: Argon2Service,
-    private readonly friendService: FriendsService,
     private readonly libService: LibService,
   ) {}
   private readonly logger = new Logger(ChatService.name);
@@ -349,7 +347,7 @@ export class ChatService {
     });
   }
 
-  async joinChatroom(id: string, joinChatroomDto: JoinChatroomDto) {
+  async joinChatroom(userId: string, joinChatroomDto: JoinChatroomDto) {
     const { chatroomId } = joinChatroomDto;
 
     this.logger.log(`password: [${joinChatroomDto.password}]`);
@@ -365,7 +363,7 @@ export class ChatService {
 
     const foundChatroomUser = await this.chatroomUserService.findChatroomUser(
       chatroomId,
-      id,
+      userId,
     );
 
     this.logger.log({ foundChatroomUser });
@@ -389,7 +387,10 @@ export class ChatService {
           );
 
         if (!foundChatroomUser) {
-          await this.chatroomUserService.createNewChatroomUser(id, chatroomId);
+          await this.chatroomUserService.createNewChatroomUser(
+            userId,
+            chatroomId,
+          );
         }
       }
     }
