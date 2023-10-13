@@ -52,7 +52,6 @@ export class ChatController {
     'Successfully added user meeting the following criteria: not blocked you, not have blocked you, not already in chatroom and existing',
   )
   @HttpCode(HttpStatus.OK)
-  @UseInterceptors(PassUserDataToBody)
   async addNewUserToChatroom(@Body(IsDieriba) body: ChatroomDataDto) {
     return await this.chatService.addNewUserToChatroom(body.userId, body);
   }
@@ -81,7 +80,7 @@ export class ChatController {
     'Successfully change the role of user meeting the following criteria: existing in chatroom and not have blocked you',
   )
   @UseInterceptors(PassUserDataToBody)
-  async setNewAdminUser(@Body(IsDieriba) body: ChangeUserRoleDto) {
+  async changeUserRole(@Body(IsDieriba) body: ChangeUserRoleDto) {
     return await this.chatService.changeUserRole(body);
   }
 

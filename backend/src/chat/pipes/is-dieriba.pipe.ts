@@ -1,9 +1,12 @@
 import { ChatService } from '../chat.service';
-import { Injectable, PipeTransform, Logger, HttpStatus } from '@nestjs/common';
-import { CustomException } from 'src/common/custom-exception/custom-exception';
+import { Injectable, PipeTransform, Logger } from '@nestjs/common';
 import { ROLE } from '@prisma/client';
 import { ChatroomUserService } from 'src/chatroom-user/chatroom-user.service';
 import { ChangeUserRoleDto, ChatroomDataDto } from '../dto/chatroom.dto';
+import {
+  WsNotFoundException,
+  WsUnauthorizedException,
+} from 'src/common/custom-exception/ws-exception';
 
 @Injectable()
 export class IsDieriba implements PipeTransform {
@@ -21,15 +24,13 @@ export class IsDieriba implements PipeTransform {
     );
 
     if (!chatroomUser)
-      throw new CustomException(
+      throw new WsNotFoundException(
         'The chatroom does not exists or User is not part of it',
-        HttpStatus.NOT_FOUND,
       );
 
     if (chatroomUser.role !== ROLE.DIERIBA)
-      throw new CustomException(
+      throw new WsUnauthorizedException(
         `You have no right to perform the requested action in the groupe named ${chatroomUser.chatroom.chatroomName}`,
-        HttpStatus.FORBIDDEN,
       );
 
     return data;

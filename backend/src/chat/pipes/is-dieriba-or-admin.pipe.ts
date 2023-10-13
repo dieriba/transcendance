@@ -4,6 +4,10 @@ import { CustomException } from 'src/common/custom-exception/custom-exception';
 import { ROLE } from '@prisma/client';
 import { ChatroomUserService } from 'src/chatroom-user/chatroom-user.service';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
+import {
+  WsBadRequestException,
+  WsNotFoundException,
+} from 'src/common/custom-exception/ws-exception';
 
 @Injectable()
 export class isDieribaOrAdmin implements PipeTransform {
@@ -19,9 +23,8 @@ export class isDieribaOrAdmin implements PipeTransform {
     ]);
 
     if (!chatroomUser)
-      throw new CustomException(
+      throw new WsNotFoundException(
         'You are not part of that group or that group does not exist',
-        HttpStatus.NOT_FOUND,
       );
 
     if (!userToRestrict) throw new UserNotFoundException();
@@ -30,24 +33,18 @@ export class isDieribaOrAdmin implements PipeTransform {
       chatroomUser.role !== ROLE.DIERIBA &&
       chatroomUser.role !== ROLE.CHAT_ADMIN
     ) {
-      throw new CustomException('Unauthorized', HttpStatus.BAD_REQUEST);
+      throw new WsBadRequestException('Unauthorized');
     }
 
     if (userToRestrict.user.id === userId)
-      throw new CustomException(
-        'Cannot restrict myself',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new WsBadRequestException('Cannot restrict myself');
 
     if (chatroomUser.role !== ROLE.DIERIBA) {
       if (
         userToRestrict.role === ROLE.DIERIBA ||
         userToRestrict.role === ROLE.CHAT_ADMIN
       )
-        throw new CustomException(
-          'Cannot Restrict chat admin',
-          HttpStatus.UNAUTHORIZED,
-        );
+        throw new WsBadRequestException('Cannot Restrict chat admin');
     }
 
     return {

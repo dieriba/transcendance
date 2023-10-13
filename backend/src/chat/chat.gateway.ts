@@ -1,4 +1,15 @@
-import { Logger, UseFilters } from '@nestjs/common';
+import {
+  GROUP_ADD_USER,
+  GROUP_CHANGE_USER_ROLE,
+  GROUP_CREATE,
+  GROUP_DELETE_USER,
+  GROUP_JOIN_CHATROOM,
+  GROUP_RESTRICT_USER,
+  GROUP_SEND_MESSAGE,
+  GROUP_SET_DIERIBA,
+  GROUP_UNRESTRICT_USER,
+} from '../../shared/socket.events';
+import { Logger, UseFilters, UseInterceptors } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -9,7 +20,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { ROLE, TYPE } from '@prisma/client';
-import { Socket, Namespace } from 'socket.io';
+import { Namespace } from 'socket.io';
 import { Argon2Service } from 'src/argon2/argon2.service';
 import { SocketWithAuth } from 'src/auth/type';
 import { ChatroomUserService } from 'src/chatroom-user/chatroom-user.service';
@@ -39,8 +50,14 @@ import {
   DmMessageDto,
 } from './dto/chatroom.dto';
 import { BAD_REQUEST } from 'src/common/constant/http-error.constant';
+import { CheckGroupCreationValidity } from './pipes/check-group-creation-validity.pipe';
+import { IsDieriba } from './pipes/is-dieriba.pipe';
+import { PassUserDataToBody } from 'src/common/interceptor/pass-user-data-to-body.interceptor';
+import { isDieribaOrAdmin } from './pipes/is-dieriba-or-admin.pipe';
+import { IsExistingUserAndGroup } from './pipes/is-existing-goup.pipe';
 
 @UseFilters(WsCatchAllFilter)
+@UseInterceptors(PassUserDataToBody)
 @WebSocketGateway({
   namespace: 'chats',
 })
@@ -59,14 +76,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @WebSocketServer()
   server: Namespace;
-
-  @SubscribeMessage('message')
-  handleMessage(client: Socket, payload: any) {
-    console.log(client);
-    console.log(payload);
-
-    return 'salut mec';
-  }
 
   handleConnection(client: SocketWithAuth) {
     const sockets = this.server.sockets;
@@ -89,9 +98,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.gatewayService.removeUserSocket(client.userId);
   }
 
-  @SubscribeMessage('group.create')
+  @SubscribeMessage(GROUP_CREATE)
   async createChatRoom(
-    @MessageBody() chatroomDto: ChatRoomDto,
+    @MessageBody(CheckGroupCreationValidity) chatroomDto: ChatRoomDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
     const { users, ...chatroom } = chatroomDto;
@@ -152,9 +161,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.emit('group.created', newChatroom);
   }
 
-  @SubscribeMessage('group.add.user')
+  @SubscribeMessage(GROUP_ADD_USER)
   async addNewUserToChatroom(
-    @MessageBody() chatRoomData: ChatroomDataDto,
+    @MessageBody(IsDieriba) chatRoomData: ChatroomDataDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
     const { users, chatroomId } = chatRoomData;
@@ -172,9 +181,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return newUsers;
   }
 
-  @SubscribeMessage('group.set.dieriba')
+  @SubscribeMessage(GROUP_SET_DIERIBA)
   async setNewChatroomDieriba(
-    @MessageBody() dieribaDto: DieribaDto,
+    @MessageBody(IsDieriba) dieribaDto: DieribaDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
     const { id, chatroomId } = dieribaDto;
@@ -223,9 +232,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return { updateMe, updateNewDieriba };
   }
 
-  @SubscribeMessage('group.delete.user')
+  @SubscribeMessage(GROUP_DELETE_USER)
   async deleteUserFromChatromm(
-    @MessageBody() chatroomData: ChatroomDataDto,
+    @MessageBody(IsDieriba) chatroomData: ChatroomDataDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
     const { userId } = client;
@@ -250,9 +259,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return deletedUsers;
   }
 
-  @SubscribeMessage('group.change.user.role')
+  @SubscribeMessage(GROUP_CHANGE_USER_ROLE)
   async changeUserRole(
-    @MessageBody() changeUserRoleDto: ChangeUserRoleDto,
+    @MessageBody(IsDieriba) changeUserRoleDto: ChangeUserRoleDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
     const { users, chatroomId } = changeUserRoleDto;
@@ -301,9 +310,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return updatedChatroomsUser;
   }
 
-  @SubscribeMessage('group.restrict.user')
+  @SubscribeMessage(GROUP_RESTRICT_USER)
   async restrictUser(
-    @MessageBody() restrictedUserDto: RestrictedUsersDto,
+    @MessageBody(isDieribaOrAdmin) restrictedUserDto: RestrictedUsersDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
     const date = new Date();
@@ -383,9 +392,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @SubscribeMessage('group.unrestrict.user')
+  @SubscribeMessage(GROUP_UNRESTRICT_USER)
   async unrestrictUser(
-    @MessageBody() unrestrictedUserDto: UnrestrictedUsersDto,
+    @MessageBody(isDieribaOrAdmin) unrestrictedUserDto: UnrestrictedUsersDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
     const { userId } = client;
@@ -416,7 +425,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  @SubscribeMessage('group.join.chatroom')
+  @SubscribeMessage(GROUP_JOIN_CHATROOM)
   async joinChatroom(
     @MessageBody() joinChatroomDto: JoinChatroomDto,
     @ConnectedSocket() client: SocketWithAuth,
@@ -472,9 +481,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return data;
   }
 
-  @SubscribeMessage('group.send.message')
+  @SubscribeMessage(GROUP_SEND_MESSAGE)
   async sendMessageToChatroom(
-    @MessageBody() chatroomMessageDto: ChatroomMessageDto,
+    @MessageBody(IsExistingUserAndGroup) chatroomMessageDto: ChatroomMessageDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
     const { userId } = client;
