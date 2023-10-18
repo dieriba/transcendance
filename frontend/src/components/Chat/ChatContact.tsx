@@ -3,13 +3,10 @@ import { MagnifyingGlass } from "phosphor-react";
 import { ChatList } from "../../data/data";
 import { Search, SearchIconWrapper, StyledInputBase } from "../search";
 import ChatBox from "./ChatBox";
-import { Theme } from "@mui/material/styles";
+import { useTheme } from "@mui/material/styles";
 
-interface ChatContactProps {
-  theme: Theme;
-}
-
-const ChatContact = ({ theme }: ChatContactProps) => {
+const ChatContact = () => {
+  const theme = useTheme();
   return (
     <Box
       sx={{

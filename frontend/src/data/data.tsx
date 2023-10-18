@@ -300,7 +300,20 @@ const ChatList = [
   },
 ];
 
-const Chat_History = [
+export interface ChatMessageProps {
+  incoming?: boolean;
+  preview?: string;
+  outgoing?: boolean;
+  reply?: string;
+  message?: string;
+  subtype?: string;
+  img?: string;
+  text?: string;
+  date?: string;
+  type: string;
+}
+
+const Chat_History: ChatMessageProps[] = [
   {
     type: "msg",
     message: "Hi 👋🏻, How are ya ?",
@@ -334,7 +347,7 @@ const Chat_History = [
     type: "msg",
     subtype: "img",
     message: "Here You Go",
-    img: faker.image.abstract(),
+    img: faker.image.avatar(),
     incoming: true,
     outgoing: false,
   },
@@ -368,6 +381,39 @@ const Chat_History = [
     incoming: false,
     outgoing: true,
   },
+
+  {
+    type: "msg",
+    subtype: "reply",
+    reply: "This is a reply",
+    message: "Yep, I can also do that",
+    incoming: false,
+    outgoing: true,
+  },
+  {
+    type: "msg",
+    subtype: "reply",
+    reply: "This is a reply",
+    message: "Yep, I can also do that",
+    incoming: false,
+    outgoing: true,
+  },
+  {
+    type: "msg",
+    subtype: "reply",
+    reply: "This is a reply",
+    message: "Yep, I can also do that",
+    incoming: false,
+    outgoing: true,
+  },
+  {
+    type: "msg",
+    subtype: "reply",
+    reply: "This is a reply",
+    message: "Yep, I can also do that",
+    incoming: false,
+    outgoing: true,
+  },
 ];
 
 const Message_options = [
@@ -376,15 +422,6 @@ const Message_options = [
   },
   {
     title: "React to message",
-  },
-  {
-    title: "Forward message",
-  },
-  {
-    title: "Star message",
-  },
-  {
-    title: "Report",
   },
   {
     title: "Delete Message",

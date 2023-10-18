@@ -2,11 +2,10 @@ import { Avatar, Box, IconButton, Stack, Typography } from "@mui/material";
 import BadgeAvatar from "../../Badge/BadgeAvatar";
 import { faker } from "@faker-js/faker";
 import { CaretDown } from "phosphor-react";
-import { ChatConversationProps } from "./ChatConversation";
+import { useTheme } from "@mui/material/styles";
 
-interface ChatConversationHeaderProps extends ChatConversationProps {}
-
-const ChatConversationHeader = ({ theme }: ChatConversationHeaderProps) => {
+const ChatConversationHeader = () => {
+  const theme = useTheme();
   return (
     <Box
       p={2}
