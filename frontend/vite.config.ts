@@ -7,6 +7,7 @@ dotenv.config();
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  base: "http://localhost:5173",
   define: {
     "process.env": process.env,
     global: {},

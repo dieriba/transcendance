@@ -4,8 +4,9 @@ import { Navigate, useRoutes } from "react-router-dom";
 
 // config
 import { DEFAULT_PATH } from "../config";
-import DashboardLayout from "../components/layouts/dashboard/Dashboard";
+import DashboardLayout from "../components/layouts/Dashboard";
 import Loadable from "./Loadable";
+import Chat from "../pages/Chats/Chat";
 
 export default function Router() {
   return useRoutes([
@@ -14,6 +15,7 @@ export default function Router() {
       children: [
         { path: "login", element: <LoginPage /> },
         { path: "register", element: <RegisterPage /> },
+        { path: "*", element: <Navigate to="/404" replace /> },
       ],
     },
     {
@@ -21,6 +23,7 @@ export default function Router() {
       element: <DashboardLayout />,
       children: [
         { element: <Navigate to={DEFAULT_PATH} replace />, index: true },
+        { path: "chats", element: <Chat /> },
         { path: "404", element: <Page404 /> },
         { path: "*", element: <Navigate to="/404" replace /> },
       ],

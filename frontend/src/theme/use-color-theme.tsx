@@ -3,7 +3,7 @@ import React from "react";
 import { getDesignTokens } from "./theme";
 
 export const useColorTheme = () => {
-  const [mode, setMode] = React.useState<PaletteMode>("dark");
+  const [mode, setMode] = React.useState<PaletteMode>("light");
 
   const toggleColorMode = () =>
     setMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
