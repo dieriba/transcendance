@@ -2,7 +2,7 @@ import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
 export interface Sidebar {
   open: boolean;
-  tab: "CONTACT" | "SHARRED";
+  tab: "CONTACT" | "SHARED";
 }
 
 const initialState: Sidebar = {
