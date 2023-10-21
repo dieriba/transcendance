@@ -1,11 +1,15 @@
 import { Avatar, Box, IconButton, Stack, Typography } from "@mui/material";
-import BadgeAvatar from "../../Badge/BadgeAvatar";
 import { faker } from "@faker-js/faker";
 import { CaretDown } from "phosphor-react";
 import { useTheme } from "@mui/material/styles";
+import StyledBadge from "../../Badge/StyledBadge";
+import { toggle } from "../../../redux/features/sidebar.slices";
+import { useAppDispatch } from "../../../redux/hooks";
 
 const ChatConversationHeader = () => {
   const theme = useTheme();
+  const dispatch = useAppDispatch();
+
   return (
     <Box
       p={2}
@@ -26,12 +30,18 @@ const ChatConversationHeader = () => {
       >
         <Stack direction="row" spacing={2}>
           <Box>
-            <BadgeAvatar>
+            <StyledBadge
+              sx={{ cursor: "pointer" }}
+              onClick={() => dispatch(toggle())}
+              overlap="circular"
+              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+              variant="dot"
+            >
               <Avatar
                 src={faker.image.avatar()}
                 alt={faker.person.firstName()}
               />
-            </BadgeAvatar>
+            </StyledBadge>
           </Box>
           <Stack>
             <Typography variant="subtitle2">

@@ -20,7 +20,8 @@ const ChatConversationBody = () => {
             case "divider":
               return (
                 <StackChatCompo
-                  children={<TimelineMessage key={id} {...message} />}
+                  key={id}
+                  children={<TimelineMessage {...message} />}
                   incoming={message.incoming}
                 />
               );
@@ -29,28 +30,32 @@ const ChatConversationBody = () => {
                 case "img":
                   return (
                     <StackChatCompo
-                      children={<ImageMessage key={id} {...message} />}
+                      key={id}
+                      children={<ImageMessage {...message} />}
                       incoming={message.incoming}
                     />
                   );
                 case "doc":
                   return (
                     <StackChatCompo
-                      children={<DocumentMessage key={id} {...message} />}
+                      key={id}
+                      children={<DocumentMessage {...message} />}
                       incoming={message.incoming}
                     />
                   );
                 case "reply":
                   return (
                     <StackChatCompo
-                      children={<ReplyMessage key={id} {...message} />}
+                      key={id}
+                      children={<ReplyMessage {...message} />}
                       incoming={message.incoming}
                     />
                   );
                 default:
                   return (
                     <StackChatCompo
-                      children={<TextMessage key={id} {...message} />}
+                      key={id}
+                      children={<TextMessage {...message} />}
                       incoming={message.incoming}
                     />
                   );
