@@ -29,9 +29,6 @@ const ChatContactInfo = () => {
   const [openDeleteChat, setDeleteChat] = useState(false);
   const [openBlockUser, setBlockUser] = useState(false);
 
-  const handleCloseDeleteUser = () => setDeleteUser(false);
-  const handleCloseDeleteChat = () => setDeleteChat(false);
-  const handleCloseBlockUser = () => setBlockUser(false);
   return (
     <Box width="320px" height="100vh">
       <Stack sx={{ height: "100%" }}>
@@ -171,15 +168,18 @@ const ChatContactInfo = () => {
           </Stack>
         </Stack>
       </Stack>
-      {openDeleteUser && (
-        <DeleteUser open={openDeleteUser} handleClose={handleCloseDeleteUser} />
-      )}
-      {openDeleteChat && (
-        <DeleteChat open={openDeleteChat} handleClose={handleCloseDeleteChat} />
-      )}
-      {openBlockUser && (
-        <BlockUser open={openBlockUser} handleClose={handleCloseBlockUser} />
-      )}
+
+      <DeleteUser
+        open={openDeleteUser}
+        handleClose={() => setDeleteUser(false)}
+      />
+
+      <DeleteChat
+        open={openDeleteChat}
+        handleClose={() => setDeleteChat(false)}
+      />
+
+      <BlockUser open={openBlockUser} handleClose={() => setBlockUser(false)} />
     </Box>
   );
 };

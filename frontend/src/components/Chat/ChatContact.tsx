@@ -49,8 +49,6 @@ const ChatContact = () => {
                 />
               );
             })}
-          </Stack>
-          <Stack p={2}>
             <Typography variant="subtitle2" sx={{ color: "#676767" }}>
               All Chats
             </Typography>

@@ -1,4 +1,5 @@
-import { Menu, MenuItem, useTheme } from "@mui/material";
+import { Menu, MenuItem } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { Avatar, Box, IconButton, Stack } from "@mui/material";
 import { Nav_Buttons, Nav_Setting, Profile_Menu } from "../../data/data";
 import { Gear } from "phosphor-react";
@@ -26,7 +27,7 @@ const Sidebar = () => {
       <Box
         p={2}
         sx={{
-          backgroundColor: theme.palette?.background?.paper,
+          backgroundColor: theme.palette.background.paper,
           boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.25)",
           height: "100vh",
           width: 100,
@@ -50,7 +51,7 @@ const Sidebar = () => {
                   p={1}
                   sx={{
                     borderRadius: 1.5,
-                    backgroundColor: theme.palette?.primary.main,
+                    backgroundColor: theme.palette.primary.main,
                   }}
                   key={button.index}
                 >
