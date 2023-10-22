@@ -11,12 +11,27 @@ import {
 import { useTheme } from "@mui/material/styles";
 import { Bell, CaretRight, Trash, X } from "phosphor-react";
 import { useAppDispatch } from "../../redux/hooks";
-import { closeSidebar } from "../../redux/features/sidebar.slices";
+import {
+  SHARED,
+  closeSidebar,
+  switchSidebarTab,
+} from "../../redux/features/sidebar.slices";
 import { faker } from "@faker-js/faker";
+import { useState } from "react";
+import DeleteUser from "./DeleteUser";
+import DeleteChat from "./DeleteChat";
+import BlockUser from "./BlockUser";
 const ChatContactInfo = () => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
 
+  const [openDeleteUser, setDeleteUser] = useState(false);
+  const [openDeleteChat, setDeleteChat] = useState(false);
+  const [openBlockUser, setBlockUser] = useState(false);
+
+  const handleCloseDeleteUser = () => setDeleteUser(false);
+  const handleCloseDeleteChat = () => setDeleteChat(false);
+  const handleCloseBlockUser = () => setBlockUser(false);
   return (
     <Box width="320px" height="100vh">
       <Stack sx={{ height: "100%" }}>
@@ -79,7 +94,13 @@ const ChatContactInfo = () => {
             justifyContent="space-between"
           >
             <Typography variant="subtitle2">Media & Docs</Typography>
-            <Button endIcon={<CaretRight />}> 50</Button>
+            <Button
+              onClick={() => dispatch(switchSidebarTab({ tab: SHARED }))}
+              endIcon={<CaretRight />}
+            >
+              {" "}
+              50
+            </Button>
           </Stack>
           <Stack direction="row" alignItems="center" spacing={2}>
             {[1, 2, 3].map((elem) => (
@@ -118,6 +139,7 @@ const ChatContactInfo = () => {
               variant="outlined"
               fullWidth
               sx={{ textTransform: "capitalize" }}
+              onClick={() => setDeleteChat(true)}
             >
               Delete Chat
             </Button>
@@ -131,6 +153,7 @@ const ChatContactInfo = () => {
               variant="outlined"
               fullWidth
               sx={{ textTransform: "capitalize" }}
+              onClick={() => setBlockUser(true)}
             >
               Block
             </Button>
@@ -141,12 +164,22 @@ const ChatContactInfo = () => {
               variant="outlined"
               fullWidth
               sx={{ textTransform: "capitalize" }}
+              onClick={() => setDeleteUser(true)}
             >
               Delete
             </Button>
           </Stack>
         </Stack>
       </Stack>
+      {openDeleteUser && (
+        <DeleteUser open={openDeleteUser} handleClose={handleCloseDeleteUser} />
+      )}
+      {openDeleteChat && (
+        <DeleteChat open={openDeleteChat} handleClose={handleCloseDeleteChat} />
+      )}
+      {openBlockUser && (
+        <BlockUser open={openBlockUser} handleClose={handleCloseBlockUser} />
+      )}
     </Box>
   );
 };
