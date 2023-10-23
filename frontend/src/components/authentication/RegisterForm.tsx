@@ -19,7 +19,9 @@ const RegisterForm = () => {
   } = useForm<RegisterFormType>({
     resolver: zodResolver(RegisterSchema),
   });
-  const onSubmit: SubmitHandler<RegisterFormType> = (data) => {};
+  const onSubmit: SubmitHandler<RegisterFormType> = (data) => {
+    console.log(data);
+  };
   const theme = useTheme();
 
   return (

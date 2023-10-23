@@ -1,4 +1,4 @@
-import { Dialog, Slide, SxProps, Theme } from "@mui/material";
+import { Breakpoint, Dialog, Slide, SxProps, Theme } from "@mui/material";
 import { TransitionProps } from "@mui/material/transitions";
 import React, { ReactNode } from "react";
 
@@ -20,11 +20,18 @@ export interface DialogProps {
 interface Children {
   children: ReactNode;
   sx?: SxProps<Theme> | undefined;
+  maxWidth?: Breakpoint | undefined;
 }
 
 interface DialogIProps extends DialogProps, Children {}
 
-const DialogI = ({ open, handleClose, children, sx }: DialogIProps) => {
+const DialogI = ({
+  open,
+  handleClose,
+  children,
+  sx,
+  maxWidth,
+}: DialogIProps) => {
   return (
     <Dialog
       open={open}
@@ -32,6 +39,8 @@ const DialogI = ({ open, handleClose, children, sx }: DialogIProps) => {
       keepMounted
       onClose={handleClose}
       aria-describedby="alert-dialog-slide-description"
+      fullWidth
+      maxWidth={maxWidth ? maxWidth : "xs"}
       sx={sx}
     >
       {children}

@@ -22,7 +22,9 @@ const LoginForm = () => {
   });
 
   const { errors, isSubmitting, isSubmitSuccessful } = methods.formState;
-  const onSubmit = async (data: LoginFormType) => {};
+  const onSubmit = async (data: LoginFormType) => {
+    console.log(data);
+  };
   const theme = useTheme();
 
   return (

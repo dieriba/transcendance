@@ -7,10 +7,11 @@ import {
   InputAdornment,
   TextField,
   Autocomplete,
+  ButtonGroup,
 } from "@mui/material";
 import DialogI from "../../Dialog/DialogI";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import {
   CreateGroupFormType,
   CreateGroupSchema,
@@ -42,9 +43,9 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
   };
 
   const user = ["dieri", "bala", "nabs"];
-
+  const accessLevels = ["PUBLIC", "PRIVATE", "PROTECTED"];
   return (
-    <DialogI open={open} handleClose={handleClose}>
+    <DialogI maxWidth="sm" open={open} handleClose={handleClose}>
       <DialogTitle>Create New Group</DialogTitle>
       <DialogContent>
         <Stack p={2}>
@@ -56,17 +57,44 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
               >
                 <TextField
                   {...methods.register("chatroomName")}
-                  label="Email"
+                  label="chatroomName"
                   fullWidth
                   error={!!errors.chatroomName}
                 />
               </CustomTextField>
+              <Controller
+                name="type"
+                control={methods.control}
+                defaultValue="PUBLIC"
+                render={({ field }) => (
+                  <ButtonGroup fullWidth>
+                    {accessLevels.map((level) => (
+                      <Button
+                        size="large"
+                        key={level}
+                        onClick={() => {
+                          field.onChange(level);
+                          if (level === "PROTECTED") {
+                            setIsProtectedGroup(true);
+                          } else {
+                            setIsProtectedGroup(false);
+                            methods.reset({ password: "" });
+                          }
+                        }}
+                      >
+                        {level}
+                      </Button>
+                    ))}
+                  </ButtonGroup>
+                )}
+              />
               {isProtectedGroup && (
                 <CustomTextField
                   error={errors.password}
                   message={errors.password?.message}
                 >
                   <TextField
+                    disabled={isProtectedGroup ? false : true}
                     {...methods.register("password")}
                     label="Password"
                     fullWidth
@@ -86,15 +114,20 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
                   />
                 </CustomTextField>
               )}
-              <Autocomplete
-                {...methods.register("users")}
-                multiple
-                id="tags-outlined"
-                options={user}
-                filterSelectedOptions
-                ChipProps={{ size: "medium" }}
-                renderInput={(params) => (
-                  <TextField {...params} label="Add User" placeholder="Users" />
+              <Controller
+                name="users"
+                control={methods.control}
+                defaultValue={undefined}
+                render={({ field: { value, onChange } }) => (
+                  <Autocomplete
+                    options={user}
+                    getOptionLabel={(option) => option}
+                    //   value={value}
+                    onChange={(_, selectedOption) => onChange(selectedOption)}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Add" />
+                    )}
+                  />
                 )}
               />
               <Button
