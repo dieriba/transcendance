@@ -75,12 +75,9 @@ const Sidebar = () => {
                     borderRadius: 1.5,
                   }}
                   key={index}
+                  onClick={() => handleNavigate(index, button.path)}
                 >
-                  <IconButton
-                    sx={{ width: "max-content" }}
-                    key={index}
-                    onClick={() => handleNavigate(index, button.path)}
-                  >
+                  <IconButton sx={{ width: "max-content" }} key={index}>
                     {button.icon}
                   </IconButton>
                 </Box>
@@ -104,20 +101,19 @@ const Sidebar = () => {
                 sx={{
                   borderRadius: 1.5,
                 }}
+                onClick={() =>
+                  handleNavigate(Nav_Buttons.length + 1, Nav_Setting[0].path)
+                }
               >
-                <IconButton
-                  onClick={() =>
-                    handleNavigate(Nav_Buttons.length + 1, Nav_Setting[0].path)
-                  }
-                >
+                <IconButton>
                   <Gear />
                 </IconButton>
               </Box>
             )}
           </Stack>
           <Stack alignItems="center" spacing={2}>
-            <IconButton>
-              <SignOut onClick={() => navigate("/auth/login")} />
+            <IconButton onClick={() => navigate("/auth/login")}>
+              <SignOut />
             </IconButton>
             <MaterialUISwitch theme={theme} onClick={toggleColorMode} />
             <Avatar
