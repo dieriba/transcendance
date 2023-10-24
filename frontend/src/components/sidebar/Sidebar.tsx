@@ -2,16 +2,17 @@ import { Menu, MenuItem } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { Avatar, Box, IconButton, Stack } from "@mui/material";
 import { Nav_Buttons, Nav_Setting, Profile_Menu } from "../../data/data";
-import { Gear } from "phosphor-react";
+import { Gear, SignOut } from "phosphor-react";
 import { useState } from "react";
 import { faker } from "@faker-js/faker";
 import { useThemeContext } from "../../theme/ThemeContextProvider";
 import MaterialUISwitch from "./Switch";
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const Sidebar = () => {
   const theme = useTheme();
-
+  const navigate = useNavigate();
   const [selectedIcon, setSelectedIcon] = useState(2);
   const { toggleColorMode } = useThemeContext();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -21,6 +22,11 @@ const Sidebar = () => {
   };
   const handleClose = () => {
     setAnchorEl(null);
+  };
+  const handleNavigate = (index: number, path: string) => {
+    setSelectedIcon(index);
+
+    navigate(path);
   };
   return (
     <>
@@ -45,18 +51,18 @@ const Sidebar = () => {
             spacing={3}
             sx={{ width: "max-content", alignItems: "center" }}
           >
-            {Nav_Buttons.map((button) =>
-              button.index === selectedIcon ? (
+            {Nav_Buttons.map((button, index) =>
+              index === selectedIcon ? (
                 <Box
                   p={1}
                   sx={{
                     borderRadius: 1.5,
                     backgroundColor: theme.palette.primary.main,
                   }}
-                  key={button.index}
+                  key={index}
                 >
                   <IconButton
-                    key={button.index}
+                    key={index}
                     sx={{ width: "max-content", color: "#fff" }}
                   >
                     {button.icon}
@@ -68,19 +74,19 @@ const Sidebar = () => {
                   sx={{
                     borderRadius: 1.5,
                   }}
-                  key={button.index}
+                  key={index}
                 >
                   <IconButton
                     sx={{ width: "max-content" }}
-                    key={button.index}
-                    onClick={() => setSelectedIcon(button.index)}
+                    key={index}
+                    onClick={() => handleNavigate(index, button.path)}
                   >
                     {button.icon}
                   </IconButton>
                 </Box>
               )
             )}
-            {selectedIcon === Nav_Setting[0].index ? (
+            {selectedIcon === Nav_Buttons.length + 1 ? (
               <Box
                 p={1}
                 sx={{
@@ -100,7 +106,9 @@ const Sidebar = () => {
                 }}
               >
                 <IconButton
-                  onClick={() => setSelectedIcon(Nav_Setting[0].index)}
+                  onClick={() =>
+                    handleNavigate(Nav_Buttons.length + 1, Nav_Setting[0].path)
+                  }
                 >
                   <Gear />
                 </IconButton>
@@ -108,6 +116,9 @@ const Sidebar = () => {
             )}
           </Stack>
           <Stack alignItems="center" spacing={2}>
+            <IconButton>
+              <SignOut onClick={() => navigate("/auth/login")} />
+            </IconButton>
             <MaterialUISwitch theme={theme} onClick={toggleColorMode} />
             <Avatar
               id="avatar-menu"

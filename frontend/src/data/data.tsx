@@ -5,11 +5,11 @@ import {
   GameController,
   Gear,
   GearSix,
-  Phone,
   SignOut,
   User,
   Users,
 } from "phosphor-react";
+import { PATH_DASHBOARD } from "../routes/paths";
 
 const Profile_Menu = [
   {
@@ -28,30 +28,26 @@ const Profile_Menu = [
 
 const Nav_Buttons = [
   {
-    index: 1,
+    path: PATH_DASHBOARD.general.profile,
     icon: <User />,
   },
   {
-    index: 2,
-    icon: <GameController />,
-  },
-  {
-    index: 3,
+    path: PATH_DASHBOARD.general.chat,
     icon: <ChatCircleDots />,
   },
   {
-    index: 4,
+    path: PATH_DASHBOARD.general.group,
     icon: <Users />,
   },
   {
-    index: 5,
-    icon: <Phone />,
+    path: PATH_DASHBOARD.general.games,
+    icon: <GameController />,
   },
 ];
 
 const Nav_Setting = [
   {
-    index: 6,
+    path: PATH_DASHBOARD.general.settings,
     icon: <GearSix />,
   },
 ];
