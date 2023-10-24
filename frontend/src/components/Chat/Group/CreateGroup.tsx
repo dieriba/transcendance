@@ -20,6 +20,7 @@ import { useTheme } from "@mui/material/styles";
 import { Eye, EyeSlash } from "phosphor-react";
 import CustomTextField from "../../CustomTextField/CustomTextField";
 import { useState } from "react";
+import RHFTextField from "../../controlled-components/RHFTextField";
 
 interface CreateGroupProps {
   open: boolean;
@@ -27,13 +28,17 @@ interface CreateGroupProps {
 }
 
 const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
-  const methods = useForm<CreateGroupFormType>({
+  const {
+    control,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { isSubmitSuccessful, isSubmitting },
+  } = useForm<CreateGroupFormType>({
     resolver: zodResolver(CreateGroupSchema),
   });
 
-  const { errors, isSubmitting, isSubmitSuccessful } = methods.formState;
-
-  const [isProtectedGroup, setIsProtectedGroup] = useState(false);
+  const protectedType = watch("type");
   const [showPassword, setShowPassword] = useState(false);
 
   const theme = useTheme();
@@ -42,8 +47,6 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
     console.log(data);
   };
 
-  const handleButton = () => {};
-
   const user = ["dieri", "bala", "nabs"];
   const accessLevels = ["PUBLIC", "PRIVATE", "PROTECTED"];
   return (
@@ -51,22 +54,17 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
       <DialogTitle>Create New Group</DialogTitle>
       <DialogContent>
         <Stack p={2}>
-          <form onSubmit={methods.handleSubmit(onSubmit)}>
+          <form onSubmit={handleSubmit(onSubmit)}>
             <Stack spacing={3}>
-              <CustomTextField
-                error={errors.chatroomName}
-                message={errors.chatroomName?.message}
-              >
-                <TextField
-                  {...methods.register("chatroomName")}
-                  label="chatroomName"
-                  fullWidth
-                  error={!!errors.chatroomName}
-                />
-              </CustomTextField>
+              <RHFTextField
+                name="chatroomName"
+                label="chatroomName"
+                control={control}
+              />
+
               <Controller
                 name="type"
-                control={methods.control}
+                control={control}
                 defaultValue="PUBLIC"
                 render={({ field }) => (
                   <ButtonGroup fullWidth>
@@ -82,12 +80,7 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
                         }}
                         onClick={() => {
                           field.onChange(level);
-                          if (level === "PROTECTED") {
-                            setIsProtectedGroup(true);
-                          } else {
-                            setIsProtectedGroup(false);
-                            methods.reset({ password: "" });
-                          }
+                          setValue("password", "");
                         }}
                       >
                         {level}
@@ -97,47 +90,54 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
                 )}
               />
 
-              <CustomTextField
-                error={errors.password}
-                message={errors.password?.message}
-              >
-                <TextField
-                  disabled={isProtectedGroup ? false : true}
-                  {...methods.register("password")}
-                  label="password"
-                  fullWidth
-                  error={!!errors.password}
-                  type={showPassword ? "text" : "password"}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => setShowPassword((prev) => !prev)}
-                        >
-                          {showPassword ? <Eye /> : <EyeSlash />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </CustomTextField>
+              <Controller
+                name="password"
+                control={control}
+                render={({
+                  field: { value, onChange },
+                  fieldState: { error },
+                }) => (
+                  <CustomTextField error={error} message={error?.message}>
+                    <TextField
+                      disabled={protectedType === "PROTECTED" ? false : true}
+                      label="password"
+                      fullWidth
+                      value={value || ""}
+                      onChange={onChange}
+                      error={!!error}
+                      type={showPassword ? "text" : "password"}
+                      InputProps={{
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              onClick={() => setShowPassword((prev) => !prev)}
+                            >
+                              {showPassword ? <Eye /> : <EyeSlash />}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </CustomTextField>
+                )}
+              />
 
               <Controller
                 name="users"
-                control={methods.control}
+                control={control}
                 defaultValue={undefined}
-                render={({ field: { value, onChange } }) => (
+                render={({
+                  field: { value, onChange },
+                  fieldState: { error },
+                }) => (
                   <Autocomplete
                     options={user}
                     multiple
                     getOptionLabel={(option) => option}
                     onChange={(_, selectedOption) => onChange(selectedOption)}
                     renderInput={(params) => (
-                      <CustomTextField
-                        error={errors.users}
-                        message={errors.users?.message}
-                      >
-                        <TextField {...params} error={!!errors.users} />
+                      <CustomTextField error={error} message={error?.message}>
+                        <TextField {...params} error={!!error} />
                       </CustomTextField>
                     )}
                     onClick={() => {

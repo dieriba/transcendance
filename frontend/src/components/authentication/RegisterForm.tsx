@@ -1,4 +1,4 @@
-import { SubmitHandler, useForm } from "react-hook-form";
+import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RegisterSchema, RegisterFormType } from "../../models/RegisterSchema";
 import { Button, IconButton, InputAdornment, TextField } from "@mui/material";
@@ -7,15 +7,16 @@ import CustomTextField from "../CustomTextField/CustomTextField";
 import { useState } from "react";
 import { Stack } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import RHFTextField from "../controlled-components/RHFTextField";
 
 const RegisterForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
-    register,
+    control,
     handleSubmit,
-    formState: { errors },
+    formState: { isSubmitSuccessful, isSubmitting },
   } = useForm<RegisterFormType>({
     resolver: zodResolver(RegisterSchema),
   });
@@ -27,58 +28,62 @@ const RegisterForm = () => {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={3}>
-        <CustomTextField error={errors.email} message={errors.email?.message}>
-          <TextField
-            {...register("email")}
-            label="Email"
-            fullWidth
-            error={!!errors.email}
-          />
-        </CustomTextField>
-        <CustomTextField
-          error={errors.password}
-          message={errors.password?.message}
-        >
-          <TextField
-            {...register("password")}
-            label="Password"
-            fullWidth
-            error={!!errors.password}
-            type={showPassword ? "text" : "password"}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setShowPassword((prev) => !prev)}>
-                    {showPassword ? <Eye /> : <EyeSlash />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
-        </CustomTextField>
-        <CustomTextField
-          error={errors.confirmPassword}
-          message={errors.confirmPassword?.message}
-        >
-          <TextField
-            {...register("confirmPassword")}
-            label="confirmPassword"
-            fullWidth
-            error={!!errors.confirmPassword}
-            type={showConfirmPassword ? "text" : "password"}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowConfirmPassword((prev) => !prev)}
-                  >
-                    {showConfirmPassword ? <Eye /> : <EyeSlash />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
-        </CustomTextField>
+        <RHFTextField name="email" label="Email" control={control} />
+
+        <Controller
+          name="password"
+          control={control}
+          render={({ field: { value, onChange }, fieldState: { error } }) => (
+            <CustomTextField error={error} message={error?.message}>
+              <TextField
+                label="Password"
+                fullWidth
+                onChange={onChange}
+                value={value || ""}
+                error={!!error}
+                type={showPassword ? "text" : "password"}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword((prev) => !prev)}
+                      >
+                        {showPassword ? <Eye /> : <EyeSlash />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </CustomTextField>
+          )}
+        />
+        <Controller
+          name="confirmPassword"
+          control={control}
+          render={({ field: { value, onChange }, fieldState: { error } }) => (
+            <CustomTextField error={error} message={error?.message}>
+              <TextField
+                label="confirmPassword"
+                fullWidth
+                onChange={onChange}
+                value={value || ""}
+                error={!!error}
+                type={showConfirmPassword ? "text" : "password"}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowConfirmPassword((prev) => !prev)}
+                      >
+                        {showConfirmPassword ? <Eye /> : <EyeSlash />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </CustomTextField>
+          )}
+        />
         <Button
           color="inherit"
           fullWidth
