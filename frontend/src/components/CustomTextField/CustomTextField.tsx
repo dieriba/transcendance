@@ -1,11 +1,11 @@
 import { Stack, Typography } from "@mui/material";
 import { ReactNode } from "react";
-import { FieldError } from "react-hook-form";
+import { FieldError, Merge } from "react-hook-form";
 
 interface CustomTextFieldProps {
   children: ReactNode;
   message: string | undefined;
-  error: FieldError | undefined;
+  error: FieldError | undefined | Merge<FieldError, (FieldError | undefined)[]> | undefined;
 }
 
 const CustomTextField = ({

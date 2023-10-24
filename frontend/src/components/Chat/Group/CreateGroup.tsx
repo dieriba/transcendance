@@ -42,6 +42,8 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
     console.log(data);
   };
 
+  const handleButton = () => {};
+
   const user = ["dieri", "bala", "nabs"];
   const accessLevels = ["PUBLIC", "PRIVATE", "PROTECTED"];
   return (
@@ -72,6 +74,12 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
                       <Button
                         size="large"
                         key={level}
+                        sx={{
+                          borderColor:
+                            level === field.value
+                              ? theme.palette.primary.main
+                              : "",
+                        }}
                         onClick={() => {
                           field.onChange(level);
                           if (level === "PROTECTED") {
@@ -88,32 +96,32 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
                   </ButtonGroup>
                 )}
               />
-              {isProtectedGroup && (
-                <CustomTextField
-                  error={errors.password}
-                  message={errors.password?.message}
-                >
-                  <TextField
-                    disabled={isProtectedGroup ? false : true}
-                    {...methods.register("password")}
-                    label="Password"
-                    fullWidth
-                    error={!!errors.password}
-                    type={showPassword ? "text" : "password"}
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            onClick={() => setShowPassword((prev) => !prev)}
-                          >
-                            {showPassword ? <Eye /> : <EyeSlash />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </CustomTextField>
-              )}
+
+              <CustomTextField
+                error={errors.password}
+                message={errors.password?.message}
+              >
+                <TextField
+                  disabled={isProtectedGroup ? false : true}
+                  {...methods.register("password")}
+                  label="password"
+                  fullWidth
+                  error={!!errors.password}
+                  type={showPassword ? "text" : "password"}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword((prev) => !prev)}
+                        >
+                          {showPassword ? <Eye /> : <EyeSlash />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </CustomTextField>
+
               <Controller
                 name="users"
                 control={methods.control}
@@ -121,12 +129,20 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
                 render={({ field: { value, onChange } }) => (
                   <Autocomplete
                     options={user}
+                    multiple
                     getOptionLabel={(option) => option}
-                    //   value={value}
                     onChange={(_, selectedOption) => onChange(selectedOption)}
                     renderInput={(params) => (
-                      <TextField {...params} label="Add" />
+                      <CustomTextField
+                        error={errors.users}
+                        message={errors.users?.message}
+                      >
+                        <TextField {...params} error={!!errors.users} />
+                      </CustomTextField>
                     )}
+                    onClick={() => {
+                      console.log(value);
+                    }}
                   />
                 )}
               />
