@@ -1,11 +1,19 @@
 import { Container } from "@mui/material";
-import { Outlet } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
+import { useAppSelector } from "../../redux/hooks";
+import { PATH_APP } from "../../routes/paths";
 
 const AuthLayout = () => {
-  return (
-    <Container sx={{ mt: 20 }} maxWidth="sm">
-      <Outlet />
-    </Container>
+  const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
+
+  return isAuthenticated ? (
+    <Navigate to={PATH_APP.dashboard.games} replace />
+  ) : (
+    <>
+      <Container sx={{ mt: 20 }} maxWidth="sm">
+        <Outlet />
+      </Container>
+    </>
   );
 };
 

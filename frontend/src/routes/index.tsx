@@ -1,9 +1,9 @@
 import { Navigate, useRoutes } from "react-router-dom";
 import { DEFAULT_PATH } from "../config";
-import DashboardLayout from "../components/layouts/Dashboard";
+import ProtectedDashboardLayout from "../components/layouts/Dashboard";
 import Loadable from "./Loadable";
 import AuthLayout from "../components/layouts/AuthLayout";
-import { PATH_DASHBOARD } from "./paths";
+import { PATH_APP } from "./paths";
 
 export default function Router() {
   return useRoutes([
@@ -11,21 +11,21 @@ export default function Router() {
       path: "/auth",
       element: <AuthLayout />,
       children: [
-        { path: "login", element: <LoginPage /> },
-        { path: "register", element: <RegisterPage /> },
+        { path: PATH_APP.auth.login, element: <LoginPage /> },
+        { path: PATH_APP.auth.register, element: <RegisterPage /> },
         { path: "*", element: <Navigate to="/404" replace /> },
       ],
     },
     {
       path: "/",
-      element: <DashboardLayout />,
+      element: <ProtectedDashboardLayout />,
       children: [
         { element: <Navigate to={DEFAULT_PATH} replace />, index: true },
-        { path: PATH_DASHBOARD.general.profile, element: <ProfilePage /> },
-        { path: PATH_DASHBOARD.general.games, element: <GamesPage /> },
-        { path: PATH_DASHBOARD.general.chat, element: <ChatPage /> },
-        { path: PATH_DASHBOARD.general.group, element: <GroupChatPage /> },
-        { path: PATH_DASHBOARD.general.settings, element: <SettingsPage /> },
+        { path: PATH_APP.dashboard.profile, element: <ProfilePage /> },
+        { path: PATH_APP.dashboard.games, element: <GamesPage /> },
+        { path: PATH_APP.dashboard.chat, element: <ChatPage /> },
+        { path: PATH_APP.dashboard.group, element: <GroupChatPage /> },
+        { path: PATH_APP.dashboard.settings, element: <SettingsPage /> },
         { path: "404", element: <Page404 /> },
         { path: "*", element: <Navigate to="/404" replace /> },
       ],

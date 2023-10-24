@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-refresh/only-export-components */
 import { faker } from "@faker-js/faker";
 import {
@@ -9,45 +10,55 @@ import {
   User,
   Users,
 } from "phosphor-react";
-import { PATH_DASHBOARD } from "../routes/paths";
+import { PATH_APP } from "../routes/paths";
+import { JSXElementConstructor, ReactElement } from "react";
 
-const Profile_Menu = [
+export type ProfileMenuI = {
+  title: string;
+  path: string | undefined;
+  icon: ReactElement<any, string | JSXElementConstructor<any>>;
+};
+
+const Profile_Menu: ProfileMenuI[] = [
   {
     title: "Profile",
+    path: PATH_APP.dashboard.profile,
     icon: <User />,
   },
   {
     title: "Settings",
+    path: PATH_APP.dashboard.settings,
     icon: <Gear />,
   },
   {
     title: "Sign Out",
+    path: undefined,
     icon: <SignOut />,
   },
 ];
 
 const Nav_Buttons = [
   {
-    path: PATH_DASHBOARD.general.profile,
+    path: PATH_APP.dashboard.profile,
     icon: <User />,
   },
   {
-    path: PATH_DASHBOARD.general.chat,
+    path: PATH_APP.dashboard.chat,
     icon: <ChatCircleDots />,
   },
   {
-    path: PATH_DASHBOARD.general.group,
+    path: PATH_APP.dashboard.group,
     icon: <Users />,
   },
   {
-    path: PATH_DASHBOARD.general.games,
+    path: PATH_APP.dashboard.games,
     icon: <GameController />,
   },
 ];
 
 const Nav_Setting = [
   {
-    path: PATH_DASHBOARD.general.settings,
+    path: PATH_APP.dashboard.settings,
     icon: <GearSix />,
   },
 ];

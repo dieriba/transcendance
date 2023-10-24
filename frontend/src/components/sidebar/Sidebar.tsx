@@ -9,12 +9,15 @@ import { useThemeContext } from "../../theme/ThemeContextProvider";
 import MaterialUISwitch from "./Switch";
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { logout } from "../../redux/features/user.slice";
+import { useAppDispatch } from "../../redux/hooks";
 
 const Sidebar = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const [selectedIcon, setSelectedIcon] = useState(2);
   const { toggleColorMode } = useThemeContext();
+  const dispatch = useAppDispatch();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -112,7 +115,7 @@ const Sidebar = () => {
             )}
           </Stack>
           <Stack alignItems="center" spacing={2}>
-            <IconButton onClick={() => navigate("/auth/login")}>
+            <IconButton onClick={() => dispatch(logout())}>
               <SignOut />
             </IconButton>
             <MaterialUISwitch theme={theme} onClick={toggleColorMode} />

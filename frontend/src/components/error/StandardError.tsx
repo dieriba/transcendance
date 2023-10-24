@@ -2,7 +2,6 @@ import { Box, Stack, Typography } from "@mui/material";
 import { FallbackProps } from "react-error-boundary";
 
 export function StandardError(props: FallbackProps) {
-  const { error, resetErrorBoundary } = props;
 
   return (
     <>

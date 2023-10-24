@@ -1,5 +1,4 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { RootState } from "../store";
 
 export interface Sidebar {
   tab: "CONTACT" | "SHARED";
@@ -34,5 +33,4 @@ export const SidebarSlice = createSlice({
 });
 
 export const { toggle, switchSidebarTab, closeSidebar } = SidebarSlice.actions;
-export const selectTab = (state: RootState) => state.sidebar.tab;
 export default SidebarSlice.reducer;

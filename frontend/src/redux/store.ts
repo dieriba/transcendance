@@ -4,6 +4,7 @@ import { combineReducers } from "@reduxjs/toolkit";
 import persistReducer from "redux-persist/es/persistReducer";
 import storage from "redux-persist/lib/storage";
 import { SidebarSlice } from "./features/sidebar.slices";
+import { UserInfoSlice } from "./features/user.slice";
 
 const persistConfig = {
   keyPrefix: "redux-",
@@ -11,7 +12,10 @@ const persistConfig = {
   storage,
 };
 
-const reducer = combineReducers({ sidebar: SidebarSlice.reducer });
+const reducer = combineReducers({
+  sidebar: SidebarSlice.reducer,
+  user: UserInfoSlice.reducer,
+});
 
 const persistedReducer = persistReducer(persistConfig, reducer);
 
