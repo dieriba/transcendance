@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Post,
   Query,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { GetOAuthDto, LoginUserDto, RegisterUserDto } from './dto/auth.dto';
@@ -20,6 +21,7 @@ import { GetUser } from 'src/common/custom-decorator/get-user.decorator';
 import { ResponseMessage } from 'src/common/custom-decorator/respone-message.decorator';
 import { JwtRefreshTokenGuard } from 'src/common/guards/refrestJwt.guard';
 import { PublicRoute } from 'src/common/custom-decorator/metadata.decorator';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -41,8 +43,16 @@ export class AuthController {
   @ResponseMessage('Logged In Succesfully')
   async login(
     @Body(LoginValidation) loginUserDto: LoginUserDto,
-  ): Promise<Tokens> {
-    return await this.authService.login(loginUserDto);
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const tokens = await this.authService.login(loginUserDto);
+    res.cookie('refresh', tokens.refresh_token, {
+      httpOnly: true,
+      path: '/auth/refresh',
+      domain: process.env.FRONTEND_DOMAIN,
+      maxAge: 7 * 60 * 60 * 24,
+    });
+    return res.json({ access_token: tokens.access_token });
   }
 
   @Post('logout')

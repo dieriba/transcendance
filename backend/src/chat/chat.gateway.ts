@@ -74,7 +74,6 @@ import { IsDieriba } from './pipes/is-dieriba.pipe';
 import { isDieribaOrAdmin } from './pipes/is-dieriba-or-admin.pipe';
 import { IsExistingUserAndGroup } from './pipes/is-existing-goup.pipe';
 import { WsAccessTokenGuard } from 'src/common/guards/ws.guard';
-import { IsRestrictedUserGuard } from './guards/is-restricted-user.guard';
 import { ChatRoute } from 'src/common/custom-decorator/metadata.decorator';
 
 @UseGuards(WsAccessTokenGuard)

@@ -20,5 +20,6 @@ declare namespace NodeJS {
     OTP_PERIOD: string;
     RANDOMSTRING_LENGTH: string;
     RANDOMSTRING_CHARSET: string;
+    FRONTEND_DOMAIN: string;
   }
 }
