@@ -9,7 +9,7 @@ import { useThemeContext } from "../../theme/ThemeContextProvider";
 import MaterialUISwitch from "./Switch";
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { logout } from "../../redux/features/user.slice";
+import { logout } from "../../redux/features/auth/auth.slice";
 import { useAppDispatch } from "../../redux/hooks";
 
 const Sidebar = () => {

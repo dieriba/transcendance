@@ -4,7 +4,8 @@ import { combineReducers } from "@reduxjs/toolkit";
 import persistReducer from "redux-persist/es/persistReducer";
 import storage from "redux-persist/lib/storage";
 import { SidebarSlice } from "./features/sidebar.slices";
-import { UserInfoSlice } from "./features/user.slice";
+import { AuthSlice } from "./features/auth/auth.slice";
+import { apiSlice } from "./api/apiSlice";
 
 const persistConfig = {
   keyPrefix: "redux-",
@@ -14,7 +15,7 @@ const persistConfig = {
 
 const reducer = combineReducers({
   sidebar: SidebarSlice.reducer,
-  user: UserInfoSlice.reducer,
+  user: AuthSlice.reducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, reducer);
@@ -25,7 +26,7 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: false,
       immutableCheck: false,
-    }),
+    })
 });
 
 export type AppDispatch = typeof store.dispatch;
