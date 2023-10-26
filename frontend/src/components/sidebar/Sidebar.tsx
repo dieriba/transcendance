@@ -15,7 +15,7 @@ import { useAppDispatch } from "../../redux/hooks";
 const Sidebar = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const [selectedIcon, setSelectedIcon] = useState(2);
+  const [selectedIcon, setSelectedIcon] = useState(3);
   const { toggleColorMode } = useThemeContext();
   const dispatch = useAppDispatch();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);

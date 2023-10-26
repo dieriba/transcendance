@@ -50,7 +50,13 @@ export class AuthService {
     }
   }
 
-  async login({ id, email }: LoginUserDto): Promise<Tokens> {
+  async login({
+    id,
+    email,
+    nickname,
+  }: LoginUserDto): Promise<
+    { user: { id: string; nickname: string } } & Tokens
+  > {
     try {
       this.logger.log(
         `Attempting to create new tokens for user identified by email: ${email}`,
@@ -61,7 +67,7 @@ export class AuthService {
         hashedRefreshToken: await this.argon2.hash(tokens.refresh_token),
       });
 
-      return tokens;
+      return { user: { id, nickname }, ...tokens };
     } catch (error) {
       this.logger.log(
         `Failled to create new tokens for user identified by email: ${email}`,

@@ -8,20 +8,21 @@ import { useState } from "react";
 import { Stack } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import RHFTextField from "../controlled-components/RHFTextField";
+import { useAppDispatch } from "../../redux/hooks";
 
 const RegisterForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const {
-    control,
-    handleSubmit,
-    formState: { isSubmitSuccessful, isSubmitting },
-  } = useForm<RegisterFormType>({
+  const methods = useForm<RegisterFormType>({
     resolver: zodResolver(RegisterSchema),
   });
+
+  const { control, handleSubmit } = methods;
+
   const onSubmit: SubmitHandler<RegisterFormType> = (data) => {
-    console.log(data);
+    try {
+    } catch (error) {}
   };
   const theme = useTheme();
 

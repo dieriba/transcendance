@@ -4,7 +4,7 @@ import { useAppSelector } from "../../redux/hooks";
 import { PATH_APP } from "../../routes/paths";
 
 const AuthLayout = () => {
-  const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
+  const isAuthenticated = useAppSelector((state) => state.user.access_token);
 
   return isAuthenticated ? (
     <Navigate to={PATH_APP.dashboard.games} replace />

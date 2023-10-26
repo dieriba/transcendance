@@ -21,5 +21,6 @@ declare namespace NodeJS {
     RANDOMSTRING_LENGTH: string;
     RANDOMSTRING_CHARSET: string;
     FRONTEND_DOMAIN: string;
+    FRONTEND_PORT: string;
   }
 }

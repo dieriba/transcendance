@@ -8,13 +8,17 @@ import {
 } from "@reduxjs/toolkit/query/react";
 import { BASE_URL } from "../../config";
 import { RootState } from "../store";
-import { logout, newToken } from "../features/auth/auth.slice";
+import { logout, newAccessToken } from "../features/auth/auth.slice";
+import {
+  AccessTokenSchema,
+  AccessTokenType,
+} from "../../models/login/AccessTokenSchema";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: BASE_URL,
   credentials: "include",
   prepareHeaders: (headers, { getState }) => {
-    const token = (getState() as RootState).user.token;
+    const token = (getState() as RootState).user.access_token;
     if (token) headers.set("authorization", `Bearer ${token}`);
     return headers;
   },
@@ -31,7 +35,12 @@ const baseQueryWithReauth: BaseQueryFn<
     const refreshResult = await baseQuery("/auth/refresh", api, extraOptions);
     if (refreshResult.data) {
       // store the new token
-      api.dispatch(newToken(refreshResult.data as { access_token: string }));
+
+      api.dispatch(
+        newAccessToken({
+          access_token: (refreshResult.data as AccessTokenType).access_token,
+        })
+      );
       // retry the initial query
       result = await baseQuery(args, api, extraOptions);
     } else {
@@ -43,5 +52,6 @@ const baseQueryWithReauth: BaseQueryFn<
 
 export const apiSlice = createApi({
   baseQuery: baseQueryWithReauth,
+  reducerPath: "api",
   endpoints: (builder) => ({}),
 });

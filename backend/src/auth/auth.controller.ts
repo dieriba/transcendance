@@ -16,7 +16,6 @@ import { CheckEmailNicknameValidity } from './pipe/auth.pipe';
 import { HashPassword } from './pipe/hash-password.pipe';
 import { OAuthPipe } from './pipe/oauth.pipe';
 import { LoginValidation } from './pipe/login-validation.pipe';
-import { Tokens } from 'src/jwt-token/jwt.type';
 import { GetUser } from 'src/common/custom-decorator/get-user.decorator';
 import { ResponseMessage } from 'src/common/custom-decorator/respone-message.decorator';
 import { JwtRefreshTokenGuard } from 'src/common/guards/refrestJwt.guard';
@@ -45,14 +44,15 @@ export class AuthController {
     @Body(LoginValidation) loginUserDto: LoginUserDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const tokens = await this.authService.login(loginUserDto);
-    res.cookie('refresh', tokens.refresh_token, {
+    const { refresh_token, ...data } =
+      await this.authService.login(loginUserDto);
+    res.cookie('refresh', refresh_token, {
       httpOnly: true,
       path: '/auth/refresh',
       domain: process.env.FRONTEND_DOMAIN,
       maxAge: 7 * 60 * 60 * 24,
     });
-    return res.json({ access_token: tokens.access_token });
+    return data;
   }
 
   @Post('logout')
@@ -76,7 +76,17 @@ export class AuthController {
   @PublicRoute()
   @UseGuards(JwtRefreshTokenGuard)
   @HttpCode(HttpStatus.OK)
-  async refresh(@GetUser() user: JwtPayloadRefreshToken): Promise<Tokens> {
-    return await this.authService.refresh(user);
+  async refresh(
+    @GetUser() user: JwtPayloadRefreshToken,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { refresh_token, ...data } = await this.authService.refresh(user);
+    res.cookie('refresh', refresh_token, {
+      httpOnly: true,
+      path: '/auth/refresh',
+      domain: process.env.FRONTEND_DOMAIN,
+      maxAge: 7 * 60 * 60 * 24,
+    });
+    return data;
   }
 }

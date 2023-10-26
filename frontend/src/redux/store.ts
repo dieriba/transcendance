@@ -16,6 +16,7 @@ const persistConfig = {
 const reducer = combineReducers({
   sidebar: SidebarSlice.reducer,
   user: AuthSlice.reducer,
+  [apiSlice.reducerPath]: apiSlice.reducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, reducer);
@@ -26,7 +27,7 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: false,
       immutableCheck: false,
-    })
+    }).concat(apiSlice.middleware),
 });
 
 export type AppDispatch = typeof store.dispatch;

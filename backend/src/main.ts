@@ -9,6 +9,7 @@ import { SocketIOAdapter } from './common/io-adapter/socket-io-adapter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const clientPort = parseInt(process.env.FRONTEND_PORT);
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -24,6 +25,13 @@ async function bootstrap() {
     new HttpExceptionFilter(),
     new PrismaExceptionFilter(httpAdapterHost),
   );
+  app.enableCors({
+    origin: [
+      `http://localhost:${clientPort}`,
+      new RegExp(`/^http:\/\/192\.168\.1\.([1-9]|[1-9]\d):${clientPort}$/`),
+    ],
+    credentials: true,
+  });
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
   await app.listen(process.env.BACKEND_PORT || 8100);
 }
