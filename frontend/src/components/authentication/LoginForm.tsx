@@ -8,7 +8,6 @@ import {
   TextField,
   Button,
   CircularProgress,
-  Alert,
 } from "@mui/material";
 
 import { useTheme } from "@mui/material";
@@ -27,6 +26,7 @@ import { authenticateUser } from "../../redux/features/auth/auth.slice";
 import { ResponseLoginSchema } from "../../models/login/ResponseLogin";
 import { useNavigate } from "react-router-dom";
 import { PATH_APP } from "../../routes/paths";
+import CustomAlert from "../Alert/CustomAlert";
 
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -75,15 +75,12 @@ const LoginForm = () => {
       <Stack spacing={3}>
         {(error || errMsg.length > 0) && (
           <>
-            <Alert
+            <CustomAlert
               severity="error"
-              onClose={() => {
-                reset();
-                setErrMsg("");
-              }}
-            >
-              {errMsg}
-            </Alert>
+              reset={reset}
+              setMsg={setErrMsg}
+              msg={errMsg}
+            />
           </>
         )}
         <RHFTextField name="email" label="Email" control={control} />

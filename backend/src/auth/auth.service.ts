@@ -39,9 +39,9 @@ export class AuthService {
       this.logger.log(
         `Attempting to create new user with email: ${data.email} and nickname: ${data.nickname}`,
       );
-      const newUser = await this.userService.createUser(data, UserData);
+      await this.userService.createUser(data, UserData);
 
-      return { success: true, message: 'User created successfully', newUser };
+      return { success: true, message: 'User created successfully' };
     } catch (error) {
       this.logger.log(
         `Failled to create new user with email: ${data.email} and nickname: ${data.nickname}`,

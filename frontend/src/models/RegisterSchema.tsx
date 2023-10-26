@@ -3,6 +3,7 @@ import { z } from "zod";
 export const RegisterSchema = z
   .object({
     email: z.string().email().trim(),
+    nickname: z.string().min(3),
     password: z
       .string()
       .min(2, { message: "Password must be 8 or more characters" }),

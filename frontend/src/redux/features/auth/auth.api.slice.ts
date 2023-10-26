@@ -1,3 +1,4 @@
+import { RegisterFormType } from "../../../models/RegisterSchema";
 import { LoginFormType } from "../../../models/login/LoginSchema";
 import { ResponseLoginType } from "../../../models/login/ResponseLogin";
 import { BaseServerResponse } from "../../../services/type";
@@ -15,7 +16,17 @@ export const authApiSlice = apiSlice.injectEndpoints({
         body: data,
       }),
     }),
+    register: builder.mutation<
+      BaseServerResponse & { data: unknown },
+      RegisterFormType
+    >({
+      query: (data) => ({
+        url: "/auth/signup",
+        method: "POST",
+        body: data,
+      }),
+    }),
   }),
 });
 
-export const { useLoginMutation } = authApiSlice;
+export const { useLoginMutation, useRegisterMutation } = authApiSlice;
