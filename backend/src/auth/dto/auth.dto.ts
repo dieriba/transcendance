@@ -13,6 +13,16 @@ import { ApiProperty } from '@nestjs/swagger';
 export class RegisterUserDto {
   @ApiProperty()
   @IsString()
+  @IsNotEmpty()
+  readonly lastname: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  readonly firstname: string;
+
+  @ApiProperty()
+  @IsString()
   @MinLength(3)
   @MaxLength(16)
   @Matches('^[a-zA-Z][a-zA-Z0-9_.]*$')
@@ -59,4 +69,11 @@ export class GetOAuthDto {
   @IsString()
   @IsNotEmpty()
   readonly nickname: string;
+}
+
+export class CheckOauthDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  readonly code: string;
 }

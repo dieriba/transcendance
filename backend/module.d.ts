@@ -22,5 +22,6 @@ declare namespace NodeJS {
     RANDOMSTRING_CHARSET: string;
     FRONTEND_DOMAIN: string;
     FRONTEND_PORT: string;
+    UPLOAD_DIR: string;
   }
 }

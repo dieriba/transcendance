@@ -9,7 +9,12 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { GetOAuthDto, LoginUserDto, RegisterUserDto } from './dto/auth.dto';
+import {
+  CheckOauthDto,
+  GetOAuthDto,
+  LoginUserDto,
+  RegisterUserDto,
+} from './dto/auth.dto';
 import { AuthService } from './auth.service';
 import { CheckEmailNicknameValidity } from './pipe/auth.pipe';
 import { HashPassword } from './pipe/hash-password.pipe';
@@ -76,6 +81,12 @@ export class AuthController {
       maxAge: 7 * 60 * 60 * 24,
     });
     return data;
+  }
+
+  @PublicRoute()
+  @Post('check_oauth')
+  async check_oauth(@Body() checkOauthDto: CheckOauthDto) {
+    return await this.authService.check_oauth(checkOauthDto);
   }
 
   @Get('try')

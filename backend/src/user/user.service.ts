@@ -9,9 +9,9 @@ import { ChatroomUserInfo } from 'src/common/types/chatroom-user-type';
 export class UserService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async createUser(user: CreatedUser, select: UserInfo) {
+  async createUser(user: CreatedUser, profile: Profile, select: UserInfo) {
     return await this.prismaService.user.create({
-      data: { ...user },
+      data: { ...user, profile: { create: { ...profile } } },
       select,
     });
   }

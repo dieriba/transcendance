@@ -8,8 +8,8 @@ export type TwoFa = {
 
 export type Profile = {
   avatar?: string;
-  firstName?: string;
-  lastName?: string;
+  firstname?: string;
+  lastname?: string;
   fullname?: string;
 };
 

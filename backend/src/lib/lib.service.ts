@@ -1,7 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import * as crypto from 'crypto';
 import * as base32Encode from 'hi-base32';
-
+import { extname } from 'path';
+import { INTERNAL_SERVER_ERROR } from 'src/common/constant/http-error.constant';
+import { CustomException } from 'src/common/custom-exception/custom-exception';
+import * as fs from 'fs';
 @Injectable()
 export class LibService {
   /*Generate secret for opt*/
@@ -47,5 +50,27 @@ export class LibService {
 
   checkIfString(data: any): boolean {
     return typeof data !== 'string' || data.length === 0;
+  }
+
+  generateFilename(file: Express.Multer.File) {
+    return `${Date.now()}.${extname(file.originalname)}`;
+  }
+
+  createFile(directory: string, file: Express.Multer.File): string | undefined {
+    if (!file) return undefined;
+
+    if (!fs.existsSync(directory)) fs.mkdirSync(directory);
+
+    const uploadPath = directory + '/' + this.generateFilename(file);
+
+    fs.writeFile(uploadPath, file.buffer, (err) => {
+      if (err)
+        throw new CustomException(
+          INTERNAL_SERVER_ERROR,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+    });
+
+    return uploadPath;
   }
 }

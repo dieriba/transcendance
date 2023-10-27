@@ -9,10 +9,7 @@ import {
 import { BASE_URL } from "../../config";
 import { RootState } from "../store";
 import { logout, newAccessToken } from "../features/auth/auth.slice";
-import {
-  AccessTokenSchema,
-  AccessTokenType,
-} from "../../models/login/AccessTokenSchema";
+import { AccessTokenType } from "../../models/login/AccessTokenSchema";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: BASE_URL,
@@ -30,6 +27,8 @@ const baseQueryWithReauth: BaseQueryFn<
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
+  console.log(result);
+
   if (result.error && result.error.status === 401) {
     // try to get a new token
     const refreshResult = await baseQuery("/auth/refresh", api, extraOptions);

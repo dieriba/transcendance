@@ -22,8 +22,8 @@ export class CustomUploadFileTypeValidator extends FileValidator {
     const { fileTypeFromBuffer } = await (eval(
       'import("file-type")',
     ) as Promise<typeof import('file-type')>);
+    console.log(file);
 
-    console.log({ file });
     const response = await fileTypeFromBuffer(file.buffer);
 
     return this._allowedMimeTypes.includes(response.mime);
