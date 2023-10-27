@@ -18,5 +18,6 @@ export const PATH_APP = {
   auth: {
     login: path(ROOT_AUTH, "login"),
     register: path(ROOT_AUTH, "register"),
+    oauth: path(ROOT_AUTH, "42/oauth"),
   },
 };

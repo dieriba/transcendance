@@ -15,6 +15,7 @@ import { FriendsModule } from './friends/friends.module';
 import { ChatroomModule } from './chatroom/chatroom.module';
 import { ChatroomUserModule } from './chatroom-user/chatroom-user.module';
 import { GatewayModule } from './gateway/gateway.module';
+import { UploadFilesModule } from './upload-files/upload-files.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { GatewayModule } from './gateway/gateway.module';
     ChatroomModule,
     ChatroomUserModule,
     GatewayModule,
+    UploadFilesModule,
   ],
   providers: [
     {

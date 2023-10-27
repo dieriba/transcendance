@@ -9,7 +9,6 @@ import {
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { HttpStatusCode } from 'axios';
-import * as randomstring from 'randomstring';
 import { JwtPayloadRefreshToken, Tokens } from 'src/jwt-token/jwt.type';
 import { JwtTokenService } from 'src/jwt-token/jwtToken.service';
 import { UserService } from 'src/user/user.service';
@@ -97,27 +96,31 @@ export class AuthService {
         client_id: process.env.CLIENT_ID,
         grant_type: process.env.GRANT_TYPE,
         redirect_uri: process.env.REDIRECT_URI,
-        code: getOAuthDto,
+        code: getOAuthDto.code,
+      },
+      {
+        validateStatus: () => true,
       },
     );
+    console.log(response);
 
-    if (response?.status == HttpStatusCode.Unauthorized)
-      throw new UnauthorizedException();
-
+    if (response?.status == HttpStatusCode.Unauthorized) {
+      throw new UnauthorizedException(
+        'Account do not have enough authorization',
+      );
+    }
     const { access_token } = response.data;
 
     const { data } = await this.httpService.axiosRef.get(process.env.API_URI, {
       headers: { Authorization: `Bearer ${access_token}` },
+      validateStatus: () => true,
     });
 
-    if (data === undefined || data === null) throw new NotFoundException();
+    if (!data) throw new NotFoundException();
 
     const user: ApiUser = {
       email: data.email,
-      nickname: randomstring.generate({
-        length: parseInt(process.env.RANDOMSTRING_LENGTH),
-        charset: process.env.RANDOMSTRING_CHARSET,
-      }),
+      nickname: getOAuthDto.nickname,
     };
     const profile: Profile = {
       firstName: data.first_name,
@@ -126,13 +129,12 @@ export class AuthService {
     };
 
     try {
-      const { id, email } = await this.userService.createOrReturn42User(
-        user,
-        profile,
-        UserData,
-      );
+      const { id, email, nickname } =
+        await this.userService.createOrReturn42User(user, profile, UserData);
 
-      return await this.jwtTokenService.getTokens(id, email);
+      const tokens = await this.jwtTokenService.getTokens(id, email);
+
+      return { user: { id, nickname }, ...tokens };
     } catch (error) {
       throw new InternalServerErrorException();
     }

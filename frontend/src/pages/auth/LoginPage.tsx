@@ -3,7 +3,7 @@ import { Link as RouterLink } from "react-router-dom";
 import LoginForm from "../../components/authentication/LoginForm";
 import AuthSocial from "../../components/authentication/AuthSocial";
 import { PATH_APP } from "../../routes/paths";
-const Login = () => {
+const LoginPage = () => {
   return (
     <Stack spacing={2} sx={{ mb: 5, position: "relative" }}>
       <Typography variant="h4">Login</Typography>
@@ -23,4 +23,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default LoginPage;

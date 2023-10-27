@@ -51,5 +51,12 @@ export class LoginUserDto {
 
 export class GetOAuthDto {
   @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
   readonly code: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  readonly nickname: string;
 }

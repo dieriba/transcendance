@@ -13,6 +13,7 @@ export default function Router() {
       children: [
         { path: PATH_APP.auth.login, element: <LoginPage /> },
         { path: PATH_APP.auth.register, element: <RegisterPage /> },
+        { path: PATH_APP.auth.oauth, element: <OauthPage /> },
         { path: "*", element: <Navigate to="/404" replace /> },
       ],
     },
@@ -37,8 +38,9 @@ export default function Router() {
 
 const Page404 = Loadable(() => import("../pages/error-page/Error-404"));
 
-const LoginPage = Loadable(() => import("../pages/auth/Login"));
+const LoginPage = Loadable(() => import("../pages/auth/LoginPage"));
 const RegisterPage = Loadable(() => import("../pages/auth/Register"));
+const OauthPage = Loadable(() => import("../pages/auth/OauthPage"));
 
 const ProfilePage = Loadable(() => import("../pages/Profile/ProfilePage"));
 const ChatPage = Loadable(() => import("../pages/Chats/Chat"));

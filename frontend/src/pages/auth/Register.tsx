@@ -2,7 +2,7 @@ import { Link, Stack, Typography } from "@mui/material";
 import RegisterForm from "../../components/authentication/RegisterForm";
 import { Link as RouterLink } from "react-router-dom";
 import { PATH_APP } from "../../routes/paths";
-const Register = () => {
+const RegisterPage = () => {
   return (
     <Stack spacing={2} sx={{ mb: 5, position: "relative" }}>
       <Typography variant="h4">Register</Typography>
@@ -21,4 +21,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default RegisterPage;
