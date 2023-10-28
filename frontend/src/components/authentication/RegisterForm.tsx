@@ -69,8 +69,8 @@ const RegisterForm = () => {
         )}
         <RHFTextField name="lastname" label="Lastname" control={control} />
         <RHFTextField name="firstname" label="Firstname" control={control} />
-        <RHFTextField name="email" label="Email" control={control} />
         <RHFTextField name="nickname" label="Nickname" control={control} />
+        <RHFTextField name="email" label="Email" control={control} />
 
         <Controller
           name="password"

@@ -10,7 +10,15 @@ const AuthLayout = () => {
     <Navigate to={PATH_APP.dashboard.games} replace />
   ) : (
     <>
-      <Container sx={{ mt: 20 }} maxWidth="sm">
+      <Container
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          minHeight: "100vh",
+        }}
+        maxWidth="sm"
+      >
         <Outlet />
       </Container>
     </>

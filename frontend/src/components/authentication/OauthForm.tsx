@@ -45,7 +45,7 @@ const OauthForm = () => {
 
       const parse = await ResponseLoginSchema.safeParseAsync(result.data);
       if (!parse.success) {
-        setErrMsg("An error has occured, please try again later!");
+        setErrMsg("An error has  occured, please try again later!");
       } else {
         const data = parse.data;
         dispatch(authenticateUser(data));
