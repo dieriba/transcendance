@@ -1,4 +1,3 @@
-import { OauthFormType } from "./../../../models/login/OauthSchema";
 import { RegisterFormType } from "../../../models/RegisterSchema";
 import { LoginFormType } from "../../../models/login/LoginSchema";
 import { ResponseLoginType } from "../../../models/login/ResponseLogin";
@@ -27,18 +26,16 @@ export const authApiSlice = apiSlice.injectEndpoints({
         body: data,
       }),
     }),
-    oauth: builder.mutation<
+    oauth: builder.query<
       BaseServerResponse & { data: ResponseLoginType },
-      OauthFormType
+      { code: string }
     >({
       query: (data) => ({
-        url: "/auth/oauth_callback",
-        method: "POST",
-        body: data,
+        url: `/auth/oauth_callback/${data.code}`,
       }),
     }),
   }),
 });
 
-export const { useLoginMutation, useRegisterMutation, useOauthMutation } =
+export const { useLoginMutation, useRegisterMutation, useOauthQuery } =
   authApiSlice;

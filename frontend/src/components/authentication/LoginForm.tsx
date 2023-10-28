@@ -72,7 +72,7 @@ const LoginForm = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <Stack spacing={3}>
+      <Stack  spacing={3}>
         {(error || errMsg.length > 0) && (
           <>
             <CustomAlert

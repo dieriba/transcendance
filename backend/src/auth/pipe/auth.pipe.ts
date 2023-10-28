@@ -15,7 +15,7 @@ export class CheckEmailNicknameValidity implements PipeTransform {
     const { email, nickname } = user;
 
     if (metadata.type === 'body') {
-      if (await this.userService.findUserByEmail(email))
+      if (await this.userService.findUserByEmail(email, null))
         throw new BadRequestException(`Email ${email} is already taken`);
 
       if (await this.userService.findUserByNickName(nickname, UserData))

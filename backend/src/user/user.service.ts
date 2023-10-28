@@ -16,8 +16,11 @@ export class UserService {
     });
   }
 
-  async findUserByEmail(email: string) {
-    return await this.prismaService.user.findUnique({ where: { email } });
+  async findUserByEmail(email: string, select: UserInfo) {
+    return await this.prismaService.user.findUnique({
+      where: { email },
+      select,
+    });
   }
 
   async findUserByNickName(nickname: string, select: UserInfo) {
@@ -125,6 +128,8 @@ export class UserService {
     profile: Profile,
     select: UserInfo,
   ) {
+    console.log({ user, profile });
+
     const foundUser = await this.prismaService.user.findUnique({
       where: { email: user.email },
       select,

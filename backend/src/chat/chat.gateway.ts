@@ -37,7 +37,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { ROLE, TYPE } from '@prisma/client';
+import { MESSAGE_TYPES, ROLE, TYPE } from '@prisma/client';
 import { Namespace } from 'socket.io';
 import { Argon2Service } from 'src/argon2/argon2.service';
 import { SocketWithAuth } from 'src/auth/type';
@@ -536,6 +536,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           create: {
             content: chatroomMessageDto.content,
             imageUrl: null,
+            messageTypes: MESSAGE_TYPES.TEXT,
             userId,
           },
         },
@@ -569,6 +570,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           create: {
             content: content,
             imageUrl: null,
+            messageTypes: MESSAGE_TYPES.TEXT,
             user: {
               connect: {
                 id: senderId,
@@ -604,6 +606,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             {
               content: content,
               imageUrl: null,
+              messageTypes: MESSAGE_TYPES.TEXT,
               user: {
                 connect: {
                   id: senderId,

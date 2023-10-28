@@ -1,9 +1,4 @@
-import {
-  CheckOauthDto,
-  GetOAuthDto,
-  LoginUserDto,
-  RegisterUserDto,
-} from './dto/auth.dto';
+import { LoginUserDto, RegisterUserDto } from './dto/auth.dto';
 import {
   HttpStatus,
   Injectable,
@@ -12,6 +7,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { generateUsername } from 'unique-username-generator';
 import { HttpService } from '@nestjs/axios';
 import { HttpStatusCode } from 'axios';
 import { JwtPayloadRefreshToken, Tokens } from 'src/jwt-token/jwt.type';
@@ -65,8 +61,9 @@ export class AuthService {
     id,
     email,
     nickname,
+    isTwoFaEnabled,
   }: LoginUserDto): Promise<
-    { user: { id: string; nickname: string } } & Tokens
+    { user: { id: string; nickname: string; isTwoFaEnabled: boolean } } & Tokens
   > {
     try {
       this.logger.log(
@@ -78,7 +75,7 @@ export class AuthService {
         hashedRefreshToken: await this.argon2.hash(tokens.refresh_token),
       });
 
-      return { user: { id, nickname }, ...tokens };
+      return { user: { id, nickname, isTwoFaEnabled }, ...tokens };
     } catch (error) {
       this.logger.log(
         `Failled to create new tokens for user identified by email: ${email}`,
@@ -100,7 +97,11 @@ export class AuthService {
     }
   }
 
-  async oauth(getOAuthDto: GetOAuthDto) {
+  async oauth(
+    code: string,
+  ): Promise<
+    { user: { id: string; nickname: string; isTwoFaEnabled: boolean } } & Tokens
+  > {
     const response = await this.httpService.axiosRef.post(
       process.env.TOKEN_URI,
       {
@@ -108,7 +109,7 @@ export class AuthService {
         client_id: process.env.CLIENT_ID,
         grant_type: process.env.GRANT_TYPE,
         redirect_uri: process.env.REDIRECT_URI,
-        code: getOAuthDto.code,
+        code: code,
       },
       {
         validateStatus: () => true,
@@ -129,69 +130,43 @@ export class AuthService {
 
     if (!data) throw new NotFoundException();
 
+    const existingUser = await this.userService.findUserByNickName(
+      data.login,
+      UserData,
+    );
+
     const user: ApiUser = {
       email: data.email,
-      nickname: getOAuthDto.nickname,
+      nickname: existingUser ? data.login : generateUsername('', 3, 16),
     };
     const profile: Profile = {
       firstname: data.first_name,
       lastname: data.last_name,
-      fullname: data.fullname,
     };
 
     try {
-      const { id, email, nickname } =
+      const { id, email, nickname, twoFa } =
         await this.userService.createOrReturn42User(user, profile, UserData);
 
       const tokens = await this.jwtTokenService.getTokens(id, email);
 
-      return { user: { id, nickname }, ...tokens };
+      await this.userService.updateUserById(id, {
+        hashedRefreshToken: await this.argon2.hash(tokens.refresh_token),
+      });
+
+      return {
+        user: {
+          id,
+          nickname,
+          isTwoFaEnabled: twoFa?.otpEnabled ? twoFa.otpEnabled : false,
+        },
+        ...tokens,
+      };
     } catch (error) {
+      console.log(error);
+
       throw new InternalServerErrorException();
     }
-  }
-
-  async check_oauth(checkOauthDto: CheckOauthDto) {
-    console.log(checkOauthDto.code);
-
-    const response = await this.httpService.axiosRef.post(
-      process.env.TOKEN_URI,
-      {
-        client_secret: process.env.CLIENT_SECRET,
-        client_id: process.env.CLIENT_ID,
-        grant_type: process.env.GRANT_TYPE,
-        redirect_uri: process.env.REDIRECT_URI,
-        code: checkOauthDto.code,
-      },
-      {
-        validateStatus: () => true,
-      },
-    );
-    console.log({
-      client_secret: process.env.CLIENT_SECRET,
-      client_id: process.env.CLIENT_ID,
-      grant_type: process.env.GRANT_TYPE,
-      redirect_uri: process.env.REDIRECT_URI,
-      code: checkOauthDto.code,
-    });
-
-    if (response?.status == HttpStatusCode.Unauthorized) {
-      throw new UnauthorizedException(
-        'Account do not have enough authorization',
-      );
-    }
-    const { access_token } = response.data;
-
-    const { data } = await this.httpService.axiosRef.get(process.env.API_URI, {
-      headers: { Authorization: `Bearer ${access_token}` },
-      validateStatus: () => true,
-    });
-
-    if (!data) throw new NotFoundException();
-
-    const user = await this.userService.findUserByEmail(data.email);
-
-    return user;
   }
 
   async refresh(payload: JwtPayloadRefreshToken): Promise<Tokens> {

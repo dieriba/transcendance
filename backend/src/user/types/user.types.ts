@@ -10,7 +10,6 @@ export type Profile = {
   avatar?: string;
   firstname?: string;
   lastname?: string;
-  fullname?: string;
 };
 
 export type CreatedUser = {

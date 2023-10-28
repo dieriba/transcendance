@@ -67,9 +67,8 @@ model Profile {
   id String @id @default(uuid())
 
   avatar    String?
-  firstName String? @db.VarChar(25)
-  lastName  String? @db.VarChar(25)
-  fullname  String? @db.VarChar(25)
+  firstname String? @db.VarChar(25)
+  lastname  String? @db.VarChar(25)
   gender    Gender?
   age       Int?
   user      User    @relation("userProfile", fields: [userId], references: [id], onDelete: Cascade)

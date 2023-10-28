@@ -5,16 +5,12 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   Res,
   UseGuards,
 } from '@nestjs/common';
-import {
-  CheckOauthDto,
-  GetOAuthDto,
-  LoginUserDto,
-  RegisterUserDto,
-} from './dto/auth.dto';
+import { LoginUserDto, RegisterUserDto } from './dto/auth.dto';
 import { AuthService } from './auth.service';
 import { CheckEmailNicknameValidity } from './pipe/auth.pipe';
 import { HashPassword } from './pipe/hash-password.pipe';
@@ -24,7 +20,6 @@ import { ResponseMessage } from 'src/common/custom-decorator/respone-message.dec
 import { JwtRefreshTokenGuard } from 'src/common/guards/refrestJwt.guard';
 import { PublicRoute } from 'src/common/custom-decorator/metadata.decorator';
 import { Response } from 'express';
-import { nicknameExistInDB } from './pipe/nickname-exist.pipe';
 
 @Controller('auth')
 export class AuthController {
@@ -67,13 +62,12 @@ export class AuthController {
   }
 
   @PublicRoute()
-  @Post('oauth_callback')
+  @Get('oauth_callback/:code')
   async oauth(
-    @Body(nicknameExistInDB) getOAuthDto: GetOAuthDto,
+    @Param('code') code: string,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { refresh_token, ...data } =
-      await this.authService.oauth(getOAuthDto);
+    const { refresh_token, ...data } = await this.authService.oauth(code);
     res.cookie('refresh', refresh_token, {
       httpOnly: true,
       path: '/auth/refresh',
@@ -82,16 +76,6 @@ export class AuthController {
     });
     return data;
   }
-
-  @PublicRoute()
-  @Post('check_oauth')
-  async check_oauth(@Body() checkOauthDto: CheckOauthDto) {
-    return await this.authService.check_oauth(checkOauthDto);
-  }
-
-  @Get('try')
-  @ResponseMessage('ok')
-  async try() {}
 
   @Post('refresh')
   @PublicRoute()

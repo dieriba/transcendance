@@ -13,7 +13,7 @@ import {
 } from './dto/chatroom.dto';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ROLE, TYPE } from '@prisma/client';
+import { MESSAGE_TYPES, ROLE, TYPE } from '@prisma/client';
 import { Argon2Service } from 'src/argon2/argon2.service';
 import { UserData, UserId } from 'src/common/types/user-info.type';
 import {
@@ -421,6 +421,7 @@ export class ChatService {
         messages: {
           create: {
             content: content,
+            messageTypes: MESSAGE_TYPES.TEXT,
             imageUrl: null,
             userId,
           },
@@ -454,6 +455,7 @@ export class ChatService {
           create: {
             content: content,
             imageUrl: null,
+            messageTypes: MESSAGE_TYPES.TEXT,
             user: {
               connect: {
                 id: senderId,
@@ -489,6 +491,7 @@ export class ChatService {
             {
               content: content,
               imageUrl: null,
+              messageTypes: MESSAGE_TYPES.TEXT,
               user: {
                 connect: {
                   id: senderId,
