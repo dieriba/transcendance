@@ -1,14 +1,18 @@
 import { Card, InputAdornment, OutlinedInput, SvgIcon } from "@mui/material";
 import { MagnifyingGlass } from "phosphor-react";
 
-const CustomerSearch = () => {
+interface FriendSearchProps {
+  placeholder: string;
+}
+
+const FriendSearch = ({ placeholder }: FriendSearchProps) => {
   return (
     <>
       <Card sx={{ p: 2 }}>
         <OutlinedInput
           defaultValue=""
           fullWidth
-          placeholder="Search Friend"
+          placeholder={placeholder}
           startAdornment={
             <InputAdornment position="start">
               <SvgIcon color="action" fontSize="small">
@@ -16,11 +20,10 @@ const CustomerSearch = () => {
               </SvgIcon>
             </InputAdornment>
           }
-          sx={{ maxWidth: 500 }}
         />
       </Card>
     </>
   );
 };
 
-export default CustomerSearch;
+export default FriendSearch;

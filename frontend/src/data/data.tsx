@@ -15,7 +15,7 @@ import {
 import { PATH_APP } from "../routes/paths";
 import { JSXElementConstructor, ReactElement } from "react";
 import { Badge } from "@mui/material";
-import { FriendsProps } from "../components/friends/CustomersTable";
+import { FriendProps } from "../components/friends/FriendsTable";
 
 export type ProfileMenuI = {
   title: string;
@@ -439,7 +439,35 @@ const Chat_History: ChatMessageProps[] = [
   },
 ];
 
-export const friends: FriendsProps[] = [
+export const friends: FriendProps[] = [
+  {
+    id: faker.string.alphanumeric(),
+    avatar: faker.image.avatar(),
+    profile: faker.string.alphanumeric(),
+    nickname: faker.person.firstName(),
+    friendSince: faker.date.anytime().toLocaleDateString("fr-FR"),
+  },
+  {
+    id: faker.string.alphanumeric(),
+    avatar: faker.image.avatar(),
+    profile: faker.string.alphanumeric(),
+    nickname: faker.person.firstName(),
+    friendSince: faker.date.anytime().toLocaleDateString("fr-FR"),
+  },
+  {
+    id: faker.string.alphanumeric(),
+    avatar: faker.image.avatar(),
+    profile: faker.string.alphanumeric(),
+    nickname: faker.person.firstName(),
+    friendSince: faker.date.anytime().toLocaleDateString("fr-FR"),
+  },
+  {
+    id: faker.string.alphanumeric(),
+    avatar: faker.image.avatar(),
+    profile: faker.string.alphanumeric(),
+    nickname: faker.person.firstName(),
+    friendSince: faker.date.anytime().toLocaleDateString("fr-FR"),
+  },
   {
     id: faker.string.alphanumeric(),
     avatar: faker.image.avatar(),

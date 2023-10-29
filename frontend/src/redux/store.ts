@@ -6,6 +6,7 @@ import storage from "redux-persist/lib/storage";
 import { SidebarSlice } from "./features/sidebar.slices";
 import { AuthSlice } from "./features/auth/auth.slice";
 import { apiSlice } from "./api/apiSlice";
+import crashMiddleware from "./middleware/crashMiddleware";
 
 const persistConfig = {
   keyPrefix: "redux-",
@@ -27,7 +28,7 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: false,
       immutableCheck: false,
-    }).concat(apiSlice.middleware),
+    }).concat([apiSlice.middleware, crashMiddleware]),
 });
 
 export type AppDispatch = typeof store.dispatch;

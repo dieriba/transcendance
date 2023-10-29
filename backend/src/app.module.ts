@@ -16,7 +16,6 @@ import { ChatroomModule } from './chatroom/chatroom.module';
 import { ChatroomUserModule } from './chatroom-user/chatroom-user.module';
 import { GatewayModule } from './gateway/gateway.module';
 import { UploadFilesModule } from './upload-files/upload-files.module';
-import { GatewayService } from './gateway/gateway.service';
 
 @Module({
   imports: [
@@ -32,7 +31,6 @@ import { GatewayService } from './gateway/gateway.service';
     FriendsModule,
     ChatroomModule,
     ChatroomUserModule,
-    GatewayModule,
     UploadFilesModule,
   ],
   providers: [
@@ -44,7 +42,6 @@ import { GatewayService } from './gateway/gateway.service';
       provide: APP_INTERCEPTOR,
       useClass: ResponseMessageInterceptor,
     },
-    GatewayService,
   ],
 })
 export class AppModule {}

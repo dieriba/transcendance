@@ -14,7 +14,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Socket, Namespace } from 'socket.io';
+import { Namespace } from 'socket.io';
 import { FriendsService } from './friends.service';
 import { UserService } from 'src/user/user.service';
 import { WsAccessTokenGuard } from 'src/common/guards/ws.guard';
@@ -59,14 +59,27 @@ export class FriendsGateway
   @WebSocketServer()
   server: Namespace;
 
-  handleConnection(client: Socket) {
+  handleConnection(client: SocketWithAuth) {
     const sockets = this.server.sockets;
 
-    this.logger.log(`WS client with id: ${client.id} connected!`);
+    this.logger.log(
+      `WS client with id: ${client.id} and userId : ${client.userId} connected!`,
+    );
     this.logger.log(`Socket data: `, sockets);
     this.logger.debug(`Number of connected sockets: ${sockets.size}`);
+    this.gatewayService.setUserSocket(client.userId, client);
+    this.logger.log(
+      `Size of socket map ${this.gatewayService.getSockets().size}`,
+    );
+  }
 
-    this.server.emit('greetings', `Hello from: ${client.id}`);
+  handleDisconnect(client: SocketWithAuth) {
+    const sockets = this.server.sockets;
+
+    this.logger.log(`WS client with id: ${client.id} disconnected!`);
+    this.logger.log(`Socket data: `, sockets);
+    this.logger.debug(`Number of connected sockets: ${sockets.size}`);
+    this.gatewayService.removeUserSocket(client.userId);
   }
 
   @SubscribeMessage(FRIEND_REQUEST_SENT)
@@ -381,14 +394,6 @@ export class FriendsGateway
       });
     }
     this.sendToSocket(client, friendId, FRIEND_BLOCKED_FRIEND, {});
-  }
-
-  handleDisconnect(client: Socket) {
-    const sockets = this.server.sockets;
-
-    this.logger.log(`WS client with id: ${client.id} disconnected!`);
-    this.logger.log(`Socket data: `, sockets);
-    this.logger.debug(`Number of connected sockets: ${sockets.size}`);
   }
 
   private sendToSocket(

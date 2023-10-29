@@ -107,6 +107,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(`Socket data: `, sockets);
     this.logger.debug(`Number of connected sockets: ${sockets.size}`);
     this.gatewayService.setUserSocket(client.userId, client);
+    this.logger.log(
+      `Size of socket map ${this.gatewayService.getSockets().size}`,
+    );
   }
 
   handleDisconnect(client: SocketWithAuth) {
@@ -115,7 +118,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(`WS client with id: ${client.id} disconnected!`);
     this.logger.log(`Socket data: `, sockets);
     this.logger.debug(`Number of connected sockets: ${sockets.size}`);
-    this.gatewayService.removeUserSocket(client.userId);
+    this.logger.log(
+      `Size of socket map ${this.gatewayService.getSockets().size}`,
+    );
   }
 
   @SubscribeMessage(CHATROOM_CREATE)
