@@ -29,9 +29,9 @@ const OauthPage = () => {
     );
   } else if (data) {
     const { user, access_token } = data.data;
-    
+
     dispatch(authenticateUser({ user, access_token }));
-    navigate(PATH_APP.dashboard.games);
+    navigate(PATH_APP.dashboard.profile);
   } else {
     return (
       <Stack sx={{ alignItems: "center", display: "row", mb: 5 }}>

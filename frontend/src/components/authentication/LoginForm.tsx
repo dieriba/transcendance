@@ -52,7 +52,7 @@ const LoginForm = () => {
         const data = parse.data;
         dispatch(authenticateUser(data));
         methods.reset();
-        navigate(PATH_APP.dashboard.games);
+        navigate(PATH_APP.dashboard.profile);
       }
     } catch (err) {
       if (isFetchBaseQueryError(err)) {

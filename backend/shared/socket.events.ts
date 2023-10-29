@@ -21,3 +21,14 @@ export const CHATROOM_USER_UNRESTRICTED = 'chatroom.user.unrestricted';
 export const CHATROOM_USER_JOINED = 'chatroom.user.joined';
 
 export const PRIVATE_CHAT_SEND_MESSAGE = 'private.chat.send.message';
+
+/*----------------------------------------*/
+export const NOTIFICATION_FRIEND_REQUEST_RECEIVED =
+  'NOTIFICATION_FRIEND_RECEIVED';
+export const FRIEND_REQUEST_SENT = 'FRIEND_REQUEST_SENT';
+export const FRIEND_CANCEL_FRIEND_REQUEST = 'FRIEND_CANCEL_FRIEND_REQUEST';
+export const FRIEND_CLEAR_FRIEND_REQUEST = 'FRIEND_CLEAR_FRIEND_REQUEST';
+
+export const FRIEND_REQUEST_ACCEPTED = 'FRIEND_REQUEST_ACCEPTED';
+export const FRIEND_DELETE_FRIEND = 'FRIEND_DELETE_FRIEND';
+export const FRIEND_BLOCKED_FRIEND = 'FRIEND_BLOCKED_FRIEND';

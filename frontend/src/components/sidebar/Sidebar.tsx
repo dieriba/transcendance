@@ -4,7 +4,6 @@ import { Avatar, Box, IconButton, Stack } from "@mui/material";
 import { Nav_Buttons, Nav_Setting, Profile_Menu } from "../../data/data";
 import { Gear, SignOut } from "phosphor-react";
 import { useState } from "react";
-import { faker } from "@faker-js/faker";
 import { useThemeContext } from "../../theme/ThemeContextProvider";
 import MaterialUISwitch from "./Switch";
 import React from "react";
@@ -15,7 +14,7 @@ import { useAppDispatch } from "../../redux/hooks";
 const Sidebar = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const [selectedIcon, setSelectedIcon] = useState(3);
+  const [selectedIcon, setSelectedIcon] = useState(0);
   const { toggleColorMode } = useThemeContext();
   const dispatch = useAppDispatch();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -125,7 +124,6 @@ const Sidebar = () => {
               aria-haspopup="true"
               aria-expanded={open ? "true" : undefined}
               onClick={handleClick}
-              src={faker.image.avatar()}
               sx={{ cursor: "pointer" }}
             />
             <Menu

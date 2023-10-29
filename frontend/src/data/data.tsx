@@ -2,7 +2,9 @@
 /* eslint-disable react-refresh/only-export-components */
 import { faker } from "@faker-js/faker";
 import {
+  BellSimple,
   ChatCircleDots,
+  ChatsTeardrop,
   GameController,
   Gear,
   GearSix,
@@ -12,6 +14,8 @@ import {
 } from "phosphor-react";
 import { PATH_APP } from "../routes/paths";
 import { JSXElementConstructor, ReactElement } from "react";
+import { Badge } from "@mui/material";
+import { FriendsProps } from "../components/friends/CustomersTable";
 
 export type ProfileMenuI = {
   title: string;
@@ -43,12 +47,24 @@ const Nav_Buttons = [
     icon: <User />,
   },
   {
+    path: PATH_APP.dashboard.friends,
+    icon: <Users />,
+  },
+  {
+    path: PATH_APP.dashboard.notification,
+    icon: (
+      <Badge badgeContent={4} color="primary">
+        <BellSimple />
+      </Badge>
+    ),
+  },
+  {
     path: PATH_APP.dashboard.chat,
     icon: <ChatCircleDots />,
   },
   {
     path: PATH_APP.dashboard.group,
-    icon: <Users />,
+    icon: <ChatsTeardrop />,
   },
   {
     path: PATH_APP.dashboard.games,
@@ -420,6 +436,51 @@ const Chat_History: ChatMessageProps[] = [
     message: "Yep, I can also do that",
     incoming: false,
     outgoing: true,
+  },
+];
+
+export const friends: FriendsProps[] = [
+  {
+    id: faker.string.alphanumeric(),
+    avatar: faker.image.avatar(),
+    profile: faker.string.alphanumeric(),
+    nickname: faker.person.firstName(),
+    friendSince: faker.date.anytime().toLocaleDateString("fr-FR"),
+  },
+  {
+    id: faker.string.alphanumeric(),
+    avatar: faker.image.avatar(),
+    profile: faker.string.alphanumeric(),
+    nickname: faker.person.firstName(),
+    friendSince: faker.date.anytime().toLocaleDateString("fr-FR"),
+  },
+  {
+    id: faker.string.alphanumeric(),
+    avatar: faker.image.avatar(),
+    profile: faker.string.alphanumeric(),
+    nickname: faker.person.firstName(),
+    friendSince: faker.date.anytime().toLocaleDateString("fr-FR"),
+  },
+  {
+    id: faker.string.alphanumeric(),
+    avatar: faker.image.avatar(),
+    profile: faker.string.alphanumeric(),
+    nickname: faker.person.firstName(),
+    friendSince: faker.date.anytime().toLocaleDateString("fr-FR"),
+  },
+  {
+    id: faker.string.alphanumeric(),
+    avatar: faker.image.avatar(),
+    profile: faker.string.alphanumeric(),
+    nickname: faker.person.firstName(),
+    friendSince: faker.date.anytime().toLocaleDateString("fr-FR"),
+  },
+  {
+    id: faker.string.alphanumeric(),
+    avatar: faker.image.avatar(),
+    profile: faker.string.alphanumeric(),
+    nickname: faker.person.firstName(),
+    friendSince: faker.date.anytime().toLocaleDateString("fr-FR"),
   },
 ];
 

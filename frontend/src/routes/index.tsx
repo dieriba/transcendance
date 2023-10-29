@@ -23,6 +23,8 @@ export default function Router() {
       children: [
         { element: <Navigate to={DEFAULT_PATH} replace />, index: true },
         { path: PATH_APP.dashboard.profile, element: <ProfilePage /> },
+        { path: PATH_APP.dashboard.notification, element: <NotificationsPage /> },
+        { path: PATH_APP.dashboard.friends, element: <FriendsPage /> },
         { path: PATH_APP.dashboard.games, element: <GamesPage /> },
         { path: PATH_APP.dashboard.chat, element: <ChatPage /> },
         { path: PATH_APP.dashboard.group, element: <GroupChatPage /> },
@@ -42,6 +44,10 @@ const LoginPage = Loadable(() => import("../pages/auth/LoginPage"));
 const RegisterPage = Loadable(() => import("../pages/auth/Register"));
 const OauthPage = Loadable(() => import("../pages/auth/OauthPage"));
 
+const FriendsPage = Loadable(() => import("../pages/friends/FriendsPage"));
+const NotificationsPage = Loadable(
+  () => import("../pages/notifications/NotificationsPage")
+);
 const ProfilePage = Loadable(() => import("../pages/Profile/ProfilePage"));
 const ChatPage = Loadable(() => import("../pages/Chats/Chat"));
 const GroupChatPage = Loadable(() => import("../pages/Chats/GroupChatPage"));

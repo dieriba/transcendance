@@ -28,15 +28,10 @@ interface CreateGroupProps {
 }
 
 const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
-  const {
-    control,
-    handleSubmit,
-    watch,
-    setValue,
-    formState: { isSubmitSuccessful, isSubmitting },
-  } = useForm<CreateGroupFormType>({
-    resolver: zodResolver(CreateGroupSchema),
-  });
+  const { control, handleSubmit, watch, setValue } =
+    useForm<CreateGroupFormType>({
+      resolver: zodResolver(CreateGroupSchema),
+    });
 
   const protectedType = watch("type");
   const [showPassword, setShowPassword] = useState(false);

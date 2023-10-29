@@ -25,9 +25,9 @@ export class CheckExisistingUser implements NestInterceptor {
     next: CallHandler,
   ): Promise<Observable<any>> {
     const request: RequestWithAuth = context.switchToHttp().getRequest();
-    this.logger.log({ req: request.userId, user: request.body.id });
+    this.logger.log({ req: request.userId, user: request.body.friendId });
 
-    if (this.libService.checkIfString(request.body.id))
+    if (this.libService.checkIfString(request.body.friendId))
       throw new CustomException(
         'Id should be an non empty string',
         HttpStatus.BAD_REQUEST,
