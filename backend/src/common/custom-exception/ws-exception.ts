@@ -1,6 +1,6 @@
 import { WsException } from '@nestjs/websockets';
 
-type WsExceptionType = 'BadRequest' | 'Unauthorized' | 'Unknown';
+type WsExceptionType = 'BadRequest' | 'Unauthorized' | 'Not Found' | 'Unknown';
 
 export class WsTypeException extends WsException {
   readonly type: WsExceptionType;
@@ -29,7 +29,7 @@ export class WsUnauthorizedException extends WsTypeException {
 
 export class WsNotFoundException extends WsTypeException {
   constructor(message: string | unknown) {
-    super('Unauthorized', message);
+    super('Not Found', message);
   }
 }
 

@@ -18,7 +18,6 @@ function a11yProps(index: number) {
 const FriendsPage = () => {
   const [openCreate, setOpenCreate] = useState(false);
   const [value, setValue] = useState(1);
-
   const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };

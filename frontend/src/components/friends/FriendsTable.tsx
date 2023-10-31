@@ -19,7 +19,7 @@ import { Prohibit, Trash } from "phosphor-react";
 import FriendSearch from "./FriendSearch";
 
 export interface FriendProps {
-  id: string;
+  id: number;
   avatar: string;
   profile: string;
   nickname: string;
@@ -57,41 +57,39 @@ const FriendsTable = () => {
                 </Stack>
               ) : (
                 friends.map((friend) => (
-                  <>
-                    <TableRow
-                      key={friend.id}
-                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                    >
-                      <TableCell padding="checkbox"></TableCell>
+                  <TableRow
+                    key={friend.id}
+                    sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                  >
+                    <TableCell padding="checkbox"></TableCell>
 
-                      <TableCell component="th" scope="row">
-                        <Avatar />
-                      </TableCell>
-                      <TableCell align="center">{friend.nickname}</TableCell>
-                      <TableCell align="center">
-                        <Button>Profile</Button>
-                      </TableCell>
-                      <TableCell align="center">{friend.friendSince}</TableCell>
-                      <TableCell align="center">
-                        <Stack
-                          direction="row"
-                          justifyContent="center"
-                          spacing={2}
-                        >
-                          <Tooltip placement="top" title="delete">
-                            <IconButton>
-                              <Trash />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip placement="top" title="Block">
-                            <IconButton>
-                              <Prohibit />
-                            </IconButton>
-                          </Tooltip>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  </>
+                    <TableCell component="th" scope="row">
+                      <Avatar />
+                    </TableCell>
+                    <TableCell align="center">{friend.nickname}</TableCell>
+                    <TableCell align="center">
+                      <Button>Profile</Button>
+                    </TableCell>
+                    <TableCell align="center">{friend.friendSince}</TableCell>
+                    <TableCell align="center">
+                      <Stack
+                        direction="row"
+                        justifyContent="center"
+                        spacing={2}
+                      >
+                        <Tooltip placement="top" title="delete">
+                          <IconButton>
+                            <Trash />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip placement="top" title="Block">
+                          <IconButton>
+                            <Prohibit />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
             </TableBody>

@@ -28,6 +28,8 @@ export class WsAccessTokenGuard implements CanActivate {
     const token: string =
       client.handshake.auth.token || client.handshake.headers['token'];
 
+    console.log({ token });
+
     if (!token) throw new WsUnauthorizedException(UNAUTHORIZED);
 
     try {
@@ -37,6 +39,9 @@ export class WsAccessTokenGuard implements CanActivate {
       );
       client.data.userId = client.userId;
       client.data.nickname = client.nickname;
+      console.log({ socketId: client.id });
+
+      console.log('no problem');
       return true;
     } catch (error) {
       throw new WsUnauthorizedException(UNAUTHORIZED);

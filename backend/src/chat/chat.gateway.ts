@@ -123,6 +123,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
   }
 
+  @SubscribeMessage('data')
+  async data() {
+    console.log('data');
+  }
+
   @SubscribeMessage(CHATROOM_CREATE)
   async createChatRoom(
     @MessageBody(CheckGroupCreationValidity) chatroomDto: ChatRoomDto,

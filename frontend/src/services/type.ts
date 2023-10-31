@@ -8,3 +8,8 @@ export type BaseServerResponse = {
   message: string;
   statusCode: number;
 };
+
+export type ErrorSocket = {
+  message: string;
+  type: string;
+};

@@ -441,75 +441,62 @@ const Chat_History: ChatMessageProps[] = [
 
 export const friends: FriendProps[] = [
   {
-    id: faker.string.alphanumeric(),
+    id: 1,
     avatar: faker.image.avatar(),
     profile: faker.string.alphanumeric(),
     nickname: faker.person.firstName(),
     friendSince: faker.date.anytime().toLocaleDateString("fr-FR"),
   },
   {
-    id: faker.string.alphanumeric(),
+    id: 2,
     avatar: faker.image.avatar(),
     profile: faker.string.alphanumeric(),
     nickname: faker.person.firstName(),
     friendSince: faker.date.anytime().toLocaleDateString("fr-FR"),
   },
   {
-    id: faker.string.alphanumeric(),
+    id: 3,
     avatar: faker.image.avatar(),
     profile: faker.string.alphanumeric(),
     nickname: faker.person.firstName(),
     friendSince: faker.date.anytime().toLocaleDateString("fr-FR"),
   },
   {
-    id: faker.string.alphanumeric(),
+    id: 4,
     avatar: faker.image.avatar(),
     profile: faker.string.alphanumeric(),
     nickname: faker.person.firstName(),
     friendSince: faker.date.anytime().toLocaleDateString("fr-FR"),
   },
   {
-    id: faker.string.alphanumeric(),
+    id: 5,
     avatar: faker.image.avatar(),
     profile: faker.string.alphanumeric(),
     nickname: faker.person.firstName(),
     friendSince: faker.date.anytime().toLocaleDateString("fr-FR"),
   },
   {
-    id: faker.string.alphanumeric(),
+    id: 6,
     avatar: faker.image.avatar(),
     profile: faker.string.alphanumeric(),
     nickname: faker.person.firstName(),
     friendSince: faker.date.anytime().toLocaleDateString("fr-FR"),
   },
   {
-    id: faker.string.alphanumeric(),
+    id: 7,
     avatar: faker.image.avatar(),
     profile: faker.string.alphanumeric(),
     nickname: faker.person.firstName(),
     friendSince: faker.date.anytime().toLocaleDateString("fr-FR"),
   },
   {
-    id: faker.string.alphanumeric(),
+    id: 8,
     avatar: faker.image.avatar(),
     profile: faker.string.alphanumeric(),
     nickname: faker.person.firstName(),
     friendSince: faker.date.anytime().toLocaleDateString("fr-FR"),
   },
-  {
-    id: faker.string.alphanumeric(),
-    avatar: faker.image.avatar(),
-    profile: faker.string.alphanumeric(),
-    nickname: faker.person.firstName(),
-    friendSince: faker.date.anytime().toLocaleDateString("fr-FR"),
-  },
-  {
-    id: faker.string.alphanumeric(),
-    avatar: faker.image.avatar(),
-    profile: faker.string.alphanumeric(),
-    nickname: faker.person.firstName(),
-    friendSince: faker.date.anytime().toLocaleDateString("fr-FR"),
-  },
+ 
 ];
 
 const Message_options = [

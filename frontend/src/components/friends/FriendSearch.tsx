@@ -7,22 +7,20 @@ interface FriendSearchProps {
 
 const FriendSearch = ({ placeholder }: FriendSearchProps) => {
   return (
-    <>
-      <Card sx={{ p: 2 }}>
-        <OutlinedInput
-          defaultValue=""
-          fullWidth
-          placeholder={placeholder}
-          startAdornment={
-            <InputAdornment position="start">
-              <SvgIcon color="action" fontSize="small">
-                <MagnifyingGlass />
-              </SvgIcon>
-            </InputAdornment>
-          }
-        />
-      </Card>
-    </>
+    <Card sx={{ p: 2 }}>
+      <OutlinedInput
+        defaultValue=""
+        fullWidth
+        placeholder={placeholder}
+        startAdornment={
+          <InputAdornment position="start">
+            <SvgIcon color="action" fontSize="small">
+              <MagnifyingGlass />
+            </SvgIcon>
+          </InputAdornment>
+        }
+      />
+    </Card>
   );
 };
 

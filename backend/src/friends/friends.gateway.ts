@@ -1,3 +1,4 @@
+import { WsBadRequestException } from './../common/custom-exception/ws-exception';
 import {
   Logger,
   UseFilters,
@@ -20,16 +21,12 @@ import { UserService } from 'src/user/user.service';
 import { WsAccessTokenGuard } from 'src/common/guards/ws.guard';
 import { WsCatchAllFilter } from 'src/common/global-filters/ws-exception-filter';
 import { PrismaService } from 'src/prisma/prisma.service';
-import {
-  WsBadRequestException,
-  WsNotFoundException,
-} from 'src/common/custom-exception/ws-exception';
+import { WsNotFoundException } from 'src/common/custom-exception/ws-exception';
 import {
   NOTIFICATION_FRIEND_REQUEST_RECEIVED,
   FRIEND_REQUEST_SENT,
   FRIEND_CANCEL_FRIEND_REQUEST,
   FRIEND_REQUEST_ACCEPTED,
-  FRIEND_DELETE_FRIEND,
   FRIEND_BLOCKED_FRIEND,
 } from 'shared/socket.events';
 import { GatewayService } from 'src/gateway/gateway.service';
@@ -38,6 +35,7 @@ import { REQUEST_STATUS } from '@prisma/client';
 import { IsFriendExistWs } from './pipe/is-friend-exist-ws.pipe';
 import { FriendsTypeDto, FriendsTypeNicknameDto } from './dto/friends.dto';
 import { UserData } from 'src/common/types/user-info.type';
+import { SocketServerResponse } from 'src/common/types/socket-types';
 
 @UseGuards(WsAccessTokenGuard)
 @UseFilters(WsCatchAllFilter)
@@ -87,7 +85,9 @@ export class FriendsGateway
     @ConnectedSocket() client: SocketWithAuth,
     @MessageBody() body: FriendsTypeNicknameDto,
   ) {
-    const { userId, nickname } = body;
+    const { nickname } = body;
+    const userId = client.userId;
+    console.log({ userId, nickname });
     const friend = await this.userService.findUserByNickName(
       nickname,
       UserData,
@@ -140,7 +140,7 @@ export class FriendsGateway
         );
     }
 
-    await this.prismaService.friendRequest.create({
+    /*await this.prismaService.friendRequest.create({
       data: {
         sender: {
           connect: {
@@ -153,11 +153,16 @@ export class FriendsGateway
           },
         },
       },
-    });
+    });*/
 
     this.sendToSocket(client, friendId, NOTIFICATION_FRIEND_REQUEST_RECEIVED, {
-      nickame: client.nickname,
-      senderId: client.userId,
+      message: `You received a friend request from ${client.nickname}`,
+      data: { nickame: client.nickname, senderId: client.userId },
+    });
+
+    this.sendToSocket(client, client.userId, 'd', {
+      message: 'Friend request succesfully sent',
+      data: {},
     });
   }
 
@@ -166,7 +171,8 @@ export class FriendsGateway
     @ConnectedSocket() client: SocketWithAuth,
     @MessageBody(IsFriendExistWs) body: FriendsTypeDto,
   ) {
-    const { userId, friendId } = body;
+    const { friendId } = body;
+    const userId = client.userId;
 
     const existingFriendRequest = await this.friendService.isRequestBetweenUser(
       userId,
@@ -195,9 +201,9 @@ export class FriendsGateway
       },
     });
 
-    this.sendToSocket(client, friendId, FRIEND_CANCEL_FRIEND_REQUEST, {
+    /*this.sendToSocket(client, friendId, FRIEND_CANCEL_FRIEND_REQUEST, {
       userId,
-    });
+    });*/
   }
 
   @SubscribeMessage(FRIEND_REQUEST_ACCEPTED)
@@ -205,7 +211,8 @@ export class FriendsGateway
     @ConnectedSocket() client: SocketWithAuth,
     @MessageBody(IsFriendExistWs) body: FriendsTypeDto,
   ) {
-    const { userId, friendId } = body;
+    const { friendId } = body;
+    const userId = client.userId;
 
     const existingFriendship = await this.friendService.isFriends(
       userId,
@@ -250,16 +257,17 @@ export class FriendsGateway
       }),
     ]);
 
-    this.sendToSocket(client, friendId, FRIEND_REQUEST_ACCEPTED, {
+    /* this.sendToSocket(client, friendId, FRIEND_REQUEST_ACCEPTED, {
       nickname: client.nickname,
-    });
+    });*/
   }
 
   async deleteFriends(
     @ConnectedSocket() client: SocketWithAuth,
     @MessageBody(IsFriendExistWs) body: FriendsTypeDto,
   ) {
-    const { userId, friendId } = body;
+    const { friendId } = body;
+    const userId = client.userId;
 
     const existingFriendship = await this.friendService.isFriends(
       userId,
@@ -312,7 +320,7 @@ export class FriendsGateway
         },
       }),
     ]);
-    this.sendToSocket(client, friendId, FRIEND_DELETE_FRIEND, {});
+    //  this.sendToSocket(client, friendId, FRIEND_DELETE_FRIEND, {});
   }
 
   @SubscribeMessage(FRIEND_BLOCKED_FRIEND)
@@ -320,7 +328,8 @@ export class FriendsGateway
     @ConnectedSocket() client: SocketWithAuth,
     @MessageBody(IsFriendExistWs) body: FriendsTypeDto,
   ) {
-    const { userId, friendId } = body;
+    const { friendId } = body;
+    const userId = client.userId;
 
     const existingBlockedUser = await this.userService.findBlockedUser(
       userId,
@@ -393,17 +402,21 @@ export class FriendsGateway
         data: { blockedUsers: { connect: { id: friendId } } },
       });
     }
-    this.sendToSocket(client, friendId, FRIEND_BLOCKED_FRIEND, {});
+    //  this.sendToSocket(client, friendId, FRIEND_BLOCKED_FRIEND, {});
   }
 
   private sendToSocket(
     client: SocketWithAuth,
     userId: string,
     emit: string,
-    object: any,
+    object: SocketServerResponse,
   ) {
-    const { id } = this.gatewayService.getUserSocket(userId);
+    const socket = this.gatewayService.getUserSocket(userId);
 
-    client.to(id).emit(emit, object);
+    if (!socket) return;
+
+    console.log({ socket: socket.id });
+
+    client.to(socket.id).emit(emit, object);
   }
 }

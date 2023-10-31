@@ -16,10 +16,7 @@ export class SocketIOAdapter extends IoAdapter {
     port = parseInt(process.env.WS_PORT);
 
     const cors = {
-      origin: [
-        `http://localhost:${port}`,
-        new RegExp(`/^http:\/\/192\.168\.1\.([1-9]|[1-9]\d):${port}$/`),
-      ],
+      origin: '*',
     };
 
     this.logger.log('Configuring SocketIO server with custom CORS options', {
@@ -56,7 +53,9 @@ const createTokenMiddleware =
       socket.userId = payload.sub;
       socket.email = payload.email;
       next();
-    } catch {
+    } catch (error) {
+      console.log({ error });
+
       next(new WsException('Unauthorized'));
     }
   };
