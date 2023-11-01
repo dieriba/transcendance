@@ -55,6 +55,25 @@ export const UserData: UserInfo = {
   restrictedGroups: false,
 };
 
+export const UserFriendRequest: UserInfo = {
+  id: true,
+  nickname: true,
+  email: false,
+  password: false,
+  createdAt: false,
+  updatedAt: false,
+  hashedRefreshToken: false,
+  twoFa: true,
+  profile: false,
+  blockedUsers: false,
+  blockedBy: false,
+  friendRequestsReceived: true,
+  friendRequestsSent: true,
+  chatrooms: false,
+  messages: false,
+  restrictedGroups: false,
+};
+
 export const UserTwoFa: UserInfo = {
   id: true,
   nickname: true,

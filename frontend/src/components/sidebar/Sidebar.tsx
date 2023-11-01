@@ -10,6 +10,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../../redux/features/auth/auth.slice";
 import { useAppDispatch } from "../../redux/hooks";
+import { apiSlice } from "../../redux/api/apiSlice";
 
 const Sidebar = () => {
   const theme = useTheme();
@@ -114,7 +115,14 @@ const Sidebar = () => {
             )}
           </Stack>
           <Stack alignItems="center" spacing={2}>
-            <IconButton onClick={() => dispatch(logout())}>
+            <IconButton
+              onClick={() => {
+                dispatch(apiSlice.util.resetApiState());
+                dispatch(logout());
+                // eslint-disable-next-line no-self-assign
+                window.location = window.location;
+              }}
+            >
               <SignOut />
             </IconButton>
             <MaterialUISwitch theme={theme} onClick={toggleColorMode} />

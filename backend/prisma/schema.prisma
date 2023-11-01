@@ -102,16 +102,16 @@ model Chatroom {
 }
 
 model Message {
-  id         String   @id @default(uuid())
-  content    String   @db.VarChar(255)
-  imageUrl   String?
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId     String
-  chatroom   Chatroom @relation(fields: [chatroomId], references: [id], onDelete: Cascade)
-  chatroomId String
+  id           String        @id @default(uuid())
+  content      String        @db.VarChar(255)
+  imageUrl     String?
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  chatroom     Chatroom      @relation(fields: [chatroomId], references: [id], onDelete: Cascade)
+  chatroomId   String
   messageTypes MESSAGE_TYPES
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 model ChatroomUser {

@@ -52,6 +52,9 @@ const createTokenMiddleware =
       );
       socket.userId = payload.sub;
       socket.email = payload.email;
+      socket.nickname = payload.nickname;
+      console.log({ payload });
+
       next();
     } catch (error) {
       console.log({ error });

@@ -23,11 +23,11 @@ import { WsCatchAllFilter } from 'src/common/global-filters/ws-exception-filter'
 import { PrismaService } from 'src/prisma/prisma.service';
 import { WsNotFoundException } from 'src/common/custom-exception/ws-exception';
 import {
-  NOTIFICATION_FRIEND_REQUEST_RECEIVED,
   FRIEND_REQUEST_SENT,
   FRIEND_CANCEL_FRIEND_REQUEST,
   FRIEND_REQUEST_ACCEPTED,
   FRIEND_BLOCKED_FRIEND,
+  FRIEND_REQUEST_RECEIVED,
 } from 'shared/socket.events';
 import { GatewayService } from 'src/gateway/gateway.service';
 import { SocketWithAuth } from 'src/auth/type';
@@ -61,7 +61,7 @@ export class FriendsGateway
     const sockets = this.server.sockets;
 
     this.logger.log(
-      `WS client with id: ${client.id} and userId : ${client.userId} connected!`,
+      `WS client with id: ${client.id} and userId : ${client.nickname} connected!`,
     );
     this.logger.log(`Socket data: `, sockets);
     this.logger.debug(`Number of connected sockets: ${sockets.size}`);
@@ -75,7 +75,7 @@ export class FriendsGateway
     const sockets = this.server.sockets;
 
     this.logger.log(`WS client with id: ${client.id} disconnected!`);
-    this.logger.log(`Socket data: `, sockets);
+    //this.logger.log(`Socket data: `, sockets);
     this.logger.debug(`Number of connected sockets: ${sockets.size}`);
     this.gatewayService.removeUserSocket(client.userId);
   }
@@ -94,6 +94,9 @@ export class FriendsGateway
     );
 
     if (!friend) throw new WsNotFoundException('User not found');
+
+    if (friend.nickname === client.nickname)
+      throw new WsBadRequestException("Can't send friend request to myself");
 
     const friendId = friend.id;
 
@@ -140,7 +143,7 @@ export class FriendsGateway
         );
     }
 
-    /*await this.prismaService.friendRequest.create({
+    const request = await this.prismaService.friendRequest.create({
       data: {
         sender: {
           connect: {
@@ -153,16 +156,22 @@ export class FriendsGateway
           },
         },
       },
-    });*/
-
-    this.sendToSocket(client, friendId, NOTIFICATION_FRIEND_REQUEST_RECEIVED, {
-      message: `You received a friend request from ${client.nickname}`,
-      data: { nickame: client.nickname, senderId: client.userId },
     });
 
-    this.sendToSocket(client, client.userId, 'd', {
+    this.sendToSocket(client, friendId, FRIEND_REQUEST_RECEIVED, {
+      message: `You received a friend request from ${client.nickname}`,
+      data: {
+        createdAt: request.createdAt,
+        sender: { nickname: client.nickname, id: client.userId },
+      },
+    });
+
+    client.emit(FRIEND_REQUEST_SENT, {
       message: 'Friend request succesfully sent',
-      data: {},
+      data: {
+        createdAt: request.createdAt,
+        recipient: { nickname: friend.nickname, id: friend.id },
+      },
     });
   }
 
@@ -201,9 +210,19 @@ export class FriendsGateway
       },
     });
 
-    /*this.sendToSocket(client, friendId, FRIEND_CANCEL_FRIEND_REQUEST, {
-      userId,
-    });*/
+    console.log({ friendId });
+
+    this.sendToSocket(client, friendId, FRIEND_CANCEL_FRIEND_REQUEST, {
+      message: `${client.nickname} declined your friend request`,
+      data: { friendId: client.userId },
+    });
+
+    client.emit(FRIEND_CANCEL_FRIEND_REQUEST, {
+      message: 'Friend request declined succesfully',
+      data: {
+        friendId,
+      },
+    });
   }
 
   @SubscribeMessage(FRIEND_REQUEST_ACCEPTED)
@@ -412,8 +431,12 @@ export class FriendsGateway
     object: SocketServerResponse,
   ) {
     const socket = this.gatewayService.getUserSocket(userId);
+    console.log(this.gatewayService.getSockets().size);
+
+    console.log({ socket });
 
     if (!socket) return;
+    console.log({ emit });
 
     console.log({ socket: socket.id });
 

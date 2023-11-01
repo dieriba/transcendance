@@ -1,4 +1,4 @@
-import { configureStore } from "@reduxjs/toolkit";
+import { AnyAction, configureStore } from "@reduxjs/toolkit";
 import { persistStore as persisStore } from "redux-persist";
 import { combineReducers } from "@reduxjs/toolkit";
 import persistReducer from "redux-persist/es/persistReducer";
@@ -7,6 +7,7 @@ import { SidebarSlice } from "./features/sidebar.slices";
 import { AuthSlice } from "./features/auth/auth.slice";
 import { apiSlice } from "./api/apiSlice";
 import crashMiddleware from "./middleware/crashMiddleware";
+import AppNotifySlice from "./features/app_notify/app.slice";
 
 const persistConfig = {
   keyPrefix: "redux-",
@@ -14,13 +15,26 @@ const persistConfig = {
   storage,
 };
 
-const reducer = combineReducers({
+const reducers = combineReducers({
   sidebar: SidebarSlice.reducer,
   user: AuthSlice.reducer,
+  appNotify: AppNotifySlice.reducer,
   [apiSlice.reducerPath]: apiSlice.reducer,
 });
 
-const persistedReducer = persistReducer(persistConfig, reducer);
+const rootReducer = (
+  state: ReturnType<typeof reducers> | undefined,
+  action: AnyAction
+) => {
+  if (action.type === "logout/LOGOUT") {
+    storage.removeItem("redux-root");
+    return reducers(undefined, { type: undefined });
+  }
+
+  return reducers(state, action);
+};
+
+const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = configureStore({
   reducer: persistedReducer,

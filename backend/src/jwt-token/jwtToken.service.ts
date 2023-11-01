@@ -17,10 +17,15 @@ export class JwtTokenService {
     });
   }
 
-  async getTokens(sub: string, email: string): Promise<Tokens> {
+  async getTokens(
+    sub: string,
+    email: string,
+    nickname: string,
+  ): Promise<Tokens> {
     const jwtPayload: JwtPayload = {
       sub,
       email,
+      nickname,
     };
 
     const [access_token, refresh_token] = await Promise.all([

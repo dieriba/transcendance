@@ -9,7 +9,12 @@ export type BaseServerResponse = {
   statusCode: number;
 };
 
-export type ErrorSocket = {
+export type SocketServerErrorResponse = {
   message: string;
   type: string;
+};
+
+export type SocketServerSucessResponse = {
+  message: string;
+  data: unknown;
 };

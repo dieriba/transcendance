@@ -18,6 +18,8 @@ import {
 } from "../../models/FriendRequestSchema";
 import { useSendFriendRequestMutation } from "../../redux/features/friends/friends.api.slice";
 import { useState } from "react";
+import { SocketServerErrorResponse } from "../../services/type";
+import { log } from "console";
 
 interface CreateGroupProps {
   open: boolean;
@@ -49,17 +51,17 @@ const FriendRequestForm = ({ open, handleClose }: CreateGroupProps) => {
 
   const onSubmit = async (data: FriendRequestType) => {
     try {
+      console.log('ok');
+      
       const res = await sendFriendRequest(data).unwrap();
-      console.log(res);
 
       setSeverity("success");
-      setMessage(res as string);
+      setMessage(res.message);
       setOpenSnack(true);
     } catch (error) {
       setSeverity("error");
-      setMessage(error.message);
+      setMessage((error as SocketServerErrorResponse).message);
       setOpenSnack(true);
-      console.log(error);
     }
   };
 

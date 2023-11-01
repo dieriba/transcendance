@@ -30,7 +30,8 @@ export class JwtRefreshTokenGuard implements CanActivate {
       // 💡 We're assigning the payload to the request object here
       // so that we can access it in our route handlers
       request.userId = payload.sub;
-      request.email = request.email;
+      request.email = payload.email;
+      request.nickname = payload.nickname;
       request.refresh_token = refresh_token;
       return true;
     } catch {

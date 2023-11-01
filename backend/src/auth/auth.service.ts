@@ -69,7 +69,7 @@ export class AuthService {
       this.logger.log(
         `Attempting to create new tokens for user identified by email: ${email}`,
       );
-      const tokens = await this.jwtTokenService.getTokens(id, email);
+      const tokens = await this.jwtTokenService.getTokens(id, email, nickname);
 
       await this.userService.updateUserById(id, {
         hashedRefreshToken: await this.argon2.hash(tokens.refresh_token),
@@ -148,7 +148,7 @@ export class AuthService {
       const { id, email, nickname, twoFa } =
         await this.userService.createOrReturn42User(user, profile, UserData);
 
-      const tokens = await this.jwtTokenService.getTokens(id, email);
+      const tokens = await this.jwtTokenService.getTokens(id, email, nickname);
 
       await this.userService.updateUserById(id, {
         hashedRefreshToken: await this.argon2.hash(tokens.refresh_token),
@@ -170,7 +170,7 @@ export class AuthService {
   }
 
   async refresh(payload: JwtPayloadRefreshToken): Promise<Tokens> {
-    const { sub, email, refresh_token } = payload;
+    const { sub, email, refresh_token, nickname } = payload;
 
     const user = await this.userService.findUserById(sub, UserRefreshToken);
 
@@ -184,7 +184,7 @@ export class AuthService {
 
     if (!isMatch) throw new CustomException(FORBIDDEN, HttpStatus.FORBIDDEN);
 
-    const tokens = await this.jwtTokenService.getTokens(sub, email);
+    const tokens = await this.jwtTokenService.getTokens(sub, email, nickname);
 
     const hashedRefreshToken = await this.argon2.hash(tokens.refresh_token);
     await this.userService.updateUserById(sub, {

@@ -17,6 +17,7 @@ import {
 } from "@mui/material";
 import { Prohibit, Trash } from "phosphor-react";
 import FriendSearch from "./FriendSearch";
+import { getFriendsSocket } from "../../utils/getScoket";
 
 export interface FriendProps {
   id: number;

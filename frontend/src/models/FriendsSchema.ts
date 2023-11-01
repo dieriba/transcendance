@@ -1,8 +1,7 @@
 import { z } from "zod";
 
 export const BaseFriendSchema = z.object({
-  id: z.string().min(1),
-  nickname: z.string().min(1),
+  friendId: z.string().min(1),
 });
 
 export type BaseFriendType = z.infer<typeof BaseFriendSchema>;

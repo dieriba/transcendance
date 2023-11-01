@@ -37,11 +37,7 @@ export class WsAccessTokenGuard implements CanActivate {
         token,
         process.env.ACCESS_TOKEN_SECRET,
       );
-      client.data.userId = client.userId;
-      client.data.nickname = client.nickname;
-      console.log({ socketId: client.id });
 
-      console.log('no problem');
       return true;
     } catch (error) {
       throw new WsUnauthorizedException(UNAUTHORIZED);

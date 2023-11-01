@@ -40,6 +40,7 @@ export class JwtAccessTokenGuard implements CanActivate {
       );
       request.userId = payload.sub;
       request.email = request.email;
+
       return true;
     } catch (error) {
       throw new CustomException(UNAUTHORIZED, HttpStatus.UNAUTHORIZED);

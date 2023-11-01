@@ -12,13 +12,22 @@ import { useAppDispatch } from "../../redux/hooks";
 import { authenticateUser } from "../../redux/features/auth/auth.slice";
 import { useNavigate } from "react-router-dom";
 import { PATH_APP } from "../../routes/paths";
+import { useEffect } from "react";
 const OauthPage = () => {
   const query = useQuery();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { data, isLoading, isFetching } = useOauthQuery({
+  const { data, isLoading, isFetching, isError } = useOauthQuery({
     code: query.get("code") as string,
   });
+
+  useEffect(() => {
+    if (data) {
+      const { user, access_token } = data.data;
+      dispatch(authenticateUser({ user, access_token }));
+      navigate(PATH_APP.dashboard.profile);
+    }
+  }, [data, dispatch, navigate]);
 
   if (isFetching || isLoading) {
     return (
@@ -27,12 +36,7 @@ const OauthPage = () => {
         <Typography>Please wait...</Typography>
       </Stack>
     );
-  } else if (data) {
-    const { user, access_token } = data.data;
-
-    dispatch(authenticateUser({ user, access_token }));
-    navigate(PATH_APP.dashboard.profile);
-  } else {
+  } else if (isError) {
     return (
       <Stack sx={{ alignItems: "center", display: "row", mb: 5 }}>
         <Typography variant="h5">An error has occured</Typography>

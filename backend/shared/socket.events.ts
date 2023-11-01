@@ -23,8 +23,7 @@ export const CHATROOM_USER_JOINED = 'chatroom.user.joined';
 export const PRIVATE_CHAT_SEND_MESSAGE = 'private.chat.send.message';
 
 /*----------------------------------------*/
-export const NOTIFICATION_FRIEND_REQUEST_RECEIVED =
-  'NOTIFICATION_FRIEND_RECEIVED';
+export const FRIEND_REQUEST_RECEIVED = 'FRIEND_REQUEST_RECEIVED';
 export const FRIEND_REQUEST_SENT = 'FRIEND_REQUEST_SENT';
 export const FRIEND_CANCEL_FRIEND_REQUEST = 'FRIEND_CANCEL_FRIEND_REQUEST';
 export const FRIEND_CLEAR_FRIEND_REQUEST = 'FRIEND_CLEAR_FRIEND_REQUEST';

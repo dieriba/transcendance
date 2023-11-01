@@ -54,4 +54,5 @@ export const apiSlice = createApi({
   baseQuery: baseQueryWithReauth,
   reducerPath: "api",
   endpoints: () => ({}),
+  tagTypes: ["ReceivedFriendRequest", "SentFriendRequest"],
 });

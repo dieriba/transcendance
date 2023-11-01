@@ -4,6 +4,8 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { FriendsType } from './types/friends.type';
 import { CustomException } from 'src/common/custom-exception/custom-exception';
 import { FriendsTypeDto } from './dto/friends.dto';
+import { UserData, UserFriendRequest } from 'src/common/types/user-info.type';
+import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
 
 @Injectable()
 export class FriendsService {
@@ -12,6 +14,52 @@ export class FriendsService {
     private readonly prismaService: PrismaService,
   ) {}
   private readonly logger = new Logger(FriendsService.name);
+
+  async getAllReceivedFriendsRequest(userId: string) {
+    const user = await this.userService.findUserById(userId, UserData);
+
+    if (!user) throw new UserNotFoundException();
+
+    const request = this.prismaService.friendRequest.findMany({
+      where: {
+        recipientId: userId,
+      },
+      select: {
+        sender: {
+          select: {
+            nickname: true,
+            id: true,
+          },
+        },
+        createdAt: true,
+      },
+    });
+
+    return request;
+  }
+
+  async getAllSentFriendRequest(userId: string) {
+    const user = await this.userService.findUserById(userId, UserFriendRequest);
+
+    if (!user) throw new UserNotFoundException();
+
+    const request = this.prismaService.friendRequest.findMany({
+      where: {
+        senderId: userId,
+      },
+      select: {
+        recipient: {
+          select: {
+            nickname: true,
+            id: true,
+          },
+        },
+        createdAt: true,
+      },
+    });
+
+    return request;
+  }
 
   async getFriendDetails(body: FriendsTypeDto) {
     const { userId, friendId } = body;
@@ -133,6 +181,10 @@ export class FriendsService {
             recipientId: senderId,
           },
         ],
+      },
+      include: {
+        sender: true,
+        recipient: true,
       },
     });
 
