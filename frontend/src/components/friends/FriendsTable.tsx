@@ -5,7 +5,6 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-import { friends } from "../../data/data";
 import {
   Avatar,
   Button,
@@ -13,10 +12,10 @@ import {
   Pagination,
   Stack,
   Tooltip,
-  Typography,
 } from "@mui/material";
-import { Prohibit, Trash } from "phosphor-react";
 import FriendSearch from "./FriendSearch";
+import { useGetAllFriendsQuery } from "../../redux/features/friends/friends.api.slice";
+import { Trash, Prohibit } from "phosphor-react";
 
 export interface FriendProps {
   id: number;
@@ -27,6 +26,9 @@ export interface FriendProps {
 }
 
 const FriendsTable = () => {
+  const { data } = useGetAllFriendsQuery();
+  const friends = data?.data;
+
   return (
     <>
       <Stack spacing={2}>
@@ -48,14 +50,17 @@ const FriendsTable = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {friends.length == 0 ? (
-                  <Stack>
-                    <Typography></Typography>
-                  </Stack>
-                ) : (
-                  friends.map((friend) => (
+                {friends?.map(
+                  ({
+                    friend: {
+                      id,
+                      nickname,
+                      profile: { avatar },
+                    },
+                    createdAt,
+                  }) => (
                     <TableRow
-                      key={friend.id}
+                      key={id}
                       sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                     >
                       <TableCell padding="checkbox"></TableCell>
@@ -63,11 +68,13 @@ const FriendsTable = () => {
                       <TableCell component="th" scope="row">
                         <Avatar />
                       </TableCell>
-                      <TableCell align="center">{friend.nickname}</TableCell>
+                      <TableCell align="center">{nickname}</TableCell>
                       <TableCell align="center">
                         <Button>Profile</Button>
                       </TableCell>
-                      <TableCell align="center">{friend.friendSince}</TableCell>
+                      <TableCell align="center">
+                        {createdAt.toLocaleString()}
+                      </TableCell>
                       <TableCell align="center">
                         <Stack
                           direction="row"
@@ -87,7 +94,7 @@ const FriendsTable = () => {
                         </Stack>
                       </TableCell>
                     </TableRow>
-                  ))
+                  )
                 )}
               </TableBody>
             </Table>

@@ -89,7 +89,27 @@ export class FriendsService {
   }
 
   async getAllFriends(userId: string) {
-    const user = await this.userService.findUserById(userId, UserData);
+    const user = await this.prismaService.user.findFirst({
+      where: { id: userId },
+      select: {
+        friends: {
+          select: {
+            friend: {
+              select: {
+                nickname: true,
+                id: true,
+                profile: {
+                  select: {
+                    avatar: true,
+                  },
+                },
+              },
+            },
+            createdAt: true,
+          },
+        },
+      },
+    });
 
     if (!user) throw new UserNotFoundException();
 
@@ -169,6 +189,18 @@ export class FriendsService {
         senderId_recipientId: {
           senderId,
           recipientId,
+        },
+      },
+      include: {
+        sender: {
+          include: {
+            profile: true,
+          },
+        },
+        recipient: {
+          include: {
+            profile: true,
+          },
         },
       },
     });

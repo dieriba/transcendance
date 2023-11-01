@@ -4,7 +4,7 @@ import {
   ServerResponseFriendReceivedRequestType,
   ServerResponseFriendSentRequestType,
 } from "../../../models/FriendRequestSchema";
-import { BaseFriendType } from "../../../models/FriendsSchema";
+import { BaseFriendType, FriendType } from "../../../models/FriendsSchema";
 import { ResponseLoginType } from "../../../models/login/ResponseLogin";
 import {
   BaseServerResponse,
@@ -86,6 +86,20 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
               });
             }
           );
+
+          socket.on(
+            FriendEvent.FRIEND_REQUEST_ACCEPTED,
+            (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
+              updateCachedData((draft) => {
+                dispatch(
+                  showSnackBar({ message: data.message, severity: "success" })
+                );
+                draft.data = draft.data.filter(
+                  (obj) => obj.sender.id !== data.data.friendId
+                );
+              });
+            }
+          );
         } catch (error) {
           console.log(error);
         }
@@ -101,7 +115,7 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
       }),
       async onCacheEntryAdded(
         _arg,
-        { updateCachedData, cacheDataLoaded, cacheEntryRemoved }
+        { updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch }
       ) {
         const socket = getFriendsSocket();
         try {
@@ -132,6 +146,21 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
               updateCachedData((draft) => {
                 console.log({ draft: draft.data });
 
+                draft.data = draft.data.filter(
+                  (obj) => obj.recipient.id !== data.data.friendId
+                );
+              });
+            }
+          );
+          socket.on(
+            FriendEvent.FRIEND_REQUEST_ACCEPTED,
+            (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
+              updateCachedData((draft) => {
+                console.log({ data });
+
+                dispatch(
+                  showSnackBar({ message: data.message, severity: "success" })
+                );
                 draft.data = draft.data.filter(
                   (obj) => obj.recipient.id !== data.data.friendId
                 );
@@ -175,14 +204,41 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
       },
     }),
     getAllFriends: builder.query<
-      BaseServerResponse & { data: ResponseLoginType },
-      { code: string }
+      BaseServerResponse & { data: FriendType[] },
+      void
     >({
-      query: (data) => ({
-        url: ``,
+      query: () => ({
+        url: "/friends/get-all-friends",
       }),
+      async onCacheEntryAdded(
+        _arg,
+        { updateCachedData, cacheDataLoaded, cacheEntryRemoved }
+      ) {
+        const socket = getFriendsSocket();
+        try {
+          await cacheDataLoaded;
+
+          socket.on(
+            FriendEvent.FRIEND_NEW_FRIEND,
+            (
+              data: SocketServerSucessResponse & {
+                data: FriendType;
+              }
+            ) => {
+              console.log({ data });
+
+              updateCachedData((draft) => {
+                draft.data.push(data.data);
+              });
+            }
+          );
+        } catch (error) {
+          console.log(error);
+        }
+        await cacheEntryRemoved;
+      },
     }),
-    deleteFriend: builder.mutation<>({
+    /*deleteFriend: builder.mutation<>({
       queryFn: (data) => {
         const socket = getFriendsSocket();
         return new Promise((resolve) => {
@@ -197,7 +253,7 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
           });
         });
       },
-    }),
+    }),*/
   }),
   overrideExisting: false,
 });
@@ -208,4 +264,5 @@ export const {
   useGetAllSentFriendsRequestQuery,
   useSendFriendRequestMutation,
   useCancelRequestMutation,
+  useAcceptFriendRequestMutation,
 } = friendsApiSlice;

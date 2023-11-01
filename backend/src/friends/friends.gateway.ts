@@ -28,6 +28,7 @@ import {
   FRIEND_REQUEST_ACCEPTED,
   FRIEND_BLOCKED_FRIEND,
   FRIEND_REQUEST_RECEIVED,
+  FRIEND_NEW_FRIEND,
 } from 'shared/socket.events';
 import { GatewayService } from 'src/gateway/gateway.service';
 import { SocketWithAuth } from 'src/auth/type';
@@ -250,16 +251,15 @@ export class FriendsGateway
 
     /*MAYBE CHECK IF USER HAS BLOCKED ME*/
 
+    const { sender, recipient } = existingFriendRequest;
+
     await this.prismaService.$transaction([
-      this.prismaService.friendRequest.update({
+      this.prismaService.friendRequest.delete({
         where: {
           senderId_recipientId: {
             senderId: existingFriendRequest.senderId,
             recipientId: existingFriendRequest.recipientId,
           },
-        },
-        data: {
-          status: REQUEST_STATUS.ACCEPTED,
         },
       }),
       this.prismaService.friends.create({
@@ -276,9 +276,51 @@ export class FriendsGateway
       }),
     ]);
 
-    /* this.sendToSocket(client, friendId, FRIEND_REQUEST_ACCEPTED, {
-      nickname: client.nickname,
-    });*/
+    this.sendToSocket(client, friendId, FRIEND_REQUEST_ACCEPTED, {
+      message: `${client.nickname} accepted your friend request`,
+      data: { friendId: client.userId },
+    });
+
+    this.sendToSocket(client, friendId, FRIEND_NEW_FRIEND, {
+      message: '',
+      data: {
+        friend: {
+          id: sender.id === friendId ? recipient.id : friendId,
+          nickname:
+            sender.id === friendId ? recipient.nickname : sender.nickname,
+          profile: {
+            avatar:
+              sender.id === friendId
+                ? recipient.profile.avatar
+                : sender.profile.avatar,
+          },
+        },
+      },
+    });
+
+    client.emit(FRIEND_NEW_FRIEND, {
+      message: '',
+      data: {
+        friend: {
+          id: sender.id === client.userId ? recipient.id : friendId,
+          nickname:
+            sender.id === client.userId ? recipient.nickname : sender.nickname,
+          profile: {
+            avatar:
+              sender.id === client.userId
+                ? recipient.profile.avatar
+                : sender.profile.avatar,
+          },
+        },
+      },
+    });
+
+    client.emit(FRIEND_REQUEST_ACCEPTED, {
+      message: `You are now friend with ${
+        friendId === sender.id ? sender.nickname : recipient.nickname
+      }`,
+      data: { friendId },
+    });
   }
 
   async deleteFriends(

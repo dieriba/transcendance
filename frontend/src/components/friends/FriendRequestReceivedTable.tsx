@@ -9,15 +9,13 @@ import {
   Avatar,
   Button,
   CircularProgress,
-  IconButton,
   Pagination,
   Stack,
-  Tooltip,
   Typography,
 } from "@mui/material";
-import { Check, X } from "phosphor-react";
 import FriendSearch from "./FriendSearch";
 import {
+  useAcceptFriendRequestMutation,
   useCancelRequestMutation,
   useGetAllReceivedFriendsRequestQuery,
 } from "../../redux/features/friends/friends.api.slice";
@@ -33,10 +31,18 @@ const FriendRequestReceived = () => {
   );
 
   const [cancelRequest] = useCancelRequestMutation();
-
-  const onClick = async (friend: BaseFriendType) => {
+  const [acceptRequest] = useAcceptFriendRequestMutation();
+  const cancelFriendRequest = async (friend: BaseFriendType) => {
     try {
       await cancelRequest(friend).unwrap();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const acceptFriendRequest = async (friend: BaseFriendType) => {
+    try {
+      await acceptRequest(friend).unwrap();
     } catch (error) {
       console.log(error);
     }
@@ -96,18 +102,20 @@ const FriendRequestReceived = () => {
                           justifyContent="center"
                           spacing={2}
                         >
-                          <Tooltip title="cancel" placement="top">
-                            <IconButton
-                              onClick={() => onClick({ friendId: id })}
-                            >
-                              <X />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="accept" placement="top">
-                            <IconButton>
-                              <Check />
-                            </IconButton>
-                          </Tooltip>
+                          <Button
+                            onClick={() =>
+                              cancelFriendRequest({ friendId: id })
+                            }
+                          >
+                            <Typography>Cancel</Typography>
+                          </Button>
+                          <Button
+                            onClick={() =>
+                              acceptFriendRequest({ friendId: id })
+                            }
+                          >
+                            <Typography>Accept</Typography>
+                          </Button>
                         </Stack>
                       </TableCell>
                     </TableRow>

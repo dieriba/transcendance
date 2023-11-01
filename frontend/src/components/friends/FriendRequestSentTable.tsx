@@ -9,13 +9,10 @@ import {
   Avatar,
   Button,
   CircularProgress,
-  IconButton,
   Pagination,
   Stack,
-  Tooltip,
   Typography,
 } from "@mui/material";
-import { X } from "phosphor-react";
 import FriendSearch from "./FriendSearch";
 import {
   useCancelRequestMutation,
@@ -82,13 +79,11 @@ const FriendRequestSentTable = () => {
                           justifyContent="center"
                           spacing={2}
                         >
-                          <Tooltip title="cancel" placement="top">
-                            <IconButton
-                              onClick={() => cancelRequest({ friendId: id })}
-                            >
-                              <X />
-                            </IconButton>
-                          </Tooltip>
+                          <Button
+                            onClick={() => cancelRequest({ friendId: id })}
+                          >
+                            <Typography>Cancel</Typography>
+                          </Button>
                         </Stack>
                       </TableCell>
                     </TableRow>
