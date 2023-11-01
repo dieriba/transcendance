@@ -17,13 +17,17 @@ import {
 } from "@mui/material";
 import { X } from "phosphor-react";
 import FriendSearch from "./FriendSearch";
-import { useGetAllSentFriendsRequestQuery } from "../../redux/features/friends/friends.api.slice";
+import {
+  useCancelRequestMutation,
+  useGetAllSentFriendsRequestQuery,
+} from "../../redux/features/friends/friends.api.slice";
 
 const FriendRequestSentTable = () => {
   const { data, isLoading, isError } = useGetAllSentFriendsRequestQuery(
     undefined,
     { refetchOnMountOrArgChange: true }
   );
+  const [cancelRequest] = useCancelRequestMutation();
 
   if (isLoading) {
     return (
@@ -79,7 +83,9 @@ const FriendRequestSentTable = () => {
                           spacing={2}
                         >
                           <Tooltip title="cancel" placement="top">
-                            <IconButton>
+                            <IconButton
+                              onClick={() => cancelRequest({ friendId: id })}
+                            >
                               <X />
                             </IconButton>
                           </Tooltip>

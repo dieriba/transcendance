@@ -88,6 +88,14 @@ export class FriendsService {
     return friend;
   }
 
+  async getAllFriends(userId: string) {
+    const user = await this.userService.findUserById(userId, UserData);
+
+    if (!user) throw new UserNotFoundException();
+
+    return user.friends;
+  }
+
   async unblockUser(body: FriendsType) {
     const { userId, friendId } = body;
     const existingBlockedUser = await this.userService.findBlockedUser(

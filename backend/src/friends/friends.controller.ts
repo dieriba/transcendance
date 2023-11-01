@@ -28,6 +28,12 @@ export class FriendsController {
     return await this.friendService.getAllSentFriendRequest(userId);
   }
 
+  @Get('get-all-friends')
+  @HttpCode(HttpStatus.OK)
+  async getAllFriends(@GetUser('userId') userId: string) {
+    return await this.friendService.getAllFriends(userId);
+  }
+
   @Post('friend/:nickname')
   @HttpCode(HttpStatus.OK)
   async getFriendDetails(@Body(IsFriendExist) body: FriendsTypeDto) {

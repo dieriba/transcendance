@@ -213,7 +213,7 @@ export class FriendsGateway
     console.log({ friendId });
 
     this.sendToSocket(client, friendId, FRIEND_CANCEL_FRIEND_REQUEST, {
-      message: `${client.nickname} declined your friend request`,
+      message: '',
       data: { friendId: client.userId },
     });
 

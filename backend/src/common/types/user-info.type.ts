@@ -10,6 +10,7 @@ export type UserInfo = {
   profile: boolean;
   blockedUsers: boolean;
   blockedBy: boolean;
+  friends: boolean,
   friendRequestsReceived: boolean;
   friendRequestsSent: boolean;
   chatrooms: boolean;
@@ -29,6 +30,7 @@ export const UserId: UserInfo = {
   profile: false,
   blockedUsers: false,
   blockedBy: false,
+  friends: false,
   friendRequestsReceived: false,
   friendRequestsSent: false,
   chatrooms: false,
@@ -48,6 +50,7 @@ export const UserData: UserInfo = {
   profile: false,
   blockedUsers: false,
   blockedBy: false,
+  friends: false,
   friendRequestsReceived: false,
   friendRequestsSent: false,
   chatrooms: false,
@@ -67,6 +70,7 @@ export const UserFriendRequest: UserInfo = {
   profile: false,
   blockedUsers: false,
   blockedBy: false,
+  friends: true,
   friendRequestsReceived: true,
   friendRequestsSent: true,
   chatrooms: false,
@@ -86,6 +90,7 @@ export const UserTwoFa: UserInfo = {
   profile: false,
   blockedUsers: false,
   blockedBy: false,
+  friends: false,
   friendRequestsReceived: false,
   friendRequestsSent: false,
   chatrooms: false,
@@ -105,6 +110,7 @@ export const UserBlockList: UserInfo = {
   profile: false,
   blockedUsers: true,
   blockedBy: true,
+  friends: false,
   friendRequestsReceived: true,
   friendRequestsSent: true,
   chatrooms: false,
@@ -124,6 +130,7 @@ export const UserChatRoom: UserInfo = {
   profile: false,
   blockedUsers: true,
   blockedBy: true,
+  friends: false,
   friendRequestsReceived: true,
   friendRequestsSent: true,
   chatrooms: true,
@@ -143,6 +150,7 @@ export const UserRefreshToken: UserInfo = {
   profile: false,
   blockedUsers: false,
   blockedBy: false,
+  friends: false,
   friendRequestsReceived: false,
   friendRequestsSent: false,
   chatrooms: true,

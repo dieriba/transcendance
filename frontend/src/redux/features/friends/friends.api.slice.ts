@@ -144,7 +144,7 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
         await cacheEntryRemoved;
       },
     }),
-    cancelReceivedRequest: builder.mutation<
+    cancelRequest: builder.mutation<
       SocketServerErrorResponse | SocketServerSucessResponse,
       BaseFriendType
     >({
@@ -159,18 +159,14 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
         });
       },
     }),
-    cancelSentRequest: builder.mutation<
-      SocketServerErrorResponse | SocketServerSucessResponse,
+    acceptFriendRequest: builder.mutation<
+      SocketServerSucessResponse | SocketServerErrorResponse,
       BaseFriendType
     >({
       queryFn: (data) => {
         const socket = getFriendsSocket();
         return new Promise((resolve) => {
-          socket.emit(FriendEvent.FRIEND_REQUEST_SENT, data);
-
-          socket.on(FriendEvent.FRIEND_REQUEST_SENT, (response) => {
-            resolve({ data: response });
-          });
+          socket.emit(FriendEvent.FRIEND_REQUEST_ACCEPTED, data);
 
           socket.on("exception", (error) => {
             resolve({ error });
@@ -211,5 +207,5 @@ export const {
   useGetAllReceivedFriendsRequestQuery,
   useGetAllSentFriendsRequestQuery,
   useSendFriendRequestMutation,
-  useCancelReceivedRequestMutation,
+  useCancelRequestMutation,
 } = friendsApiSlice;

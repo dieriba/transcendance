@@ -18,19 +18,21 @@ import {
 import { Check, X } from "phosphor-react";
 import FriendSearch from "./FriendSearch";
 import {
-  useCancelReceivedRequestMutation,
+  useCancelRequestMutation,
   useGetAllReceivedFriendsRequestQuery,
 } from "../../redux/features/friends/friends.api.slice";
 
 import { BaseFriendType } from "../../models/FriendsSchema";
 
 const FriendRequestReceived = () => {
-  const { data, isLoading, isError } =
-    useGetAllReceivedFriendsRequestQuery(undefined, {
+  const { data, isLoading, isError } = useGetAllReceivedFriendsRequestQuery(
+    undefined,
+    {
       refetchOnMountOrArgChange: true,
-    });
+    }
+  );
 
-  const [cancelRequest] = useCancelReceivedRequestMutation();
+  const [cancelRequest] = useCancelRequestMutation();
 
   const onClick = async (friend: BaseFriendType) => {
     try {
