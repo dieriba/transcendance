@@ -14,6 +14,7 @@ import {
 import { getFriendsSocket } from "../../../utils/getScoket";
 import { apiSlice } from "../../api/apiSlice";
 import { FriendEvent } from "./friends.slice";
+import { showSnackBar } from "../app_notify/app.slice";
 
 export const friendsApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -47,7 +48,7 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
       }),
       async onCacheEntryAdded(
         _arg,
-        { updateCachedData, cacheDataLoaded, cacheEntryRemoved }
+        { updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch }
       ) {
         const socket = getFriendsSocket();
 
@@ -62,6 +63,9 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
             ) => {
               updateCachedData((draft) => {
                 draft.data.push(data.data);
+                dispatch(
+                  showSnackBar({ message: data.message, severity: "success" })
+                );
               });
             }
           );

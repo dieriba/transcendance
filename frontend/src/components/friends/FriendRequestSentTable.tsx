@@ -41,59 +41,61 @@ const FriendRequestSentTable = () => {
     const friendRequest = data?.data;
     return (
       <>
-        <FriendSearch placeholder="Search Friend Request" />
-        <Stack spacing={3} alignItems="center">
-          <TableContainer
-            sx={{ height: "500px", overflow: "scroll" }}
-            component={Paper}
-          >
-            <Table sx={{ minWidth: 650 }} aria-label="simple table">
-              <TableHead>
-                <TableRow>
-                  <TableCell padding="checkbox"></TableCell>
-                  <TableCell>Avatar</TableCell>
-                  <TableCell align="center">Nickname</TableCell>
-                  <TableCell align="center">Profile</TableCell>
-                  <TableCell align="center">Cancel</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {friendRequest?.map(({ recipient: { id, nickname } }) => (
-                  <TableRow
-                    key={id}
-                    sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                  >
+        <Stack spacing={2}>
+          <FriendSearch placeholder="Search Friend Request" />
+          <Stack spacing={3} alignItems="center">
+            <TableContainer
+              sx={{ height: "500px", overflow: "scroll" }}
+              component={Paper}
+            >
+              <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                <TableHead>
+                  <TableRow>
                     <TableCell padding="checkbox"></TableCell>
-                    <TableCell component="th" scope="row">
-                      <Avatar />
-                    </TableCell>
-                    <TableCell align="center">{nickname}</TableCell>
-                    <TableCell align="center">
-                      <Button>Profile</Button>
-                    </TableCell>
-                    <TableCell align="center">
-                      <Stack
-                        direction="row"
-                        justifyContent="center"
-                        spacing={2}
-                      >
-                        <Tooltip title="cancel" placement="top">
-                          <IconButton>
-                            <X />
-                          </IconButton>
-                        </Tooltip>
-                      </Stack>
-                    </TableCell>
+                    <TableCell>Avatar</TableCell>
+                    <TableCell align="center">Nickname</TableCell>
+                    <TableCell align="center">Profile</TableCell>
+                    <TableCell align="center">Cancel</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <Pagination
-            sx={{ justifySelf: "flex-end" }}
-            count={10}
-            color="primary"
-          />
+                </TableHead>
+                <TableBody>
+                  {friendRequest?.map(({ recipient: { id, nickname } }) => (
+                    <TableRow
+                      key={id}
+                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                    >
+                      <TableCell padding="checkbox"></TableCell>
+                      <TableCell component="th" scope="row">
+                        <Avatar />
+                      </TableCell>
+                      <TableCell align="center">{nickname}</TableCell>
+                      <TableCell align="center">
+                        <Button>Profile</Button>
+                      </TableCell>
+                      <TableCell align="center">
+                        <Stack
+                          direction="row"
+                          justifyContent="center"
+                          spacing={2}
+                        >
+                          <Tooltip title="cancel" placement="top">
+                            <IconButton>
+                              <X />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <Pagination
+              sx={{ justifySelf: "flex-end" }}
+              count={10}
+              color="primary"
+            />
+          </Stack>
         </Stack>
       </>
     );

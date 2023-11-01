@@ -4,7 +4,6 @@ import {
   DialogTitle,
   Button,
   AlertColor,
-  Snackbar,
   Alert,
 } from "@mui/material";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,7 +18,6 @@ import {
 import { useSendFriendRequestMutation } from "../../redux/features/friends/friends.api.slice";
 import { useState } from "react";
 import { SocketServerErrorResponse } from "../../services/type";
-import { log } from "console";
 
 interface CreateGroupProps {
   open: boolean;
@@ -30,14 +28,14 @@ const FriendRequestForm = ({ open, handleClose }: CreateGroupProps) => {
   const { control, handleSubmit } = useForm<FriendRequestType>({
     resolver: zodResolver(FriendRequestSchema),
   });
-  const [sendFriendRequest, { isLoading }] = useSendFriendRequestMutation();
+  const [sendFriendRequest] = useSendFriendRequestMutation();
 
   const [message, setMessage] = useState("");
   const [severity, setSeverity] = useState<AlertColor>("success");
   const [openSnack, setOpenSnack] = useState(false);
 
   const handleCloseSnack = (
-    event?: React.SyntheticEvent | Event,
+    _event?: React.SyntheticEvent | Event,
     reason?: string
   ) => {
     if (reason === "clickaway") {
