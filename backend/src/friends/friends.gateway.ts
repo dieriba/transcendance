@@ -156,7 +156,7 @@ export class FriendsGateway
       },
     });
 
-    this.sendToSocket(client, friendId, FriendEvent.REQUEST_RECEIVED, {
+    this.sendToSocket(client, friendId, FriendEvent.NEW_REQUEST_RECEIVED, {
       message: `You received a friend request from ${client.nickname}`,
       data: {
         createdAt: request.createdAt,
@@ -168,7 +168,7 @@ export class FriendsGateway
       },
     });
 
-    client.emit(FriendEvent.REQUEST_SENT, {
+    client.emit(FriendEvent.NEW_REQUEST_SENT, {
       message: 'Friend request succesfully sent',
       data: {
         recipient: {
@@ -257,7 +257,7 @@ export class FriendsGateway
 
     const { sender, recipient } = existingFriendRequest;
 
-    await this.prismaService.$transaction([
+    const res = await this.prismaService.$transaction([
       this.prismaService.friendRequest.delete({
         where: {
           senderId_recipientId: {
@@ -271,6 +271,26 @@ export class FriendsGateway
           type: TYPE.DM,
           users: {
             create: [{ userId: userId }, { userId: friendId }],
+          },
+        },
+        select: {
+          id: true,
+          isPinned: true,
+          users: {
+            select: {
+              user: {
+                select: {
+                  id: true,
+                  nickname: true,
+                  status: true,
+                },
+              },
+            },
+          },
+          messages: {
+            orderBy: {
+              createdAt: 'desc',
+            },
           },
         },
       }),
@@ -332,6 +352,16 @@ export class FriendsGateway
         friendId === sender.id ? sender.nickname : recipient.nickname
       }`,
       data: { friendId },
+    });
+
+    client.emit(FriendEvent.NEW_CHATROOM, {
+      message: '',
+      data: res[1],
+    });
+
+    this.sendToSocket(client, friendId, FriendEvent.NEW_CHATROOM, {
+      message: '',
+      data: res[1],
     });
   }
 

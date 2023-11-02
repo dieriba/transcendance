@@ -26,7 +26,7 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
         return new Promise((resolve) => {
           socket.emit(FriendEvent.REQUEST_SENT, data);
 
-          socket.on(FriendEvent.REQUEST_SENT, (response) => {
+          socket.on(FriendEvent.NEW_REQUEST_SENT, (response) => {
             resolve({ data: response });
           });
 
@@ -54,7 +54,7 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
         try {
           await cacheDataLoaded;
           socket.on(
-            FriendEvent.REQUEST_RECEIVED,
+            FriendEvent.NEW_REQUEST_RECEIVED,
             (
               data: SocketServerSucessResponse & {
                 data: ServerResponseFriendReceivedRequestType;

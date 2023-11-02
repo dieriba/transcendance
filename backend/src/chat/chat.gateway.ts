@@ -75,7 +75,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @WebSocketServer()
   server: Namespace;
-
+  /*----------------------------------------------------------------------------- */
   handleConnection(client: SocketWithAuth) {
     const sockets = this.server.sockets;
 
@@ -99,11 +99,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(
       `Size of socket map ${this.gatewayService.getSockets().size}`,
     );
-  }
-
-  //@SubscribeMessage('data')
-  async data() {
-    console.log('data');
   }
 
   @SubscribeMessage(ChatEvent.CREATE_GROUP_CHATROOM)

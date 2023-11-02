@@ -2,7 +2,9 @@ const friend = "friend";
 
 export enum FriendEvent {
   REQUEST_RECEIVED = `${friend}.request.received`,
+  NEW_REQUEST_RECEIVED = `${friend}.new.request.received`,
   REQUEST_SENT = `${friend}.request.sent`,
+  NEW_REQUEST_SENT = `${friend}.new.request.sent`,
   CANCEL_REQUEST = `${friend}.cancel.request`,
   CLEAR_REQUEST = `${friend}.clear.request`,
   REQUEST_ACCEPTED = `${friend}.request.accepted`,
@@ -10,9 +12,15 @@ export enum FriendEvent {
   BLOCK_FRIEND = `${friend}.block.friend`,
   UNBLOCK_FRIEND = `${friend}.unblock.friend`,
   NEW_FRIEND = `${friend}.new.friend`,
+  NEW_CHATROOM = `${friend}.new.chatroom`,
 }
 
 const privateChatroom = "chatroom.private";
+
+export enum ChatEventPrivateRoom {
+  NEW_FRIEND = `${privateChatroom}.new.friend`,
+}
+
 const groupChatroom = "chatroom.group";
 
 export enum ChatEvent {
