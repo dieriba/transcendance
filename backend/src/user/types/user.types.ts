@@ -1,3 +1,5 @@
+import { STATUS } from '@prisma/client';
+
 export type TwoFa = {
   otpSecret?: string;
   otpAuth_url?: string;
@@ -28,4 +30,5 @@ export type UserModel = {
   email?: string;
   password?: string;
   hashedRefreshToken?: string;
+  status?: STATUS;
 };

@@ -40,6 +40,48 @@ export class ChatService {
   ) {}
   private readonly logger = new Logger(ChatService.name);
 
+  async getUserChatroom(userId: string) {
+    const user = await this.userService.findUserById(userId, UserData);
+
+    if (!user) throw new UserNotFoundException();
+
+    const chatrooms = await this.prismaService.chatroom.findMany({
+      where: {
+        users: {
+          some: {
+            userId,
+          },
+        },
+        type: TYPE.DM,
+      },
+      select: {
+        id: true,
+        isPinned: true,
+        users: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                nickname: true,
+                status: true,
+              },
+            },
+          },
+        },
+        messages: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    });
+
+    return chatrooms;
+  }
+
   async createChatRoom(creatorId: string, chatroomDto: ChatRoomDto) {
     const { users, ...chatroom } = chatroomDto;
     const { chatroomName } = chatroom;

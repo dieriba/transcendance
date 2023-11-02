@@ -108,10 +108,11 @@ export class UserService {
     return await this.prismaService.user.update({
       where: { id },
       data: {
-        email: update.email || undefined,
-        nickname: update.nickname || undefined,
-        hashedRefreshToken: update.hashedRefreshToken || undefined,
-        password: update.password || undefined,
+        email: update.email,
+        nickname: update.nickname,
+        hashedRefreshToken: update.hashedRefreshToken,
+        status: update.status,
+        password: update.password,
       },
     });
   }

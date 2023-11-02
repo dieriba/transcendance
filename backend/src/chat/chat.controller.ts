@@ -36,6 +36,11 @@ import { PassUserDataToBody } from 'src/common/interceptor/pass-user-data-to-bod
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
+  @Get('get-all-private-chatroom')
+  async getUserChatroom(@GetUser('userId') userId: string) {
+    return await this.chatService.getUserChatroom(userId);
+  }
+
   @Post('create-chatroom')
   @ResponseMessage(
     'Successfully created chatroom and added user meeting the following criteria: not blocked you, not have blocked you and existing',

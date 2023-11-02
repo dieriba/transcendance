@@ -22,6 +22,7 @@ import {
 } from 'src/common/constant/http-error.constant';
 import { UserData, UserRefreshToken } from 'src/common/types/user-info.type';
 import { LibService } from 'src/lib/lib.service';
+import { STATUS } from '@prisma/client';
 @Injectable()
 export class AuthService {
   constructor(
@@ -72,6 +73,7 @@ export class AuthService {
       const tokens = await this.jwtTokenService.getTokens(id, email, nickname);
 
       await this.userService.updateUserById(id, {
+        status: STATUS.ONLINE,
         hashedRefreshToken: await this.argon2.hash(tokens.refresh_token),
       });
 

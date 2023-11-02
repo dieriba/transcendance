@@ -1,3 +1,4 @@
+import { FriendEvent } from './../../../shared/socket.event';
 import { WsBadRequestException } from './../common/custom-exception/ws-exception';
 import {
   Logger,
@@ -22,22 +23,13 @@ import { WsAccessTokenGuard } from 'src/common/guards/ws.guard';
 import { WsCatchAllFilter } from 'src/common/global-filters/ws-exception-filter';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { WsNotFoundException } from 'src/common/custom-exception/ws-exception';
-import {
-  FRIEND_REQUEST_SENT,
-  FRIEND_CANCEL_FRIEND_REQUEST,
-  FRIEND_REQUEST_ACCEPTED,
-  FRIEND_REQUEST_RECEIVED,
-  FRIEND_NEW_FRIEND,
-  FRIEND_DELETE_FRIEND,
-  FRIEND_BLOCK_FRIEND,
-  FRIEND_UNBLOCK_FRIEND,
-} from 'shared/socket.events';
 import { GatewayService } from 'src/gateway/gateway.service';
 import { SocketWithAuth } from 'src/auth/type';
 import { IsFriendExistWs } from './pipe/is-friend-exist-ws.pipe';
 import { FriendsTypeDto, FriendsTypeNicknameDto } from './dto/friends.dto';
 import { UserData } from 'src/common/types/user-info.type';
 import { SocketServerResponse } from 'src/common/types/socket-types';
+import { TYPE } from '@prisma/client';
 
 @UseGuards(WsAccessTokenGuard)
 @UseFilters(WsCatchAllFilter)
@@ -82,7 +74,7 @@ export class FriendsGateway
     this.gatewayService.removeUserSocket(client.userId);
   }
 
-  @SubscribeMessage(FRIEND_REQUEST_SENT)
+  @SubscribeMessage(FriendEvent.REQUEST_SENT)
   async sendFriendRequest(
     @ConnectedSocket() client: SocketWithAuth,
     @MessageBody() body: FriendsTypeNicknameDto,
@@ -164,7 +156,7 @@ export class FriendsGateway
       },
     });
 
-    this.sendToSocket(client, friendId, FRIEND_REQUEST_RECEIVED, {
+    this.sendToSocket(client, friendId, FriendEvent.REQUEST_RECEIVED, {
       message: `You received a friend request from ${client.nickname}`,
       data: {
         createdAt: request.createdAt,
@@ -176,7 +168,7 @@ export class FriendsGateway
       },
     });
 
-    client.emit(FRIEND_REQUEST_SENT, {
+    client.emit(FriendEvent.REQUEST_SENT, {
       message: 'Friend request succesfully sent',
       data: {
         recipient: {
@@ -188,7 +180,7 @@ export class FriendsGateway
     });
   }
 
-  @SubscribeMessage(FRIEND_CANCEL_FRIEND_REQUEST)
+  @SubscribeMessage(FriendEvent.CANCEL_REQUEST)
   async cancelFriendRequest(
     @ConnectedSocket() client: SocketWithAuth,
     @MessageBody(IsFriendExistWs) body: FriendsTypeDto,
@@ -225,12 +217,12 @@ export class FriendsGateway
 
     console.log({ friendId });
 
-    this.sendToSocket(client, friendId, FRIEND_CANCEL_FRIEND_REQUEST, {
+    this.sendToSocket(client, friendId, FriendEvent.CANCEL_REQUEST, {
       message: '',
       data: { friendId: client.userId },
     });
 
-    client.emit(FRIEND_CANCEL_FRIEND_REQUEST, {
+    client.emit(FriendEvent.CANCEL_REQUEST, {
       message: 'Friend request declined succesfully',
       data: {
         friendId,
@@ -238,7 +230,7 @@ export class FriendsGateway
     });
   }
 
-  @SubscribeMessage(FRIEND_REQUEST_ACCEPTED)
+  @SubscribeMessage(FriendEvent.REQUEST_ACCEPTED)
   async acceptFriend(
     @ConnectedSocket() client: SocketWithAuth,
     @MessageBody(IsFriendExistWs) body: FriendsTypeDto,
@@ -274,6 +266,14 @@ export class FriendsGateway
           },
         },
       }),
+      this.prismaService.chatroom.create({
+        data: {
+          type: TYPE.DM,
+          users: {
+            create: [{ userId: userId }, { userId: friendId }],
+          },
+        },
+      }),
       this.prismaService.friends.create({
         data: {
           user: { connect: { id: userId } },
@@ -288,12 +288,12 @@ export class FriendsGateway
       }),
     ]);
 
-    this.sendToSocket(client, friendId, FRIEND_REQUEST_ACCEPTED, {
+    this.sendToSocket(client, friendId, FriendEvent.REQUEST_ACCEPTED, {
       message: `${client.nickname} accepted your friend request`,
       data: { friendId: client.userId },
     });
 
-    this.sendToSocket(client, friendId, FRIEND_NEW_FRIEND, {
+    this.sendToSocket(client, friendId, FriendEvent.NEW_FRIEND, {
       message: '',
       data: {
         friend: {
@@ -310,7 +310,7 @@ export class FriendsGateway
       },
     });
 
-    client.emit(FRIEND_NEW_FRIEND, {
+    client.emit(FriendEvent.NEW_FRIEND, {
       message: '',
       data: {
         friend: {
@@ -327,7 +327,7 @@ export class FriendsGateway
       },
     });
 
-    client.emit(FRIEND_REQUEST_ACCEPTED, {
+    client.emit(FriendEvent.REQUEST_ACCEPTED, {
       message: `You are now friend with ${
         friendId === sender.id ? sender.nickname : recipient.nickname
       }`,
@@ -335,7 +335,7 @@ export class FriendsGateway
     });
   }
 
-  @SubscribeMessage(FRIEND_DELETE_FRIEND)
+  @SubscribeMessage(FriendEvent.DELETE_FRIEND)
   async deleteFriends(
     @ConnectedSocket() client: SocketWithAuth,
     @MessageBody(IsFriendExistWs) body: FriendsTypeDto,
@@ -366,15 +366,15 @@ export class FriendsGateway
       }),
     ]);
 
-    this.sendToSocket(client, friendId, FRIEND_DELETE_FRIEND, {
+    this.sendToSocket(client, friendId, FriendEvent.DELETE_FRIEND, {
       message: '',
       data: { friendId: client.userId },
     });
 
-    client.emit(FRIEND_DELETE_FRIEND, { message: '', data: { friendId } });
+    client.emit(FriendEvent.DELETE_FRIEND, { message: '', data: { friendId } });
   }
 
-  @SubscribeMessage(FRIEND_BLOCK_FRIEND)
+  @SubscribeMessage(FriendEvent.BLOCK_FRIEND)
   async blockUser(
     @ConnectedSocket() client: SocketWithAuth,
     @MessageBody(IsFriendExistWs) body: FriendsTypeDto,
@@ -425,12 +425,15 @@ export class FriendsGateway
           },
         }),
       ]);
-      this.sendToSocket(client, friendId, FRIEND_DELETE_FRIEND, {
+      this.sendToSocket(client, friendId, FriendEvent.DELETE_FRIEND, {
         message: '',
         data: { friendId: client.userId },
       });
 
-      client.emit(FRIEND_DELETE_FRIEND, { message: '', data: { friendId } });
+      client.emit(FriendEvent.DELETE_FRIEND, {
+        message: '',
+        data: { friendId },
+      });
     } else if (existingFriendRequest) {
       await this.prismaService.$transaction([
         this.prismaService.user.update({
@@ -446,11 +449,11 @@ export class FriendsGateway
           },
         }),
       ]);
-      client.emit(FRIEND_CANCEL_FRIEND_REQUEST, {
+      client.emit(FriendEvent.CANCEL_REQUEST, {
         message: '',
         data: { friendId },
       });
-      this.sendToSocket(client, friendId, FRIEND_CANCEL_FRIEND_REQUEST, {
+      this.sendToSocket(client, friendId, FriendEvent.CANCEL_REQUEST, {
         message: '',
         data: { friendId: client.userId },
       });
@@ -462,7 +465,7 @@ export class FriendsGateway
     }
   }
 
-  @SubscribeMessage(FRIEND_UNBLOCK_FRIEND)
+  @SubscribeMessage(FriendEvent.UNBLOCK_FRIEND)
   async unblockUser(
     @ConnectedSocket() client: SocketWithAuth,
     @MessageBody(IsFriendExistWs) body: FriendsTypeDto,
@@ -485,7 +488,7 @@ export class FriendsGateway
         data: { blockedUsers: { disconnect: { id: friendId } } },
       });
 
-      client.emit(FRIEND_UNBLOCK_FRIEND, {
+      client.emit(FriendEvent.UNBLOCK_FRIEND, {
         message: '',
         data: { friendId },
       });

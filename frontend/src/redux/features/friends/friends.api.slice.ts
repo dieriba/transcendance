@@ -1,3 +1,4 @@
+import { FriendEvent } from "./../../../../../shared/socket.event";
 import {
   FriendRequestType,
   ServerResponseFriendReceivedRequestType,
@@ -11,7 +12,6 @@ import {
 } from "../../../services/type";
 import { getFriendsSocket } from "../../../utils/getScoket";
 import { apiSlice } from "../../api/apiSlice";
-import { FriendEvent } from "./friends.slice";
 import { showSnackBar } from "../app_notify/app.slice";
 import { BlockedUserType } from "../../../models/BlockedUserSchema";
 
@@ -24,9 +24,9 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
       queryFn: (data) => {
         const socket = getFriendsSocket();
         return new Promise((resolve) => {
-          socket.emit(FriendEvent.FRIEND_REQUEST_SENT, data);
+          socket.emit(FriendEvent.REQUEST_SENT, data);
 
-          socket.on(FriendEvent.FRIEND_REQUEST_SENT, (response) => {
+          socket.on(FriendEvent.REQUEST_SENT, (response) => {
             resolve({ data: response });
           });
 
@@ -54,7 +54,7 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
         try {
           await cacheDataLoaded;
           socket.on(
-            FriendEvent.FRIEND_REQUEST_RECEIVED,
+            FriendEvent.REQUEST_RECEIVED,
             (
               data: SocketServerSucessResponse & {
                 data: ServerResponseFriendReceivedRequestType;
@@ -70,7 +70,7 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
           );
 
           socket.on(
-            FriendEvent.FRIEND_CANCEL_FRIEND_REQUEST,
+            FriendEvent.CANCEL_REQUEST,
             (
               data: SocketServerSucessResponse & {
                 data: BaseFriendType;
@@ -87,7 +87,7 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
           );
 
           socket.on(
-            FriendEvent.FRIEND_REQUEST_ACCEPTED,
+            FriendEvent.REQUEST_ACCEPTED,
             (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
               updateCachedData((draft) => {
                 dispatch(
@@ -121,7 +121,7 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
           await cacheDataLoaded;
 
           socket.on(
-            FriendEvent.FRIEND_REQUEST_SENT,
+            FriendEvent.REQUEST_SENT,
             (
               data: SocketServerSucessResponse & {
                 data: ServerResponseFriendSentRequestType;
@@ -136,7 +136,7 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
           );
 
           socket.on(
-            FriendEvent.FRIEND_CANCEL_FRIEND_REQUEST,
+            FriendEvent.CANCEL_REQUEST,
             (
               data: SocketServerSucessResponse & {
                 data: BaseFriendType;
@@ -152,7 +152,7 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
             }
           );
           socket.on(
-            FriendEvent.FRIEND_REQUEST_ACCEPTED,
+            FriendEvent.REQUEST_ACCEPTED,
             (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
               updateCachedData((draft) => {
                 console.log({ data });
@@ -179,7 +179,7 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
       queryFn: (data) => {
         const socket = getFriendsSocket();
         return new Promise((resolve) => {
-          socket.emit(FriendEvent.FRIEND_CANCEL_FRIEND_REQUEST, data);
+          socket.emit(FriendEvent.CANCEL_REQUEST, data);
 
           socket.on("exception", (error) => {
             resolve({ error });
@@ -194,7 +194,7 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
       queryFn: (data) => {
         const socket = getFriendsSocket();
         return new Promise((resolve) => {
-          socket.emit(FriendEvent.FRIEND_REQUEST_ACCEPTED, data);
+          socket.emit(FriendEvent.REQUEST_ACCEPTED, data);
 
           socket.on("exception", (error) => {
             resolve({ error });
@@ -218,7 +218,7 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
           await cacheDataLoaded;
 
           socket.on(
-            FriendEvent.FRIEND_NEW_FRIEND,
+            FriendEvent.NEW_FRIEND,
             (
               data: SocketServerSucessResponse & {
                 data: FriendType;
@@ -232,7 +232,7 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
             }
           );
           socket.on(
-            FriendEvent.FRIEND_DELETE_FRIEND,
+            FriendEvent.DELETE_FRIEND,
             (
               data: SocketServerSucessResponse & {
                 data: BaseFriendType;
@@ -260,7 +260,7 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
       queryFn: (data) => {
         const socket = getFriendsSocket();
         return new Promise((resolve) => {
-          socket.emit(FriendEvent.FRIEND_DELETE_FRIEND, data);
+          socket.emit(FriendEvent.DELETE_FRIEND, data);
 
           socket.on("exception", (error) => {
             resolve({ error });
@@ -275,7 +275,7 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
       queryFn: (data) => {
         const socket = getFriendsSocket();
         return new Promise((resolve) => {
-          socket.emit(FriendEvent.FRIEND_BLOCK_FRIEND, data);
+          socket.emit(FriendEvent.BLOCK_FRIEND, data);
 
           socket.on("exception", (error) => {
             resolve({ error });
@@ -290,7 +290,7 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
       queryFn: (data) => {
         const socket = getFriendsSocket();
         return new Promise((resolve) => {
-          socket.emit(FriendEvent.FRIEND_UNBLOCK_FRIEND, data);
+          socket.emit(FriendEvent.UNBLOCK_FRIEND, data);
 
           socket.on("exception", (error) => {
             resolve({ error });
@@ -314,7 +314,7 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
           await cacheDataLoaded;
 
           socket.on(
-            FriendEvent.FRIEND_UNBLOCK_FRIEND,
+            FriendEvent.UNBLOCK_FRIEND,
             (
               data: SocketServerSucessResponse & {
                 data: BaseFriendType;

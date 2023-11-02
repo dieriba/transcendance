@@ -56,7 +56,6 @@ model FriendRequest {
   senderId    String
   recipient   User           @relation("recipient", fields: [recipientId], references: [id])
   recipientId String
-  status      REQUEST_STATUS @default(PENDING)
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
@@ -194,10 +193,6 @@ enum TYPE {
   DM
 }
 
-enum REQUEST_STATUS {
-  PENDING
-  ACCEPTED
-}
 
 enum MESSAGE_TYPES {
   TEXT
