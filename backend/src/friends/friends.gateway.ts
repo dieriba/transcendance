@@ -26,13 +26,14 @@ import {
   FRIEND_REQUEST_SENT,
   FRIEND_CANCEL_FRIEND_REQUEST,
   FRIEND_REQUEST_ACCEPTED,
-  FRIEND_BLOCKED_FRIEND,
   FRIEND_REQUEST_RECEIVED,
   FRIEND_NEW_FRIEND,
+  FRIEND_DELETE_FRIEND,
+  FRIEND_BLOCK_FRIEND,
+  FRIEND_UNBLOCK_FRIEND,
 } from 'shared/socket.events';
 import { GatewayService } from 'src/gateway/gateway.service';
 import { SocketWithAuth } from 'src/auth/type';
-import { REQUEST_STATUS } from '@prisma/client';
 import { IsFriendExistWs } from './pipe/is-friend-exist-ws.pipe';
 import { FriendsTypeDto, FriendsTypeNicknameDto } from './dto/friends.dto';
 import { UserData } from 'src/common/types/user-info.type';
@@ -89,6 +90,10 @@ export class FriendsGateway
     const { nickname } = body;
     const userId = client.userId;
     console.log({ userId, nickname });
+    const user = await this.userService.findUserById(userId, UserData);
+
+    if (!user) throw new WsNotFoundException('User not found');
+
     const friend = await this.userService.findUserByNickName(
       nickname,
       UserData,
@@ -163,15 +168,22 @@ export class FriendsGateway
       message: `You received a friend request from ${client.nickname}`,
       data: {
         createdAt: request.createdAt,
-        sender: { nickname: client.nickname, id: client.userId },
+        sender: {
+          nickname: client.nickname,
+          id: client.userId,
+          profile: { avatar: user.profile?.avatar },
+        },
       },
     });
 
     client.emit(FRIEND_REQUEST_SENT, {
       message: 'Friend request succesfully sent',
       data: {
-        createdAt: request.createdAt,
-        recipient: { nickname: friend.nickname, id: friend.id },
+        recipient: {
+          nickname: friend.nickname,
+          id: friend.id,
+          profile: { avatar: friend.profile?.avatar },
+        },
       },
     });
   }
@@ -323,12 +335,13 @@ export class FriendsGateway
     });
   }
 
+  @SubscribeMessage(FRIEND_DELETE_FRIEND)
   async deleteFriends(
     @ConnectedSocket() client: SocketWithAuth,
     @MessageBody(IsFriendExistWs) body: FriendsTypeDto,
   ) {
     const { friendId } = body;
-    const userId = client.userId;
+    const { userId } = client;
 
     const existingFriendship = await this.friendService.isFriends(
       userId,
@@ -341,50 +354,27 @@ export class FriendsGateway
       );
 
     await this.prismaService.$transaction([
-      this.prismaService.friendRequest.delete({
+      this.prismaService.friends.delete({
         where: {
-          senderId_recipientId: {
-            senderId: userId,
-            recipientId: friendId,
-          },
-          OR: [{ senderId: friendId, recipientId: userId }],
+          userId_friendId: { userId, friendId },
         },
       }),
-      this.prismaService.user.update({
+      this.prismaService.friends.delete({
         where: {
-          id: userId,
-        },
-        data: {
-          friends: {
-            disconnect: {
-              userId_friendId: {
-                userId,
-                friendId,
-              },
-            },
-          },
-        },
-      }),
-      this.prismaService.user.update({
-        where: {
-          id: friendId,
-        },
-        data: {
-          friends: {
-            disconnect: {
-              userId_friendId: {
-                userId: friendId,
-                friendId: userId,
-              },
-            },
-          },
+          userId_friendId: { userId: friendId, friendId: userId },
         },
       }),
     ]);
-    //  this.sendToSocket(client, friendId, FRIEND_DELETE_FRIEND, {});
+
+    this.sendToSocket(client, friendId, FRIEND_DELETE_FRIEND, {
+      message: '',
+      data: { friendId: client.userId },
+    });
+
+    client.emit(FRIEND_DELETE_FRIEND, { message: '', data: { friendId } });
   }
 
-  @SubscribeMessage(FRIEND_BLOCKED_FRIEND)
+  @SubscribeMessage(FRIEND_BLOCK_FRIEND)
   async blockUser(
     @ConnectedSocket() client: SocketWithAuth,
     @MessageBody(IsFriendExistWs) body: FriendsTypeDto,
@@ -411,19 +401,12 @@ export class FriendsGateway
       userId,
       friendId,
     );
+
     if (existingFriendShip) {
       await this.prismaService.$transaction([
         this.prismaService.user.update({
           where: { id: userId },
           data: { blockedUsers: { connect: { id: friendId } } },
-        }),
-        this.prismaService.friendRequest.delete({
-          where: {
-            senderId_recipientId: {
-              senderId: existingFriendRequest.senderId,
-              recipientId: existingFriendRequest.recipientId,
-            },
-          },
         }),
         this.prismaService.friends.delete({
           where: {
@@ -442,6 +425,12 @@ export class FriendsGateway
           },
         }),
       ]);
+      this.sendToSocket(client, friendId, FRIEND_DELETE_FRIEND, {
+        message: '',
+        data: { friendId: client.userId },
+      });
+
+      client.emit(FRIEND_DELETE_FRIEND, { message: '', data: { friendId } });
     } else if (existingFriendRequest) {
       await this.prismaService.$transaction([
         this.prismaService.user.update({
@@ -457,13 +446,50 @@ export class FriendsGateway
           },
         }),
       ]);
+      client.emit(FRIEND_CANCEL_FRIEND_REQUEST, {
+        message: '',
+        data: { friendId },
+      });
+      this.sendToSocket(client, friendId, FRIEND_CANCEL_FRIEND_REQUEST, {
+        message: '',
+        data: { friendId: client.userId },
+      });
     } else {
       await this.prismaService.user.update({
         where: { id: userId },
         data: { blockedUsers: { connect: { id: friendId } } },
       });
     }
-    //  this.sendToSocket(client, friendId, FRIEND_BLOCKED_FRIEND, {});
+  }
+
+  @SubscribeMessage(FRIEND_UNBLOCK_FRIEND)
+  async unblockUser(
+    @ConnectedSocket() client: SocketWithAuth,
+    @MessageBody(IsFriendExistWs) body: FriendsTypeDto,
+  ) {
+    const { friendId } = body;
+    const { userId } = client;
+
+    const user = this.userService.findUserById(userId, UserData);
+
+    if (!user) throw new WsNotFoundException('User not found');
+
+    const existingBlockedUser = await this.userService.findBlockedUser(
+      userId,
+      friendId,
+    );
+
+    if (existingBlockedUser && existingBlockedUser.blockedUsers.length > 0) {
+      await this.prismaService.user.update({
+        where: { id: userId },
+        data: { blockedUsers: { disconnect: { id: friendId } } },
+      });
+
+      client.emit(FRIEND_UNBLOCK_FRIEND, {
+        message: '',
+        data: { friendId },
+      });
+    }
   }
 
   private sendToSocket(
@@ -473,14 +499,10 @@ export class FriendsGateway
     object: SocketServerResponse,
   ) {
     const socket = this.gatewayService.getUserSocket(userId);
-    console.log(this.gatewayService.getSockets().size);
-
-    console.log({ socket });
 
     if (!socket) return;
-    console.log({ emit });
 
-    console.log({ socket: socket.id });
+    this.logger.log('Socket id is: ', socket ? socket.id : 'undefined');
 
     client.to(socket.id).emit(emit, object);
   }

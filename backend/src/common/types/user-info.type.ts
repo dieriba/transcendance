@@ -47,7 +47,7 @@ export const UserData: UserInfo = {
   updatedAt: true,
   hashedRefreshToken: false,
   twoFa: true,
-  profile: false,
+  profile: true,
   blockedUsers: false,
   blockedBy: false,
   friends: false,

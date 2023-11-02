@@ -11,7 +11,6 @@ export const FriendsChatSchema = BaseFriendSchema.extend({
 });
 
 export const FriendSchema = z.object({
-  createdAt: z.date(),
   friend: z.object({
     id: z.string().min(1),
     nickname: z.string().min(1),

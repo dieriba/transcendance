@@ -7,6 +7,7 @@ import FriendRequestForm from "../../components/friends/FriendRequestForm";
 import CustomTabPanel from "../../components/table-panel/CustomTablePanel";
 import FriendRequestReceived from "../../components/friends/FriendRequestReceivedTable";
 import FriendRequestSentTable from "../../components/friends/FriendRequestSentTable";
+import BlockedUserTable from "../../components/friends/BlockedUserTable";
 
 function a11yProps(index: number) {
   return {
@@ -33,7 +34,7 @@ const FriendsPage = () => {
         }}
       >
         <Container maxWidth="xl">
-          <Stack spacing={3}>
+          <Stack spacing={2}>
             <Stack direction="row" justifyContent="space-between" spacing={4}>
               <Button
                 endIcon={<UserPlus />}
@@ -51,6 +52,7 @@ const FriendsPage = () => {
               <Tab label="Received friends request" {...a11yProps(0)} />
               <Tab label="Friends" {...a11yProps(1)} />
               <Tab label="Sent friends request" {...a11yProps(2)} />
+              <Tab label="Blocked users" {...a11yProps(3)} />
             </Tabs>
             <CustomTabPanel value={value} index={0}>
               <FriendRequestReceived />
@@ -60,6 +62,9 @@ const FriendsPage = () => {
             </CustomTabPanel>
             <CustomTabPanel value={value} index={2}>
               <FriendRequestSentTable />
+            </CustomTabPanel>
+            <CustomTabPanel value={value} index={3}>
+              <BlockedUserTable />
             </CustomTabPanel>
           </Stack>
         </Container>

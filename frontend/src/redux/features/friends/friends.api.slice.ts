@@ -1,11 +1,9 @@
-import { data } from "@emoji-mart/data";
 import {
   FriendRequestType,
   ServerResponseFriendReceivedRequestType,
   ServerResponseFriendSentRequestType,
 } from "../../../models/FriendRequestSchema";
 import { BaseFriendType, FriendType } from "../../../models/FriendsSchema";
-import { ResponseLoginType } from "../../../models/login/ResponseLogin";
 import {
   BaseServerResponse,
   SocketServerErrorResponse,
@@ -15,6 +13,7 @@ import { getFriendsSocket } from "../../../utils/getScoket";
 import { apiSlice } from "../../api/apiSlice";
 import { FriendEvent } from "./friends.slice";
 import { showSnackBar } from "../app_notify/app.slice";
+import { BlockedUserType } from "../../../models/BlockedUserSchema";
 
 export const friendsApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -143,9 +142,9 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
                 data: BaseFriendType;
               }
             ) => {
-              updateCachedData((draft) => {
-                console.log({ draft: draft.data });
+              console.log(data);
 
+              updateCachedData((draft) => {
                 draft.data = draft.data.filter(
                   (obj) => obj.recipient.id !== data.data.friendId
                 );
@@ -232,28 +231,110 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
               });
             }
           );
+          socket.on(
+            FriendEvent.FRIEND_DELETE_FRIEND,
+            (
+              data: SocketServerSucessResponse & {
+                data: BaseFriendType;
+              }
+            ) => {
+              updateCachedData((draft) => {
+                console.log("id", data.data.friendId);
+
+                draft.data = draft.data.filter(
+                  (obj) => obj.friend.id !== data.data.friendId
+                );
+              });
+            }
+          );
         } catch (error) {
           console.log(error);
         }
         await cacheEntryRemoved;
       },
     }),
-    /*deleteFriend: builder.mutation<>({
+    deleteFriend: builder.mutation<
+      SocketServerSucessResponse | SocketServerErrorResponse,
+      BaseFriendType
+    >({
       queryFn: (data) => {
         const socket = getFriendsSocket();
         return new Promise((resolve) => {
-          socket.emit(FriendEvent.FRIEND_REQUEST_SENT, data);
-
-          socket.on(FriendEvent.FRIEND_REQUEST_SENT, (response) => {
-            resolve({ data: response });
-          });
+          socket.emit(FriendEvent.FRIEND_DELETE_FRIEND, data);
 
           socket.on("exception", (error) => {
             resolve({ error });
           });
         });
       },
-    }),*/
+    }),
+    blockFriend: builder.mutation<
+      SocketServerSucessResponse | SocketServerErrorResponse,
+      BaseFriendType
+    >({
+      queryFn: (data) => {
+        const socket = getFriendsSocket();
+        return new Promise((resolve) => {
+          socket.emit(FriendEvent.FRIEND_BLOCK_FRIEND, data);
+
+          socket.on("exception", (error) => {
+            resolve({ error });
+          });
+        });
+      },
+    }),
+    unblockFriend: builder.mutation<
+      SocketServerSucessResponse | SocketServerErrorResponse,
+      BaseFriendType
+    >({
+      queryFn: (data) => {
+        const socket = getFriendsSocket();
+        return new Promise((resolve) => {
+          socket.emit(FriendEvent.FRIEND_UNBLOCK_FRIEND, data);
+
+          socket.on("exception", (error) => {
+            resolve({ error });
+          });
+        });
+      },
+    }),
+    getAllBlockedUser: builder.query<
+      BaseServerResponse & { data: BlockedUserType[] },
+      void
+    >({
+      query: () => ({
+        url: "friends/get-all-blocked-user",
+      }),
+      async onCacheEntryAdded(
+        _arg,
+        { updateCachedData, cacheDataLoaded, cacheEntryRemoved }
+      ) {
+        const socket = getFriendsSocket();
+        try {
+          await cacheDataLoaded;
+
+          socket.on(
+            FriendEvent.FRIEND_UNBLOCK_FRIEND,
+            (
+              data: SocketServerSucessResponse & {
+                data: BaseFriendType;
+              }
+            ) => {
+              updateCachedData((draft) => {
+                console.log("id", data.data.friendId);
+
+                draft.data = draft.data.filter(
+                  (obj) => obj.id !== data.data.friendId
+                );
+              });
+            }
+          );
+        } catch (error) {
+          console.log(error);
+        }
+        await cacheEntryRemoved;
+      },
+    }),
   }),
   overrideExisting: false,
 });
@@ -265,4 +346,8 @@ export const {
   useSendFriendRequestMutation,
   useCancelRequestMutation,
   useAcceptFriendRequestMutation,
+  useDeleteFriendMutation,
+  useBlockFriendMutation,
+  useGetAllBlockedUserQuery,
+  useUnblockFriendMutation,
 } = friendsApiSlice;

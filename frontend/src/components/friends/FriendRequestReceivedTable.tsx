@@ -9,18 +9,24 @@ import {
   Avatar,
   Button,
   CircularProgress,
+  IconButton,
   Pagination,
   Stack,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import FriendSearch from "./FriendSearch";
 import {
   useAcceptFriendRequestMutation,
+  useBlockFriendMutation,
   useCancelRequestMutation,
   useGetAllReceivedFriendsRequestQuery,
 } from "../../redux/features/friends/friends.api.slice";
 
 import { BaseFriendType } from "../../models/FriendsSchema";
+import { X, Check, Prohibit } from "phosphor-react";
+import CustomDialog from "../Dialog/CustomDialog";
+import { useState } from "react";
 
 const FriendRequestReceived = () => {
   const { data, isLoading, isError } = useGetAllReceivedFriendsRequestQuery(
@@ -29,12 +35,26 @@ const FriendRequestReceived = () => {
       refetchOnMountOrArgChange: true,
     }
   );
+  const [open, setOpen] = useState<{
+    block: boolean;
+    cancel: boolean;
+    friendId: string;
+  }>({ block: false, cancel: false, friendId: "" });
 
+  const [blockUser] = useBlockFriendMutation();
   const [cancelRequest] = useCancelRequestMutation();
   const [acceptRequest] = useAcceptFriendRequestMutation();
   const cancelFriendRequest = async (friend: BaseFriendType) => {
     try {
-      await cancelRequest(friend).unwrap();
+      const res = await cancelRequest(friend).unwrap();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleBlockUser = async (friend: BaseFriendType) => {
+    try {
+      const res = await blockUser(friend).unwrap();
     } catch (error) {
       console.log(error);
     }
@@ -54,14 +74,16 @@ const FriendRequestReceived = () => {
         <CircularProgress size={100} />
       </Stack>
     );
-  } else if (isError) {
+  } else if (isError || !data) {
     return (
       <Stack alignItems="center" height="100%" pt={25} justifyContent="center">
         <Typography>An error has occured</Typography>
       </Stack>
     );
   } else {
-    const friendRequest = data?.data;
+    console.log(data);
+    
+    const friendRequest = data.data;
 
     return (
       <>
@@ -102,20 +124,45 @@ const FriendRequestReceived = () => {
                           justifyContent="center"
                           spacing={2}
                         >
-                          <Button
+                          <Tooltip
                             onClick={() =>
-                              cancelFriendRequest({ friendId: id })
+                              setOpen((prev) => ({
+                                ...prev,
+                                block: true,
+                                friendId: id,
+                              }))
                             }
+                            placement="top"
+                            title="block"
                           >
-                            <Typography>Cancel</Typography>
-                          </Button>
-                          <Button
+                            <IconButton>
+                              <Prohibit />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip
                             onClick={() =>
-                              acceptFriendRequest({ friendId: id })
+                              setOpen((prev) => ({
+                                ...prev,
+                                cancel: true,
+                                friendId: id,
+                              }))
                             }
+                            placement="top"
+                            title="cancel"
                           >
-                            <Typography>Accept</Typography>
-                          </Button>
+                            <IconButton>
+                              <X />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip placement="top" title="accept">
+                            <IconButton
+                              onClick={() =>
+                                acceptFriendRequest({ friendId: id })
+                              }
+                            >
+                              <Check />
+                            </IconButton>
+                          </Tooltip>
                         </Stack>
                       </TableCell>
                     </TableRow>
@@ -130,6 +177,23 @@ const FriendRequestReceived = () => {
             />
           </Stack>
         </Stack>
+
+        <CustomDialog
+          handleOnClick={handleBlockUser}
+          open={open.block}
+          handleClose={() => setOpen((prev) => ({ ...prev, block: false }))}
+          title="Block User ?"
+          content="Do you really want to block that user ?"
+          friendId={open.friendId}
+        />
+        <CustomDialog
+          handleOnClick={cancelFriendRequest}
+          open={open.cancel}
+          handleClose={() => setOpen((prev) => ({ ...prev, cancel: false }))}
+          title="Cancel friend request ?"
+          content="Do you really want to cancel that friend request ?"
+          friendId={open.friendId}
+        />
       </>
     );
   }

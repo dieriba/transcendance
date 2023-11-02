@@ -17,22 +17,24 @@ import {
 } from "@mui/material";
 import FriendSearch from "./FriendSearch";
 import {
-  useCancelRequestMutation,
-  useGetAllSentFriendsRequestQuery,
+  useGetAllBlockedUserQuery,
+  useUnblockFriendMutation,
 } from "../../redux/features/friends/friends.api.slice";
 import { X } from "phosphor-react";
 import { BaseFriendType } from "../../models/FriendsSchema";
+import { useState } from "react";
 
-const FriendRequestSentTable = () => {
-  const { data, isLoading, isError } = useGetAllSentFriendsRequestQuery(
-    undefined,
-    { refetchOnMountOrArgChange: true }
-  );
-  const [cancelRequest] = useCancelRequestMutation();
+const BlockedUserTable = () => {
+  const { data, isLoading, isError } = useGetAllBlockedUserQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
+  const [unblockFriend] = useUnblockFriendMutation();
 
-  const handleCancelRequest = async (friend: BaseFriendType) => {
+  const [nickname, setNickname] = useState("");
+
+  const handleUnblockFriend = async (friend: BaseFriendType) => {
     try {
-      const res = await cancelRequest(friend).unwrap();
+      const res = await unblockFriend(friend).unwrap();
     } catch (error) {
       console.log(error);
     }
@@ -51,11 +53,11 @@ const FriendRequestSentTable = () => {
       </Stack>
     );
   } else {
-    const friendRequest = data.data;
+    const blockedUser = data.data;
     return (
       <>
         <Stack spacing={2}>
-          <FriendSearch placeholder="Search Friend Request" />
+          <FriendSearch placeholder="Blocked User" />
           <Stack spacing={3} alignItems="center">
             <TableContainer
               sx={{ height: "500px", overflow: "scroll" }}
@@ -72,14 +74,14 @@ const FriendRequestSentTable = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {friendRequest?.map(({ recipient: { id, nickname } }) => (
+                  {blockedUser.map(({ id, nickname, profile: { avatar } }) => (
                     <TableRow
                       key={id}
                       sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                     >
                       <TableCell padding="checkbox"></TableCell>
                       <TableCell component="th" scope="row">
-                        <Avatar />
+                        <Avatar src={avatar} />
                       </TableCell>
                       <TableCell align="center">{nickname}</TableCell>
                       <TableCell align="center">
@@ -93,7 +95,7 @@ const FriendRequestSentTable = () => {
                         >
                           <Tooltip
                             onClick={() =>
-                              handleCancelRequest({ friendId: id })
+                              handleUnblockFriend({ friendId: id })
                             }
                             placement="top"
                             title="cancel"
@@ -121,4 +123,4 @@ const FriendRequestSentTable = () => {
   }
 };
 
-export default FriendRequestSentTable;
+export default BlockedUserTable;

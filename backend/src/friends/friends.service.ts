@@ -1,7 +1,6 @@
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { UserService } from 'src/user/user.service';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { FriendsType } from './types/friends.type';
 import { CustomException } from 'src/common/custom-exception/custom-exception';
 import { FriendsTypeDto } from './dto/friends.dto';
 import { UserData, UserFriendRequest } from 'src/common/types/user-info.type';
@@ -20,7 +19,7 @@ export class FriendsService {
 
     if (!user) throw new UserNotFoundException();
 
-    const request = this.prismaService.friendRequest.findMany({
+    const request = await this.prismaService.friendRequest.findMany({
       where: {
         recipientId: userId,
       },
@@ -31,19 +30,18 @@ export class FriendsService {
             id: true,
           },
         },
-        createdAt: true,
       },
     });
+    console.log({ request });
 
     return request;
   }
-
-  async getAllSentFriendRequest(userId: string) {
+  async getAllSentFriendRequest(page: number, userId: string) {
     const user = await this.userService.findUserById(userId, UserFriendRequest);
 
     if (!user) throw new UserNotFoundException();
 
-    const request = this.prismaService.friendRequest.findMany({
+    const request = await this.prismaService.friendRequest.findMany({
       where: {
         senderId: userId,
       },
@@ -105,7 +103,6 @@ export class FriendsService {
                 },
               },
             },
-            createdAt: true,
           },
         },
       },
@@ -116,18 +113,27 @@ export class FriendsService {
     return user.friends;
   }
 
-  async unblockUser(body: FriendsType) {
-    const { userId, friendId } = body;
-    const existingBlockedUser = await this.userService.findBlockedUser(
-      userId,
-      friendId,
-    );
-    if (existingBlockedUser && existingBlockedUser.blockedUsers.length > 0) {
-      await this.prismaService.user.update({
-        where: { id: userId },
-        data: { blockedUsers: { disconnect: { id: friendId } } },
-      });
-    }
+  async getAllBlockedUser(userId: string) {
+    const user = await this.prismaService.user.findFirst({
+      where: { id: userId },
+      select: {
+        blockedUsers: {
+          select: {
+            id: true,
+            nickname: true,
+            profile: {
+              select: {
+                avatar: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) throw new UserNotFoundException();
+
+    return user.blockedUsers;
   }
 
   public async isFriends(senderId: string, recipientId: string) {
