@@ -103,6 +103,9 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
           console.log(error);
         }
         await cacheEntryRemoved;
+        socket.off(FriendEvent.REQUEST_ACCEPTED);
+        socket.off(FriendEvent.CANCEL_REQUEST);
+        socket.off(FriendEvent.NEW_REQUEST_RECEIVED);
       },
     }),
     getAllSentFriendsRequest: builder.query<
@@ -170,6 +173,9 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
           console.log(error);
         }
         await cacheEntryRemoved;
+        socket.off(FriendEvent.REQUEST_ACCEPTED);
+        socket.off(FriendEvent.CANCEL_REQUEST);
+        socket.off(FriendEvent.REQUEST_SENT);
       },
     }),
     cancelRequest: builder.mutation<
@@ -251,6 +257,8 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
           console.log(error);
         }
         await cacheEntryRemoved;
+        socket.off(FriendEvent.NEW_FRIEND);
+        socket.off(FriendEvent.DELETE_FRIEND);
       },
     }),
     deleteFriend: builder.mutation<
@@ -333,6 +341,7 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
           console.log(error);
         }
         await cacheEntryRemoved;
+        socket.off(FriendEvent.UNBLOCK_FRIEND);
       },
     }),
   }),
