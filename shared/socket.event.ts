@@ -16,7 +16,7 @@ const privateChatroom = "chatroom.private";
 const groupChatroom = "chatroom.group";
 
 export enum ChatEvent {
-  CREATE_PRIVATE_CHATROOM = `${privateChatroom}.create`,
+  CREATE_GROUP_CHATROOM = `${groupChatroom}.create`,
 
   ADD_USER = "chatroom.add.user",
   SET_DIERIBA = "chatroom.set.dieriba",

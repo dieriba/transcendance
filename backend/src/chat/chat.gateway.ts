@@ -1,27 +1,4 @@
 import {
-  CHATROOM_JOIN,
-  CHATROOM_USER_JOINED,
-  CHATROOM_USER_RESTRICTED,
-  CHATROOM_USER_UNRESTRICTED,
-} from './../../shared/socket.events';
-import {
-  CHATROOM_ADD_USER,
-  CHATROOM_CHANGE_USER_ROLE,
-  CHATROOM_CREATE,
-  CHATROOM_CREATED,
-  CHATROOM_DELETE_USER,
-  CHATROOM_NEW_DIERIBA,
-  CHATROOM_RESTRICT_USER,
-  CHATROOM_SEND_MESSAGE,
-  CHATROOM_SET_DIERIBA,
-  CHATROOM_UNRESTRICT_USER,
-  CHATROOM_USER_ADDED,
-  CHATROOM_USER_DELETED,
-  CHATROOM_USER_RESTRICT_CHAT_ADMIN,
-  CHATROOM_USER_RESTRICT_LIFE,
-  CHATROOM_USER_ROLE_CHANGED,
-} from '../../shared/socket.events';
-import {
   Logger,
   UseFilters,
   UseGuards,
@@ -75,6 +52,7 @@ import { isDieribaOrAdmin } from './pipes/is-dieriba-or-admin.pipe';
 import { IsExistingUserAndGroup } from './pipes/is-existing-goup.pipe';
 import { WsAccessTokenGuard } from 'src/common/guards/ws.guard';
 import { ChatRoute } from 'src/common/custom-decorator/metadata.decorator';
+import { ChatEvent } from '@shared/socket.event';
 
 @UseGuards(WsAccessTokenGuard)
 @UseFilters(WsCatchAllFilter)
@@ -123,12 +101,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
   }
 
-  @SubscribeMessage('data')
+  //@SubscribeMessage('data')
   async data() {
     console.log('data');
   }
 
-  @SubscribeMessage(CHATROOM_CREATE)
+  @SubscribeMessage(ChatEvent.CREATE_GROUP_CHATROOM)
   async createChatRoom(
     @MessageBody(CheckGroupCreationValidity) chatroomDto: ChatRoomDto,
     @ConnectedSocket() client: SocketWithAuth,
@@ -186,10 +164,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
 
     this.logger.log('New chatroom created and users linked:', newChatroom);
-    this.server.emit(CHATROOM_CREATED, newChatroom);
+    //this.server.emit(CHATROOM_CREATED, newChatroom);
   }
 
-  @SubscribeMessage(CHATROOM_ADD_USER)
+  //@SubscribeMessage(CHATROOM_ADD_USER)
   async addNewUserToChatroom(
     @MessageBody() chatRoomData: ChatroomDataDto,
     @ConnectedSocket() client: SocketWithAuth,
@@ -210,10 +188,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.chatroomUserService.createNewChatroomUser(userId, chatroomId),
       ),
     );
-    this.server.emit(CHATROOM_USER_ADDED, newUsers);
+    //this.server.emit(CHATROOM_USER_ADDED, newUsers);
   }
 
-  @SubscribeMessage(CHATROOM_SET_DIERIBA)
+  //@SubscribeMessage(CHATROOM_SET_DIERIBA)
   async setNewChatroomDieriba(
     @MessageBody(IsDieriba) dieribaDto: DieribaDto,
     @ConnectedSocket() client: SocketWithAuth,
@@ -262,10 +240,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }),
     ]);
 
-    this.server.emit(CHATROOM_NEW_DIERIBA, { updateMe, updateNewDieriba });
+    //this.server.emit(CHATROOM_NEW_DIERIBA, { updateMe, updateNewDieriba });
   }
 
-  @SubscribeMessage(CHATROOM_DELETE_USER)
+  //@SubscribeMessage(CHATROOM_DELETE_USER)
   async deleteUserFromChatromm(
     @MessageBody(IsDieriba) chatroomData: ChatroomDataDto,
     @ConnectedSocket() client: SocketWithAuth,
@@ -290,10 +268,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       },
     });
 
-    this.server.emit(CHATROOM_USER_DELETED, deletedUsers);
+    //this.server.emit(CHATROOM_USER_DELETED, deletedUsers);
   }
 
-  @SubscribeMessage(CHATROOM_CHANGE_USER_ROLE)
+  //@SubscribeMessage(CHATROOM_CHANGE_USER_ROLE)
   async changeUserRole(
     @MessageBody(IsDieriba) changeUserRoleDto: ChangeUserRoleDto,
     @ConnectedSocket() client: SocketWithAuth,
@@ -341,10 +319,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       ),
     );
 
-    this.server.emit(CHATROOM_USER_ROLE_CHANGED, updatedChatroomsUser);
+    //this.server.emit(CHATROOM_USER_ROLE_CHANGED, updatedChatroomsUser);
   }
 
-  @SubscribeMessage(CHATROOM_RESTRICT_USER)
+  //@SubscribeMessage(CHATROOM_RESTRICT_USER)
   async restrictUser(
     @MessageBody() restrictedUserDto: RestrictedUsersDto,
     @ConnectedSocket() client: SocketWithAuth,
@@ -410,7 +388,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         restrictedUser,
         deletedUser,
       ]);
-      this.server.emit(CHATROOM_USER_RESTRICT_LIFE, data);
+      //this.server.emit(CHATROOM_USER_RESTRICT_LIFE, data);
     } else if (isChatAdmin) {
       const oldAdmin = this.prismaService.chatroomUser.update({
         where: {
@@ -427,14 +405,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         restrictedUser,
         oldAdmin,
       ]);
-      this.server.emit(CHATROOM_USER_RESTRICT_CHAT_ADMIN, data);
+      //this.server.emit(CHATROOM_USER_RESTRICT_CHAT_ADMIN, data);
     } else {
       const data = await restrictedUser;
-      this.server.emit(CHATROOM_USER_RESTRICTED, data);
+      //this.server.emit(CHATROOM_USER_RESTRICTED, data);
     }
   }
 
-  @SubscribeMessage(CHATROOM_UNRESTRICT_USER)
+  //@SubscribeMessage(CHATROOM_UNRESTRICT_USER)
   async unrestrictUser(
     @MessageBody(isDieribaOrAdmin) unrestrictedUserDto: UnrestrictedUsersDto,
     @ConnectedSocket() client: SocketWithAuth,
@@ -467,10 +445,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         },
       },
     });
-    this.server.emit(CHATROOM_USER_UNRESTRICTED, data);
+    //this.server.emit(CHATROOM_USER_UNRESTRICTED, data);
   }
 
-  @SubscribeMessage(CHATROOM_JOIN)
+  //@SubscribeMessage(CHATROOM_JOIN)
   //@UseGuards(IsRestrictedUserGuard)
   async joinChatroom(
     @MessageBody() joinChatroomDto: JoinChatroomDto,
@@ -524,13 +502,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...data } = chatroom;
 
-    this.server.emit(
+    /*this.server.emit(
       CHATROOM_USER_JOINED,
       `${foundChatroomUser.user.nickname} joined the room`,
-    );
+    );*/
   }
 
-  @SubscribeMessage(CHATROOM_SEND_MESSAGE)
+  //@SubscribeMessage(CHATROOM_SEND_MESSAGE)
   @ChatRoute()
   async sendMessageToChatroom(
     @MessageBody(IsExistingUserAndGroup) chatroomMessageDto: ChatroomMessageDto,
@@ -556,7 +534,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return updatedChatrooms;
   }
 
-  @SubscribeMessage('private.chat.send.message')
+  //@SubscribeMessage('private.chat.send.message')
   async sendDmToPenfriend(
     senderId: string,
     message: DmMessageDto,
