@@ -8,6 +8,7 @@ import { useAppSelector } from "../../redux/hooks";
 const ChatContact = () => {
   const theme = useTheme();
   const chats = useAppSelector((state) => state.chat.privateChatroom);
+  const myId = useAppSelector((state) => state.user.user?.id);
   return (
     <Box
       sx={{
@@ -37,6 +38,7 @@ const ChatContact = () => {
           <Stack p={2} spacing={0}>
             {chats.map(({ id, users, messages }) => {
               const user = users[0].user;
+
               return (
                 <ChatBox
                   time={messages.length === 0 ? "" : "11"}
@@ -46,6 +48,8 @@ const ChatContact = () => {
                   msg={
                     messages.length === 0
                       ? "Start Conversation"
+                      : messages[0].userId === myId
+                      ? "Sent 2min ago"
                       : messages[0].content
                   }
                   unread={0}

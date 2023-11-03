@@ -10,12 +10,10 @@ const ChatConversationHeader = () => {
   const dispatch = useAppDispatch();
 
   const chatroomInfo = useAppSelector((state) => state.chat.currentChatroom);
+  console.log({ chatroomInfo });
+
   const {
-    user: {
-      nickname,
-      status,
-      profile: { avatar },
-    },
+    user: { nickname, status, profile },
   } = chatroomInfo.users[0];
   return (
     <Box
@@ -44,7 +42,7 @@ const ChatConversationHeader = () => {
               anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
               variant="dot"
             >
-              <Avatar src={avatar} alt={avatar} />
+              <Avatar src={profile?.avatar} alt={profile?.avatar} />
             </StyledBadge>
           </Box>
           <Stack>

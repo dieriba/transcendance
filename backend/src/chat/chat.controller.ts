@@ -8,7 +8,6 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
-  Param,
   Query,
 } from '@nestjs/common';
 import { GetUser } from 'src/common/custom-decorator/get-user.decorator';

@@ -41,6 +41,7 @@ export class ChatService {
     const user = await this.userService.findUserById(userId, UserData);
 
     if (!user) throw new UserNotFoundException();
+    console.log('entered');
 
     const chatrooms = await this.prismaService.chatroom.findMany({
       where: {
@@ -108,7 +109,7 @@ export class ChatService {
       select: {
         messages: {
           orderBy: {
-            createdAt: 'desc',
+            createdAt: 'asc',
           },
           select: {
             id: true,

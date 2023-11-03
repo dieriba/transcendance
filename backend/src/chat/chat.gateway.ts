@@ -535,7 +535,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: SocketWithAuth,
     @MessageBody() message: DmMessageDto,
   ) {
-    this.logger.log('entered');
     const { friendId, content, chatroomId, messageTypes, image } = message;
     const { userId } = client;
 

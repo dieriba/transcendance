@@ -28,6 +28,7 @@ const ChatInput = <T extends FieldValues, U>({
       render={({ field: { value, onChange } }) => (
         <StyledInput
           fullWidth
+          autoComplete="off"
           value={value || ""}
           onChange={onChange}
           variant="filled"

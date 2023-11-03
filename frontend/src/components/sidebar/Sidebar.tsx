@@ -8,9 +8,9 @@ import { useThemeContext } from "../../theme/ThemeContextProvider";
 import MaterialUISwitch from "./Switch";
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { logout } from "../../redux/features/auth/auth.slice";
 import { useAppDispatch } from "../../redux/hooks";
 import { apiSlice } from "../../redux/api/apiSlice";
+import { LOGOUT } from "../../redux/type";
 
 const Sidebar = () => {
   const theme = useTheme();
@@ -118,7 +118,7 @@ const Sidebar = () => {
             <IconButton
               onClick={() => {
                 dispatch(apiSlice.util.resetApiState());
-                dispatch(logout());
+                dispatch({ type: LOGOUT });
                 // eslint-disable-next-line no-self-assign
                 window.location = window.location;
               }}

@@ -1,10 +1,9 @@
 import { Box, IconButton, Stack } from "@mui/material";
 import { PaperPlaneTilt } from "phosphor-react";
 import { useTheme } from "@mui/material/styles";
-
-import data from "@emoji-mart/data";
+import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
+import { Theme } from "emoji-picker-react";
 import ChatInput from "./ChatInput";
-import EmojiPicker from "../../Picker/EmojiPicker";
 import { useBoolean } from "usehooks-ts";
 import {
   MessageFormSchema,
@@ -25,28 +24,24 @@ const ChatConversationFooter = () => {
   const chatroom = useAppSelector((state) => state.chat.currentChatroom);
   const [sendMessage] = useSendPrivateMessageMutation();
 
-  const { control, handleSubmit, reset } = methods;
+  const { control, handleSubmit, reset, setValue, getValues } = methods;
   const onSubmit = async (data: MessageFormType) => {
     try {
-      console.log({
-        ...data,
-        chatroomId: chatroom.id,
-        friendId: chatroom.users[0].user.id,
-        messageTypes: "TEXT",
-      });
-      const res = await sendMessage({
+      reset({ content: "" });
+      await sendMessage({
         ...data,
         chatroomId: chatroom.id,
         friendId: chatroom.users[0].user.id,
         messageTypes: "TEXT",
       }).unwrap();
-      console.log({ res });
-      reset({ content: "" });
+      console.log("{ res }");
+      console.log("Form reset successful"); // Add this line for debugging
     } catch (error) {
-      console.log('here');
-      
       console.log(error);
     }
+  };
+  const handleEmoji = (emoji: EmojiClickData) => {
+    setValue("content", getValues("content") + emoji.emoji);
   };
 
   const { value, toggle } = useBoolean(false);
@@ -76,9 +71,10 @@ const ChatConversationFooter = () => {
                 }}
               >
                 <EmojiPicker
-                  theme={theme.palette.mode}
-                  data={data}
-                  onEmojiSelect={console.log}
+                  theme={
+                    theme.palette.mode === "light" ? Theme.LIGHT : Theme.DARK
+                  }
+                  onEmojiClick={handleEmoji}
                 />
               </Box>
               <ChatInput name="content" control={control} toggle={toggle} />
@@ -99,7 +95,7 @@ const ChatConversationFooter = () => {
                   alignItems: "center",
                 }}
               >
-                <IconButton>
+                <IconButton type="submit">
                   <PaperPlaneTilt color="#fff" />
                 </IconButton>
               </Stack>

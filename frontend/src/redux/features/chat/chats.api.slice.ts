@@ -92,6 +92,8 @@ export const chatApiSlice = apiSlice.injectEndpoints({
                 const chatroom = draft.data.find(
                   (chatroom) => chatroom.id === message.chatroomId
                 );
+                console.log({ chatroom });
+
                 if (chatroom) {
                   chatroom.messages[0] = message;
                 }
@@ -103,6 +105,7 @@ export const chatApiSlice = apiSlice.injectEndpoints({
         }
         await cacheEntryRemoved;
         socket.off(FriendEvent.NEW_CHATROOM);
+        socket.off(ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE);
       },
     }),
   }),

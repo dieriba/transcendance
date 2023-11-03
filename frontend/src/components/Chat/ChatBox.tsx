@@ -46,6 +46,12 @@ const ChatBox = ({
                 ? "#fff"
                 : theme.palette.background.default
               : theme.palette.primary.main,
+          color:
+            chatroomId === currentPrivateChatroomId
+              ? theme.palette.mode === "light"
+                ? "#F8FAFF"
+                : ""
+              : "",
           "&:hover": {
             backgroundColor: theme.palette.primary.main,
             color: theme.palette.mode === "light" ? "#F8FAFF" : "",

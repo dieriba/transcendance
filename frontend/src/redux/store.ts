@@ -9,6 +9,7 @@ import { apiSlice } from "./api/apiSlice";
 import crashMiddleware from "./middleware/crashMiddleware";
 import AppNotifySlice from "./features/app_notify/app.slice";
 import { ChatSlice } from "./features/chat/chatSlice";
+import { LOGOUT } from "./type";
 
 const persistConfig = {
   keyPrefix: "redux-",
@@ -28,7 +29,7 @@ const rootReducer = (
   state: ReturnType<typeof reducers> | undefined,
   action: AnyAction
 ) => {
-  if (action.type === "logout/LOGOUT") {
+  if (action.type === LOGOUT) {
     storage.removeItem("redux-root");
     return reducers(undefined, { type: undefined });
   }
