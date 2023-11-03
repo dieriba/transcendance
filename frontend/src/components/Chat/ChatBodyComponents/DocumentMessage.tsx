@@ -1,50 +1,52 @@
 import { Box, IconButton, Stack, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { DownloadSimple, Image } from "phosphor-react";
-import { ChatMessageProps } from "../../../data/data";
+import { ChatConversationBodyProps } from "../ChatConversation/ChatConversationBody";
 
-const DocumentMessage = ({ incoming, message }: ChatMessageProps) => {
+interface DocumentMessageProps extends ChatConversationBodyProps {}
+
+const DocumentMessage = ({ incoming, content }: DocumentMessageProps) => {
   const theme = useTheme();
   return (
-      <Box
-        p={1}
-        sx={{
-          backgroundColor: incoming
-            ? theme.palette.background.default
-            : theme.palette.primary.main,
-          borderRadius: 1.5,
-          width: "max-content",
-        }}
-      >
-        <Stack spacing={2}>
-          <Stack
-            p={2}
-            direction="row"
-            spacing={3}
-            alignItems="center"
-            sx={{
-              backgroundColor: theme.palette.background.paper,
-              borderRadius: 1,
-            }}
-          >
-            <Image size={48} />
-            <Typography variant="caption">Abstract.png</Typography>
-            <IconButton>
-              <DownloadSimple />
-            </IconButton>
-          </Stack>
-            {message ? (
-              <Typography
-                variant="body2"
-                color={incoming ? theme.palette.text.primary : "#fff"}
-              >
-                {message}
-              </Typography>
-            ) : (
-              <></>
-            )}
+    <Box
+      p={1}
+      sx={{
+        backgroundColor: incoming
+          ? theme.palette.background.default
+          : theme.palette.primary.main,
+        borderRadius: 1.5,
+        width: "max-content",
+      }}
+    >
+      <Stack spacing={2}>
+        <Stack
+          p={2}
+          direction="row"
+          spacing={3}
+          alignItems="center"
+          sx={{
+            backgroundColor: theme.palette.background.paper,
+            borderRadius: 1,
+          }}
+        >
+          <Image size={48} />
+          <Typography variant="caption">Abstract.png</Typography>
+          <IconButton>
+            <DownloadSimple />
+          </IconButton>
         </Stack>
-      </Box>
+        {content ? (
+          <Typography
+            variant="body2"
+            color={incoming ? theme.palette.text.primary : "#fff"}
+          >
+            {content}
+          </Typography>
+        ) : (
+          <></>
+        )}
+      </Stack>
+    </Box>
   );
 };
 

@@ -8,28 +8,25 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
+  Param,
+  Query,
 } from '@nestjs/common';
 import { GetUser } from 'src/common/custom-decorator/get-user.decorator';
 import {
   ChangeUserRoleDto,
   ChatRoomDto,
   ChatroomDataDto,
-  ChatroomMessageDto,
   DieribaDto,
-  DmMessageDto,
   JoinChatroomDto,
   RestrictedUsersDto,
   UnrestrictedUsersDto,
 } from './dto/chatroom.dto';
 import { ChatService } from './chat.service';
 import { CheckGroupCreationValidity } from './pipes/check-group-creation-validity.pipe';
-import { IsExistingUserAndGroup } from './pipes/is-existing-goup.pipe';
-import { ChatroomUserBaseData } from 'src/common/types/chatroom-user-type';
 import { isDieribaOrAdmin } from './pipes/is-dieriba-or-admin.pipe';
 import { ResponseMessage } from 'src/common/custom-decorator/respone-message.decorator';
 import { IsDieriba } from './pipes/is-dieriba.pipe';
 import { IsRestrictedUserGuard } from './guards/is-restricted-user.guard';
-import { ChatRoute } from 'src/common/custom-decorator/metadata.decorator';
 import { PassUserDataToBody } from 'src/common/interceptor/pass-user-data-to-body.interceptor';
 
 @Controller('chat')
@@ -39,6 +36,14 @@ export class ChatController {
   @Get('get-all-private-chatroom')
   async getUserChatroom(@GetUser('userId') userId: string) {
     return await this.chatService.getUserChatroom(userId);
+  }
+
+  @Get('get-all-chatroom-message')
+  async getChatroomMessage(
+    @GetUser('userId') userId: string,
+    @Query('chatroomId') chatroomId: string,
+  ) {
+    return await this.chatService.getAllChatroomMessage(userId, chatroomId);
   }
 
   @Post('create-chatroom')
@@ -126,7 +131,7 @@ export class ChatController {
     return await this.chatService.findAllUsersChat(userId);
   }
 
-  @Post('send-dm')
+  /*@Post('send-dm')
   @HttpCode(HttpStatus.OK)
   async sendDmToPenfriend(
     @GetUser('userId') id: string,
@@ -148,5 +153,5 @@ export class ChatController {
     chatroomMessageDto: ChatroomMessageDto,
   ) {
     return await this.chatService.sendMessageToChatroom(chatroomMessageDto);
-  }
+  }*/
 }

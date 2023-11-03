@@ -1,88 +1,124 @@
 import { Avatar, Badge, Box, Stack, Typography } from "@mui/material";
 import BadgeAvatar from "../Badge/BadgeAvatar";
-import { faker } from "@faker-js/faker";
 import { useTheme } from "@mui/material/styles";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+import { setPrivateChatroomId } from "../../redux/features/chat/chatSlice";
 export interface ChatBoxProps {
   username: string;
   msg: string;
-  time: string;
   unread: number;
   online: boolean;
+  avatar: string | undefined;
+  time: string;
+  chatroomId: string;
 }
 
-const ChatBox = ({ username, msg, time, unread, online }: ChatBoxProps) => {
+const ChatBox = ({
+  username,
+  msg,
+  unread,
+  online,
+  avatar,
+  time,
+  chatroomId,
+}: ChatBoxProps) => {
   const theme = useTheme();
+  const dispatch = useAppDispatch();
+  const currentPrivateChatroomId = useAppSelector(
+    (state) => state.chat.currentPrivateChatroomId
+  );
+  const divStyle = {
+    width: "100%",
+  };
   return (
-    <Box
-      sx={{
-        width: "100%",
-        borderRadius: 1,
-        backgroundColor:
-          theme.palette.mode === "light"
-            ? "#fff"
-            : theme.palette.background.default,
-      }}
-      p={2}
-      mb={1}
+    <div
+      style={divStyle}
+      onClick={() => dispatch(setPrivateChatroomId(chatroomId))}
     >
-      <Stack direction="row" alignItems="center" justifyContent="space-between">
+      <Box
+        sx={{
+          cursor: "pointer",
+          width: "100%",
+          borderRadius: 1,
+          backgroundColor:
+            chatroomId !== currentPrivateChatroomId
+              ? theme.palette.mode === "light"
+                ? "#fff"
+                : theme.palette.background.default
+              : theme.palette.primary.main,
+          "&:hover": {
+            backgroundColor: theme.palette.primary.main,
+            color: theme.palette.mode === "light" ? "#F8FAFF" : "",
+          },
+        }}
+        p={2}
+        mb={1}
+      >
+        <Stack
+          width="100%"
+          direction="row"
+          height="100%"
+          alignItems="center"
+          spacing={2}
+        >
           {online ? (
             <BadgeAvatar>
-              <Avatar src={faker.image.avatar()} />
+              <Avatar src={avatar} />
             </BadgeAvatar>
           ) : (
-            <Avatar src={faker.image.avatar()} />
+            <Avatar src={avatar} />
           )}
-        <Stack direction="row" spacing={2}>
-          <Stack spacing={0.5} width="10rem">
+          <Stack direction="row" spacing={2}>
+            <Stack width="10rem">
+              {unread > 0 ? (
+                <>
+                  <Typography variant="subtitle1">{username}</Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      display: "-webkit-box",
+                      WebkitLineClamp: "1",
+                      WebkitBoxOrient: "vertical",
+                    }}
+                    fontWeight="bold"
+                  >
+                    {msg}
+                  </Typography>{" "}
+                </>
+              ) : (
+                <>
+                  <Typography variant="subtitle1">{username}</Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      display: "-webkit-box",
+                      WebkitLineClamp: "1",
+                      WebkitBoxOrient: "vertical",
+                    }}
+                  >
+                    {msg}
+                  </Typography>
+                </>
+              )}
+            </Stack>
+          </Stack>
+          <Stack spacing={2} alignItems="center" pb={1.5}>
+            <Typography sx={{ fontWeight: 600 }} variant="caption">
+              {time}
+            </Typography>
             {unread > 0 ? (
-              <>
-                <Typography variant="subtitle1">{username}</Typography>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    display: "-webkit-box",
-                    WebkitLineClamp: "1",
-                    WebkitBoxOrient: "vertical",
-                  }}
-                  fontWeight="bold"
-                >
-                  {msg}
-                </Typography>{" "}
-              </>
+              <Badge color="primary" badgeContent={unread}></Badge>
             ) : (
-              <>
-                <Typography variant="subtitle1">{username}</Typography>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    display: "-webkit-box",
-                    WebkitLineClamp: "1",
-                    WebkitBoxOrient: "vertical",
-                  }}
-                >
-                  {msg}
-                </Typography>
-              </>
+              <Badge color="primary"></Badge>
             )}
           </Stack>
         </Stack>
-        <Stack spacing={2} alignItems="center" pb={1.5}>
-          <Typography sx={{ fontWeight: 600 }} variant="caption">
-            {time}
-          </Typography>
-          {unread > 0 ? (
-            <Badge color="primary" badgeContent={unread}></Badge>
-          ) : (
-            <Badge color="primary"></Badge>
-          )}
-        </Stack>
-      </Stack>
-    </Box>
+      </Box>
+    </div>
   );
 };
 

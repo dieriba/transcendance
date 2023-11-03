@@ -6,7 +6,7 @@ import { useTheme } from "@mui/material/styles";
 import { useAppSelector } from "../../../redux/hooks";
 import ChatComp from "./ChatComp";
 
-const ChatConversation = () => {
+const  ChatConversation = () => {
   const theme = useTheme();
 
   const { open } = useAppSelector((state) => state.sidebar);

@@ -1,8 +1,10 @@
 import { Box, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { ChatMessageProps } from "../../../data/data";
+import { ChatConversationBodyProps } from "../ChatConversation/ChatConversationBody";
 
-const TextMessage = ({ incoming, message }: ChatMessageProps) => {
+interface TextMessageProps extends ChatConversationBodyProps {}
+
+const TextMessage = ({ incoming, content }: TextMessageProps) => {
   const theme = useTheme();
 
   return (
@@ -21,7 +23,7 @@ const TextMessage = ({ incoming, message }: ChatMessageProps) => {
           variant="body2"
           color={incoming ? theme.palette.text.primary : "#fff"}
         >
-          {message}
+          {content}
         </Typography>
       </Box>
     </>

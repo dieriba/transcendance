@@ -6,7 +6,6 @@ import {
   ChatroomDataDto,
   ChatroomMessageDto,
   DieribaDto,
-  DmMessageDto,
   JoinChatroomDto,
   RestrictedUsersDto,
   UnrestrictedUsersDto,
@@ -16,10 +15,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { MESSAGE_TYPES, ROLE, TYPE } from '@prisma/client';
 import { Argon2Service } from 'src/argon2/argon2.service';
 import { UserData, UserId } from 'src/common/types/user-info.type';
-import {
-  ChatroomUserBaseData,
-  ChatroomUserInfo,
-} from 'src/common/types/chatroom-user-type';
+import { ChatroomUserBaseData } from 'src/common/types/chatroom-user-type';
 import { ChatroomService } from 'src/chatroom/chatroom.service';
 import { ChatroomUserService } from 'src/chatroom-user/chatroom-user.service';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
@@ -27,6 +23,7 @@ import { ChatRoomNotFoundException } from './exception/chatroom-not-found.except
 import { LibService } from 'src/lib/lib.service';
 import { BAD_REQUEST } from 'src/common/constant/http-error.constant';
 import { ChatroomBaseData } from 'src/common/types/chatroom-info-type';
+import { WsNotFoundException } from 'src/common/custom-exception/ws-exception';
 
 @Injectable()
 export class ChatService {
@@ -56,14 +53,23 @@ export class ChatService {
       },
       select: {
         id: true,
-        isPinned: true,
         users: {
+          where: {
+            userId: {
+              not: userId,
+            },
+          },
           select: {
             user: {
               select: {
                 id: true,
                 nickname: true,
                 status: true,
+                profile: {
+                  select: {
+                    avatar: true,
+                  },
+                },
               },
             },
           },
@@ -72,6 +78,14 @@ export class ChatService {
           orderBy: {
             createdAt: 'desc',
           },
+          select: {
+            id: true,
+            chatroomId: true,
+            userId: true,
+            content: true,
+            messageTypes: true,
+          },
+          take: 1,
         },
       },
       orderBy: {
@@ -80,6 +94,36 @@ export class ChatService {
     });
 
     return chatrooms;
+  }
+
+  async getAllChatroomMessage(userId: string, chatroomId: string) {
+    const user = await this.userService.findUserById(userId, UserData);
+
+    if (!user) throw new UserNotFoundException();
+
+    const chatroom = await this.prismaService.chatroom.findFirst({
+      where: {
+        id: chatroomId,
+      },
+      select: {
+        messages: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+          select: {
+            id: true,
+            content: true,
+            userId: true,
+            chatroomId: true,
+            messageTypes: true,
+          },
+        },
+      },
+    });
+
+    if (!chatroom) throw new WsNotFoundException('Chat does not exist');
+
+    return chatroom.messages;
   }
 
   async createChatRoom(creatorId: string, chatroomDto: ChatRoomDto) {
@@ -474,7 +518,7 @@ export class ChatService {
     return updatedChatrooms;
   }
 
-  async sendDmToPenfriend(
+  /*async sendDmToPenfriend(
     senderId: string,
     message: DmMessageDto,
     select: ChatroomUserInfo,
@@ -507,9 +551,9 @@ export class ChatService {
         },
       },
     });
-  }
+  }*/
 
-  private async createChatroomDm(
+  /* private async createChatroomDm(
     senderId: string,
     { recipientId, content }: DmMessageDto,
   ) {
@@ -544,5 +588,5 @@ export class ChatService {
         },
       },
     });
-  }
+  }*/
 }

@@ -326,7 +326,6 @@ const ChatList = [
 export interface ChatMessageProps {
   incoming?: boolean;
   preview?: string;
-  outgoing?: boolean;
   reply?: string;
   message?: string;
   subtype?: string;
@@ -335,109 +334,6 @@ export interface ChatMessageProps {
   date?: string;
   type: string;
 }
-
-const Chat_History: ChatMessageProps[] = [
-  {
-    type: "msg",
-    message: "Hi 👋🏻, How are ya ?",
-    incoming: true,
-    outgoing: false,
-  },
-  {
-    type: "divider",
-    text: "Today",
-  },
-  {
-    type: "msg",
-    message: "Hi 👋 Panda, not bad, u ?",
-    incoming: false,
-    outgoing: true,
-  },
-  {
-    type: "msg",
-    message: "Can you send me an abstarct image?",
-    incoming: false,
-    outgoing: true,
-  },
-  {
-    type: "msg",
-    message: "Ya sure, sending you a pic",
-    incoming: true,
-    outgoing: false,
-  },
-
-  {
-    type: "msg",
-    subtype: "img",
-    message: "Here You Go",
-    img: faker.image.avatar(),
-    incoming: true,
-    outgoing: false,
-  },
-  {
-    type: "msg",
-    message: "Can you please send this in file format?",
-    incoming: false,
-    outgoing: true,
-  },
-
-  {
-    type: "msg",
-    subtype: "doc",
-    message: "Yes sure, here you go.",
-    incoming: true,
-    outgoing: false,
-  },
-  {
-    type: "msg",
-    subtype: "link",
-    preview: faker.image.avatarGitHub(),
-    message: "Yep, I can also do that",
-    incoming: true,
-    outgoing: false,
-  },
-  {
-    type: "msg",
-    subtype: "reply",
-    reply: "This is a reply",
-    message: "Yep, I can also do that",
-    incoming: false,
-    outgoing: true,
-  },
-
-  {
-    type: "msg",
-    subtype: "reply",
-    reply: "This is a reply",
-    message: "Yep, I can also do that",
-    incoming: false,
-    outgoing: true,
-  },
-  {
-    type: "msg",
-    subtype: "reply",
-    reply: "This is a reply",
-    message: "Yep, I can also do that",
-    incoming: false,
-    outgoing: true,
-  },
-  {
-    type: "msg",
-    subtype: "reply",
-    reply: "This is a reply",
-    message: "Yep, I can also do that",
-    incoming: false,
-    outgoing: true,
-  },
-  {
-    type: "msg",
-    subtype: "reply",
-    reply: "This is a reply",
-    message: "Yep, I can also do that",
-    incoming: false,
-    outgoing: true,
-  },
-];
 
 export const friends: FriendProps[] = [
   {
@@ -496,7 +392,6 @@ export const friends: FriendProps[] = [
     nickname: faker.person.firstName(),
     friendSince: faker.date.anytime().toLocaleDateString("fr-FR"),
   },
- 
 ];
 
 const Message_options = [
@@ -626,7 +521,6 @@ export {
   Nav_Setting,
   Nav_Buttons,
   ChatList,
-  Chat_History,
   Message_options,
   Shared_links,
   Shared_docs,

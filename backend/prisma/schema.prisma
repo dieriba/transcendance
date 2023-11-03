@@ -52,12 +52,12 @@ model Friends {
 }
 
 model FriendRequest {
-  sender      User           @relation("sender", fields: [senderId], references: [id])
+  sender      User     @relation("sender", fields: [senderId], references: [id])
   senderId    String
-  recipient   User           @relation("recipient", fields: [recipientId], references: [id])
+  recipient   User     @relation("recipient", fields: [recipientId], references: [id])
   recipientId String
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@unique([senderId, recipientId])
 }
@@ -83,17 +83,14 @@ model Notifications {
 }
 
 model Chatroom {
-  id           String   @id @default(uuid())
-  chatroomName String?  @unique @db.VarChar(15)
-  password     String?
-  type         TYPE
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  numberOfUser Int      @default(0)
-  invitedUser  String[]
-
-  hasStarted      Boolean?         @default(false)
-  isPinned        Boolean?         @default(false)
+  id              String           @id @default(uuid())
+  chatroomName    String?          @unique @db.VarChar(15)
+  password        String?
+  type            TYPE
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  numberOfUser    Int              @default(0)
+  invitedUser     String[]
   users           ChatroomUser[]   @relation("chatroomUsers")
   blockedUsers    User[]           @relation("blockedUsers")
   messages        Message[]
@@ -193,10 +190,9 @@ enum TYPE {
   DM
 }
 
-
 enum MESSAGE_TYPES {
   TEXT
   IMAGE
-  VIDEO
-  LINK
+  REPLY
+  DOCUMENT
 }

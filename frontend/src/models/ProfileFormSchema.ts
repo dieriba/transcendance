@@ -8,4 +8,10 @@ export const ProfileFormSchema = z.object({
   avatarUrl: z.string(),
 });
 
+export const ProfileSchema = z.object({
+  profile: z.object({
+    avatar: z.string().min(1).optional(),
+  }),
+});
+
 export type ProfileFormType = z.infer<typeof ProfileFormSchema>;

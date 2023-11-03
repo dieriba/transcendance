@@ -52,7 +52,8 @@ import { isDieribaOrAdmin } from './pipes/is-dieriba-or-admin.pipe';
 import { IsExistingUserAndGroup } from './pipes/is-existing-goup.pipe';
 import { WsAccessTokenGuard } from 'src/common/guards/ws.guard';
 import { ChatRoute } from 'src/common/custom-decorator/metadata.decorator';
-import { ChatEvent } from '@shared/socket.event';
+import { ChatEvent, ChatEventPrivateRoom } from '@shared/socket.event';
+import { SocketServerResponse } from 'src/common/types/socket-types';
 
 @UseGuards(WsAccessTokenGuard)
 @UseFilters(WsCatchAllFilter)
@@ -101,7 +102,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
   }
 
-  @SubscribeMessage(ChatEvent.CREATE_GROUP_CHATROOM)
+  /*@SubscribeMessage(ChatEvent.CREATE_GROUP_CHATROOM)
   async createChatRoom(
     @MessageBody(CheckGroupCreationValidity) chatroomDto: ChatRoomDto,
     @ConnectedSocket() client: SocketWithAuth,
@@ -160,7 +161,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     this.logger.log('New chatroom created and users linked:', newChatroom);
     //this.server.emit(CHATROOM_CREATED, newChatroom);
-  }
+  }*/
 
   //@SubscribeMessage(CHATROOM_ADD_USER)
   async addNewUserToChatroom(
@@ -506,8 +507,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   //@SubscribeMessage(CHATROOM_SEND_MESSAGE)
   @ChatRoute()
   async sendMessageToChatroom(
-    @MessageBody(IsExistingUserAndGroup) chatroomMessageDto: ChatroomMessageDto,
     @ConnectedSocket() client: SocketWithAuth,
+    @MessageBody(IsExistingUserAndGroup) chatroomMessageDto: ChatroomMessageDto,
   ) {
     const { userId } = client;
     const updatedChatrooms = await this.prismaService.chatroom.update({
@@ -529,75 +530,72 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return updatedChatrooms;
   }
 
-  //@SubscribeMessage('private.chat.send.message')
+  @SubscribeMessage(ChatEventPrivateRoom.SEND_PRIVATE_MESSAGE)
   async sendDmToPenfriend(
-    senderId: string,
-    message: DmMessageDto,
-    select: ChatroomUserInfo,
+    @ConnectedSocket() client: SocketWithAuth,
+    @MessageBody() message: DmMessageDto,
   ) {
-    const { recipientId, content } = message;
+    this.logger.log('entered');
+    const { friendId, content, chatroomId, messageTypes, image } = message;
+    const { userId } = client;
 
-    const chatroom = await this.chatroomUserService.findChatroomUserDm(
-      senderId,
-      recipientId,
-      select,
+    const user = await this.userService.findUserById(userId, UserData);
+
+    if (!user) throw new WsNotFoundException('User not found');
+
+    const chatroom = await this.chatroomService.findChatroom(
+      chatroomId,
+      ChatroomBaseData,
     );
-    if (!chatroom) return await this.createChatroomDm(senderId, message);
 
-    return await this.prismaService.chatroom.update({
-      where: {
-        id: chatroom.chatroomId,
-      },
+    if (!chatroom) throw new WsNotFoundException('Chatroom does not exist');
+
+    const res = await this.prismaService.message.create({
       data: {
-        messages: {
-          create: {
-            content: content,
-            imageUrl: null,
-            messageTypes: MESSAGE_TYPES.TEXT,
-            user: {
-              connect: {
-                id: senderId,
-              },
-            },
+        content: content,
+        imageUrl: image,
+        messageTypes,
+        //add reply props
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
+        chatroom: {
+          connect: {
+            id: chatroomId,
           },
         },
       },
+      select: {
+        id: true,
+      },
     });
-  }
 
-  private async createChatroomDm(
-    senderId: string,
-    { recipientId, content }: DmMessageDto,
-  ) {
-    return await this.prismaService.chatroom.create({
+    this.sendToSocket(
+      client,
+      friendId,
+      ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE,
+      {
+        message: '',
+        data: {
+          id: res.id,
+          chatroomId,
+          userId,
+          content,
+          messageTypes,
+        },
+      },
+    );
+
+    client.emit(ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE, {
+      message: '',
       data: {
-        type: TYPE.DM,
-        users: {
-          create: [
-            {
-              userId: senderId,
-              penFriend: recipientId,
-            },
-            {
-              userId: recipientId,
-              penFriend: senderId,
-            },
-          ],
-        },
-        messages: {
-          create: [
-            {
-              content: content,
-              imageUrl: null,
-              messageTypes: MESSAGE_TYPES.TEXT,
-              user: {
-                connect: {
-                  id: senderId,
-                },
-              },
-            },
-          ],
-        },
+        id: res.id,
+        chatroomId,
+        userId,
+        content,
+        messageTypes,
       },
     });
   }
@@ -663,5 +661,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       throw new WsUnauthorizedException(
         `You have no right to perform the requested action in the groupe named ${chatroomUser.chatroom.chatroomName}`,
       );
+  }
+  private sendToSocket(
+    client: SocketWithAuth,
+    userId: string,
+    emit: string,
+    object: SocketServerResponse,
+  ) {
+    const socket = this.gatewayService.getUserSocket(userId);
+
+    if (!socket) return;
+
+    this.logger.log('Socket id is: ', socket ? socket.id : 'undefined');
+
+    client.to(socket.id).emit(emit, object);
   }
 }

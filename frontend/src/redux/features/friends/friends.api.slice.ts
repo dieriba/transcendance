@@ -124,7 +124,7 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
           await cacheDataLoaded;
 
           socket.on(
-            FriendEvent.REQUEST_SENT,
+            FriendEvent.NEW_REQUEST_SENT,
             (
               data: SocketServerSucessResponse & {
                 data: ServerResponseFriendSentRequestType;

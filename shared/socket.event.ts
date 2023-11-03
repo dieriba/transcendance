@@ -19,12 +19,14 @@ const privateChatroom = "chatroom.private";
 
 export enum ChatEventPrivateRoom {
   NEW_FRIEND = `${privateChatroom}.new.friend`,
+  SEND_PRIVATE_MESSAGE = `${privateChatroom}.sent.private.message`,
+  RECEIVE_PRIVATE_MESSAGE = `${privateChatroom}.receive.private.message`,
 }
 
 const groupChatroom = "chatroom.group";
 
 export enum ChatEvent {
-  CREATE_GROUP_CHATROOM = `${groupChatroom}.create`,
+  //CREATE_GROUP_CHATROOM = `${groupChatroom}.create`,
 
   ADD_USER = "chatroom.add.user",
   SET_DIERIBA = "chatroom.set.dieriba",

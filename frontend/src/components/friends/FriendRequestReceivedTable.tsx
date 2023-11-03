@@ -81,8 +81,8 @@ const FriendRequestReceived = () => {
       </Stack>
     );
   } else {
-    console.log(data);
-    
+    console.log({ data });
+
     const friendRequest = data.data;
 
     return (

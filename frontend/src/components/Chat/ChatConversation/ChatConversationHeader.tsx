@@ -1,15 +1,22 @@
 import { Avatar, Box, IconButton, Stack, Typography } from "@mui/material";
-import { faker } from "@faker-js/faker";
 import { CaretDown } from "phosphor-react";
 import { useTheme } from "@mui/material/styles";
 import StyledBadge from "../../Badge/StyledBadge";
 import { toggle } from "../../../redux/features/sidebar.slices";
-import { useAppDispatch } from "../../../redux/hooks";
+import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 
 const ChatConversationHeader = () => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
 
+  const chatroomInfo = useAppSelector((state) => state.chat.currentChatroom);
+  const {
+    user: {
+      nickname,
+      status,
+      profile: { avatar },
+    },
+  } = chatroomInfo.users[0];
   return (
     <Box
       p={2}
@@ -37,17 +44,16 @@ const ChatConversationHeader = () => {
               anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
               variant="dot"
             >
-              <Avatar
-                src={faker.image.avatar()}
-                alt={faker.person.firstName()}
-              />
+              <Avatar src={avatar} alt={avatar} />
             </StyledBadge>
           </Box>
           <Stack>
-            <Typography variant="subtitle2">
-              {faker.person.fullName()}
-            </Typography>
-            <Typography variant="subtitle2">Online</Typography>
+            <Typography variant="subtitle2">{nickname}</Typography>
+            {status === "ONLINE" ? (
+              <Typography variant="subtitle2">Online</Typography>
+            ) : (
+              <Typography variant="subtitle2">Offline</Typography>
+            )}
           </Stack>
         </Stack>
         <Stack direction="row" alignItems="center" spacing={2}>

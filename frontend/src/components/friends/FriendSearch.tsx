@@ -3,7 +3,6 @@ import { MagnifyingGlass } from "phosphor-react";
 
 interface FriendSearchProps {
   placeholder: string;
-  setMessage: (message: string) => void;
 }
 
 const FriendSearch = ({ placeholder }: FriendSearchProps) => {

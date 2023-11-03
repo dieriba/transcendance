@@ -12,7 +12,7 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
-import { RESTRICTION, ROLE, TYPE } from '@prisma/client';
+import { MESSAGE_TYPES, RESTRICTION, ROLE, TYPE } from '@prisma/client';
 import { DAYS, HOURS, MIN } from 'src/common/constant/enum.constant';
 import { isValidDuration } from '../validation-decorator/is-valid-duration.validation';
 import { Type } from 'class-transformer';
@@ -51,12 +51,34 @@ export class DmMessageDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  recipientId: string;
+  chatroomId: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  friendId: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
   content: string;
+
+  @ApiProperty()
+  @IsEnum(MESSAGE_TYPES)
+  messageTypes: MESSAGE_TYPES;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  @IsNotEmpty()
+  image: string;
+
+  /*ONLY accept reply if type IS REPLY*/
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  @IsNotEmpty()
+  reply: string;
 }
 
 export class ChatroomMessageDto {

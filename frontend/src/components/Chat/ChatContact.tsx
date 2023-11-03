@@ -1,12 +1,13 @@
-import { Stack, Box, Divider, Typography } from "@mui/material";
+import { Stack, Box, Divider } from "@mui/material";
 import { MagnifyingGlass } from "phosphor-react";
-import { ChatList } from "../../data/data";
 import { Search, SearchIconWrapper, StyledInputBase } from "../search";
 import ChatBox from "./ChatBox";
 import { useTheme } from "@mui/material/styles";
+import { useAppSelector } from "../../redux/hooks";
 
 const ChatContact = () => {
   const theme = useTheme();
+  const chats = useAppSelector((state) => state.chat.privateChatroom);
   return (
     <Box
       sx={{
@@ -33,34 +34,23 @@ const ChatContact = () => {
           sx={{ flexGrow: 1, overflow: "scroll", height: "100%" }}
           spacing={1}
         >
-          <Stack p={2}>
-            <Typography variant="subtitle2" sx={{ color: "#676767" }}>
-              Pinned
-            </Typography>
-            {ChatList.filter((chat) => chat.pinned).map((chat) => {
+          <Stack p={2} spacing={0}>
+            {chats.map(({ id, users, messages }) => {
+              const user = users[0].user;
               return (
                 <ChatBox
-                  online={chat.online}
-                  username={chat.name}
-                  msg={chat.msg}
-                  time={chat.time}
-                  unread={chat.unread}
-                  key={chat.id}
-                />
-              );
-            })}
-            <Typography variant="subtitle2" sx={{ color: "#676767" }}>
-              All Chats
-            </Typography>
-            {ChatList.filter((chat) => !chat.pinned).map((chat) => {
-              return (
-                <ChatBox
-                  online={chat.online}
-                  username={chat.name}
-                  msg={chat.msg}
-                  time={chat.time}
-                  unread={chat.unread}
-                  key={chat.id}
+                  time={messages.length === 0 ? "" : "11"}
+                  avatar={user.profile?.avatar}
+                  online={user.status === "ONLINE" ? true : false}
+                  username={users[0].user.nickname}
+                  msg={
+                    messages.length === 0
+                      ? "Start Conversation"
+                      : messages[0].content
+                  }
+                  unread={0}
+                  key={id}
+                  chatroomId={id}
                 />
               );
             })}

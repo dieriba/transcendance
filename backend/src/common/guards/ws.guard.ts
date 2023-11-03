@@ -40,6 +40,8 @@ export class WsAccessTokenGuard implements CanActivate {
 
       return true;
     } catch (error) {
+      console.log(error);
+
       throw new WsUnauthorizedException(UNAUTHORIZED);
     }
   }

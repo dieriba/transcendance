@@ -275,7 +275,6 @@ export class FriendsGateway
         },
         select: {
           id: true,
-          isPinned: true,
           users: {
             select: {
               user: {
@@ -358,6 +357,8 @@ export class FriendsGateway
       message: '',
       data: res[1],
     });
+
+    console.log(res[1]);
 
     this.sendToSocket(client, friendId, FriendEvent.NEW_CHATROOM, {
       message: '',

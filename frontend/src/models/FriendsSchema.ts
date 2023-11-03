@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ProfileSchema } from "./ProfileFormSchema";
 
 export const BaseFriendSchema = z.object({
   friendId: z.string().min(1),
@@ -11,11 +12,12 @@ export const FriendsChatSchema = BaseFriendSchema.extend({
 });
 
 export const FriendSchema = z.object({
-  friend: z.object({
-    id: z.string().min(1),
-    nickname: z.string().min(1),
-    profile: z.object({ avatar: z.string().min(1).optional() }),
-  }),
+  friend: z
+    .object({
+      id: z.string().min(1),
+      nickname: z.string().min(1),
+    })
+    .merge(ProfileSchema),
 });
 
 export type FriendType = z.infer<typeof FriendSchema>;
