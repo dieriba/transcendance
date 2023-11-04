@@ -7,12 +7,10 @@ import {
   BaseServerResponse,
   SocketServerSucessResponse,
 } from "../../../services/type";
-import { getChatsSocket, getFriendsSocket } from "../../../utils/getScoket";
+import { getChatsSocket } from "../../../utils/getScoket";
 import { apiSlice } from "../../api/apiSlice";
-import {
-  ChatEventPrivateRoom,
-  FriendEvent,
-} from "./../../../../../shared/socket.event";
+import { ChatEventPrivateRoom } from "./../../../../../shared/socket.event";
+import { updatePrivateChatroomList } from "./chatSlice";
 
 export const chatApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -31,72 +29,24 @@ export const chatApiSlice = apiSlice.injectEndpoints({
         });
       },
     }),
-    getCurrentChatMessage: builder.query<
-      BaseServerResponse & { data: MessageType[] },
-      string
-    >({
-      query: (chatroomId) => ({
-        url: `chat/get-all-chatroom-message?chatroomId=${chatroomId}`,
-      }),
-      async onCacheEntryAdded(
-        _arg,
-        { updateCachedData, cacheDataLoaded, cacheEntryRemoved }
-      ) {
-        const socket = getChatsSocket();
-        try {
-          await cacheDataLoaded;
-
-          socket.on(
-            ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE,
-            (data: SocketServerSucessResponse & { data: MessageType }) => {
-              updateCachedData((draft) => {
-                draft.data.push(data.data);
-              });
-            }
-          );
-        } catch (error) {
-          console.log(error);
-        }
-        await cacheEntryRemoved;
-        socket.off(ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE);
-      },
-    }),
     getAllPrivateChatrooms: builder.query<
-      SocketServerSucessResponse & { data: PrivateChatroomType[] },
+      BaseServerResponse & { data: PrivateChatroomType[] },
       void
     >({
       query: () => ({ url: "chat/get-all-private-chatroom" }),
       async onCacheEntryAdded(
         _arg,
-        { updateCachedData, cacheDataLoaded, cacheEntryRemoved }
+        { updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch }
       ) {
-        const socket = getFriendsSocket();
+        const chatSocket = getChatsSocket();
         try {
           await cacheDataLoaded;
 
-          socket.on(
-            FriendEvent.NEW_CHATROOM,
-            (
-              data: SocketServerSucessResponse & { data: PrivateChatroomType }
-            ) => {
-              updateCachedData((draft) => {
-                draft.data.push(data.data);
-              });
-            }
-          );
-
-          socket.on(
+          chatSocket.on(
             ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE,
-            (message: MessageType) => {
-              updateCachedData((draft) => {
-                const chatroom = draft.data.find(
-                  (chatroom) => chatroom.id === message.chatroomId
-                );
-                console.log({ chatroom });
-
-                if (chatroom) {
-                  chatroom.messages[0] = message;
-                }
+            (data: SocketServerSucessResponse & { data: MessageType }) => {
+              updateCachedData(() => {
+                dispatch(updatePrivateChatroomList(data.data));
               });
             }
           );
@@ -104,16 +54,12 @@ export const chatApiSlice = apiSlice.injectEndpoints({
           console.log(error);
         }
         await cacheEntryRemoved;
-        socket.off(FriendEvent.NEW_CHATROOM);
-        socket.off(ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE);
+        chatSocket.off(ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE);
       },
     }),
   }),
   overrideExisting: false,
 });
 
-export const {
-  useGetAllPrivateChatroomsQuery,
-  useGetCurrentChatMessageQuery,
-  useSendPrivateMessageMutation,
-} = chatApiSlice;
+export const { useGetAllPrivateChatroomsQuery, useSendPrivateMessageMutation } =
+  chatApiSlice;

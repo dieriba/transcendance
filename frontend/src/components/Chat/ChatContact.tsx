@@ -38,7 +38,7 @@ const ChatContact = () => {
           <Stack p={2} spacing={0}>
             {chats.map(({ id, users, messages }) => {
               const user = users[0].user;
-
+              const lastMsg = messages[messages.length - 1];
               return (
                 <ChatBox
                   time={messages.length === 0 ? "" : "11"}
@@ -48,9 +48,9 @@ const ChatContact = () => {
                   msg={
                     messages.length === 0
                       ? "Start Conversation"
-                      : messages[0].userId === myId
-                      ? "Sent 2min ago"
-                      : messages[0].content
+                      : lastMsg.userId === myId
+                      ? `You: ${lastMsg.content}`
+                      : lastMsg.content
                   }
                   unread={0}
                   key={id}

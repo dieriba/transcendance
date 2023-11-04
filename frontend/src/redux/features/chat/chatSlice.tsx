@@ -1,5 +1,8 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { PrivateChatroomType } from "../../../models/ChatContactSchema";
+import {
+  MessageType,
+  PrivateChatroomType,
+} from "../../../models/ChatContactSchema";
 
 export interface ChatState {
   isEstablishingConnection: boolean;
@@ -44,10 +47,26 @@ export const ChatSlice = createSlice({
         (chatroom) => chatroom.id === action.payload
       ) as PrivateChatroomType;
     },
+    updatePrivateChatroomList: (state, action: PayloadAction<MessageType>) => {
+      const message = action.payload;
+      const indexToRemove = state.privateChatroom.findIndex(
+        (chatroom) => chatroom.id === message.chatroomId
+      );
+
+      const removedObject = state.privateChatroom.splice(indexToRemove, 1)[0];
+      removedObject.messages.push(message);
+
+      state.privateChatroom.unshift(removedObject);
+      state.currentChatroom = removedObject;
+    },
   },
 });
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const { setPrivateChatroom, setPrivateChatroomId } = ChatSlice.actions;
+export const {
+  setPrivateChatroom,
+  setPrivateChatroomId,
+  updatePrivateChatroomList,
+} = ChatSlice.actions;
 
 export default ChatSlice.reducer;

@@ -10,7 +10,6 @@ const ChatConversationHeader = () => {
   const dispatch = useAppDispatch();
 
   const chatroomInfo = useAppSelector((state) => state.chat.currentChatroom);
-  console.log({ chatroomInfo });
 
   const {
     user: { nickname, status, profile },

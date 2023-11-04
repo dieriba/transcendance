@@ -669,9 +669,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const socket = this.gatewayService.getUserSocket(userId);
 
-    if (!socket) return;
-
     this.logger.log('Socket id is: ', socket ? socket.id : 'undefined');
+
+    if (!socket) return;
 
     client.to(socket.id).emit(emit, object);
   }

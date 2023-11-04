@@ -13,6 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useSendPrivateMessageMutation } from "../../../redux/features/chat/chats.api.slice";
 import { useAppSelector } from "../../../redux/hooks";
+import { RootState } from "../../../redux/store";
 
 const ChatConversationFooter = () => {
   const theme = useTheme();
@@ -21,7 +22,7 @@ const ChatConversationFooter = () => {
     resolver: zodResolver(MessageFormSchema),
   });
 
-  const chatroom = useAppSelector((state) => state.chat.currentChatroom);
+  const chatroom = useAppSelector((state: RootState) => state.chat.currentChatroom);
   const [sendMessage] = useSendPrivateMessageMutation();
 
   const { control, handleSubmit, reset, setValue, getValues } = methods;
@@ -34,8 +35,6 @@ const ChatConversationFooter = () => {
         friendId: chatroom.users[0].user.id,
         messageTypes: "TEXT",
       }).unwrap();
-      console.log("{ res }");
-      console.log("Form reset successful"); // Add this line for debugging
     } catch (error) {
       console.log(error);
     }

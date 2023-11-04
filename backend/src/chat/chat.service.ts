@@ -77,7 +77,7 @@ export class ChatService {
         },
         messages: {
           orderBy: {
-            createdAt: 'desc',
+            createdAt: 'asc',
           },
           select: {
             id: true,
@@ -86,11 +86,10 @@ export class ChatService {
             content: true,
             messageTypes: true,
           },
-          take: 1,
         },
       },
       orderBy: {
-        updatedAt: 'desc',
+        updatedAt: 'asc',
       },
     });
 
