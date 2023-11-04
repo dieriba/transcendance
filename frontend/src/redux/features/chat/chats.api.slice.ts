@@ -7,10 +7,10 @@ import {
   BaseServerResponse,
   SocketServerSucessResponse,
 } from "../../../services/type";
-import { getChatsSocket } from "../../../utils/getScoket";
 import { apiSlice } from "../../api/apiSlice";
 import { ChatEventPrivateRoom } from "./../../../../../shared/socket.event";
 import { updatePrivateChatroomList } from "./chatSlice";
+import { getSocket } from "../../../utils/getSocket";
 
 export const chatApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -19,7 +19,7 @@ export const chatApiSlice = apiSlice.injectEndpoints({
       MessageFormType
     >({
       queryFn: (data) => {
-        const socket = getChatsSocket();
+        const socket = getSocket();
         return new Promise((resolve) => {
           socket.emit(ChatEventPrivateRoom.SEND_PRIVATE_MESSAGE, data);
 
@@ -38,7 +38,7 @@ export const chatApiSlice = apiSlice.injectEndpoints({
         _arg,
         { updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch }
       ) {
-        const chatSocket = getChatsSocket();
+        const chatSocket = getSocket();
         try {
           await cacheDataLoaded;
 
