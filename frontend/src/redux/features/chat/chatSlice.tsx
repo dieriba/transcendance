@@ -47,6 +47,9 @@ export const ChatSlice = createSlice({
         (chatroom) => chatroom.id === action.payload
       ) as PrivateChatroomType;
     },
+    addNewChatroom: (state, action: PayloadAction<PrivateChatroomType>) => {
+      state.privateChatroom.unshift(action.payload);
+    },
     updatePrivateChatroomList: (state, action: PayloadAction<MessageType>) => {
       const message = action.payload;
       const indexToRemove = state.privateChatroom.findIndex(
@@ -67,6 +70,8 @@ export const {
   setPrivateChatroom,
   setPrivateChatroomId,
   updatePrivateChatroomList,
+
+  addNewChatroom,
 } = ChatSlice.actions;
 
 export default ChatSlice.reducer;

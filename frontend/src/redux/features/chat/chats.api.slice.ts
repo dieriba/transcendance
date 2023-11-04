@@ -9,7 +9,7 @@ import {
 } from "../../../services/type";
 import { apiSlice } from "../../api/apiSlice";
 import { ChatEventPrivateRoom } from "./../../../../../shared/socket.event";
-import { updatePrivateChatroomList } from "./chatSlice";
+import { addNewChatroom, updatePrivateChatroomList } from "./chatSlice";
 import { getSocket } from "../../../utils/getSocket";
 
 export const chatApiSlice = apiSlice.injectEndpoints({
@@ -38,11 +38,22 @@ export const chatApiSlice = apiSlice.injectEndpoints({
         _arg,
         { updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch }
       ) {
-        const chatSocket = getSocket();
+        const socket = getSocket();
         try {
           await cacheDataLoaded;
 
-          chatSocket.on(
+          socket.on(
+            ChatEventPrivateRoom.NEW_CHATROOM,
+            (
+              data: SocketServerSucessResponse & { data: PrivateChatroomType }
+            ) => {
+              updateCachedData(() => {
+                dispatch(addNewChatroom(data.data));
+              });
+            }
+          );
+
+          socket.on(
             ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE,
             (data: SocketServerSucessResponse & { data: MessageType }) => {
               updateCachedData(() => {
@@ -54,7 +65,7 @@ export const chatApiSlice = apiSlice.injectEndpoints({
           console.log(error);
         }
         await cacheEntryRemoved;
-        chatSocket.off(ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE);
+        socket.off(ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE);
       },
     }),
   }),
