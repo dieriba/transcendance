@@ -942,14 +942,14 @@ export class GatewayGateway {
       data: { friendId },
     });
 
-    client.emit(FriendEvent.NEW_CHATROOM, {
+    client.emit(ChatEventPrivateRoom.NEW_CHATROOM, {
       message: '',
       data: res[1],
     });
 
     console.log(res[1]);
 
-    this.sendToSocket(client, friendId, FriendEvent.NEW_CHATROOM, {
+    this.sendToSocket(client, friendId, ChatEventPrivateRoom.NEW_CHATROOM, {
       message: '',
       data: res[1],
     });

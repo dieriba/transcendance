@@ -60,7 +60,6 @@ export const ChatSlice = createSlice({
       removedObject.messages.push(message);
 
       state.privateChatroom.unshift(removedObject);
-      state.currentChatroom = removedObject;
     },
   },
 });

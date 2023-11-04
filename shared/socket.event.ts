@@ -12,13 +12,12 @@ export enum FriendEvent {
   BLOCK_FRIEND = `${friend}.block.friend`,
   UNBLOCK_FRIEND = `${friend}.unblock.friend`,
   NEW_FRIEND = `${friend}.new.friend`,
-  NEW_CHATROOM = `${friend}.new.chatroom`,
 }
 
 const privateChatroom = "chatroom.private";
 
 export enum ChatEventPrivateRoom {
-  NEW_FRIEND = `${privateChatroom}.new.friend`,
+  NEW_CHATROOM = `${privateChatroom}.new.chatroom`,
   SEND_PRIVATE_MESSAGE = `${privateChatroom}.sent.private.message`,
   RECEIVE_PRIVATE_MESSAGE = `${privateChatroom}.receive.private.message`,
 }
