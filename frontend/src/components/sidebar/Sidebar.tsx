@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../../redux/hooks";
 import { apiSlice } from "../../redux/api/apiSlice";
 import { LOGOUT } from "../../redux/type";
+import { useLogoutMutation } from "../../redux/features/auth/auth.api.slice";
 
 const Sidebar = () => {
   const theme = useTheme();
@@ -30,6 +31,14 @@ const Sidebar = () => {
     setSelectedIcon(index);
 
     navigate(path);
+  };
+  const [loggingOut] = useLogoutMutation();
+  const logoutUser = async () => {
+    await loggingOut().unwrap();
+    dispatch(apiSlice.util.resetApiState());
+    dispatch({ type: LOGOUT });
+    // eslint-disable-next-line no-self-assign
+    window.location = window.location;
   };
   return (
     <>
@@ -115,14 +124,7 @@ const Sidebar = () => {
             )}
           </Stack>
           <Stack alignItems="center" spacing={2}>
-            <IconButton
-              onClick={() => {
-                dispatch(apiSlice.util.resetApiState());
-                dispatch({ type: LOGOUT });
-                // eslint-disable-next-line no-self-assign
-                window.location = window.location;
-              }}
-            >
+            <IconButton onClick={() => logoutUser()}>
               <SignOut />
             </IconButton>
             <MaterialUISwitch theme={theme} onClick={toggleColorMode} />

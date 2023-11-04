@@ -13,8 +13,12 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { ROLE, TYPE, MESSAGE_TYPES } from '@prisma/client';
-import { ChatEventPrivateRoom, FriendEvent } from '@shared/socket.event';
-import { Namespace, Server } from 'socket.io';
+import {
+  ChatEventPrivateRoom,
+  FriendEvent,
+  GeneralEvent,
+} from '@shared/socket.event';
+import { Server } from 'socket.io';
 import { Argon2Service } from 'src/argon2/argon2.service';
 import { SocketWithAuth } from 'src/auth/type';
 import {
@@ -89,6 +93,7 @@ export class GatewayGateway {
     this.logger.log(
       `Size of socket map ${this.gatewayService.getSockets().size}`,
     );
+    client.broadcast.emit(GeneralEvent.USER_LOGGED_IN, { id: client.userId });
   }
 
   handleDisconnect(client: SocketWithAuth) {
@@ -100,6 +105,7 @@ export class GatewayGateway {
     this.logger.log(
       `Size of socket map ${this.gatewayService.getSockets().size}`,
     );
+    client.broadcast.emit(GeneralEvent.USER_LOGGED_OUT, { id: client.userId });
   }
 
   /*@SubscribeMessage(ChatEvent.CREATE_GROUP_CHATROOM)
@@ -946,8 +952,6 @@ export class GatewayGateway {
       message: '',
       data: res[1],
     });
-
-    console.log(res[1]);
 
     this.sendToSocket(client, friendId, ChatEventPrivateRoom.NEW_CHATROOM, {
       message: '',

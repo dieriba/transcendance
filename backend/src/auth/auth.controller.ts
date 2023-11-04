@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Res,
   UseGuards,
@@ -54,10 +55,14 @@ export class AuthController {
     return data;
   }
 
-  @Post('logout')
+  @Patch('logout')
   @HttpCode(HttpStatus.OK)
   @ResponseMessage('Logged Out, succesfully')
-  logout(@GetUser('userId') id: string) {
+  logout(
+    @GetUser('userId') id: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    res.cookie('refresh', '');
     return this.authService.logout(id);
   }
 
@@ -77,7 +82,7 @@ export class AuthController {
     return data;
   }
 
-  @Post('refresh')
+  @Get('refresh')
   @PublicRoute()
   @UseGuards(JwtRefreshTokenGuard)
   @HttpCode(HttpStatus.OK)

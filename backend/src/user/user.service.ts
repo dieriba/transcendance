@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { ApiUser, CreatedUser, Profile, TwoFa } from './types/user.types';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { UserModel } from './types/user.types';
 import { UserInfo } from 'src/common/types/user-info.type';
 import { ChatroomUserInfo } from 'src/common/types/chatroom-user-type';
+import { User } from '@prisma/client';
+
+type optionalDataUser = Partial<User>;
 
 @Injectable()
 export class UserService {
@@ -92,28 +94,17 @@ export class UserService {
     return user;
   }
 
-  async updateUserByEmail(email: string, user: UserModel) {
+  async updateUserByEmail(email: string, data: optionalDataUser) {
     return await this.prismaService.user.update({
       where: { email },
-      data: {
-        email: user.email || undefined,
-        nickname: user.nickname || undefined,
-        hashedRefreshToken: user.hashedRefreshToken || undefined,
-        password: user.password || undefined,
-      },
+      data,
     });
   }
 
-  async updateUserById(id: string, update: UserModel) {
+  async updateUserById(id: string, data: optionalDataUser) {
     return await this.prismaService.user.update({
       where: { id },
-      data: {
-        email: update.email,
-        nickname: update.nickname,
-        hashedRefreshToken: update.hashedRefreshToken,
-        status: update.status,
-        password: update.password,
-      },
+      data,
     });
   }
 
@@ -146,10 +137,10 @@ export class UserService {
     return newUser;
   }
 
-  async clearHashedToken(id: string) {
+  async clearHashedToken(id: string, data: optionalDataUser) {
     await this.prismaService.user.update({
       where: { id, hashedRefreshToken: { not: null } },
-      data: { hashedRefreshToken: null },
+      data,
     });
   }
 

@@ -1,3 +1,10 @@
+const General = "general";
+
+export enum GeneralEvent {
+  USER_LOGGED_OUT = `${General}.user.logged.out`,
+  USER_LOGGED_IN = `${General}.user.logged.in`,
+}
+
 const friend = "friend";
 
 export enum FriendEvent {

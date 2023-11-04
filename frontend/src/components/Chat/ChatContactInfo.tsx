@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { Bell, CaretRight, Trash, X } from "phosphor-react";
-import { useAppDispatch } from "../../redux/hooks";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import {
   SHARED,
   closeSidebar,
@@ -29,6 +29,8 @@ const ChatContactInfo = () => {
   const [openDeleteChat, setDeleteChat] = useState(false);
   const [openBlockUser, setBlockUser] = useState(false);
 
+  const chatroomInfo = useAppSelector((state) => state.chat.currentChatroom);
+  const user = chatroomInfo.users[0].user;
   return (
     <Box width="320px" height="100vh">
       <Stack sx={{ height: "100%" }}>
@@ -66,14 +68,10 @@ const ChatContactInfo = () => {
           spacing={3}
         >
           <Stack alignItems="center" direction="row" spacing={2}>
-            <Avatar
-              src={faker.image.avatar()}
-              alt={faker.person.fullName()}
-              sx={{ height: 64, width: 64 }}
-            />
+            <Avatar src={user.profile?.avatar} sx={{ height: 64, width: 64 }} />
             <Stack spacing={0.5} alignSelf="flex-start">
               <Typography variant="subtitle2" fontWeight={600}>
-                {faker.person.fullName()}
+                {user.nickname}
               </Typography>
             </Stack>
           </Stack>

@@ -61,6 +61,28 @@ export const ChatSlice = createSlice({
 
       state.privateChatroom.unshift(removedObject);
     },
+    setOfflineUser: (state, action: PayloadAction<string>) => {
+      state.privateChatroom.map((chatroom) => {
+        const user = chatroom.users[0].user;
+        if (user.id === action.payload) {
+          user.status = "OFFLINE";
+        }
+      });
+      if (action.payload === state.currentChatroom.users[0].user.id) {
+        state.currentChatroom.users[0].user.status = "OFFLINE";
+      }
+    },
+    setOnlineUser: (state, action: PayloadAction<string>) => {
+      state.privateChatroom.map((chatroom) => {
+        const user = chatroom.users[0].user;
+        if (user.id === action.payload) {
+          user.status = "ONLINE";
+        }
+      });
+      if (action.payload === state.currentChatroom.users[0].user.id) {
+        state.currentChatroom.users[0].user.status = "ONLINE";
+      }
+    },
   },
 });
 
@@ -69,7 +91,8 @@ export const {
   setPrivateChatroom,
   setPrivateChatroomId,
   updatePrivateChatroomList,
-
+  setOfflineUser,
+  setOnlineUser,
   addNewChatroom,
 } = ChatSlice.actions;
 

@@ -33,17 +33,29 @@ const ChatConversationHeader = () => {
         sx={{ width: "100%", height: "100%" }}
       >
         <Stack direction="row" spacing={2}>
-          <Box>
-            <StyledBadge
-              sx={{ cursor: "pointer" }}
-              onClick={() => dispatch(toggle())}
-              overlap="circular"
-              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-              variant="dot"
-            >
-              <Avatar src={profile?.avatar} alt={profile?.avatar} />
-            </StyledBadge>
-          </Box>
+          <div onClick={() => dispatch(toggle())}>
+            <Box>
+              {status === "ONLINE" ? (
+                <StyledBadge
+                  sx={{ cursor: "pointer" }}
+                  overlap="circular"
+                  anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                  variant="dot"
+                >
+                  <Avatar src={profile?.avatar} alt={profile?.avatar} />
+                </StyledBadge>
+              ) : (
+                <>
+                  <Avatar
+                    sx={{ cursor: "pointer" }}
+                    src={profile?.avatar}
+                    alt={profile?.avatar}
+                  />
+                </>
+              )}
+            </Box>
+          </div>
+
           <Stack>
             <Typography variant="subtitle2">{nickname}</Typography>
             {status === "ONLINE" ? (

@@ -23,6 +23,8 @@ import {
 import { UserData, UserRefreshToken } from 'src/common/types/user-info.type';
 import { LibService } from 'src/lib/lib.service';
 import { STATUS } from '@prisma/client';
+import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -89,14 +91,14 @@ export class AuthService {
   async logout(id: string) {
     const user = await this.userService.findUserById(id, UserData);
 
-    if (!user)
-      throw new CustomException(RESSOURCE_NOT_FOUND, HttpStatus.NOT_FOUND);
+    if (!user) throw new UserNotFoundException();
 
     try {
-      await this.userService.clearHashedToken(id);
-    } catch (error) {
-      throw new InternalServerErrorException();
-    }
+      await this.userService.clearHashedToken(id, {
+        status: STATUS.OFFLINE,
+        hashedRefreshToken: null,
+      });
+    } catch (error) {}
   }
 
   async oauth(

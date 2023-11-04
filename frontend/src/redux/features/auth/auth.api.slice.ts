@@ -16,6 +16,12 @@ export const authApiSlice = apiSlice.injectEndpoints({
         body: data,
       }),
     }),
+    logout: builder.mutation<void, void>({
+      query: () => ({
+        url: "/auth/logout",
+        method: "PATCH",
+      }),
+    }),
     register: builder.mutation<
       BaseServerResponse & { data: unknown },
       RegisterFormType
@@ -37,5 +43,9 @@ export const authApiSlice = apiSlice.injectEndpoints({
   }),
 });
 
-export const { useLoginMutation, useRegisterMutation, useOauthQuery } =
-  authApiSlice;
+export const {
+  useLoginMutation,
+  useRegisterMutation,
+  useOauthQuery,
+  useLogoutMutation,
+} = authApiSlice;
