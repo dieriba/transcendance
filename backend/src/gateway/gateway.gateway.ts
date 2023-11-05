@@ -554,13 +554,12 @@ export class GatewayGateway {
     );
 
     if (!chatroom) throw new WsNotFoundException('Chatroom does not exist');
-
+    //CHECK IF USER HAS DELETED ME OR BLOCKED ME
     const res = await this.prismaService.message.create({
       data: {
         content: content,
         imageUrl: image,
         messageTypes,
-        //add reply props
         user: {
           connect: {
             id: userId,
@@ -852,55 +851,74 @@ export class GatewayGateway {
 
     const { sender, recipient } = existingFriendRequest;
 
-    const res = await this.prismaService.$transaction([
-      this.prismaService.friendRequest.delete({
+    const res = await this.prismaService.$transaction(async (tx) => {
+      tx.friendRequest.delete({
         where: {
           senderId_recipientId: {
             senderId: existingFriendRequest.senderId,
             recipientId: existingFriendRequest.recipientId,
           },
         },
-      }),
-      this.prismaService.chatroom.create({
-        data: {
+      });
+
+      const chatroom = tx.chatroom.findFirst({
+        where: {
           type: TYPE.DM,
           users: {
-            create: [{ userId: userId }, { userId: friendId }],
-          },
-        },
-        select: {
-          id: true,
-          users: {
-            select: {
-              user: {
-                select: {
-                  id: true,
-                  nickname: true,
-                  status: true,
-                },
+            some: {
+              userId: {
+                in: [
+                  existingFriendRequest.senderId,
+                  existingFriendRequest.recipientId,
+                ],
               },
             },
           },
-          messages: {
-            orderBy: {
-              createdAt: 'desc',
+        },
+      });
+
+      if (!chatroom) {
+        tx.chatroom.create({
+          data: {
+            type: TYPE.DM,
+            users: {
+              create: [{ userId: userId }, { userId: friendId }],
             },
           },
-        },
-      }),
-      this.prismaService.friends.create({
+          select: {
+            id: true,
+            users: {
+              select: {
+                user: {
+                  select: {
+                    id: true,
+                    nickname: true,
+                    status: true,
+                  },
+                },
+              },
+            },
+            messages: {
+              orderBy: {
+                createdAt: 'desc',
+              },
+            },
+          },
+        });
+      }
+      tx.friends.create({
         data: {
           user: { connect: { id: userId } },
           friend: { connect: { id: friendId } },
         },
-      }),
-      this.prismaService.friends.create({
+      });
+      tx.friends.create({
         data: {
           user: { connect: { id: friendId } },
           friend: { connect: { id: userId } },
         },
-      }),
-    ]);
+      });
+    });
 
     this.sendToSocket(client, friendId, FriendEvent.REQUEST_ACCEPTED, {
       message: `${client.nickname} accepted your friend request`,

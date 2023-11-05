@@ -18,16 +18,42 @@ import {
 } from "../../redux/features/sidebar.slices";
 import { faker } from "@faker-js/faker";
 import { useState } from "react";
-import DeleteUser from "./DeleteUser";
-import DeleteChat from "./DeleteChat";
-import BlockUser from "./BlockUser";
+
+import CustomDialog from "../Dialog/CustomDialog";
+import { BaseFriendType } from "../../models/FriendsSchema";
+import {
+  useDeleteFriendMutation,
+  useBlockFriendMutation,
+} from "../../redux/features/friends/friends.api.slice";
 const ChatContactInfo = () => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
 
-  const [openDeleteUser, setDeleteUser] = useState(false);
-  const [openDeleteChat, setDeleteChat] = useState(false);
-  const [openBlockUser, setBlockUser] = useState(false);
+  const handleDeleteFriend = async (data: BaseFriendType) => {
+    try {
+      const res = await deleteFriend(data).unwrap();
+      console.log({ res });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleBlockUser = async (friend: BaseFriendType) => {
+    try {
+      const res = await blockUser(friend).unwrap();
+      console.log({ res });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const [open, setOpen] = useState<{
+    block: boolean;
+    delete: boolean;
+  }>({ block: false, delete: false });
+
+  const [deleteFriend] = useDeleteFriendMutation();
+  const [blockUser] = useBlockFriendMutation();
 
   const chatroomInfo = useAppSelector((state) => state.chat.currentChatroom);
   const user = chatroomInfo.users[0].user;
@@ -42,6 +68,7 @@ const ChatContactInfo = () => {
               theme.palette.mode === "light"
                 ? "#F8FAFF"
                 : theme.palette.background.default,
+                height:'70px'
           }}
         >
           <Stack
@@ -57,6 +84,7 @@ const ChatContactInfo = () => {
             </IconButton>
           </Stack>
         </Box>
+        <Divider />
         <Stack
           sx={{
             height: "100%",
@@ -83,31 +111,33 @@ const ChatContactInfo = () => {
             <Typography variant="subtitle2">Dieri</Typography>
           </Stack>
           <Divider />
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <Typography variant="subtitle2">Media & Docs</Typography>
-            <Button
-              onClick={() => dispatch(switchSidebarTab({ tab: SHARED }))}
-              endIcon={<CaretRight />}
+          <Stack>
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
             >
-              {" "}
-              50
-            </Button>
-          </Stack>
-          <Stack direction="row" alignItems="center" spacing={2}>
-            {[1, 2, 3].map((elem) => (
-              <Box key={elem}>
-                <img
-                  height="50px"
-                  width="75px"
-                  src={faker.image.food()}
-                  alt={faker.person.fullName()}
-                />
-              </Box>
-            ))}
+              <Typography variant="subtitle2">Media & Docs</Typography>
+              <Button
+                onClick={() => dispatch(switchSidebarTab({ tab: SHARED }))}
+                endIcon={<CaretRight />}
+              >
+                {" "}
+                50
+              </Button>
+            </Stack>
+            <Stack direction="row" alignItems="center" spacing={2}>
+              {[1, 2, 3].map((elem) => (
+                <Box key={elem}>
+                  <img
+                    height="50px"
+                    width="75px"
+                    src={faker.image.food()}
+                    alt={faker.person.fullName()}
+                  />
+                </Box>
+              ))}
+            </Stack>
           </Stack>
           <Divider />
           <Stack
@@ -126,21 +156,6 @@ const ChatContactInfo = () => {
           <Stack spacing={2}>
              {[1,2,3].map((el) => <Avatar src/>)}
             </Stack> */}
-          <Typography>Chats</Typography>
-          <Stack direction="row" alignItems="center">
-            <Button
-              size="small"
-              startIcon={<Trash />}
-              variant="outlined"
-              fullWidth
-              sx={{ textTransform: "capitalize" }}
-              onClick={() => setDeleteChat(true)}
-            >
-              Delete Chat
-            </Button>
-          </Stack>
-          <Divider />
-          <Typography variant="subtitle2">Friendship</Typography>
           <Stack direction="row" alignItems="center" spacing={2}>
             <Button
               size="small"
@@ -148,7 +163,12 @@ const ChatContactInfo = () => {
               variant="outlined"
               fullWidth
               sx={{ textTransform: "capitalize" }}
-              onClick={() => setBlockUser(true)}
+              onClick={() =>
+                setOpen((prev) => ({
+                  ...prev,
+                  block: true,
+                }))
+              }
             >
               Block
             </Button>
@@ -159,7 +179,12 @@ const ChatContactInfo = () => {
               variant="outlined"
               fullWidth
               sx={{ textTransform: "capitalize" }}
-              onClick={() => setDeleteUser(true)}
+              onClick={() =>
+                setOpen((prev) => ({
+                  ...prev,
+                  delete: true,
+                }))
+              }
             >
               Delete
             </Button>
@@ -167,17 +192,22 @@ const ChatContactInfo = () => {
         </Stack>
       </Stack>
 
-      <DeleteUser
-        open={openDeleteUser}
-        handleClose={() => setDeleteUser(false)}
+      <CustomDialog
+        handleOnClick={handleBlockUser}
+        open={open.block}
+        handleClose={() => setOpen((prev) => ({ ...prev, block: false }))}
+        title="Block User ?"
+        content="Do you really want to block that user ?"
+        friendId={user.id}
       />
-
-      <DeleteChat
-        open={openDeleteChat}
-        handleClose={() => setDeleteChat(false)}
+      <CustomDialog
+        handleOnClick={handleDeleteFriend}
+        open={open.delete}
+        handleClose={() => setOpen((prev) => ({ ...prev, delete: false }))}
+        title="Delete friend  ?"
+        content="Do you really want to delete that friend ?"
+        friendId={user.id}
       />
-
-      <BlockUser open={openBlockUser} handleClose={() => setBlockUser(false)} />
     </Box>
   );
 };

@@ -1,4 +1,4 @@
-import { JwtPayloadRefreshToken } from './../jwt-token/jwt.type';
+import { JwtPayload } from './../jwt-token/jwt.type';
 import {
   Body,
   Controller,
@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -20,7 +21,7 @@ import { GetUser } from 'src/common/custom-decorator/get-user.decorator';
 import { ResponseMessage } from 'src/common/custom-decorator/respone-message.decorator';
 import { JwtRefreshTokenGuard } from 'src/common/guards/refrestJwt.guard';
 import { PublicRoute } from 'src/common/custom-decorator/metadata.decorator';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -87,10 +88,15 @@ export class AuthController {
   @UseGuards(JwtRefreshTokenGuard)
   @HttpCode(HttpStatus.OK)
   async refresh(
-    @GetUser() user: JwtPayloadRefreshToken,
+    @GetUser() user: JwtPayload,
     @Res({ passthrough: true }) res: Response,
+    @Req() req: Request,
   ) {
-    const { refresh_token, ...data } = await this.authService.refresh(user);
+    const refresh = req.cookies['refresh'];
+    const { refresh_token, ...data } = await this.authService.refresh(
+      user,
+      refresh,
+    );
     res.cookie('refresh', refresh_token, {
       httpOnly: true,
       path: '/auth/refresh',

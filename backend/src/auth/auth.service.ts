@@ -10,7 +10,7 @@ import {
 import { generateUsername } from 'unique-username-generator';
 import { HttpService } from '@nestjs/axios';
 import { HttpStatusCode } from 'axios';
-import { JwtPayloadRefreshToken, Tokens } from 'src/jwt-token/jwt.type';
+import { JwtPayload, Tokens } from 'src/jwt-token/jwt.type';
 import { JwtTokenService } from 'src/jwt-token/jwtToken.service';
 import { UserService } from 'src/user/user.service';
 import { CustomException } from 'src/common/custom-exception/custom-exception';
@@ -173,8 +173,8 @@ export class AuthService {
     }
   }
 
-  async refresh(payload: JwtPayloadRefreshToken): Promise<Tokens> {
-    const { sub, email, refresh_token, nickname } = payload;
+  async refresh(payload: JwtPayload, refresh_token: string): Promise<Tokens> {
+    const { sub, email, nickname } = payload;
 
     const user = await this.userService.findUserById(sub, UserRefreshToken);
 

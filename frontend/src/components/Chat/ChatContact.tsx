@@ -22,7 +22,11 @@ const ChatContact = () => {
       }}
     >
       <Stack height="100vh">
-        <Stack p={3} sx={{ width: "100%" }} justifyContent="center">
+        <Stack
+          p={3}
+          sx={{ width: "100%", height: "70px" }}
+          justifyContent="center"
+        >
           <Search>
             <SearchIconWrapper>
               <MagnifyingGlass color="#709CE6" />

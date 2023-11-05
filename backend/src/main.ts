@@ -6,7 +6,7 @@ import { PrismaExceptionFilter } from './common/global-filters/prisma-exception.
 import { HttpExceptionFilter } from './common/global-filters/http-exception-filter';
 import { allLeftOverExceptionFilter } from './common/global-filters/all-leftover-exception-filter';
 import { SocketIOAdapter } from './common/io-adapter/socket-io-adapter';
-
+import * as cookieParser from 'cookie-parser';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const clientPort = parseInt(process.env.FRONTEND_PORT);
@@ -35,6 +35,7 @@ async function bootstrap() {
     credentials: true,
   });
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
+  app.use(cookieParser());
   await app.listen(process.env.BACKEND_PORT || 8100);
 }
 bootstrap();
