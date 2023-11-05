@@ -852,7 +852,7 @@ export class GatewayGateway {
     const { sender, recipient } = existingFriendRequest;
 
     const res = await this.prismaService.$transaction(async (tx) => {
-      tx.friendRequest.delete({
+      await tx.friendRequest.delete({
         where: {
           senderId_recipientId: {
             senderId: existingFriendRequest.senderId,
@@ -861,24 +861,19 @@ export class GatewayGateway {
         },
       });
 
-      const chatroom = tx.chatroom.findFirst({
+      const chatroom = await tx.chatroom.findFirst({
         where: {
           type: TYPE.DM,
-          users: {
-            some: {
-              userId: {
-                in: [
-                  existingFriendRequest.senderId,
-                  existingFriendRequest.recipientId,
-                ],
-              },
-            },
-          },
+          AND: [
+            { users: { some: { userId: existingFriendRequest.senderId } } },
+            { users: { some: { userId: existingFriendRequest.recipientId } } },
+          ],
         },
       });
+      console.log({ chatroom });
 
       if (!chatroom) {
-        tx.chatroom.create({
+        await tx.chatroom.create({
           data: {
             type: TYPE.DM,
             users: {
@@ -906,19 +901,20 @@ export class GatewayGateway {
           },
         });
       }
-      tx.friends.create({
+      await tx.friends.create({
         data: {
           user: { connect: { id: userId } },
           friend: { connect: { id: friendId } },
         },
       });
-      tx.friends.create({
+      await tx.friends.create({
         data: {
           user: { connect: { id: friendId } },
           friend: { connect: { id: userId } },
         },
       });
     });
+    console.log({ res });
 
     this.sendToSocket(client, friendId, FriendEvent.REQUEST_ACCEPTED, {
       message: `${client.nickname} accepted your friend request`,

@@ -93,6 +93,8 @@ export class ChatService {
       },
     });
 
+    console.log({ chatrooms });
+
     return chatrooms;
   }
 

@@ -83,7 +83,10 @@ export const chatApiSlice = apiSlice.injectEndpoints({
           console.log(error);
         }
         await cacheEntryRemoved;
+        socket.off(GeneralEvent.USER_LOGGED_IN);
+        socket.off(GeneralEvent.USER_LOGGED_OUT);
         socket.off(ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE);
+        socket.off(ChatEventPrivateRoom.NEW_CHATROOM);
       },
     }),
   }),
