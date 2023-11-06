@@ -42,14 +42,32 @@ export const ChatSlice = createSlice({
     ) => {
       state.privateChatroom = action.payload;
     },
-    setPrivateChatroomId: (state, action: PayloadAction<string>) => {
+    setPrivateChatroomId: (
+      state,
+      action: PayloadAction<string | undefined>
+    ) => {
       state.currentPrivateChatroomId = action.payload;
-      state.currentChatroom = state.privateChatroom?.find(
-        (chatroom) => chatroom.id === action.payload
-      ) as PrivateChatroomType;
+      if (action.payload !== undefined)
+        state.currentChatroom = state.privateChatroom?.find(
+          (chatroom) => chatroom.id === action.payload
+        ) as PrivateChatroomType;
     },
     addNewChatroom: (state, action: PayloadAction<PrivateChatroomType>) => {
       state.privateChatroom.unshift(action.payload);
+    },
+    deleteChatroom: (state, action: PayloadAction<string>) => {
+      const chatroomId = action.payload;
+      state.privateChatroom = state.privateChatroom.filter((chatroom) => {
+        chatroom.id !== chatroomId;
+      });
+      if (chatroomId === state.currentChatroom.id) {
+        state.currentChatroom = {
+          id: "",
+          messages: [],
+          users: [],
+        };
+        state.currentPrivateChatroomId = undefined;
+      }
     },
     updatePrivateChatroomList: (state, action: PayloadAction<MessageType>) => {
       const message = action.payload;
@@ -80,8 +98,6 @@ export const ChatSlice = createSlice({
           user.status = "ONLINE";
         }
       });
-      console.log(state.currentChatroom);
-      console.log(state.currentChatroom.users[0]);
 
       if (
         state.currentChatroom &&
@@ -98,6 +114,7 @@ export const {
   setPrivateChatroom,
   setPrivateChatroomId,
   updatePrivateChatroomList,
+  deleteChatroom,
   setOfflineUser,
   setOnlineUser,
   addNewChatroom,

@@ -1,5 +1,5 @@
 import { ThemeProvider } from "@emotion/react";
-import { CssBaseline, Snackbar } from "@mui/material";
+import { CssBaseline } from "@mui/material";
 import { useThemeContext } from "./theme/ThemeContextProvider";
 import Router from "./routes";
 import { useAppSelector } from "./redux/hooks";
@@ -11,6 +11,7 @@ const App = () => {
   const { open, severity, message } = useAppSelector(
     (state: RootState) => state.appNotify
   );
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />

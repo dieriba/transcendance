@@ -6,13 +6,14 @@ import {
   Button,
 } from "@mui/material";
 import DialogI, { DialogProps } from "./DialogI";
-import { BaseFriendType } from "../../models/FriendsSchema";
+import { BaseFriendTypeWithChatroom } from "../../services/type";
 
 interface CustomDialogProps extends DialogProps {
-  handleOnClick: (friend: BaseFriendType) => void;
+  handleOnClick: (friend: BaseFriendTypeWithChatroom) => void;
   content: string;
   title: string;
   friendId: string;
+  chatroomId?: string;
 }
 
 const CustomDialog = ({
@@ -22,6 +23,7 @@ const CustomDialog = ({
   title,
   open,
   friendId,
+  chatroomId,
 }: CustomDialogProps) => {
   return (
     <DialogI open={open} handleClose={handleClose}>
@@ -35,7 +37,7 @@ const CustomDialog = ({
         <Button onClick={handleClose}>No</Button>
         <Button
           onClick={() => {
-            handleOnClick({ friendId });
+            handleOnClick({ friendId, chatroomId });
             handleClose();
           }}
         >

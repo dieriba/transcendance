@@ -1,3 +1,5 @@
+import { BaseFriendType } from "../models/FriendsSchema";
+
 export type ServerError = {
   error: string;
   message: string;
@@ -17,4 +19,8 @@ export type SocketServerErrorResponse = {
 export type SocketServerSucessResponse = {
   message: string;
   data: unknown;
+};
+
+export type BaseFriendTypeWithChatroom = BaseFriendType & {
+  chatroomId?: string;
 };

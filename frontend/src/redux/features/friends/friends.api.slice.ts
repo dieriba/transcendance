@@ -1,5 +1,12 @@
-import { FriendEvent } from "./../../../../../shared/socket.event";
-import { FriendReceivedRequestType, FriendRequestType, FriendSentRequestType } from "../../../models/FriendRequestSchema";
+import {
+  FriendEvent,
+  GeneralEvent,
+} from "./../../../../../shared/socket.event";
+import {
+  FriendReceivedRequestType,
+  FriendRequestType,
+  FriendSentRequestType,
+} from "../../../models/FriendRequestSchema";
 import { BaseFriendType, FriendType } from "../../../models/FriendsSchema";
 import {
   BaseServerResponse,
@@ -13,13 +20,24 @@ import { connectSocket, socket } from "../../../utils/getSocket";
 export const friendsApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     sendFriendRequest: builder.mutation<
-      SocketServerSucessResponse | SocketServerErrorResponse,
+      SocketServerSucessResponse & { data: unknown },
       FriendRequestType
     >({
       queryFn: (data) => {
         connectSocket();
-        return new Promise(() => {
+        return new Promise((resolve) => {
           socket.emit(FriendEvent.REQUEST_SENT, data);
+
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
+            resolve({ error });
+          });
+
+          socket.on(
+            GeneralEvent.SUCCESS,
+            (data: SocketServerSucessResponse) => {
+              resolve({ data });
+            }
+          );
         });
       },
     }),
@@ -42,7 +60,7 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
       }),
     }),
     cancelRequest: builder.mutation<
-      SocketServerErrorResponse | SocketServerSucessResponse,
+      SocketServerSucessResponse | null,
       BaseFriendType
     >({
       queryFn: (data) => {
@@ -51,14 +69,21 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
         return new Promise((resolve) => {
           socket.emit(FriendEvent.CANCEL_REQUEST, data);
 
-          socket.on("exception", (error) => {
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
             resolve({ error });
           });
+
+          socket.on(
+            GeneralEvent.SUCCESS,
+            (data: SocketServerSucessResponse) => {
+              resolve({ data });
+            }
+          );
         });
       },
     }),
     acceptFriendRequest: builder.mutation<
-      SocketServerSucessResponse | SocketServerErrorResponse,
+      SocketServerSucessResponse | null,
       BaseFriendType
     >({
       queryFn: (data) => {
@@ -67,9 +92,16 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
         return new Promise((resolve) => {
           socket.emit(FriendEvent.REQUEST_ACCEPTED, data);
 
-          socket.on("exception", (error) => {
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
             resolve({ error });
           });
+
+          socket.on(
+            GeneralEvent.SUCCESS,
+            (data: SocketServerSucessResponse) => {
+              resolve({ data });
+            }
+          );
         });
       },
     }),
@@ -81,35 +113,43 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
         url: "/friends/get-all-friends",
       }),
     }),
-    deleteFriend: builder.mutation<
-      SocketServerSucessResponse | SocketServerErrorResponse,
-      BaseFriendType
-    >({
+    deleteFriend: builder.mutation<SocketServerSucessResponse, BaseFriendType>({
       queryFn: (data) => {
         connectSocket();
 
         return new Promise((resolve) => {
           socket.emit(FriendEvent.DELETE_FRIEND, data);
 
-          socket.on("exception", (error) => {
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
             resolve({ error });
           });
+
+          socket.on(
+            GeneralEvent.SUCCESS,
+            (data: SocketServerSucessResponse) => {
+              resolve({ data });
+            }
+          );
         });
       },
     }),
-    blockFriend: builder.mutation<
-      SocketServerSucessResponse | SocketServerErrorResponse,
-      BaseFriendType
-    >({
+    blockFriend: builder.mutation<SocketServerSucessResponse, BaseFriendType>({
       queryFn: (data) => {
         connectSocket();
 
         return new Promise((resolve) => {
           socket.emit(FriendEvent.BLOCK_FRIEND, data);
 
-          socket.on("exception", (error) => {
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
             resolve({ error });
           });
+
+          socket.on(
+            GeneralEvent.SUCCESS,
+            (data: SocketServerSucessResponse) => {
+              resolve({ data });
+            }
+          );
         });
       },
     }),
@@ -123,9 +163,16 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
         return new Promise((resolve) => {
           socket.emit(FriendEvent.UNBLOCK_FRIEND, data);
 
-          socket.on("exception", (error) => {
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
             resolve({ error });
           });
+
+          socket.on(
+            GeneralEvent.SUCCESS,
+            (data: SocketServerSucessResponse) => {
+              resolve({ data });
+            }
+          );
         });
       },
     }),

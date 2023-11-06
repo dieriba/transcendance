@@ -26,7 +26,7 @@ import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { useEffect } from "react";
 import { FriendEvent } from "../../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../services/type";
-import { socket } from "../../utils/getSocket";
+import { connectSocket, socket } from "../../utils/getSocket";
 import { FriendSentRequestType } from "../../models/FriendRequestSchema";
 import {
   addNewFriendRequestSent,
@@ -47,6 +47,7 @@ const FriendRequestSentTable = () => {
   useEffect(() => {
     if (data && data.data) {
       dispatch(setFriendRequestSent(data.data));
+      connectSocket();
       socket.on(
         FriendEvent.NEW_REQUEST_SENT,
         (

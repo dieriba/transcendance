@@ -34,7 +34,14 @@ const Sidebar = () => {
   };
   const [loggingOut] = useLogoutMutation();
   const logoutUser = async () => {
-    await loggingOut().unwrap();
+    try {
+      await loggingOut().unwrap();
+    } catch (error) {
+      dispatch(apiSlice.util.resetApiState());
+      dispatch({ type: LOGOUT });
+    // eslint-disable-next-line no-self-assign
+      window.location = window.location;
+    }
     dispatch(apiSlice.util.resetApiState());
     dispatch({ type: LOGOUT });
     // eslint-disable-next-line no-self-assign

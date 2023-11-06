@@ -25,7 +25,7 @@ import { Trash, Prohibit } from "phosphor-react";
 import { BaseFriendType, FriendType } from "../../models/FriendsSchema";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { useEffect } from "react";
-import { socket } from "../../utils/getSocket";
+import { connectSocket, socket } from "../../utils/getSocket";
 import { FriendEvent, GeneralEvent } from "../../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../services/type";
 import {
@@ -53,6 +53,7 @@ const FriendsTable = () => {
   useEffect(() => {
     if (data && data.data) {
       dispatch(setFriends(data.data));
+      connectSocket();
       socket.on(
         FriendEvent.NEW_FRIEND,
         (

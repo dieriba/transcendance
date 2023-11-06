@@ -94,7 +94,7 @@ export class GatewayGateway {
       `Size of socket map ${this.gatewayService.getSockets().size}`,
     );
     client.broadcast.emit(GeneralEvent.USER_LOGGED_IN, {
-      friendId: client.userId,
+      data: { friendId: client.userId },
     });
   }
 
@@ -108,7 +108,7 @@ export class GatewayGateway {
       `Size of socket map ${this.gatewayService.getSockets().size}`,
     );
     client.broadcast.emit(GeneralEvent.USER_LOGGED_OUT, {
-      friendId: client.userId,
+      data: { friendId: client.userId },
     });
   }
 
@@ -774,7 +774,7 @@ export class GatewayGateway {
     });
 
     client.emit(FriendEvent.NEW_REQUEST_SENT, {
-      message: 'Friend request succesfully sent',
+      message: '',
       data: {
         recipient: {
           nickname: friend.nickname,
@@ -782,6 +782,10 @@ export class GatewayGateway {
           profile: { avatar: friend.profile?.avatar },
         },
       },
+    });
+
+    client.emit(GeneralEvent.SUCCESS, {
+      message: 'Friend request succesfully sent',
     });
   }
 
@@ -832,6 +836,10 @@ export class GatewayGateway {
       data: {
         friendId,
       },
+    });
+
+    client.emit(GeneralEvent.SUCCESS, {
+      message: 'Friend request declined succesfully',
     });
   }
 
@@ -1021,7 +1029,7 @@ export class GatewayGateway {
       userId,
       friendId,
     );
-
+    let chatroomId: string;
     if (!existingFriendship)
       throw new WsBadRequestException(
         'You cannot delete user that are not your friend with',
@@ -1033,7 +1041,7 @@ export class GatewayGateway {
           userId_friendId: { userId, friendId },
         },
       });
-      tx.friends.delete({
+      await tx.friends.delete({
         where: {
           userId_friendId: { userId: friendId, friendId: userId },
         },
@@ -1048,6 +1056,7 @@ export class GatewayGateway {
           ],
         },
       });
+      chatroomId = chatroom.id;
       if (chatroom) {
         await tx.chatroom.update({
           where: { id: chatroom.id },
@@ -1060,8 +1069,12 @@ export class GatewayGateway {
       message: '',
       data: { friendId: client.userId },
     });
-
+    this.sendToSocket(client, friendId, ChatEventPrivateRoom.CLEAR_CHATROOM, {
+      message: `${client.nickname} deleted you as friend`,
+      data: { chatroomId },
+    });
     client.emit(FriendEvent.DELETE_FRIEND, { message: '', data: { friendId } });
+    client.emit(GeneralEvent.SUCCESS, { message: 'Friend Deleted!' });
   }
 
   @SubscribeMessage(FriendEvent.BLOCK_FRIEND)
@@ -1093,28 +1106,52 @@ export class GatewayGateway {
     );
 
     if (existingFriendShip) {
-      await this.prismaService.$transaction([
-        this.prismaService.user.update({
+      await this.prismaService.$transaction(async (tx) => {
+        await tx.user.update({
           where: { id: userId },
           data: { blockedUsers: { connect: { id: friendId } } },
-        }),
-        this.prismaService.friends.delete({
+        });
+        await tx.friends.delete({
           where: {
             userId_friendId: {
               userId,
               friendId,
             },
           },
-        }),
-        this.prismaService.friends.delete({
+        });
+        await tx.friends.delete({
           where: {
             userId_friendId: {
               userId: friendId,
               friendId: userId,
             },
           },
-        }),
-      ]);
+        });
+        const chatroom = await tx.chatroom.findFirst({
+          where: {
+            type: TYPE.DM,
+            AND: [
+              { users: { some: { userId } } },
+              { users: { some: { userId: friendId } } },
+            ],
+          },
+        });
+        if (chatroom) {
+          await tx.chatroom.update({
+            where: { id: chatroom.id },
+            data: { active: false },
+          });
+          this.sendToSocket(
+            client,
+            friendId,
+            ChatEventPrivateRoom.CLEAR_CHATROOM,
+            {
+              message: `${client.nickname} deleted you as friend`,
+              data: { chatroomId: chatroom.id },
+            },
+          );
+        }
+      });
       this.sendToSocket(client, friendId, FriendEvent.DELETE_FRIEND, {
         message: '',
         data: { friendId: client.userId },
@@ -1153,6 +1190,8 @@ export class GatewayGateway {
         data: { blockedUsers: { connect: { id: friendId } } },
       });
     }
+
+    client.emit(GeneralEvent.SUCCESS, { message: 'User blocked succesfully' });
   }
 
   @SubscribeMessage(FriendEvent.UNBLOCK_FRIEND)
@@ -1183,6 +1222,7 @@ export class GatewayGateway {
         data: { friendId },
       });
     }
+    client.emit(GeneralEvent.SUCCESS, { message: 'User unblocked!' });
   }
 
   private sendToSocket(

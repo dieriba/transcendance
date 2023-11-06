@@ -7,7 +7,10 @@ import {
   SocketServerSucessResponse,
 } from "../../../services/type";
 import { apiSlice } from "../../api/apiSlice";
-import { ChatEventPrivateRoom } from "./../../../../../shared/socket.event";
+import {
+  ChatEventPrivateRoom,
+  GeneralEvent,
+} from "./../../../../../shared/socket.event";
 
 import { connectSocket, socket } from "../../../utils/getSocket";
 
@@ -22,7 +25,7 @@ export const chatApiSlice = apiSlice.injectEndpoints({
         return new Promise((resolve) => {
           socket.emit(ChatEventPrivateRoom.SEND_PRIVATE_MESSAGE, data);
 
-          socket.on("exception", (error) => {
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
             resolve({ error });
           });
         });

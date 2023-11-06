@@ -3,6 +3,8 @@ const General = "general";
 export enum GeneralEvent {
   USER_LOGGED_OUT = `${General}.user.logged.out`,
   USER_LOGGED_IN = `${General}.user.logged.in`,
+  EXCEPTION = "exception",
+  SUCCESS = "success",
 }
 
 const friend = "friend";
@@ -30,6 +32,7 @@ export enum ChatEventPrivateRoom {
   NEW_CHATROOM = `${privateChatroom}.new.chatroom`,
   SEND_PRIVATE_MESSAGE = `${privateChatroom}.sent.private.message`,
   RECEIVE_PRIVATE_MESSAGE = `${privateChatroom}.receive.private.message`,
+  CLEAR_CHATROOM = `${privateChatroom}.clear.chatroom`,
 }
 
 const groupChatroom = "chatroom.group";

@@ -20,27 +20,37 @@ import { faker } from "@faker-js/faker";
 import { useState } from "react";
 
 import CustomDialog from "../Dialog/CustomDialog";
-import { BaseFriendType } from "../../models/FriendsSchema";
 import {
   useDeleteFriendMutation,
   useBlockFriendMutation,
 } from "../../redux/features/friends/friends.api.slice";
+import BadgeAvatar from "../Badge/BadgeAvatar";
+import { deleteChatroom } from "../../redux/features/chat/chatSlice";
+import { BaseFriendTypeWithChatroom } from "../../services/type";
 const ChatContactInfo = () => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
 
-  const handleDeleteFriend = async (data: BaseFriendType) => {
+  const handleDeleteFriend = async (data: BaseFriendTypeWithChatroom) => {
     try {
-      const res = await deleteFriend(data).unwrap();
+      const { friendId, chatroomId } = data;
+      console.log("ok");
+
+      const res = await deleteFriend({ friendId }).unwrap();
+      chatroomId && dispatch(deleteChatroom(chatroomId));
       console.log({ res });
     } catch (error) {
       console.log(error);
     }
   };
 
-  const handleBlockUser = async (friend: BaseFriendType) => {
+  const handleBlockUser = async (data: BaseFriendTypeWithChatroom) => {
     try {
-      const res = await blockUser(friend).unwrap();
+      const { friendId, chatroomId } = data;
+
+      const res = await blockUser({ friendId }).unwrap();
+
+      chatroomId && dispatch(deleteChatroom(chatroomId));
       console.log({ res });
     } catch (error) {
       console.log(error);
@@ -68,7 +78,7 @@ const ChatContactInfo = () => {
               theme.palette.mode === "light"
                 ? "#F8FAFF"
                 : theme.palette.background.default,
-                height:'70px'
+            height: "70px",
           }}
         >
           <Stack
@@ -96,7 +106,23 @@ const ChatContactInfo = () => {
           spacing={3}
         >
           <Stack alignItems="center" direction="row" spacing={2}>
-            <Avatar src={user.profile?.avatar} sx={{ height: 64, width: 64 }} />
+            {user.status === "ONLINE" ? (
+              <>
+                <BadgeAvatar>
+                  <Avatar
+                    src={user.profile?.avatar}
+                    sx={{ height: 64, width: 64 }}
+                  />
+                </BadgeAvatar>
+              </>
+            ) : (
+              <>
+                <Avatar
+                  src={user.profile?.avatar}
+                  sx={{ height: 64, width: 64 }}
+                />
+              </>
+            )}
             <Stack spacing={0.5} alignSelf="flex-start">
               <Typography variant="subtitle2" fontWeight={600}>
                 {user.nickname}
@@ -199,6 +225,7 @@ const ChatContactInfo = () => {
         title="Block User ?"
         content="Do you really want to block that user ?"
         friendId={user.id}
+        chatroomId={chatroomInfo.id}
       />
       <CustomDialog
         handleOnClick={handleDeleteFriend}
@@ -207,6 +234,7 @@ const ChatContactInfo = () => {
         title="Delete friend  ?"
         content="Do you really want to delete that friend ?"
         friendId={user.id}
+        chatroomId={chatroomInfo.id}
       />
     </Box>
   );

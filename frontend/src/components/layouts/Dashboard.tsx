@@ -1,11 +1,63 @@
 import { Navigate, Outlet } from "react-router-dom";
 import Sidebar from "../sidebar/Sidebar";
 import { Stack } from "@mui/material";
-import { useAppSelector } from "../../redux/hooks";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { PATH_APP } from "../../routes/paths";
+import { useEffect } from "react";
+import { connectSocket, socket } from "../../utils/getSocket";
+import { FriendEvent, GeneralEvent } from "../../../../shared/socket.event";
+import { SocketServerSucessResponse } from "../../services/type";
+import { FriendReceivedRequestType } from "../../models/FriendRequestSchema";
+import { showSnackBar } from "../../redux/features/app_notify/app.slice";
+import { BaseFriendType } from "../../models/FriendsSchema";
 
 const ProtectedDashboardLayout = () => {
   const isAuthenticated = useAppSelector((state) => state.user.access_token);
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      connectSocket();
+
+      socket.on(
+        FriendEvent.NEW_REQUEST_RECEIVED,
+        (
+          data: SocketServerSucessResponse & {
+            data: FriendReceivedRequestType;
+          }
+        ) => {
+          dispatch(
+            showSnackBar({ message: data.message, severity: "success" })
+          );
+        }
+      );
+
+      socket.on(
+        FriendEvent.NEW_REQUEST_ACCEPTED,
+        (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
+          dispatch(
+            showSnackBar({ message: data.message, severity: "success" })
+          );
+        }
+      );
+
+      socket.on(
+        FriendEvent.REQUEST_ACCEPTED_FROM_RECIPIENT,
+        (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
+          dispatch(
+            showSnackBar({ message: data.message, severity: "success" })
+          );
+        }
+      );
+
+      return () => {
+        socket.off(GeneralEvent.EXCEPTION);
+        socket.off(FriendEvent.REQUEST_ACCEPTED);
+        socket.off(FriendEvent.NEW_REQUEST_RECEIVED);
+      };
+    }
+  }, [isAuthenticated, dispatch]);
+
   return isAuthenticated ? (
     <>
       <Stack direction="row">
