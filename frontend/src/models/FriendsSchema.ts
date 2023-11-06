@@ -16,6 +16,7 @@ export const FriendSchema = z.object({
     .object({
       id: z.string().min(1),
       nickname: z.string().min(1),
+      status: z.enum(["ONLINE", "OFFLINE", "PLAYING"]),
     })
     .merge(ProfileSchema),
 });

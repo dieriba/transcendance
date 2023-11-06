@@ -51,6 +51,7 @@ export class ChatService {
           },
         },
         type: TYPE.DM,
+        active: true,
       },
       select: {
         id: true,

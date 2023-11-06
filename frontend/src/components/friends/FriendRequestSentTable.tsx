@@ -22,6 +22,18 @@ import {
 } from "../../redux/features/friends/friends.api.slice";
 import { X } from "phosphor-react";
 import { BaseFriendType } from "../../models/FriendsSchema";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+import { useEffect } from "react";
+import { FriendEvent } from "../../../../shared/socket.event";
+import { SocketServerSucessResponse } from "../../services/type";
+import { socket } from "../../utils/getSocket";
+import { FriendSentRequestType } from "../../models/FriendRequestSchema";
+import {
+  addNewFriendRequestSent,
+  deleteSentFriendRequest,
+  setFriendRequestSent,
+} from "../../redux/features/friends/friends.slice";
+import { RootState } from "../../redux/store";
 
 const FriendRequestSentTable = () => {
   const { data, isLoading, isError } = useGetAllSentFriendsRequestQuery(
@@ -30,9 +42,47 @@ const FriendRequestSentTable = () => {
   );
   const [cancelRequest] = useCancelRequestMutation();
 
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if (data && data.data) {
+      dispatch(setFriendRequestSent(data.data));
+      socket.on(
+        FriendEvent.NEW_REQUEST_SENT,
+        (
+          data: SocketServerSucessResponse & {
+            data: FriendSentRequestType;
+          }
+        ) => {
+          dispatch(addNewFriendRequestSent(data.data));
+        }
+      );
+
+      socket.on(
+        FriendEvent.CANCEL_REQUEST,
+        (
+          data: SocketServerSucessResponse & {
+            data: BaseFriendType;
+          }
+        ) => {
+          dispatch(deleteSentFriendRequest(data.data));
+        }
+      );
+
+      return () => {
+        socket.off(FriendEvent.NEW_REQUEST_SENT);
+        socket.off(FriendEvent.CANCEL_REQUEST);
+      };
+    }
+  }, [data, dispatch]);
+
+  const friendRequest = useAppSelector(
+    (state: RootState) => state.friends.sentFriendsRequest
+  );
+
   const handleCancelRequest = async (friend: BaseFriendType) => {
     try {
-      const res = await cancelRequest(friend).unwrap();
+      await cancelRequest(friend).unwrap();
     } catch (error) {
       console.log(error);
     }
@@ -51,7 +101,6 @@ const FriendRequestSentTable = () => {
       </Stack>
     );
   } else {
-    const friendRequest = data.data;
     return (
       <>
         <Stack spacing={2}>

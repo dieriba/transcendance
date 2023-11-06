@@ -4,8 +4,25 @@ import ChatConversation from "../../components/Chat/ChatConversation/ChatConvers
 import { useGetAllPrivateChatroomsQuery } from "../../redux/features/chat/chats.api.slice";
 import { useTheme } from "@mui/material/styles";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
-import { setPrivateChatroom } from "../../redux/features/chat/chatSlice";
+import {
+  addNewChatroom,
+  setOfflineUser,
+  setOnlineUser,
+  setPrivateChatroom,
+  updatePrivateChatroomList,
+} from "../../redux/features/chat/chatSlice";
 import { useEffect } from "react";
+import { connectSocket, socket } from "../../utils/getSocket";
+import {
+  GeneralEvent,
+  ChatEventPrivateRoom,
+} from "../../../../shared/socket.event";
+import {
+  PrivateChatroomType,
+  MessageType,
+} from "../../models/ChatContactSchema";
+import { SocketServerSucessResponse } from "../../services/type";
+import { BaseFriendType } from "../../models/FriendsSchema";
 
 const Chat = () => {
   const theme = useTheme();
@@ -21,7 +38,47 @@ const Chat = () => {
   useEffect(() => {
     if (data && data.data) {
       dispatch(setPrivateChatroom(data.data));
+      connectSocket();
+      if (!socket) return;
+
+      socket.on(
+        GeneralEvent.USER_LOGGED_OUT,
+        (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
+          dispatch(setOfflineUser(data.data));
+        }
+      );
+
+      socket.on(
+        GeneralEvent.USER_LOGGED_IN,
+        (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
+          dispatch(setOnlineUser(data.data));
+        }
+      );
+
+      socket.on(
+        ChatEventPrivateRoom.NEW_CHATROOM,
+        (data: SocketServerSucessResponse & { data: PrivateChatroomType }) => {
+          console.log({ res: data.data });
+
+          dispatch(addNewChatroom(data.data));
+        }
+      );
+
+      socket.on(
+        ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE,
+        (data: SocketServerSucessResponse & { data: MessageType }) => {
+          console.log(data.data);
+
+          dispatch(updatePrivateChatroomList(data.data));
+        }
+      );
     }
+    return () => {
+      socket.off(ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE);
+      socket.off(ChatEventPrivateRoom.NEW_CHATROOM);
+      socket.off(GeneralEvent.USER_LOGGED_IN);
+      socket.off(GeneralEvent.USER_LOGGED_OUT);
+    };
   }, [data, dispatch]);
   if (isLoading) {
     return (

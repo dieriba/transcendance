@@ -91,6 +91,7 @@ model Chatroom {
   updatedAt       DateTime         @updatedAt
   numberOfUser    Int              @default(0)
   invitedUser     String[]
+  active          Boolean          @default(true)
   users           ChatroomUser[]   @relation("chatroomUsers")
   blockedUsers    User[]           @relation("blockedUsers")
   messages        Message[]

@@ -26,7 +26,19 @@ import {
 import { BaseFriendType } from "../../models/FriendsSchema";
 import { X, Check, Prohibit } from "phosphor-react";
 import CustomDialog from "../Dialog/CustomDialog";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+import {
+  addNewFriendRequestReceived,
+  deleteReceivedFriendRequest,
+  setFriendRequestReceived,
+} from "../../redux/features/friends/friends.slice";
+import { FriendEvent } from "../../../../shared/socket.event";
+import { SocketServerSucessResponse } from "../../services/type";
+import { socket } from "../../utils/getSocket";
+import { FriendReceivedRequestType } from "../../models/FriendRequestSchema";
+import { showSnackBar } from "../../redux/features/app_notify/app.slice";
+import { RootState } from "../../redux/store";
 
 const FriendRequestReceived = () => {
   const { data, isLoading, isError } = useGetAllReceivedFriendsRequestQuery(
@@ -35,6 +47,56 @@ const FriendRequestReceived = () => {
       refetchOnMountOrArgChange: true,
     }
   );
+
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    if (data && data.data) {
+      dispatch(setFriendRequestReceived(data.data));
+
+      socket.on(
+        FriendEvent.ADD_NEW_REQUEST,
+        (
+          data: SocketServerSucessResponse & {
+            data: FriendReceivedRequestType;
+          }
+        ) => {
+          dispatch(addNewFriendRequestReceived(data.data));
+          dispatch(
+            showSnackBar({ message: data.message, severity: "success" })
+          );
+        }
+      );
+
+      socket.on(
+        FriendEvent.CANCEL_REQUEST,
+        (
+          data: SocketServerSucessResponse & {
+            data: BaseFriendType;
+          }
+        ) => {
+          dispatch(deleteReceivedFriendRequest(data.data));
+        }
+      );
+
+      socket.on(
+        FriendEvent.REQUEST_ACCEPTED_FROM_RECIPIENT,
+        (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
+          dispatch(deleteReceivedFriendRequest(data.data));
+        }
+      );
+
+      return () => {
+        socket.off(FriendEvent.ADD_NEW_REQUEST);
+        socket.off(FriendEvent.CANCEL_REQUEST);
+        socket.off(FriendEvent.REQUEST_ACCEPTED);
+      };
+    }
+  }, [data, dispatch]);
+
+  const friendRequest = useAppSelector(
+    (state: RootState) => state.friends.receivedFriendsRequest
+  );
+
   const [open, setOpen] = useState<{
     block: boolean;
     cancel: boolean;
@@ -46,7 +108,7 @@ const FriendRequestReceived = () => {
   const [acceptRequest] = useAcceptFriendRequestMutation();
   const cancelFriendRequest = async (friend: BaseFriendType) => {
     try {
-      const res = await cancelRequest(friend).unwrap();
+      await cancelRequest(friend).unwrap();
     } catch (error) {
       console.log(error);
     }
@@ -54,7 +116,7 @@ const FriendRequestReceived = () => {
 
   const handleBlockUser = async (friend: BaseFriendType) => {
     try {
-      const res = await blockUser(friend).unwrap();
+      await blockUser(friend).unwrap();
     } catch (error) {
       console.log(error);
     }
@@ -81,10 +143,6 @@ const FriendRequestReceived = () => {
       </Stack>
     );
   } else {
-    console.log({ data });
-
-    const friendRequest = data.data;
-
     return (
       <>
         <Stack spacing={2}>

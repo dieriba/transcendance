@@ -22,7 +22,18 @@ import {
   useGetAllFriendsQuery,
 } from "../../redux/features/friends/friends.api.slice";
 import { Trash, Prohibit } from "phosphor-react";
-import { BaseFriendType } from "../../models/FriendsSchema";
+import { BaseFriendType, FriendType } from "../../models/FriendsSchema";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+import { useEffect } from "react";
+import { socket } from "../../utils/getSocket";
+import { FriendEvent, GeneralEvent } from "../../../../shared/socket.event";
+import { SocketServerSucessResponse } from "../../services/type";
+import {
+  addFriend,
+  deleteFriend,
+  setFriends,
+} from "../../redux/features/friends/friends.slice";
+import { RootState } from "../../redux/store";
 
 export interface FriendProps {
   id: number;
@@ -33,13 +44,67 @@ export interface FriendProps {
 }
 
 const FriendsTable = () => {
-  const { data, isLoading, isError } = useGetAllFriendsQuery();
-  const [deleteFriend] = useDeleteFriendMutation();
+  const { data, isLoading, isError } = useGetAllFriendsQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
+
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if (data && data.data) {
+      dispatch(setFriends(data.data));
+      socket.on(
+        FriendEvent.NEW_FRIEND,
+        (
+          data: SocketServerSucessResponse & {
+            data: FriendType;
+          }
+        ) => {
+          dispatch(addFriend(data.data));
+        }
+      );
+
+      /*socket.on(
+        GeneralEvent.USER_LOGGED_IN,
+        (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
+
+        }
+      );
+
+      socket.on(
+        GeneralEvent.USER_LOGGED_OUT,
+        (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
+          
+        }
+      );*/
+
+      socket.on(
+        FriendEvent.DELETE_FRIEND,
+        (
+          data: SocketServerSucessResponse & {
+            data: BaseFriendType;
+          }
+        ) => {
+          dispatch(deleteFriend(data.data));
+        }
+      );
+
+      return () => {
+        socket.off(FriendEvent.NEW_FRIEND);
+        socket.off(FriendEvent.DELETE_FRIEND);
+        //socket.off(GeneralEvent.USER_LOGGED_IN);
+        //socket.off(GeneralEvent.USER_LOGGED_OUT);
+      };
+    }
+  }, [data, dispatch]);
+
+  const friends = useAppSelector((state: RootState) => state.friends.friends);
+  const [deleteFriendMutation] = useDeleteFriendMutation();
   const [blockUser] = useBlockFriendMutation();
 
   const handleDeleteFriend = async (data: BaseFriendType) => {
     try {
-      const res = await deleteFriend(data).unwrap();
+      const res = await deleteFriendMutation(data).unwrap();
       console.log({ res });
     } catch (error) {
       console.log(error);
@@ -48,8 +113,6 @@ const FriendsTable = () => {
 
   const handleBlock = async (data: BaseFriendType) => {
     try {
-      console.log("entered in");
-
       const res = await blockUser(data).unwrap();
       console.log({ res });
     } catch (error) {
@@ -69,8 +132,6 @@ const FriendsTable = () => {
       </Stack>
     );
   } else {
-    const friends = data.data;
-
     return (
       <>
         <Stack spacing={2}>

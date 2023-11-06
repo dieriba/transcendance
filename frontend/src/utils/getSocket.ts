@@ -1,10 +1,11 @@
 import { io, Socket } from "socket.io-client";
 import { RootState, store } from "../redux/store";
 
-let socket: Socket | undefined = undefined;
+let socket: Socket;
 
-export const getSocket = () => {
+const connectSocket = () => {
   const state: RootState = store.getState();
+
   if (!socket) {
     console.log("entered inside condtion");
     console.log("Before", { socket, token: state.user.access_token });
@@ -16,6 +17,6 @@ export const getSocket = () => {
       withCredentials: true,
     });
   } else console.log("not entered inside condtion");
-
-  return socket;
 };
+
+export { socket, connectSocket };

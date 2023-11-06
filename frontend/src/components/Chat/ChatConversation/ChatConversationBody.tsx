@@ -17,6 +17,7 @@ const ChatConversationBody = () => {
   const myId = useAppSelector((state) => state.user.user?.id);
 
   const messages = chatroomInfo.messages;
+  console.log({ chatroomInfo });
 
   return (
     <Box

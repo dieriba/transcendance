@@ -22,7 +22,16 @@ import {
 } from "../../redux/features/friends/friends.api.slice";
 import { X } from "phosphor-react";
 import { BaseFriendType } from "../../models/FriendsSchema";
-import { useState } from "react";
+import { useEffect } from "react";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+import { socket } from "../../utils/getSocket";
+import { FriendEvent } from "../../../../shared/socket.event";
+import { SocketServerSucessResponse } from "../../services/type";
+import {
+  removeBlockedUser,
+  setBlockedUser,
+} from "../../redux/features/friends/friends.slice";
+import { RootState } from "../../redux/store";
 
 const BlockedUserTable = () => {
   const { data, isLoading, isError } = useGetAllBlockedUserQuery(undefined, {
@@ -30,11 +39,34 @@ const BlockedUserTable = () => {
   });
   const [unblockFriend] = useUnblockFriendMutation();
 
-  const [nickname, setNickname] = useState("");
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if (data && data.data) {
+      dispatch(setBlockedUser(data.data));
+      socket.on(
+        FriendEvent.UNBLOCK_FRIEND,
+        (
+          data: SocketServerSucessResponse & {
+            data: BaseFriendType;
+          }
+        ) => {
+          dispatch(removeBlockedUser(data.data));
+        }
+      );
+      return () => {
+        socket.off(FriendEvent.UNBLOCK_FRIEND);
+      };
+    }
+  }, [data, dispatch]);
+
+  const blockedUser = useAppSelector(
+    (state: RootState) => state.friends.blockedUser
+  );
 
   const handleUnblockFriend = async (friend: BaseFriendType) => {
     try {
-      const res = await unblockFriend(friend).unwrap();
+      await unblockFriend(friend).unwrap();
     } catch (error) {
       console.log(error);
     }
@@ -53,7 +85,6 @@ const BlockedUserTable = () => {
       </Stack>
     );
   } else {
-    const blockedUser = data.data;
     return (
       <>
         <Stack spacing={2}>

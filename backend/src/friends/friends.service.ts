@@ -28,6 +28,11 @@ export class FriendsService {
           select: {
             nickname: true,
             id: true,
+            profile: {
+              select: {
+                avatar: true,
+              },
+            },
           },
         },
       },
@@ -52,7 +57,6 @@ export class FriendsService {
             id: true,
           },
         },
-        createdAt: true,
       },
     });
 
@@ -101,6 +105,7 @@ export class FriendsService {
                     avatar: true,
                   },
                 },
+                status: true,
               },
             },
           },
@@ -109,6 +114,7 @@ export class FriendsService {
     });
 
     if (!user) throw new UserNotFoundException();
+    console.log(user.friends);
 
     return user.friends;
   }

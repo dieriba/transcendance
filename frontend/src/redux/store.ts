@@ -10,6 +10,7 @@ import crashMiddleware from "./middleware/crashMiddleware";
 import AppNotifySlice from "./features/app_notify/app.slice";
 import { ChatSlice } from "./features/chat/chatSlice";
 import { LOGOUT } from "./type";
+import { FriendsSlice } from "./features/friends/friends.slice";
 
 const persistConfig = {
   keyPrefix: "redux-",
@@ -22,6 +23,7 @@ const reducers = combineReducers({
   user: AuthSlice.reducer,
   appNotify: AppNotifySlice.reducer,
   chat: ChatSlice.reducer,
+  friends: FriendsSlice.reducer,
   [apiSlice.reducerPath]: apiSlice.reducer,
 });
 
