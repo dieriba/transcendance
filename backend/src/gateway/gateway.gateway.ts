@@ -93,6 +93,10 @@ export class GatewayGateway {
     this.logger.log(
       `Size of socket map ${this.gatewayService.getSockets().size}`,
     );
+    client.join(client.userId);
+    const rooms = this.server.of('/').adapter.rooms;
+    console.log({ rooms });
+
     client.broadcast.emit(GeneralEvent.USER_LOGGED_IN, {
       data: { friendId: client.userId },
     });
@@ -107,9 +111,13 @@ export class GatewayGateway {
     this.logger.log(
       `Size of socket map ${this.gatewayService.getSockets().size}`,
     );
-    client.broadcast.emit(GeneralEvent.USER_LOGGED_OUT, {
-      data: { friendId: client.userId },
-    });
+    const rooms = this.server.sockets.adapter.rooms.get(client.userId);
+
+    if (!rooms) {
+      client.broadcast.emit(GeneralEvent.USER_LOGGED_OUT, {
+        data: { friendId: client.userId },
+      });
+    }
   }
 
   /*@SubscribeMessage(ChatEvent.CREATE_GROUP_CHATROOM)
@@ -596,16 +604,18 @@ export class GatewayGateway {
       },
     );
 
-    client.emit(ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE, {
-      message: '',
-      data: {
-        id: res.id,
-        chatroomId,
-        userId,
-        content,
-        messageTypes,
-      },
-    });
+    this.server
+      .to(client.userId)
+      .emit(ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE, {
+        message: '',
+        data: {
+          id: res.id,
+          chatroomId,
+          userId,
+          content,
+          messageTypes,
+        },
+      });
   }
 
   private async isDieribaOrAdmin(
@@ -773,7 +783,7 @@ export class GatewayGateway {
       },
     });
 
-    client.emit(FriendEvent.NEW_REQUEST_SENT, {
+    this.server.to(client.userId).emit(FriendEvent.NEW_REQUEST_SENT, {
       message: '',
       data: {
         recipient: {
@@ -784,7 +794,7 @@ export class GatewayGateway {
       },
     });
 
-    client.emit(GeneralEvent.SUCCESS, {
+    this.server.to(client.userId).emit(GeneralEvent.SUCCESS, {
       message: 'Friend request succesfully sent',
     });
   }
@@ -831,14 +841,14 @@ export class GatewayGateway {
       data: { friendId: client.userId },
     });
 
-    client.emit(FriendEvent.CANCEL_REQUEST, {
+    this.server.to(client.userId).emit(FriendEvent.CANCEL_REQUEST, {
       message: 'Friend request declined succesfully',
       data: {
         friendId,
       },
     });
 
-    client.emit(GeneralEvent.SUCCESS, {
+    this.server.to(client.userId).emit(GeneralEvent.SUCCESS, {
       message: 'Friend request declined succesfully',
     });
   }
@@ -987,7 +997,7 @@ export class GatewayGateway {
       data: { friendId: client.userId },
     });
 
-    client.emit(FriendEvent.CANCEL_REQUEST, {
+    this.server.to(client.userId).emit(FriendEvent.CANCEL_REQUEST, {
       message: '',
       data: { friendId },
     });
@@ -997,12 +1007,14 @@ export class GatewayGateway {
       data: { friendId: client.userId },
     });
 
-    client.emit(FriendEvent.REQUEST_ACCEPTED_FROM_RECIPIENT, {
-      message: `You are now friend with ${
-        friendId === sender.id ? sender.nickname : recipient.nickname
-      }`,
-      data: { friendId },
-    });
+    this.server
+      .to(client.userId)
+      .emit(FriendEvent.REQUEST_ACCEPTED_FROM_RECIPIENT, {
+        message: `You are now friend with ${
+          friendId === sender.id ? sender.nickname : recipient.nickname
+        }`,
+        data: { friendId },
+      });
 
     this.sendToSocket(client, friendId, FriendEvent.NEW_FRIEND, {
       message: '',
@@ -1023,7 +1035,7 @@ export class GatewayGateway {
       },
     });
 
-    client.emit(FriendEvent.NEW_FRIEND, {
+    this.server.to(client.userId).emit(FriendEvent.NEW_FRIEND, {
       message: '',
       data: {
         friend: {
@@ -1042,7 +1054,7 @@ export class GatewayGateway {
       },
     });
 
-    client.emit(ChatEventPrivateRoom.NEW_CHATROOM, {
+    this.server.to(client.userId).emit(ChatEventPrivateRoom.NEW_CHATROOM, {
       message: '',
       data: chatroom,
     });
@@ -1109,8 +1121,12 @@ export class GatewayGateway {
       message: `${client.nickname} deleted you as friend`,
       data: { chatroomId },
     });
-    client.emit(FriendEvent.DELETE_FRIEND, { message: '', data: { friendId } });
-    client.emit(GeneralEvent.SUCCESS, { message: 'Friend Deleted!' });
+    this.server
+      .to(client.userId)
+      .emit(FriendEvent.DELETE_FRIEND, { message: '', data: { friendId } });
+    this.server
+      .to(client.userId)
+      .emit(GeneralEvent.SUCCESS, { message: 'Friend Deleted!' });
   }
 
   @SubscribeMessage(FriendEvent.BLOCK_FRIEND)
@@ -1193,7 +1209,7 @@ export class GatewayGateway {
         data: { friendId: client.userId },
       });
 
-      client.emit(FriendEvent.DELETE_FRIEND, {
+      this.server.to(client.userId).emit(FriendEvent.DELETE_FRIEND, {
         message: '',
         data: { friendId },
       });
@@ -1212,7 +1228,7 @@ export class GatewayGateway {
           },
         }),
       ]);
-      client.emit(FriendEvent.CANCEL_REQUEST, {
+      this.server.to(client.userId).emit(FriendEvent.CANCEL_REQUEST, {
         message: '',
         data: { friendId },
       });
@@ -1227,7 +1243,9 @@ export class GatewayGateway {
       });
     }
 
-    client.emit(GeneralEvent.SUCCESS, { message: 'User blocked succesfully' });
+    this.server
+      .to(client.userId)
+      .emit(GeneralEvent.SUCCESS, { message: 'User blocked succesfully' });
   }
 
   @SubscribeMessage(FriendEvent.UNBLOCK_FRIEND)
@@ -1253,12 +1271,14 @@ export class GatewayGateway {
         data: { blockedUsers: { disconnect: { id: friendId } } },
       });
 
-      client.emit(FriendEvent.UNBLOCK_FRIEND, {
+      this.server.to(client.userId).emit(FriendEvent.UNBLOCK_FRIEND, {
         message: '',
         data: { friendId },
       });
     }
-    client.emit(GeneralEvent.SUCCESS, { message: 'User unblocked!' });
+    this.server
+      .to(client.userId)
+      .emit(GeneralEvent.SUCCESS, { message: 'User unblocked!' });
   }
 
   private sendToSocket(
@@ -1267,13 +1287,7 @@ export class GatewayGateway {
     emit: string,
     object: SocketServerResponse,
   ) {
-    const socket = this.gatewayService.getUserSocket(userId);
-
-    if (!socket) return;
-
-    this.logger.log('Socket id is: ', socket ? socket.id : 'undefined');
-
-    client.to(socket.id).emit(emit, object);
+    this.server.to(userId).emit(emit, object);
   }
   /*------------------------------------------------------------------------------------------------------ */
 }

@@ -3,8 +3,8 @@ const General = "general";
 export enum GeneralEvent {
   USER_LOGGED_OUT = `${General}.user.logged.out`,
   USER_LOGGED_IN = `${General}.user.logged.in`,
-  EXCEPTION = "exception",
-  SUCCESS = "success",
+  EXCEPTION = `${General}.exception`,
+  SUCCESS = `${General}.success`,
 }
 
 const friend = "friend";
