@@ -12,7 +12,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { ROLE, TYPE, MESSAGE_TYPES } from '@prisma/client';
+import { ROLE, TYPE, MESSAGE_TYPES, Chatroom } from '@prisma/client';
 import {
   ChatEventPrivateRoom,
   FriendEvent,
@@ -868,8 +868,8 @@ export class GatewayGateway {
 
     /*MAYBE CHECK IF USER HAS BLOCKED ME*/
 
+    let chatroom: Partial<Chatroom>;
     const { sender, recipient } = existingFriendRequest;
-
     const res = await this.prismaService.$transaction(async (tx) => {
       await tx.friendRequest.delete({
         where: {
@@ -880,7 +880,7 @@ export class GatewayGateway {
         },
       });
 
-      const chatroom = await tx.chatroom.findFirst({
+      chatroom = await tx.chatroom.findFirst({
         where: {
           type: TYPE.DM,
           AND: [
@@ -888,8 +888,36 @@ export class GatewayGateway {
             { users: { some: { userId: existingFriendRequest.recipientId } } },
           ],
         },
+        select: {
+          id: true,
+          users: {
+            where: {
+              userId: {
+                not: userId,
+              },
+            },
+            select: {
+              user: {
+                select: {
+                  id: true,
+                  nickname: true,
+                  status: true,
+                  profile: {
+                    select: {
+                      avatar: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          messages: {
+            orderBy: {
+              createdAt: 'asc',
+            },
+          },
+        },
       });
-      console.log({ chatroom });
 
       if (chatroom) {
         await tx.chatroom.update({
@@ -900,8 +928,9 @@ export class GatewayGateway {
             active: true,
           },
         });
+        chatroom.active = true;
       } else {
-        await tx.chatroom.create({
+        chatroom = await tx.chatroom.create({
           data: {
             type: TYPE.DM,
             users: {
@@ -911,19 +940,29 @@ export class GatewayGateway {
           select: {
             id: true,
             users: {
+              where: {
+                userId: {
+                  not: userId,
+                },
+              },
               select: {
                 user: {
                   select: {
                     id: true,
                     nickname: true,
                     status: true,
+                    profile: {
+                      select: {
+                        avatar: true,
+                      },
+                    },
                   },
                 },
               },
             },
             messages: {
               orderBy: {
-                createdAt: 'desc',
+                createdAt: 'asc',
               },
             },
           },
@@ -942,7 +981,6 @@ export class GatewayGateway {
         },
       });
     });
-    console.log({ res });
 
     this.sendToSocket(client, friendId, FriendEvent.CANCEL_REQUEST, {
       message: '',
@@ -1004,16 +1042,14 @@ export class GatewayGateway {
       },
     });
 
-    console.log(res);
-
     client.emit(ChatEventPrivateRoom.NEW_CHATROOM, {
       message: '',
-      data: res[1],
+      data: chatroom,
     });
 
     this.sendToSocket(client, friendId, ChatEventPrivateRoom.NEW_CHATROOM, {
       message: '',
-      data: res[1],
+      data: chatroom,
     });
   }
 

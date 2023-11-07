@@ -54,10 +54,7 @@ const GroupContact = () => {
             spacing={1}
           >
             <Stack p={2}>
-              <Typography variant="subtitle2" sx={{ color: "#676767" }}>
-                Pinned
-              </Typography>
-              {ChatList.filter((chat) => chat.pinned).map((chat) => {
+              {/*ChatList.filter((chat) => !chat.pinned).map((chat) => {
                 return (
                   <ChatBox
                     online={chat.online}
@@ -68,22 +65,7 @@ const GroupContact = () => {
                     key={chat.id}
                   />
                 );
-              })}
-              <Typography variant="subtitle2" sx={{ color: "#676767" }}>
-                All Chats
-              </Typography>
-              {ChatList.filter((chat) => !chat.pinned).map((chat) => {
-                return (
-                  <ChatBox
-                    online={chat.online}
-                    username={chat.name}
-                    msg={chat.msg}
-                    time={chat.time}
-                    unread={chat.unread}
-                    key={chat.id}
-                  />
-                );
-              })}
+              })*/}
             </Stack>
           </Stack>
         </Stack>

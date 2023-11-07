@@ -59,8 +59,6 @@ const Chat = () => {
       socket.on(
         ChatEventPrivateRoom.NEW_CHATROOM,
         (data: SocketServerSucessResponse & { data: PrivateChatroomType }) => {
-          console.log({ res: data.data });
-
           dispatch(addNewChatroom(data.data));
         }
       );
@@ -68,8 +66,6 @@ const Chat = () => {
       socket.on(
         ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE,
         (data: SocketServerSucessResponse & { data: MessageType }) => {
-          console.log(data.data);
-
           dispatch(updatePrivateChatroomList(data.data));
         }
       );
