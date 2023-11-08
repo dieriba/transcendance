@@ -3,38 +3,40 @@ import { PaperPlaneTilt } from "phosphor-react";
 import { useTheme } from "@mui/material/styles";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { Theme } from "emoji-picker-react";
-import ChatInput from "./ChatInput";
 import { useBoolean } from "usehooks-ts";
-import {
-  MessageFormSchema,
-  MessageFormType,
-} from "../../../models/ChatContactSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useSendPrivateMessageMutation } from "../../../redux/features/chat/chats.api.slice";
 import { useAppSelector } from "../../../redux/hooks";
 import { RootState } from "../../../redux/store";
+import {
+  MessageGroupSchema,
+  MessageGroupType,
+} from "../../../models/groupChat";
+import ChatInput from "../ChatConversation/ChatInput";
+import { useSendGroupMessageMutation } from "../../../redux/features/groups/group.api.slice";
 
-const ChatConversationFooter = () => {
+const GroupConversationFooter = () => {
   const theme = useTheme();
 
-  const methods = useForm<MessageFormType>({
-    resolver: zodResolver(MessageFormSchema),
+  const methods = useForm<MessageGroupType>({
+    resolver: zodResolver(MessageGroupSchema),
   });
 
-  const chatroom = useAppSelector((state: RootState) => state.chat.currentChatroom);
-  const [sendMessage] = useSendPrivateMessageMutation();
+  const chatroom = useAppSelector(
+    (state: RootState) => state.groups.currentChatroom
+  );
+  const [sendMessage] = useSendGroupMessageMutation();
 
   const { control, handleSubmit, reset, setValue, getValues } = methods;
-  const onSubmit = async (data: MessageFormType) => {
+  const onSubmit = async (data: MessageGroupType) => {
     try {
-      reset({ content: "" });
+      /*reset({ content: "" });
       await sendMessage({
         ...data,
         chatroomId: chatroom?.id,
         friendId: chatroom?.users[0].user.id,
         messageTypes: "TEXT",
-      }).unwrap();
+      }).unwrap();*/
     } catch (error) {
       console.log(error);
     }
@@ -106,4 +108,4 @@ const ChatConversationFooter = () => {
   );
 };
 
-export default ChatConversationFooter;
+export default GroupConversationFooter;

@@ -11,6 +11,7 @@ import AppNotifySlice from "./features/app_notify/app.slice";
 import { ChatSlice } from "./features/chat/chatSlice";
 import { LOGOUT } from "./type";
 import { FriendsSlice } from "./features/friends/friends.slice";
+import { GroupSlice } from "./features/groups/groupSlice";
 
 const persistConfig = {
   keyPrefix: "redux-",
@@ -24,6 +25,7 @@ const reducers = combineReducers({
   appNotify: AppNotifySlice.reducer,
   chat: ChatSlice.reducer,
   friends: FriendsSlice.reducer,
+  groups: GroupSlice.reducer,
   [apiSlice.reducerPath]: apiSlice.reducer,
 });
 

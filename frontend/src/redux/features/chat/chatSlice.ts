@@ -6,36 +6,24 @@ import {
 import { BaseFriendType } from "../../../models/FriendsSchema";
 
 export interface ChatState {
-  isEstablishingConnection: boolean;
-  isConnected: boolean;
+
   privateChatroom: PrivateChatroomType[];
   currentPrivateChatroomId: string | undefined;
-  currentChatroom: PrivateChatroomType;
+  currentChatroom: PrivateChatroomType | undefined;
 }
 
 const initialState: ChatState = {
-  isEstablishingConnection: false,
-  isConnected: false,
+
   privateChatroom: [],
   currentPrivateChatroomId: undefined,
-  currentChatroom: {
-    id: "",
-    messages: [],
-    users: [],
-  },
+  currentChatroom: undefined,
 };
 
 export const ChatSlice = createSlice({
   name: "chat",
   initialState,
   reducers: {
-    startConnecting: (state) => {
-      state.isEstablishingConnection = true;
-    },
-    connectionEstablished: (state) => {
-      state.isConnected = true;
-      state.isEstablishingConnection = true;
-    },
+
     setPrivateChatroom: (
       state,
       action: PayloadAction<PrivateChatroomType[]>
@@ -60,12 +48,8 @@ export const ChatSlice = createSlice({
       state.privateChatroom = state.privateChatroom.filter((chatroom) => {
         chatroom.id !== chatroomId;
       });
-      if (chatroomId === state.currentChatroom.id) {
-        state.currentChatroom = {
-          id: "",
-          messages: [],
-          users: [],
-        };
+      if (chatroomId === state.currentChatroom?.id) {
+        state.currentChatroom = undefined;
         state.currentPrivateChatroomId = undefined;
       }
     },
@@ -81,28 +65,25 @@ export const ChatSlice = createSlice({
       state.privateChatroom.unshift(removedObject);
     },
     setOfflineUser: (state, action: PayloadAction<BaseFriendType>) => {
-      state.privateChatroom?.map((chatroom) => {
+      state.privateChatroom = state.privateChatroom?.map((chatroom) => {
         const user = chatroom.users[0].user;
-        if (user.id === action.payload.friendId) {
-          user.status = "OFFLINE";
-        }
+        return user.id === action.payload.friendId
+          ? { status: (user.status = "OFFLINE"), ...chatroom }
+          : chatroom;
       });
       if (action.payload.friendId === state.currentChatroom?.users[0].user.id) {
         state.currentChatroom.users[0].user.status = "OFFLINE";
       }
     },
     setOnlineUser: (state, action: PayloadAction<BaseFriendType>) => {
-      state.privateChatroom?.map((chatroom) => {
+      state.privateChatroom = state.privateChatroom?.map((chatroom) => {
         const user = chatroom.users[0].user;
-        if (user.id === action.payload.friendId) {
-          user.status = "ONLINE";
-        }
+        return user.id === action.payload.friendId
+          ? { status: (user.status = "ONLINE"), ...chatroom }
+          : chatroom;
       });
 
-      if (
-        state.currentChatroom &&
-        action.payload.friendId === state.currentChatroom.users[0]?.user.id
-      ) {
+      if (action.payload.friendId === state.currentChatroom?.users[0].user.id) {
         state.currentChatroom.users[0].user.status = "ONLINE";
       }
     },

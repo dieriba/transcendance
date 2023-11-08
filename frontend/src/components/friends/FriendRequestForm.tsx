@@ -49,14 +49,15 @@ const FriendRequestForm = ({ open, handleClose }: CreateGroupProps) => {
 
   const onSubmit = async (data: FriendRequestType) => {
     try {
-      console.log('ok');
-      
       const res = await sendFriendRequest(data).unwrap();
+      console.log("entered");
 
       setSeverity("success");
       setMessage(res.message);
       setOpenSnack(true);
     } catch (error) {
+      console.log({ error });
+
       setSeverity("error");
       setMessage((error as SocketServerErrorResponse).message);
       setOpenSnack(true);

@@ -2,9 +2,11 @@ import { Box, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { ChatConversationBodyProps } from "../ChatConversation/ChatConversationBody";
 
-interface TextMessageProps extends ChatConversationBodyProps {}
+interface TextMessageProps extends ChatConversationBodyProps {
+  nickname?: string;
+}
 
-const TextMessage = ({ incoming, content }: TextMessageProps) => {
+const TextMessage = ({ incoming, content, nickname }: TextMessageProps) => {
   const theme = useTheme();
 
   return (
@@ -19,6 +21,7 @@ const TextMessage = ({ incoming, content }: TextMessageProps) => {
           width: "max-content",
         }}
       >
+        {nickname && <Typography variant="caption">{nickname}</Typography>}
         <Typography
           variant="body2"
           color={incoming ? theme.palette.text.primary : "#fff"}

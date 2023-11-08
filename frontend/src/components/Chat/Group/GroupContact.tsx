@@ -1,15 +1,18 @@
-import { Typography, Stack, Box, Divider, Button } from "@mui/material";
-import { ChatList } from "../../../data/data";
-import ChatBox from "../ChatBox";
+import { Stack, Box, Divider, Button } from "@mui/material";
 import { MagnifyingGlass, Plus } from "phosphor-react";
 import { Search, SearchIconWrapper, StyledInputBase } from "../../search";
 import { useTheme } from "@mui/material/styles";
 import { useState } from "react";
 import CreateGroup from "./CreateGroup";
+import { useAppSelector } from "../../../redux/hooks";
+import GroupBox from "../GroupBox";
 
 const GroupContact = () => {
   const theme = useTheme();
   const [openCreate, setOpenCreate] = useState(false);
+  const groups = useAppSelector((state) => state.groups.groupChatroom);
+  const myId = useAppSelector((state) => state.user.user?.id);
+  console.log({ groups });
 
   return (
     <>
@@ -54,18 +57,26 @@ const GroupContact = () => {
             spacing={1}
           >
             <Stack p={2}>
-              {/*ChatList.filter((chat) => !chat.pinned).map((chat) => {
+              {groups.map(({ id, chatroomName, type, messages }) => {
                 return (
-                  <ChatBox
-                    online={chat.online}
-                    username={chat.name}
-                    msg={chat.msg}
-                    time={chat.time}
-                    unread={chat.unread}
-                    key={chat.id}
-                  />
+                  <>
+                    <GroupBox
+                      chatroomId={id}
+                      chatroomName={chatroomName}
+                      type={type}
+                      unread={0}
+                      time="11"
+                      msg={
+                        messages.length === 0
+                          ? "Start Conversation"
+                          : messages[0].user.id === myId
+                          ? `You: ${messages[0].content}`
+                          : messages[0].content
+                      }
+                    />
+                  </>
                 );
-              })*/}
+              })}
             </Stack>
           </Stack>
         </Stack>

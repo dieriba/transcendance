@@ -6,14 +6,14 @@ import DocumentMessage from "../ChatBodyComponents/DocumentMessage";
 import StackChatCompo from "../ChatBodyComponents/StackChatCompo";
 import { useAppSelector } from "../../../redux/hooks";
 
-export interface ChatConversationBodyProps {
+export interface GroupConversationBodyProps {
   id: string;
   incoming: boolean;
   content: string;
 }
 
-const ChatConversationBody = () => {
-  const chatroomInfo = useAppSelector((state) => state.chat.currentChatroom);
+const GroupConversationBody = () => {
+  const chatroomInfo = useAppSelector((state) => state.groups.currentChatroom);
   const myId = useAppSelector((state) => state.user.user?.id);
 
   const messages = chatroomInfo?.messages;
@@ -26,8 +26,8 @@ const ChatConversationBody = () => {
       p={3}
     >
       <Stack>
-        {messages?.map(({ id, messageTypes, userId, content }) => {
-          const incoming = myId === userId ? false : true;
+        {messages?.map(({ id, messageTypes, user, content }) => {
+          const incoming = myId === user.id ? false : true;
           switch (messageTypes) {
             case "IMAGE":
               return (
@@ -79,6 +79,7 @@ const ChatConversationBody = () => {
                   key={id}
                   children={
                     <TextMessage
+                      nickname={user.nickname}
                       id={id}
                       content={content}
                       incoming={myId === id}
@@ -94,4 +95,4 @@ const ChatConversationBody = () => {
   );
 };
 
-export default ChatConversationBody;
+export default GroupConversationBody;

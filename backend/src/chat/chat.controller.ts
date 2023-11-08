@@ -37,6 +37,11 @@ export class ChatController {
     return await this.chatService.getUserChatroom(userId);
   }
 
+  @Get('get-all-group-chatroom')
+  async getUserGroupChatroom(@GetUser('userId') userId: string) {
+    return await this.chatService.getUserGroupChatroom(userId);
+  }
+
   @Get('get-all-chatroom-message')
   async getChatroomMessage(
     @GetUser('userId') userId: string,

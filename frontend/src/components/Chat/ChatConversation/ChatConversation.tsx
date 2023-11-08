@@ -5,11 +5,12 @@ import ChatConversationFooter from "./ChatConversationFooter";
 import { useTheme } from "@mui/material/styles";
 import { useAppSelector } from "../../../redux/hooks";
 import ChatComp from "./ChatComp";
+import { RootState } from "../../../redux/store";
 
 const ChatConversation = () => {
   const theme = useTheme();
 
-  const { open } = useAppSelector((state) => state.sidebar);
+  const { open } = useAppSelector((state: RootState) => state.sidebar);
 
   return (
     <>

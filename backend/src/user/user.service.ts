@@ -171,7 +171,7 @@ export class UserService {
     return foundUsers.map((user) => user.nickname);
   }
 
-  async getExistingUserNonBlocked(
+  async getExistingUserFriend(
     userId: string,
     usersId: string[],
     select: UserInfo,
@@ -181,10 +181,7 @@ export class UserService {
         id: {
           in: usersId,
         },
-        AND: [
-          { blockedBy: { none: { id: userId } } },
-          { blockedUsers: { none: { id: userId } } },
-        ],
+        AND: [{ friends: { some: { friendId: userId } } }],
       },
       select,
     });

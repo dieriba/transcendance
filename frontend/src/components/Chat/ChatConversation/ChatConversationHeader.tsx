@@ -11,12 +11,15 @@ import { useTheme } from "@mui/material/styles";
 import StyledBadge from "../../Badge/StyledBadge";
 import { toggle } from "../../../redux/features/sidebar.slices";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
+import { RootState } from "../../../redux/store";
 
 const ChatConversationHeader = () => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
 
-  const chatroomInfo = useAppSelector((state) => state.chat.currentChatroom);
+  const chatroomInfo = useAppSelector(
+    (state: RootState) => state.chat.currentChatroom
+  );
 
   const {
     user: { nickname, status, profile },

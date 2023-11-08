@@ -3,7 +3,7 @@ const General = "general";
 export enum GeneralEvent {
   USER_LOGGED_OUT = `${General}.user.logged.out`,
   USER_LOGGED_IN = `${General}.user.logged.in`,
-  EXCEPTION = `${General}.exception`,
+  EXCEPTION = "exception",
   SUCCESS = `${General}.success`,
 }
 
@@ -37,9 +37,12 @@ export enum ChatEventPrivateRoom {
 
 const groupChatroom = "chatroom.group";
 
-export enum ChatEvent {
-  //CREATE_GROUP_CHATROOM = `${groupChatroom}.create`,
-
+export enum ChatEventGroup {
+  CREATE_GROUP_CHATROOM = `${groupChatroom}.create`,
+  SEND_GROUP_MESSAGE = `${groupChatroom}.send.message`,
+  NEW_CHATROOM = `${groupChatroom}.new.chatroom`,
+  RECEIVE_GROUP_MESSAGE = `${groupChatroom}.receive.group.message`,
+  CLEAR_CHATROOM = `${groupChatroom}.clear.chatroom`,
   ADD_USER = "chatroom.add.user",
   SET_DIERIBA = "chatroom.set.dieriba",
   DELETE_USER = "chatroom.delete.user",

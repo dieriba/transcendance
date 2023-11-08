@@ -10,6 +10,10 @@ import { SocketServerSucessResponse } from "../../services/type";
 import { FriendReceivedRequestType } from "../../models/FriendRequestSchema";
 import { showSnackBar } from "../../redux/features/app_notify/app.slice";
 import { BaseFriendType } from "../../models/FriendsSchema";
+import {
+  setOfflineUser,
+  setOnlineUser,
+} from "../../redux/features/chat/chatSlice";
 
 const ProtectedDashboardLayout = () => {
   const isAuthenticated = useAppSelector((state) => state.user.access_token);
@@ -42,6 +46,20 @@ const ProtectedDashboardLayout = () => {
       );
 
       socket.on(
+        GeneralEvent.USER_LOGGED_OUT,
+        (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
+          dispatch(setOfflineUser(data.data));
+        }
+      );
+
+      socket.on(
+        GeneralEvent.USER_LOGGED_IN,
+        (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
+          dispatch(setOnlineUser(data.data));
+        }
+      );
+
+      socket.on(
         FriendEvent.REQUEST_ACCEPTED_FROM_RECIPIENT,
         (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
           dispatch(
@@ -54,6 +72,8 @@ const ProtectedDashboardLayout = () => {
         socket.off(GeneralEvent.EXCEPTION);
         socket.off(FriendEvent.REQUEST_ACCEPTED);
         socket.off(FriendEvent.NEW_REQUEST_RECEIVED);
+        socket.off(GeneralEvent.USER_LOGGED_IN);
+        socket.off(GeneralEvent.USER_LOGGED_OUT);
       };
     }
   }, [isAuthenticated, dispatch]);

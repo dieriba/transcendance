@@ -99,6 +99,62 @@ export class ChatService {
     return chatrooms;
   }
 
+  async getUserGroupChatroom(userId: string) {
+    const user = await this.userService.findUserById(userId, UserData);
+
+    if (!user) throw new UserNotFoundException();
+    console.log('entered');
+
+    const chatrooms = await this.prismaService.chatroom.findMany({
+      where: {
+        users: {
+          some: {
+            userId,
+          },
+        },
+        active: true,
+        type: {
+          not: TYPE.DM,
+        },
+      },
+      select: {
+        id: true,
+        chatroomName: true,
+        type: true,
+        messages: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+          take: 1,
+          select: {
+            id: true,
+            chatroomId: true,
+            user: {
+              select: {
+                id: true,
+                nickname: true,
+                profile: {
+                  select: {
+                    avatar: true,
+                  },
+                },
+              },
+            },
+            content: true,
+            messageTypes: true,
+          },
+        },
+      },
+      orderBy: {
+        updatedAt: 'asc',
+      },
+    });
+
+    console.log({ chatrooms });
+
+    return chatrooms;
+  }
+
   async getAllChatroomMessage(userId: string, chatroomId: string) {
     const user = await this.userService.findUserById(userId, UserData);
 
@@ -154,7 +210,7 @@ export class ChatService {
 
     this.logger.log({ users });
 
-    const existingUserId = await this.userService.getExistingUserNonBlocked(
+    const existingUserId = await this.userService.getExistingUserFriend(
       creatorId,
       users,
       UserId,
@@ -193,7 +249,7 @@ export class ChatService {
     this.logger.log({ chatroomId, users });
 
     const existingUserAndNonBlocked =
-      await this.userService.getExistingUserNonBlocked(userId, users, UserData);
+      await this.userService.getExistingUserFriend(userId, users, UserData);
 
     this.logger.log({ existingUserAndNonBlocked });
     const newUsers = await this.prismaService.$transaction(
@@ -287,7 +343,7 @@ export class ChatService {
       throw new CustomException(BAD_REQUEST, HttpStatus.BAD_REQUEST);
 
     const foundUser = new Set(
-      await this.userService.getExistingUserNonBlocked(
+      await this.userService.getExistingUserFriend(
         userId,
         users.map((user) => user.id),
         UserData,
