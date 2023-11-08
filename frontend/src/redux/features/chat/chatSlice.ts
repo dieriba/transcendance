@@ -6,14 +6,12 @@ import {
 import { BaseFriendType } from "../../../models/FriendsSchema";
 
 export interface ChatState {
-
   privateChatroom: PrivateChatroomType[];
   currentPrivateChatroomId: string | undefined;
   currentChatroom: PrivateChatroomType | undefined;
 }
 
 const initialState: ChatState = {
-
   privateChatroom: [],
   currentPrivateChatroomId: undefined,
   currentChatroom: undefined,
@@ -23,7 +21,6 @@ export const ChatSlice = createSlice({
   name: "chat",
   initialState,
   reducers: {
-
     setPrivateChatroom: (
       state,
       action: PayloadAction<PrivateChatroomType[]>
@@ -40,17 +37,24 @@ export const ChatSlice = createSlice({
           (chatroom) => chatroom.id === action.payload
         ) as PrivateChatroomType;
     },
-    addNewChatroom: (state, action: PayloadAction<PrivateChatroomType>) => {
-      state.privateChatroom.unshift(action.payload);
+    addNewChatroom: (
+      state,
+      action: PayloadAction<PrivateChatroomType | undefined>
+    ) => {
+      if (action.payload) {
+        state.privateChatroom.unshift(action.payload);
+      }
     },
-    deleteChatroom: (state, action: PayloadAction<string>) => {
+    deleteChatroom: (state, action: PayloadAction<string | undefined>) => {
       const chatroomId = action.payload;
-      state.privateChatroom = state.privateChatroom.filter((chatroom) => {
-        chatroom.id !== chatroomId;
-      });
-      if (chatroomId === state.currentChatroom?.id) {
-        state.currentChatroom = undefined;
-        state.currentPrivateChatroomId = undefined;
+      if (chatroomId) {
+        state.privateChatroom = state.privateChatroom.filter((chatroom) => {
+          chatroom.id !== chatroomId;
+        });
+        if (chatroomId === state.currentChatroom?.id) {
+          state.currentChatroom = undefined;
+          state.currentPrivateChatroomId = undefined;
+        }
       }
     },
     updatePrivateChatroomList: (state, action: PayloadAction<MessageType>) => {

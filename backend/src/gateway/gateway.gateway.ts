@@ -163,6 +163,8 @@ export class GatewayGateway {
 
     existingUserId.push(userId);
 
+    this.logger.log({ chatroom });
+
     const newChatroom = await this.prismaService.chatroom.create({
       data: {
         ...chatroom,
@@ -1088,7 +1090,6 @@ export class GatewayGateway {
   ) {
     const { friendId } = body;
     const { userId } = client;
-
     const existingFriendship = await this.friendService.isFriends(
       userId,
       friendId,
@@ -1098,8 +1099,7 @@ export class GatewayGateway {
       throw new WsBadRequestException(
         'You cannot delete user that are not your friend with',
       );
-
-    await this.prismaService.$transaction(async (tx) => {
+    const res = await this.prismaService.$transaction(async (tx) => {
       await tx.friends.delete({
         where: {
           userId_friendId: { userId, friendId },
@@ -1120,15 +1120,15 @@ export class GatewayGateway {
           ],
         },
       });
-      chatroomId = chatroom.id;
       if (chatroom) {
+        chatroomId = chatroom.id;
         await tx.chatroom.update({
           where: { id: chatroom.id },
           data: { active: false },
         });
       }
     });
-
+    this.logger.log({ res });
     this.sendToSocket(friendId, FriendEvent.DELETE_FRIEND, {
       message: '',
       data: { friendId: client.userId },

@@ -65,6 +65,8 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
 
   useEffect(() => {
     if (data && data.data) {
+      console.log(data.data);
+
       dispatch(setFriends(data.data));
     }
   }, [data, dispatch]);

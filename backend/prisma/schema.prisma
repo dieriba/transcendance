@@ -84,7 +84,7 @@ model Notifications {
 
 model Chatroom {
   id              String           @id @default(uuid())
-  chatroomName    String?          @unique @db.VarChar(15)
+  chatroomName    String?          @unique @db.VarChar(30)
   password        String?
   type            TYPE
   createdAt       DateTime         @default(now())

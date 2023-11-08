@@ -114,7 +114,7 @@ export class FriendsService {
     });
 
     if (!user) throw new UserNotFoundException();
-    console.log(user.friends);
+    console.log({ friends: user.friends });
 
     return user.friends;
   }

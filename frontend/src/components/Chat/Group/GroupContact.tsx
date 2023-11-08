@@ -6,11 +6,14 @@ import { useState } from "react";
 import CreateGroup from "./CreateGroup";
 import { useAppSelector } from "../../../redux/hooks";
 import GroupBox from "../GroupBox";
+import { RootState } from "../../../redux/store";
 
 const GroupContact = () => {
   const theme = useTheme();
   const [openCreate, setOpenCreate] = useState(false);
-  const groups = useAppSelector((state) => state.groups.groupChatroom);
+  const groups = useAppSelector(
+    (state: RootState) => state.groups.groupChatroom
+  );
   const myId = useAppSelector((state) => state.user.user?.id);
   console.log({ groups });
 
