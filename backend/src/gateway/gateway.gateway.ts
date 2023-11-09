@@ -35,11 +35,9 @@ import {
 } from 'src/chat/dto/chatroom.dto';
 import { isDieribaOrAdmin } from 'src/chat/pipes/is-dieriba-or-admin.pipe';
 import { IsDieriba } from 'src/chat/pipes/is-dieriba.pipe';
-import { IsExistingUserAndGroup } from 'src/chat/pipes/is-existing-goup.pipe';
 import { ChatroomUserService } from 'src/chatroom-user/chatroom-user.service';
 import { ChatroomService } from 'src/chatroom/chatroom.service';
 import { BAD_REQUEST } from 'src/common/constant/http-error.constant';
-import { ChatRoute } from 'src/common/custom-decorator/metadata.decorator';
 import {
   WsBadRequestException,
   WsUnknownException,
@@ -50,7 +48,11 @@ import { WsCatchAllFilter } from 'src/common/global-filters/ws-exception-filter'
 import { WsAccessTokenGuard } from 'src/common/guards/ws.guard';
 import { ChatroomBaseData } from 'src/common/types/chatroom-info-type';
 import { SocketServerResponse } from 'src/common/types/socket-types';
-import { UserData, UserId } from 'src/common/types/user-info.type';
+import {
+  UserBlockList,
+  UserData,
+  UserId,
+} from 'src/common/types/user-info.type';
 import { LibService } from 'src/lib/lib.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserService } from 'src/user/user.service';
@@ -62,6 +64,7 @@ import {
 import { IsFriendExistWs } from 'src/friends/pipe/is-friend-exist-ws.pipe';
 import { FriendsService } from 'src/friends/friends.service';
 import { CheckGroupCreationValidity } from 'src/chat/pipes/check-group-creation-validity.pipe';
+import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
 
 @UseGuards(WsAccessTokenGuard)
 @UseFilters(WsCatchAllFilter)
@@ -543,6 +546,80 @@ export class GatewayGateway {
     chatrooms.map((chatroom) => client.join(chatroom.chatroomName));
   }
 
+  @SubscribeMessage(ChatEventGroup.REQUEST_ALL_CHATROOM_MESSAGE)
+  async getGroupChatroomMessage(
+    @ConnectedSocket() client: SocketWithAuth,
+    @MessageBody('chatroomId') chatroomId: string,
+  ) {
+    const { userId } = client;
+    const user = await this.userService.findUserById(userId, UserData);
+    console.log(chatroomId);
+
+    if (!user) throw new WsNotFoundException('User not found');
+
+    const chatroom = await this.prismaService.chatroom.findFirst({
+      where: {
+        id: chatroomId,
+      },
+      select: {
+        chatroomName: true,
+        messages: {
+          where: {
+            user: {
+              blockedBy: {
+                none: {
+                  id: userId,
+                },
+              },
+              blockedUsers: {
+                none: {
+                  id: userId,
+                },
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'asc',
+          },
+          select: {
+            id: true,
+            content: true,
+            user: {
+              select: {
+                id: true,
+                nickname: true,
+                profile: {
+                  select: {
+                    avatar: true,
+                  },
+                },
+              },
+            },
+            chatroomId: true,
+            messageTypes: true,
+          },
+        },
+      },
+    });
+
+    if (!chatroom) throw new WsNotFoundException('Chat does not exist');
+
+    this.sendToSocket(client.userId, ChatEventGroup.GET_ALL_CHATROOM_MESSAGE, {
+      message: '',
+      data: chatroom.messages,
+    });
+
+    if (
+      !this.server
+        .of('/')
+        .adapter.rooms.get(chatroom.chatroomName)
+        ?.has(client.userId)
+    )
+      client.join(chatroom.chatroomName);
+  }
+
+  
+
   //@SubscribeMessage(CHATROOM_JOIN)
   //@UseGuards(IsRestrictedUserGuard)
   async joinChatroom(
@@ -597,33 +674,96 @@ export class GatewayGateway {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...data } = chatroom;
 
+    //this.sendToSocket(client.userId, );
+
     client.join(chatroom.chatroomName);
   }
 
-  //@SubscribeMessage(CHATROOM_SEND_MESSAGE)
-  @ChatRoute()
+  @SubscribeMessage(ChatEventGroup.SEND_GROUP_MESSAGE)
   async sendMessageToChatroom(
     @ConnectedSocket() client: SocketWithAuth,
-    @MessageBody(IsExistingUserAndGroup) chatroomMessageDto: ChatroomMessageDto,
+    @MessageBody() chatroomMessageDto: ChatroomMessageDto,
   ) {
     const { userId } = client;
-    const updatedChatrooms = await this.prismaService.chatroom.update({
+    const { chatroomId, content, messageTypes, image } = chatroomMessageDto;
+    const user = await this.prismaService.user.findFirst({
       where: {
-        id: chatroomMessageDto.chatroomId,
+        id: userId,
       },
-      data: {
-        messages: {
-          create: {
-            content: chatroomMessageDto.content,
-            imageUrl: null,
-            messageTypes: MESSAGE_TYPES.TEXT,
-            userId,
+      select: {
+        blockedBy: {
+          select: {
+            id: true,
           },
         },
       },
     });
 
-    return updatedChatrooms;
+    if (!user) throw new UserNotFoundException();
+
+    const chatroom = await this.chatroomService.findChatroom(
+      chatroomId,
+      ChatroomBaseData,
+    );
+
+    if (!chatroom) throw new WsNotFoundException('Chatroom not found');
+
+    const res = await this.prismaService.message.create({
+      data: {
+        content: content,
+        imageUrl: image,
+        messageTypes,
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
+        chatroom: {
+          connect: {
+            id: chatroomId,
+          },
+        },
+      },
+      select: {
+        id: true,
+        content: true,
+        chatroomId: true,
+        messageTypes: true,
+        user: {
+          select: {
+            id: true,
+            nickname: true,
+            profile: {
+              select: {
+                avatar: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    this.sendToSocket(
+      chatroom.chatroomName,
+      ChatEventGroup.RECEIVE_GROUP_MESSAGE,
+      {
+        message: '',
+        data: {
+          blockedBy: user.blockedBy,
+          id: res.id,
+          content,
+          chatroomId,
+          messageTypes,
+          user: {
+            id: userId,
+            nickname: client.nickname,
+            profile: {
+              avatar: res.user.profile?.avatar,
+            },
+          },
+        },
+      },
+    );
   }
 
   @SubscribeMessage(ChatEventPrivateRoom.SEND_PRIVATE_MESSAGE)
@@ -1350,11 +1490,11 @@ export class GatewayGateway {
   }
 
   private sendToSocket(
-    userId: string,
+    room: string,
     emit: string,
     object: SocketServerResponse,
   ) {
-    this.server.to(userId).emit(emit, object);
+    this.server.to(room).emit(emit, object);
   }
   /*------------------------------------------------------------------------------------------------------ */
 }

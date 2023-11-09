@@ -9,8 +9,8 @@ import { useForm } from "react-hook-form";
 import { useAppSelector } from "../../../redux/hooks";
 import { RootState } from "../../../redux/store";
 import {
-  MessageGroupSchema,
-  MessageGroupType,
+  MessageGroupFormSchema,
+  MessageGroupFormType,
 } from "../../../models/groupChat";
 import ChatInput from "../ChatConversation/ChatInput";
 import { useSendGroupMessageMutation } from "../../../redux/features/groups/group.api.slice";
@@ -18,8 +18,8 @@ import { useSendGroupMessageMutation } from "../../../redux/features/groups/grou
 const GroupConversationFooter = () => {
   const theme = useTheme();
 
-  const methods = useForm<MessageGroupType>({
-    resolver: zodResolver(MessageGroupSchema),
+  const methods = useForm<MessageGroupFormType>({
+    resolver: zodResolver(MessageGroupFormSchema),
   });
 
   const chatroom = useAppSelector(
@@ -28,15 +28,14 @@ const GroupConversationFooter = () => {
   const [sendMessage] = useSendGroupMessageMutation();
 
   const { control, handleSubmit, reset, setValue, getValues } = methods;
-  const onSubmit = async (data: MessageGroupType) => {
+  const onSubmit = async (data: MessageGroupFormType) => {
     try {
-      /*reset({ content: "" });
+      reset({ content: "" });
       await sendMessage({
         ...data,
         chatroomId: chatroom?.id,
-        friendId: chatroom?.users[0].user.id,
         messageTypes: "TEXT",
-      }).unwrap();*/
+      }).unwrap();
     } catch (error) {
       console.log(error);
     }

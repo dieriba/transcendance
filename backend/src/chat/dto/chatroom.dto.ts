@@ -87,6 +87,16 @@ export class ChatroomMessageDto {
   chatroomId: string;
 
   @ApiProperty()
+  @IsString()
+  @IsOptional()
+  @IsNotEmpty()
+  image: string;
+
+  @ApiProperty()
+  @IsEnum(MESSAGE_TYPES)
+  messageTypes: MESSAGE_TYPES;
+
+  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   content: string;
@@ -96,6 +106,13 @@ export class ChatroomMessageDto {
 
   @IsOptional()
   nickname: string;
+
+  /*ONLY accept reply if type IS REPLY*/
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  @IsNotEmpty()
+  reply: string;
 }
 
 export class JoinChatroomDto {

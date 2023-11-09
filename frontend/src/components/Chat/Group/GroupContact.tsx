@@ -11,6 +11,7 @@ import { RootState } from "../../../redux/store";
 const GroupContact = () => {
   const theme = useTheme();
   const [openCreate, setOpenCreate] = useState(false);
+  const [openJoin, setOpenJoin] = useState(false);
   const groups = useAppSelector(
     (state: RootState) => state.groups.groupChatroom
   );
@@ -41,10 +42,9 @@ const GroupContact = () => {
           </Stack>
           <Divider />
           <Stack
-            direction="row"
             alignItems="center"
             justifyContent="space-between"
-            p={3}
+            p={1}
           >
             <Button
               onClick={() => setOpenCreate(true)}
@@ -52,6 +52,14 @@ const GroupContact = () => {
               endIcon={<Plus />}
             >
               Create New Group
+            </Button>
+            <Divider />
+            <Button
+              onClick={() => setOpenJoin(true)}
+              fullWidth
+              endIcon={<Plus />}
+            >
+              Join group
             </Button>
           </Stack>
           <Divider />

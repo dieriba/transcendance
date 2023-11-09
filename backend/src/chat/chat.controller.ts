@@ -37,17 +37,17 @@ export class ChatController {
     return await this.chatService.getUserChatroom(userId);
   }
 
-  @Get('get-all-group-chatroom')
-  async getUserGroupChatroom(@GetUser('userId') userId: string) {
-    return await this.chatService.getUserGroupChatroom(userId);
-  }
-
   @Get('get-all-chatroom-message')
   async getChatroomMessage(
     @GetUser('userId') userId: string,
     @Query('chatroomId') chatroomId: string,
   ) {
     return await this.chatService.getAllChatroomMessage(userId, chatroomId);
+  }
+
+  @Get('get-all-joinable-chatroom')
+  async getJoinableChatroom(@GetUser('userId') userId: string) {
+    return await this.chatService.getJoinableChatroom(userId);
   }
 
   @Post('create-chatroom')

@@ -1,27 +1,20 @@
-import {
-  Avatar,
-  AvatarGroup,
-  Box,
-  Divider,
-  IconButton,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Box, Divider, IconButton, Stack, Typography } from "@mui/material";
 import { CaretDown } from "phosphor-react";
 import { useTheme } from "@mui/material/styles";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { RootState } from "../../../redux/store";
 import { ChatroomGroupType } from "../../../models/groupChat";
+import GroupIcon from "./GroupIcon";
+import { toggle } from "../../../redux/features/sidebar.slices";
 
 const GroupConversationHeader = () => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
-
   const chatroomInfo = useAppSelector(
     (state: RootState) => state.groups.currentChatroom
   );
 
-  const { chatroomName, id } = chatroomInfo as ChatroomGroupType;
+  const { chatroomName, type } = chatroomInfo as ChatroomGroupType;
 
   return (
     <>
@@ -44,13 +37,13 @@ const GroupConversationHeader = () => {
           sx={{ width: "100%", height: "100%" }}
         >
           <Stack direction="row" spacing={2}>
-            <div onClick={() => {}}>
+            <div
+              onClick={() => {
+                dispatch(toggle());
+              }}
+            >
               <Box>
-                <AvatarGroup max={3}>
-                  <Avatar />
-                  <Avatar />
-                  <Avatar />
-                </AvatarGroup>
+                <GroupIcon type={type} size={40} />
               </Box>
             </div>
 

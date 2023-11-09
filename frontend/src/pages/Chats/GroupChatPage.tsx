@@ -14,11 +14,11 @@ import {
   addNewChatroom,
   deleteChatroom,
   setGroupChatroom,
-  updateGroupChatroomList,
 } from "../../redux/features/groups/groupSlice";
-import { ChatroomGroupType, MessageGroupType } from "../../models/groupChat";
+import { ChatroomGroupType } from "../../models/groupChat";
 import GroupContact from "../../components/Chat/Group/GroupContact";
 import GroupConversation from "../../components/Chat/Group/GroupConversation";
+import { RootState } from "../../redux/store";
 
 const GroupChatPage = () => {
   const theme = useTheme();
@@ -29,7 +29,7 @@ const GroupChatPage = () => {
   const currentGroupChatroomId = useAppSelector(
     (state) => state.groups.currentGroupChatroomId
   );
-  const { open } = useAppSelector((state) => state.sidebar);
+  const { open } = useAppSelector((state: RootState) => state.sidebar);
   useEffect(() => {
     if (data && data.data) {
       dispatch(setGroupChatroom(data.data));
@@ -58,13 +58,6 @@ const GroupChatPage = () => {
       );
 
       socket.on(
-        ChatEventGroup.RECEIVE_GROUP_MESSAGE,
-        (data: SocketServerSucessResponse & { data: MessageGroupType }) => {
-          dispatch(updateGroupChatroomList(data.data));
-        }
-      );
-
-      socket.on(
         ChatEventPrivateRoom.CLEAR_CHATROOM,
         (
           data: SocketServerSucessResponse & { data: { chatroomId: string } }
@@ -74,7 +67,6 @@ const GroupChatPage = () => {
       );
     }
     return () => {
-      socket.off(ChatEventGroup.RECEIVE_GROUP_MESSAGE);
       socket.off(ChatEventGroup.NEW_CHATROOM);
       socket.off(ChatEventGroup.CLEAR_CHATROOM);
       //socket.off(GeneralEvent.USER_LOGGED_IN);

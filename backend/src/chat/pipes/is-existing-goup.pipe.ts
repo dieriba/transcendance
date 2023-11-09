@@ -25,18 +25,16 @@ export class IsExistingUserAndGroup implements PipeTransform {
       ))
     )
       throw new CustomException('User_not found', HttpStatus.NOT_FOUND);
-
-    if (
-      !(await this.chatroomService.findChatroom(
-        chatroomMessageDto.chatroomId,
-        ChatroomBaseData,
-      ))
-    )
+    const chatroom = await this.chatroomService.findChatroom(
+      chatroomMessageDto.chatroomId,
+      ChatroomBaseData,
+    );
+    if (!chatroom)
       throw new CustomException(
         "Can't send message to non existing chatroom",
         HttpStatus.NOT_FOUND,
       );
 
-    return chatroomMessageDto;
+    return { ...chatroomMessageDto, chatroomName: chatroom.chatroomName };
   }
 }

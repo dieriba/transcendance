@@ -7,7 +7,7 @@ interface User {
   nickname: string | undefined;
 }
 
-interface UserInfo {
+export interface UserInfo {
   user: User | undefined;
   access_token: string | undefined;
 }

@@ -1,8 +1,8 @@
 import { Badge, Box, Stack, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
-import { setPrivateChatroomId } from "../../redux/features/chat/chatSlice";
 import GroupIcon from "./Group/GroupIcon";
+import { setGroupChatroomId } from "../../redux/features/groups/groupSlice";
 export interface GroupBoxProps {
   chatroomName: string;
   msg: string;
@@ -22,8 +22,8 @@ const GroupBox = ({
 }: GroupBoxProps) => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
-  const currentPrivateChatroomId = useAppSelector(
-    (state) => state.chat.currentPrivateChatroomId
+  const currentGroupChatroomId = useAppSelector(
+    (state) => state.groups.currentGroupChatroomId
   );
   const divStyle = {
     width: "100%",
@@ -31,7 +31,7 @@ const GroupBox = ({
   return (
     <div
       style={divStyle}
-      onClick={() => dispatch(setPrivateChatroomId(chatroomId))}
+      onClick={() => dispatch(setGroupChatroomId(chatroomId))}
     >
       <Box
         sx={{
@@ -39,13 +39,13 @@ const GroupBox = ({
           width: "100%",
           borderRadius: 1,
           backgroundColor:
-            chatroomId !== currentPrivateChatroomId
+            chatroomId !== currentGroupChatroomId
               ? theme.palette.mode === "light"
                 ? "#fff"
                 : theme.palette.background.default
               : theme.palette.primary.main,
           color:
-            chatroomId === currentPrivateChatroomId
+            chatroomId === currentGroupChatroomId
               ? theme.palette.mode === "light"
                 ? "#F8FAFF"
                 : ""
@@ -65,7 +65,7 @@ const GroupBox = ({
           alignItems="center"
           spacing={2}
         >
-          <GroupIcon type={type}  size={30}/>
+          <GroupIcon type={type} size={30} />
           <Stack direction="row" spacing={2}>
             <Stack width="10rem">
               {unread > 0 ? (

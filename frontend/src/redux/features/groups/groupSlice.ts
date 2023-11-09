@@ -1,19 +1,18 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { BaseFriendType } from "../../../models/FriendsSchema";
 import { ChatroomGroupType, MessageGroupType } from "../../../models/groupChat";
 
 export interface ChatState {
   groupChatroom: ChatroomGroupType[];
   currentGroupChatroomId: string | undefined;
   currentChatroom: ChatroomGroupType | undefined;
-  messages: Map<string, MessageGroupType[]>;
+  messages: MessageGroupType[];
 }
 
 const initialState: ChatState = {
   groupChatroom: [],
   currentGroupChatroomId: undefined,
   currentChatroom: undefined,
-  messages: new Map<string, MessageGroupType[]>(),
+  messages: [],
 };
 
 export const GroupSlice = createSlice({
@@ -33,6 +32,11 @@ export const GroupSlice = createSlice({
     addNewChatroom: (state, action: PayloadAction<ChatroomGroupType>) => {
       state.groupChatroom.unshift(action.payload);
     },
+    setChatroomMessage: (state, action: PayloadAction<MessageGroupType[]>) => {
+      if (state.currentChatroom) {
+        state.messages = action.payload;
+      }
+    },
     deleteChatroom: (state, action: PayloadAction<string>) => {
       const chatroomId = action.payload;
       state.groupChatroom = state.groupChatroom.filter((chatroom) => {
@@ -43,7 +47,7 @@ export const GroupSlice = createSlice({
         state.currentGroupChatroomId = undefined;
       }
     },
-    updateGroupChatroomList: (
+    updateGroupChatroomListAndMessage: (
       state,
       action: PayloadAction<MessageGroupType>
     ) => {
@@ -54,8 +58,9 @@ export const GroupSlice = createSlice({
 
       if (indexToRemove >= 0) {
         const removedObject = state.groupChatroom.splice(indexToRemove, 1)[0];
-        state.messages.get(removedObject.chatroomName)?.push(message);
-        state.currentChatroom = removedObject;
+        if (message.chatroomId === state.currentChatroom?.id)
+          state.messages.push(message);
+        removedObject.messages[0] = message;
         state.groupChatroom.unshift(removedObject);
       }
     },
@@ -89,8 +94,9 @@ export const GroupSlice = createSlice({
 export const {
   setGroupChatroom,
   setGroupChatroomId,
-  updateGroupChatroomList,
+  updateGroupChatroomListAndMessage,
   deleteChatroom,
+  setChatroomMessage,
   /*setOfflineUser,
   setOnlineUser,*/
   addNewChatroom,

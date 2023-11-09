@@ -12,13 +12,14 @@ import StyledBadge from "../../Badge/StyledBadge";
 import { toggle } from "../../../redux/features/sidebar.slices";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { RootState } from "../../../redux/store";
+import { PrivateChatroomType } from "../../../models/ChatContactSchema";
 
 const ChatConversationHeader = () => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
 
   const chatroomInfo = useAppSelector(
-    (state: RootState) => state.chat.currentChatroom
+    (state: RootState) => state.chat.currentChatroom as PrivateChatroomType
   );
 
   const {

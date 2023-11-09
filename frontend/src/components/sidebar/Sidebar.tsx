@@ -1,4 +1,4 @@
-import { Menu, MenuItem } from "@mui/material";
+import { Menu, MenuItem, Tooltip } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { Avatar, Box, IconButton, Stack } from "@mui/material";
 import { Nav_Buttons, Nav_Setting, Profile_Menu } from "../../data/data";
@@ -8,10 +8,11 @@ import { useThemeContext } from "../../theme/ThemeContextProvider";
 import MaterialUISwitch from "./Switch";
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useAppDispatch } from "../../redux/hooks";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { apiSlice } from "../../redux/api/apiSlice";
 import { LOGOUT } from "../../redux/type";
 import { useLogoutMutation } from "../../redux/features/auth/auth.api.slice";
+import { RootState } from "../../redux/store";
 
 const Sidebar = () => {
   const theme = useTheme();
@@ -24,6 +25,9 @@ const Sidebar = () => {
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
+  const nickname = useAppSelector(
+    (state: RootState) => state.user.user?.nickname
+  );
   const handleClose = () => {
     setAnchorEl(null);
   };
@@ -36,16 +40,16 @@ const Sidebar = () => {
   const logoutUser = async () => {
     try {
       await loggingOut().unwrap();
+      dispatch(apiSlice.util.resetApiState());
+      dispatch({ type: LOGOUT });
+      // eslint-disable-next-line no-self-assign
+      window.location = window.location;
     } catch (error) {
       dispatch(apiSlice.util.resetApiState());
       dispatch({ type: LOGOUT });
-    // eslint-disable-next-line no-self-assign
+      // eslint-disable-next-line no-self-assign
       window.location = window.location;
     }
-    dispatch(apiSlice.util.resetApiState());
-    dispatch({ type: LOGOUT });
-    // eslint-disable-next-line no-self-assign
-    window.location = window.location;
   };
   return (
     <>
@@ -135,14 +139,16 @@ const Sidebar = () => {
               <SignOut />
             </IconButton>
             <MaterialUISwitch theme={theme} onClick={toggleColorMode} />
-            <Avatar
-              id="avatar-menu"
-              aria-controls={open ? "demo-positioned-menu" : undefined}
-              aria-haspopup="true"
-              aria-expanded={open ? "true" : undefined}
-              onClick={handleClick}
-              sx={{ cursor: "pointer" }}
-            />
+            <Tooltip title={nickname}>
+              <Avatar
+                id="avatar-menu"
+                aria-controls={open ? "demo-positioned-menu" : undefined}
+                aria-haspopup="true"
+                aria-expanded={open ? "true" : undefined}
+                onClick={handleClick}
+                sx={{ cursor: "pointer" }}
+              />
+            </Tooltip>
             <Menu
               id="demo-positioned-menu"
               aria-labelledby="avatar-menu"

@@ -15,7 +15,17 @@ export const MessageGroupSchema = z.object({
     .merge(ProfileSchema),
   content: z.string().min(1),
   messageTypes: z.string().min(1),
+  blockedBy: z.array(z.object({ id: z.string() })),
 });
+
+export const MessageGroupFormSchema = z.object({
+  id: z.string().min(1).optional(),
+  chatroomId: z.string().min(1).optional(),
+  content: z.string().min(1).trim(),
+  messageTypes: z.enum(["IMAGE", "DOCUMENT", "REPLY", "TEXT"]).optional(),
+});
+
+export type MessageGroupFormType = z.infer<typeof MessageGroupFormSchema>;
 
 export type MessageGroupType = z.infer<typeof MessageGroupSchema>;
 

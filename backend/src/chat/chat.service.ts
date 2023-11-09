@@ -12,7 +12,7 @@ import {
 } from './dto/chatroom.dto';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { MESSAGE_TYPES, ROLE, TYPE } from '@prisma/client';
+import { MESSAGE_TYPES, RESTRICTION, ROLE, TYPE } from '@prisma/client';
 import { Argon2Service } from 'src/argon2/argon2.service';
 import { UserData, UserId } from 'src/common/types/user-info.type';
 import { ChatroomUserBaseData } from 'src/common/types/chatroom-user-type';
@@ -97,6 +97,45 @@ export class ChatService {
     console.log({ chatrooms });
 
     return chatrooms;
+  }
+
+  async getJoinableChatroom(userId: string) {
+    const joinableChatroom = await this.prismaService.chatroom.findMany({
+      where: {
+        type: {
+          notIn: [TYPE.DM, TYPE.PRIVATE],
+        },
+        users: {
+          none: {
+            userId,
+          },
+        },
+        restrictedUsers: {
+          none: {
+            AND: [
+              { userId },
+              {
+                restriction: {
+                  notIn: [RESTRICTION.BANNED, RESTRICTION.KICKED],
+                },
+              },
+              {
+                restrictionTimeEnd: {
+                  lt: new Date(),
+                },
+              },
+            ],
+          },
+        },
+      },
+      select: {
+        id: true,
+        chatroomName: true,
+        type: true,
+      },
+    });
+
+    return joinableChatroom;
   }
 
   async getAllChatroomMessage(userId: string, chatroomId: string) {

@@ -11,7 +11,7 @@ import {
 
 import { connectSocket, socket } from "../../../utils/getSocket";
 import { CreateGroupFormType } from "../../../models/CreateGroupSchema";
-import { ChatroomGroupType } from "../../../models/groupChat";
+import { ChatroomGroupType, MessageGroupType } from "../../../models/groupChat";
 
 export const GroupApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -53,14 +53,48 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
       BaseServerResponse & { data: ChatroomGroupType[] },
       void
     >({
-      query: () => ({ url: "chat/get-all-group-chatroom" }),
+      queryFn: (data) => {
+        connectSocket();
+        return new Promise((resolve) => {
+          socket.emit(ChatEventGroup.REQUEST_ALL_CHATROOM, data);
+
+          socket.on(ChatEventGroup.GET_ALL_CHATROOM, (data) => {
+            resolve({ data });
+          });
+
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
+            resolve({ error });
+          });
+        });
+      },
+    }),
+    getAllGroupMessages: builder.query<
+      BaseServerResponse & { data: MessageGroupType[] },
+      { chatroomId: string }
+    >({
+      queryFn: (data) => {
+        connectSocket();
+        return new Promise((resolve) => {
+          socket.emit(ChatEventGroup.REQUEST_ALL_CHATROOM_MESSAGE, data);
+
+          socket.on(ChatEventGroup.GET_ALL_CHATROOM_MESSAGE, (data) => {
+            resolve({ data });
+          });
+
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
+            resolve({ error });
+          });
+        });
+      },
     }),
   }),
+
   overrideExisting: false,
 });
 
 export const {
   useCreateGroupMutation,
   useSendGroupMessageMutation,
+  useGetAllGroupMessagesQuery,
   useGetAllGroupQuery,
 } = GroupApiSlice;
