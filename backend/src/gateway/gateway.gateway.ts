@@ -483,6 +483,66 @@ export class GatewayGateway {
     //this.server.emit(CHATROOM_USER_UNRESTRICTED, data);
   }
 
+  @SubscribeMessage(ChatEventGroup.REQUEST_ALL_CHATROOM)
+  async getUserGroupChatroom(@ConnectedSocket() client: SocketWithAuth) {
+    const { userId } = client;
+    const user = await this.userService.findUserById(userId, UserData);
+
+    if (!user) throw new WsNotFoundException('User not foud');
+
+    const chatrooms = await this.prismaService.chatroom.findMany({
+      where: {
+        users: {
+          some: {
+            userId,
+          },
+        },
+        active: true,
+        type: {
+          not: TYPE.DM,
+        },
+      },
+      select: {
+        id: true,
+        chatroomName: true,
+        type: true,
+        messages: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+          take: 1,
+          select: {
+            id: true,
+            chatroomId: true,
+            user: {
+              select: {
+                id: true,
+                nickname: true,
+                profile: {
+                  select: {
+                    avatar: true,
+                  },
+                },
+              },
+            },
+            content: true,
+            messageTypes: true,
+          },
+        },
+      },
+      orderBy: {
+        updatedAt: 'asc',
+      },
+    });
+
+    this.sendToSocket(userId, ChatEventGroup.GET_ALL_CHATROOM, {
+      message: '',
+      data: chatrooms,
+    });
+
+    chatrooms.map((chatroom) => client.join(chatroom.chatroomName));
+  }
+
   //@SubscribeMessage(CHATROOM_JOIN)
   //@UseGuards(IsRestrictedUserGuard)
   async joinChatroom(
@@ -537,10 +597,7 @@ export class GatewayGateway {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...data } = chatroom;
 
-    /*this.server.emit(
-      CHATROOM_USER_JOINED,
-      `${foundChatroomUser.user.nickname} joined the room`,
-    );*/
+    client.join(chatroom.chatroomName);
   }
 
   //@SubscribeMessage(CHATROOM_SEND_MESSAGE)

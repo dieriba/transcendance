@@ -1,15 +1,8 @@
-import {
-  Avatar,
-  AvatarGroup,
-  Badge,
-  Box,
-  Stack,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import { Badge, Box, Stack, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { setPrivateChatroomId } from "../../redux/features/chat/chatSlice";
+import GroupIcon from "./Group/GroupIcon";
 export interface GroupBoxProps {
   chatroomName: string;
   msg: string;
@@ -72,13 +65,7 @@ const GroupBox = ({
           alignItems="center"
           spacing={2}
         >
-          <Tooltip title={type}>
-            <AvatarGroup max={3}>
-              <Avatar />
-              <Avatar />
-              <Avatar />
-            </AvatarGroup>
-          </Tooltip>
+          <GroupIcon type={type}  size={30}/>
           <Stack direction="row" spacing={2}>
             <Stack width="10rem">
               {unread > 0 ? (

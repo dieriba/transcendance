@@ -1,6 +1,12 @@
 import { z } from "zod";
 import { ProfileSchema } from "./ProfileFormSchema";
 
+export enum GroupTypeEnum {
+  PUBLIC = "PUBLIC",
+  PROTECTED = "PROTECTED",
+  PRIVATE = "PRIVATE",
+}
+
 export const MessageGroupSchema = z.object({
   id: z.string().min(1),
   chatroomId: z.string().min(1),
