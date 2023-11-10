@@ -4,9 +4,9 @@ import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { useEffect } from "react";
 import { connectSocket, socket } from "../../utils/getSocket";
 import {
-  GeneralEvent,
   ChatEventPrivateRoom,
   ChatEventGroup,
+  GeneralEvent,
 } from "../../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../services/type";
 import { useGetAllGroupQuery } from "../../redux/features/groups/group.api.slice";
@@ -35,7 +35,6 @@ const GroupChatPage = () => {
       dispatch(setGroupChatroom(data.data));
       connectSocket();
       if (!socket) return;
-
       /*socket.on(
         GeneralEvent.USER_LOGGED_OUT,
         (data: SocketServerSucessResponse & { data: BaseFriendType }) => {

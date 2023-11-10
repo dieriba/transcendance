@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ProfileSchema } from "./ProfileFormSchema";
+import { UserSchemaWithProfile } from "./ChatContactSchema";
 
 export enum GroupTypeEnum {
   PUBLIC = "PUBLIC",
@@ -49,3 +50,10 @@ export const JoinProtectedGroupSchema = z.object({
 export type JoinProtectedGroupFormType = z.infer<
   typeof JoinProtectedGroupSchema
 >;
+
+export const UserGroupSchema = z.object({
+  user: UserSchemaWithProfile,
+  role: z.string().min(1),
+});
+
+export type UserGroupType = z.infer<typeof UserGroupSchema>;

@@ -262,3 +262,10 @@ export class ChatroomDataDto {
   @IsString()
   userId: string;
 }
+
+export class ChatroomIdDto {
+  @ApiProperty()
+  @IsString()
+  @MinLength(1)
+  chatroomId: string;
+}

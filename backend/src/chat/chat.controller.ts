@@ -15,6 +15,7 @@ import {
   ChangeUserRoleDto,
   ChatRoomDto,
   ChatroomDataDto,
+  ChatroomIdDto,
   DieribaDto,
   JoinChatroomDto,
   RestrictedUsersDto,
@@ -69,6 +70,15 @@ export class ChatController {
   @UseInterceptors(PassUserDataToBody)
   async addNewUserToChatroom(@Body(IsDieriba) body: ChatroomDataDto) {
     return await this.chatService.addNewUserToChatroom(body.userId, body);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('get-all-user-chatroom')
+  async getAllUserChatroom(
+    @GetUser('userId') userId: string,
+    @Body() { chatroomId }: ChatroomIdDto,
+  ) {
+    return await this.chatService.getAllUserChatroom(userId, chatroomId);
   }
 
   @Post('set-chatroom-dieriba')

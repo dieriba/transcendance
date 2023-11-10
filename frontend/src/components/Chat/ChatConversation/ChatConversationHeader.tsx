@@ -79,7 +79,7 @@ const ChatConversationHeader = () => {
             </Stack>
           </Stack>
           <Stack direction="row" alignItems="center" spacing={2}>
-            <IconButton>
+            <IconButton onClick={() => dispatch(toggle())}>
               <CaretDown />
             </IconButton>
           </Stack>

@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { RootState } from "../../../redux/store";
 import { ChatroomGroupType } from "../../../models/groupChat";
 import GroupIcon from "./GroupIcon";
-import { toggle } from "../../../redux/features/sidebar.slices";
+import { toggleOpenGroupSidebar } from "../../../redux/features/sidebar.slices";
 
 const GroupConversationHeader = () => {
   const theme = useTheme();
@@ -36,10 +36,10 @@ const GroupConversationHeader = () => {
           justifyContent="space-between"
           sx={{ width: "100%", height: "100%" }}
         >
-          <Stack direction="row" spacing={2}>
+          <Stack direction="row" spacing={2} sx={{ cursor: "pointer" }}>
             <div
               onClick={() => {
-                dispatch(toggle());
+                dispatch(toggleOpenGroupSidebar());
               }}
             >
               <Box>
@@ -52,7 +52,11 @@ const GroupConversationHeader = () => {
             </Stack>
           </Stack>
           <Stack direction="row" alignItems="center" spacing={2}>
-            <IconButton>
+            <IconButton
+              onClick={() => {
+                dispatch(toggleOpenGroupSidebar());
+              }}
+            >
               <CaretDown />
             </IconButton>
           </Stack>

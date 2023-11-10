@@ -657,17 +657,6 @@ export class GatewayGateway {
           select: {
             id: true,
             chatroomId: true,
-            user: {
-              select: {
-                id: true,
-                nickname: true,
-                profile: {
-                  select: {
-                    avatar: true,
-                  },
-                },
-              },
-            },
             content: true,
             messageTypes: true,
           },
@@ -700,9 +689,7 @@ export class GatewayGateway {
           "Wrong password, you can't acces that chatroom",
         );
     }
-    if (!foundChatroomUser) {
-      await this.chatroomUserService.createNewChatroomUser(userId, chatroomId);
-    }
+    await this.chatroomUserService.createNewChatroomUser(userId, chatroomId);
 
     this.sendToSocket(chatroom.chatroomName, ChatEventGroup.NEW_USER_CHATROOM, {
       message: `${client.nickname} has joined the group`,

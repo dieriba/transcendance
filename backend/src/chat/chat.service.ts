@@ -138,6 +138,54 @@ export class ChatService {
     return joinableChatroom;
   }
 
+  async getAllUserChatroom(userId: string, chatroomId: string) {
+    const chatroomUser = await this.prismaService.chatroomUser.findFirst({
+      where: {
+        chatroomId,
+        userId,
+      },
+    });
+
+    if (!chatroomUser)
+      throw new CustomException(
+        'Cannot get user of a room you do not belong in',
+        HttpStatus.FORBIDDEN,
+      );
+
+    const chatroom = await this.prismaService.chatroom.findFirst({
+      where: {
+        id: chatroomId,
+      },
+      select: {
+        users: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                nickname: true,
+                status: true,
+                profile: {
+                  select: {
+                    avatar: true,
+                  },
+                },
+              },
+            },
+            role: true,
+          },
+        },
+      },
+    });
+
+    if (!chatroom)
+      throw new CustomException(
+        'chatroom does not exist',
+        HttpStatus.NOT_FOUND,
+      );
+
+    return chatroom.users;
+  }
+
   async getAllChatroomMessage(userId: string, chatroomId: string) {
     const user = await this.userService.findUserById(userId, UserData);
 
