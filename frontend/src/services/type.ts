@@ -18,7 +18,6 @@ export type SocketServerErrorResponse = {
 
 export type SocketServerSucessResponse = {
   message: string;
-  data: unknown;
 };
 
 export type BaseFriendTypeWithChatroom = BaseFriendType & {

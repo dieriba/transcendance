@@ -1,7 +1,9 @@
+import { JoinableChatroomType } from "./../../../models/groupChat";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { ChatroomGroupType, MessageGroupType } from "../../../models/groupChat";
 
 export interface ChatState {
+  joinableGroup: JoinableChatroomType[];
   groupChatroom: ChatroomGroupType[];
   currentGroupChatroomId: string | undefined;
   currentChatroom: ChatroomGroupType | undefined;
@@ -9,6 +11,7 @@ export interface ChatState {
 }
 
 const initialState: ChatState = {
+  joinableGroup: [],
   groupChatroom: [],
   currentGroupChatroomId: undefined,
   currentChatroom: undefined,
@@ -22,6 +25,12 @@ export const GroupSlice = createSlice({
     setGroupChatroom: (state, action: PayloadAction<ChatroomGroupType[]>) => {
       state.groupChatroom = action.payload;
     },
+    setJoinableGroup: (
+      state,
+      action: PayloadAction<JoinableChatroomType[]>
+    ) => {
+      state.joinableGroup = action.payload;
+    },
     setGroupChatroomId: (state, action: PayloadAction<string | undefined>) => {
       if (action.payload !== undefined)
         state.currentGroupChatroomId = action.payload;
@@ -31,6 +40,12 @@ export const GroupSlice = createSlice({
     },
     addNewChatroom: (state, action: PayloadAction<ChatroomGroupType>) => {
       state.groupChatroom.unshift(action.payload);
+    },
+    addNewJoinableGroup: (
+      state,
+      action: PayloadAction<JoinableChatroomType>
+    ) => {
+      state.joinableGroup.push(action.payload);
     },
     setChatroomMessage: (state, action: PayloadAction<MessageGroupType[]>) => {
       if (state.currentChatroom) {
@@ -46,6 +61,12 @@ export const GroupSlice = createSlice({
         state.currentChatroom = undefined;
         state.currentGroupChatroomId = undefined;
       }
+    },
+    deleteJoinableGroup: (state, action: PayloadAction<string>) => {
+      const chatroomId = action.payload;
+      state.joinableGroup = state.joinableGroup.filter(
+        (chatroom) => chatroom.id !== chatroomId
+      );
     },
     updateGroupChatroomListAndMessage: (
       state,
@@ -97,6 +118,9 @@ export const {
   updateGroupChatroomListAndMessage,
   deleteChatroom,
   setChatroomMessage,
+  addNewJoinableGroup,
+  setJoinableGroup,
+  deleteJoinableGroup,
   /*setOfflineUser,
   setOnlineUser,*/
   addNewChatroom,

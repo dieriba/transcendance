@@ -15,7 +15,6 @@ export const MessageGroupSchema = z.object({
     .merge(ProfileSchema),
   content: z.string().min(1),
   messageTypes: z.string().min(1),
-  blockedBy: z.array(z.object({ id: z.string() })),
 });
 
 export const MessageGroupFormSchema = z.object({
@@ -29,11 +28,24 @@ export type MessageGroupFormType = z.infer<typeof MessageGroupFormSchema>;
 
 export type MessageGroupType = z.infer<typeof MessageGroupSchema>;
 
-export const ChatroomGroupSchema = z.object({
+export const JoinableChatroomSchema = z.object({
   id: z.string().min(1),
   chatroomName: z.string().min(1),
   type: z.enum(["PROTECTED", "PUBLIC", "PRIVATE"]),
+});
+
+export type JoinableChatroomType = z.infer<typeof JoinableChatroomSchema>;
+
+export const ChatroomGroupSchema = JoinableChatroomSchema.extend({
   messages: z.array(MessageGroupSchema),
 });
 
 export type ChatroomGroupType = z.infer<typeof ChatroomGroupSchema>;
+
+export const JoinProtectedGroupSchema = z.object({
+  password: z.string().min(8),
+});
+
+export type JoinProtectedGroupFormType = z.infer<
+  typeof JoinProtectedGroupSchema
+>;

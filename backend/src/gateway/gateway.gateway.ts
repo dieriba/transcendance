@@ -65,6 +65,7 @@ import { IsFriendExistWs } from 'src/friends/pipe/is-friend-exist-ws.pipe';
 import { FriendsService } from 'src/friends/friends.service';
 import { CheckGroupCreationValidity } from 'src/chat/pipes/check-group-creation-validity.pipe';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
+import { IsRestrictedUserGuard } from 'src/chat/guards/is-restricted-user.guard';
 
 @UseGuards(WsAccessTokenGuard)
 @UseFilters(WsCatchAllFilter)
@@ -129,10 +130,12 @@ export class GatewayGateway {
   }
 
   @SubscribeMessage(ChatEventGroup.CREATE_GROUP_CHATROOM)
-  async createChatRoom(
+  async createChatroom(
     @MessageBody(CheckGroupCreationValidity) chatroomDto: ChatRoomDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
+    this.logger.log('ok');
+
     const { users, ...chatroom } = chatroomDto;
     const { chatroomName } = chatroom;
     const { userId } = client;
@@ -156,17 +159,17 @@ export class GatewayGateway {
 
     this.logger.log({ users });
 
-    const existingUserId = await this.userService.getExistingUserFriend(
-      userId,
-      users,
-      UserId,
-    );
+    let existingUserId: string[] = [];
 
+    if (users && users.length > 0)
+      existingUserId = await this.userService.getExistingUserFriend(
+        userId,
+        users,
+        UserId,
+      );
     this.logger.log({ existingUserId });
 
     existingUserId.push(userId);
-
-    this.logger.log({ chatroom });
 
     const newChatroom = await this.prismaService.chatroom.create({
       data: {
@@ -203,6 +206,15 @@ export class GatewayGateway {
         });
       }
     });
+
+    if (newChatroom.type === TYPE.PUBLIC || newChatroom.type === TYPE.PROTECTED)
+      client.broadcast.emit(ChatEventGroup.NEW_AVAILABLE_CHATROOM, {
+        data: {
+          id: newChatroom.id,
+          type: newChatroom.type,
+          chatroomName: newChatroom.chatroomName,
+        },
+      });
   }
 
   //@SubscribeMessage(CHATROOM_ADD_USER)
@@ -618,10 +630,8 @@ export class GatewayGateway {
       client.join(chatroom.chatroomName);
   }
 
-  
-
-  //@SubscribeMessage(CHATROOM_JOIN)
-  //@UseGuards(IsRestrictedUserGuard)
+  @SubscribeMessage(ChatEventGroup.JOIN_CHATROOM)
+  @UseGuards(IsRestrictedUserGuard)
   async joinChatroom(
     @MessageBody() joinChatroomDto: JoinChatroomDto,
     @ConnectedSocket() client: SocketWithAuth,
@@ -630,53 +640,86 @@ export class GatewayGateway {
     const { userId } = client;
     this.logger.log(`password: [${joinChatroomDto.password}]`);
 
-    const chatroom = await this.chatroomService.findChatroom(
-      chatroomId,
-      ChatroomBaseData,
-    );
+    const chatroom = await this.prismaService.chatroom.findFirst({
+      where: {
+        id: chatroomId,
+      },
+      select: {
+        id: true,
+        chatroomName: true,
+        type: true,
+        password: true,
+        messages: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+          take: 1,
+          select: {
+            id: true,
+            chatroomId: true,
+            user: {
+              select: {
+                id: true,
+                nickname: true,
+                profile: {
+                  select: {
+                    avatar: true,
+                  },
+                },
+              },
+            },
+            content: true,
+            messageTypes: true,
+          },
+        },
+      },
+    });
 
     if (!chatroom) throw new WsUnknownException('Chatroom not found');
-
-    this.logger.log({ chatroom });
 
     const foundChatroomUser = await this.chatroomUserService.findChatroomUser(
       chatroomId,
       userId,
     );
 
-    this.logger.log({ foundChatroomUser });
+    if (foundChatroomUser)
+      throw new WsBadRequestException('You already belong to that group');
 
-    if (chatroom.type !== TYPE.PUBLIC) {
-      if (chatroom.type === TYPE.PRIVATE && !foundChatroomUser) {
+    if (chatroom.type === TYPE.PRIVATE) {
+      throw new WsUnauthorizedException(
+        "You can't join that private chatroom, you need to be invited first",
+      );
+    } else if (chatroom.type === TYPE.PROTECTED) {
+      const match = await this.argon2Service.compare(
+        chatroom.password,
+        joinChatroomDto.password,
+      );
+
+      if (!match)
         throw new WsUnauthorizedException(
-          "You can't join that private chatroom, you need to be invited first",
+          "Wrong password, you can't acces that chatroom",
         );
-      } else if (chatroom.type === TYPE.PROTECTED) {
-        const match = await this.argon2Service.compare(
-          chatroom.password,
-          joinChatroomDto.password,
-        );
-
-        if (!match)
-          throw new WsUnauthorizedException(
-            "Wrong password, you can't acces that chatroom",
-          );
-
-        if (!foundChatroomUser) {
-          await this.chatroomUserService.createNewChatroomUser(
-            userId,
-            chatroomId,
-          );
-        }
-      }
+    }
+    if (!foundChatroomUser) {
+      await this.chatroomUserService.createNewChatroomUser(userId, chatroomId);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...data } = chatroom;
+    this.sendToSocket(chatroom.chatroomName, ChatEventGroup.NEW_USER_CHATROOM, {
+      message: `${client.nickname} has joined the group`,
+      data: {},
+    });
 
-    //this.sendToSocket(client.userId, );
+    const { id, chatroomName, type, messages } = chatroom;
 
-    client.join(chatroom.chatroomName);
+    this.sendToSocket(userId, ChatEventGroup.NEW_CHATROOM, {
+      message: '',
+      data: { id, chatroomName, type, messages },
+    });
+
+    this.sendToSocket(userId, GeneralEvent.SUCCESS, {
+      message: `Succesfully joined the group: ${chatroom.chatroomName}`,
+      data: {},
+    });
   }
 
   @SubscribeMessage(ChatEventGroup.SEND_GROUP_MESSAGE)
@@ -749,7 +792,6 @@ export class GatewayGateway {
       {
         message: '',
         data: {
-          blockedBy: user.blockedBy,
           id: res.id,
           content,
           chatroomId,
@@ -1492,7 +1534,7 @@ export class GatewayGateway {
   private sendToSocket(
     room: string,
     emit: string,
-    object: SocketServerResponse,
+    object?: SocketServerResponse,
   ) {
     this.server.to(room).emit(emit, object);
   }

@@ -138,7 +138,7 @@ const GroupConversationBody = () => {
                 );
               default:
                 return (
-                  <Stack direction="row" mb={1} justifyContent={"start"}>
+                  <Stack key={id} direction="row" mb={1} justifyContent={"start"}>
                     <TextMessage
                       nickname={user.nickname}
                       id={id}

@@ -5,9 +5,7 @@ const groupTypes = ["PUBLIC", "PRIVATE", "PROTECTED"] as const;
 export const CreateGroupSchema = z
   .object({
     chatroomName: z.string().min(3).trim(),
-    users: z.array(z.string()).min(1, {
-      message: "You need to have at least 1 user to create a group",
-    }),
+    users: z.array(z.string()).optional(),
     type: z.enum(groupTypes),
     password: z.string().optional(),
   })

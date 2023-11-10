@@ -7,6 +7,7 @@ import CreateGroup from "./CreateGroup";
 import { useAppSelector } from "../../../redux/hooks";
 import GroupBox from "../GroupBox";
 import { RootState } from "../../../redux/store";
+import JoinGroup from "./JoinGroup";
 
 const GroupContact = () => {
   const theme = useTheme();
@@ -41,11 +42,7 @@ const GroupContact = () => {
             </Search>
           </Stack>
           <Divider />
-          <Stack
-            alignItems="center"
-            justifyContent="space-between"
-            p={1}
-          >
+          <Stack alignItems="center" justifyContent="space-between" p={1}>
             <Button
               onClick={() => setOpenCreate(true)}
               fullWidth
@@ -68,31 +65,38 @@ const GroupContact = () => {
             spacing={1}
           >
             <Stack p={2}>
-              {groups.map(({ id, chatroomName, type, messages }) => {
+              {groups.map(({ id, chatroomName, type, messages }, index) => {
                 return (
-                  <>
-                    <GroupBox
-                      chatroomId={id}
-                      chatroomName={chatroomName}
-                      type={type}
-                      unread={0}
-                      time="11"
-                      msg={
-                        messages.length === 0
-                          ? "Start Conversation"
-                          : messages[0].user.id === myId
-                          ? `You: ${messages[0].content}`
-                          : messages[0].content
-                      }
-                    />
-                  </>
+                  <GroupBox
+                    chatroomId={id}
+                    chatroomName={chatroomName}
+                    type={type}
+                    unread={0}
+                    time="11"
+                    key={index}
+                    msg={
+                      messages.length === 0
+                        ? "Start Conversation"
+                        : messages[0].user.id === myId
+                        ? `You: ${messages[0].content}`
+                        : messages[0].content
+                    }
+                  />
                 );
               })}
             </Stack>
           </Stack>
         </Stack>
       </Box>
-      <CreateGroup open={openCreate} handleClose={() => setOpenCreate(false)} />
+      {openCreate && (
+        <CreateGroup
+          open={openCreate}
+          handleClose={() => setOpenCreate(false)}
+        />
+      )}
+      {openJoin && (
+        <JoinGroup open={openJoin} handleClose={() => setOpenJoin(false)} />
+      )}
     </>
   );
 };

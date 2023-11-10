@@ -13,7 +13,6 @@ const TextMessage = ({
   avatar,
 }: TextMessageProps) => {
   const theme = useTheme();
-  console.log({ incoming });
 
   return (
     <>

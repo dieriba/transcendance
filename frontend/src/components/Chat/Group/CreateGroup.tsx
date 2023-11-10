@@ -73,9 +73,10 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
   const friends = useAppSelector((state) => state.friends.friends);
   const onSubmit = async (data: CreateGroupFormType) => {
     try {
-      data.users = friends
-        .filter((friend) => data.users.includes(friend.friend.nickname))
-        .map((friend) => friend.friend.id);
+      if (data.users)
+        data.users = friends
+          .filter((friend) => data.users?.includes(friend.friend.nickname))
+          .map((friend) => friend.friend.id);
 
       console.log({ data });
 

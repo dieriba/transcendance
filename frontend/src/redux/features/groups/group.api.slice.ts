@@ -11,7 +11,12 @@ import {
 
 import { connectSocket, socket } from "../../../utils/getSocket";
 import { CreateGroupFormType } from "../../../models/CreateGroupSchema";
-import { ChatroomGroupType, MessageGroupType } from "../../../models/groupChat";
+import {
+  ChatroomGroupType,
+  JoinProtectedGroupFormType,
+  JoinableChatroomType,
+  MessageGroupType,
+} from "../../../models/groupChat";
 
 export const GroupApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -49,8 +54,30 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
         });
       },
     }),
+    joinGroup: builder.mutation<
+      SocketServerSucessResponse,
+      { chatroomId: string } & Partial<JoinProtectedGroupFormType>
+    >({
+      queryFn: (data) => {
+        connectSocket();
+        return new Promise((resolve) => {
+          socket.emit(ChatEventGroup.JOIN_CHATROOM, data);
+
+          socket.on(
+            GeneralEvent.SUCCESS,
+            (data: SocketServerSucessResponse) => {
+              resolve({ data: data });
+            }
+          );
+
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
+            resolve({ error });
+          });
+        });
+      },
+    }),
     getAllGroup: builder.query<
-      BaseServerResponse & { data: ChatroomGroupType[] },
+      SocketServerSucessResponse & { data: ChatroomGroupType[] },
       void
     >({
       queryFn: (data) => {
@@ -69,7 +96,7 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
       },
     }),
     getAllGroupMessages: builder.query<
-      BaseServerResponse & { data: MessageGroupType[] },
+      SocketServerSucessResponse & { data: MessageGroupType[] },
       { chatroomId: string }
     >({
       queryFn: (data) => {
@@ -87,6 +114,10 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
         });
       },
     }),
+    getAllJoinableGroup: builder.query<
+      BaseServerResponse & { data: JoinableChatroomType[] },
+      void
+    >({ query: () => ({ url: "chat/get-all-joinable-chatroom" }) }),
   }),
 
   overrideExisting: false,
@@ -97,4 +128,6 @@ export const {
   useSendGroupMessageMutation,
   useGetAllGroupMessagesQuery,
   useGetAllGroupQuery,
+  useGetAllJoinableGroupQuery,
+  useJoinGroupMutation,
 } = GroupApiSlice;

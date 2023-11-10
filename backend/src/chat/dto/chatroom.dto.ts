@@ -32,7 +32,7 @@ export class ChatRoomDto {
 
   @ApiProperty()
   @IsArray()
-  @ArrayMinSize(1)
+  @IsOptional()
   users: string[];
 
   @ApiProperty()
