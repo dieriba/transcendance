@@ -15,7 +15,6 @@ import {
   ChangeUserRoleDto,
   ChatRoomDto,
   ChatroomDataDto,
-  ChatroomIdDto,
   DieribaDto,
   JoinChatroomDto,
   RestrictedUsersDto,
@@ -73,10 +72,10 @@ export class ChatController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @Post('get-all-user-chatroom')
+  @Get('get-all-user-chatroom')
   async getAllUserChatroom(
     @GetUser('userId') userId: string,
-    @Body() { chatroomId }: ChatroomIdDto,
+    @Query('chatroomId') chatroomId: string,
   ) {
     return await this.chatService.getAllUserChatroom(userId, chatroomId);
   }

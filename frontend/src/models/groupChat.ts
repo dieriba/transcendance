@@ -8,6 +8,12 @@ export enum GroupTypeEnum {
   PRIVATE = "PRIVATE",
 }
 
+export enum ROLE {
+  DIERIBA = "DIERIBA",
+  CHAT_ADMIN = "CHAT_ADMIN",
+  REGULAR_USER = "REGULAR_USER",
+}
+
 export const MessageGroupSchema = z.object({
   id: z.string().min(1),
   chatroomId: z.string().min(1),
@@ -53,7 +59,14 @@ export type JoinProtectedGroupFormType = z.infer<
 
 export const UserGroupSchema = z.object({
   user: UserSchemaWithProfile,
-  role: z.string().min(1),
+  role: z.enum(["DIERIBA", "CHAT_ADMIN", "REGULAR_USER"]),
 });
 
 export type UserGroupType = z.infer<typeof UserGroupSchema>;
+
+export const GroupMembersSchema = z.object({
+  users: z.array(UserGroupSchema),
+  role: z.enum(["DIERIBA", "CHAT_ADMIN", "REGULAR_USER"]),
+});
+
+export type GroupMembertype = z.infer<typeof GroupMembersSchema>;

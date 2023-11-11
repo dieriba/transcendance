@@ -1,21 +1,34 @@
-import { JoinableChatroomType } from "./../../../models/groupChat";
+import {
+  GroupMembertype,
+  JoinableChatroomType,
+  ROLE,
+  UserGroupType,
+} from "./../../../models/groupChat";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { ChatroomGroupType, MessageGroupType } from "../../../models/groupChat";
 
-export interface ChatState {
+export interface GroupState {
   joinableGroup: JoinableChatroomType[];
   groupChatroom: ChatroomGroupType[];
   currentGroupChatroomId: string | undefined;
   currentChatroom: ChatroomGroupType | undefined;
   messages: MessageGroupType[];
+  role: string | undefined;
+  admin: UserGroupType | undefined;
+  chatAdmin: UserGroupType[];
+  regularUser: UserGroupType[];
 }
 
-const initialState: ChatState = {
+const initialState: GroupState = {
   joinableGroup: [],
   groupChatroom: [],
   currentGroupChatroomId: undefined,
   currentChatroom: undefined,
   messages: [],
+  role: undefined,
+  admin: undefined,
+  chatAdmin: [],
+  regularUser: [],
 };
 
 export const GroupSlice = createSlice({
@@ -31,15 +44,48 @@ export const GroupSlice = createSlice({
     ) => {
       state.joinableGroup = action.payload;
     },
+    setGroupMembersAndRole: (state, action: PayloadAction<GroupMembertype>) => {
+      const { users, role } = action.payload;
+      users.forEach((user) => {
+        if (user.role === ROLE.DIERIBA) {
+          state.admin = user;
+        } else if (user.role === ROLE.CHAT_ADMIN) {
+          state.chatAdmin.push(user);
+        } else if (user.role === ROLE.REGULAR_USER) {
+          state.regularUser.push(user);
+        }
+      });
+      state.role = role;
+    },
     setGroupChatroomId: (state, action: PayloadAction<string | undefined>) => {
-      if (action.payload !== undefined)
+      if (action.payload !== undefined) {
         state.currentGroupChatroomId = action.payload;
-      state.currentChatroom = state.groupChatroom?.find(
-        (chatroom) => chatroom.id === action.payload
-      );
+        state.currentChatroom = state.groupChatroom?.find(
+          (chatroom) => chatroom.id === action.payload
+        );
+        state.role = undefined;
+        state.admin = undefined;
+        state.chatAdmin = [];
+        state.regularUser = [];
+      }
     },
     addNewChatroom: (state, action: PayloadAction<ChatroomGroupType>) => {
       state.groupChatroom.unshift(action.payload);
+    },
+    addNewGroupMember: (
+      state,
+      action: PayloadAction<{
+        role: "DIERIBA" | "CHAT_ADMIN" | "REGULAR_USER";
+        user: UserGroupType;
+      }>
+    ) => {
+      const { role, user } = action.payload;
+
+      if (role === "CHAT_ADMIN") {
+        state.chatAdmin.push(user);
+      } else if (role === "REGULAR_USER") {
+        state.chatAdmin.push(user);
+      }
     },
     addNewJoinableGroup: (
       state,
@@ -67,6 +113,24 @@ export const GroupSlice = createSlice({
       state.joinableGroup = state.joinableGroup.filter(
         (chatroom) => chatroom.id !== chatroomId
       );
+    },
+    deleteGroupMembers: (
+      state,
+      action: PayloadAction<{
+        role: "DIERIBA" | "CHAT_ADMIN" | "REGULAR_USER";
+        userId: string;
+      }>
+    ) => {
+      const { userId, role } = action.payload;
+      if (role === "CHAT_ADMIN") {
+        state.chatAdmin = state.chatAdmin.filter(
+          (member) => member.user.id !== userId
+        );
+      } else if (role === "REGULAR_USER") {
+        state.regularUser = state.chatAdmin.filter(
+          (member) => member.user.id !== userId
+        );
+      }
     },
     updateGroupChatroomListAndMessage: (
       state,
@@ -124,6 +188,9 @@ export const {
   /*setOfflineUser,
   setOnlineUser,*/
   addNewChatroom,
+  setGroupMembersAndRole,
+  addNewGroupMember,
+  deleteGroupMembers,
 } = GroupSlice.actions;
 
 export default GroupSlice.reducer;

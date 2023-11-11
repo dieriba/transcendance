@@ -13,9 +13,11 @@ import { connectSocket, socket } from "../../../utils/getSocket";
 import { CreateGroupFormType } from "../../../models/CreateGroupSchema";
 import {
   ChatroomGroupType,
+  GroupMembertype,
   JoinProtectedGroupFormType,
   JoinableChatroomType,
   MessageGroupType,
+  UserGroupType,
 } from "../../../models/groupChat";
 
 export const GroupApiSlice = apiSlice.injectEndpoints({
@@ -118,6 +120,14 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
       BaseServerResponse & { data: JoinableChatroomType[] },
       void
     >({ query: () => ({ url: "chat/get-all-joinable-chatroom" }) }),
+    getAllGroupUser: builder.query<
+      BaseServerResponse & { data: GroupMembertype },
+      string
+    >({
+      query: (chatroomId) => ({
+        url: `chat/get-all-user-chatroom?chatroomId=${chatroomId}`,
+      }),
+    }),
   }),
 
   overrideExisting: false,
@@ -130,4 +140,5 @@ export const {
   useGetAllGroupQuery,
   useGetAllJoinableGroupQuery,
   useJoinGroupMutation,
+  useGetAllGroupUserQuery,
 } = GroupApiSlice;

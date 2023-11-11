@@ -17,6 +17,7 @@ import { useTheme } from "@mui/material/styles";
 import { useAppDispatch } from "../../../redux/hooks";
 import DialogI from "../../Dialog/DialogI";
 import { useState } from "react";
+import View from "./View";
 
 const GroupComp = () => {
   const theme = useTheme();
@@ -28,90 +29,84 @@ const GroupComp = () => {
   const handleOnClick = () => {
     handleClose();
   };
+
   return (
-    <Box width="320px" height="100vh">
-      <Stack sx={{ height: "100%" }}>
-        <Box
-          sx={{
-            boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.25)",
-            width: "100%",
-            backgroundColor:
-              theme.palette.mode === "light"
-                ? "#F8FAFF"
-                : theme.palette.background.default,
-            height: "70px",
-          }}
-        >
+    <>
+      <Box width="320px" height="100vh">
+        <Stack sx={{ height: "100%" }}>
+          <Box
+            sx={{
+              boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.25)",
+              width: "100%",
+              backgroundColor:
+                theme.palette.mode === "light"
+                  ? "#F8FAFF"
+                  : theme.palette.background.default,
+              height: "70px",
+            }}
+          >
+            <Stack
+              sx={{ height: "100%", p: 2 }}
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+              spacing={3}
+            >
+              <Typography variant="subtitle2">Group Info</Typography>
+              <IconButton onClick={() => dispatch(closeGroupSidebar())}>
+                <X />
+              </IconButton>
+            </Stack>
+          </Box>
+          <Divider />
           <Stack
-            sx={{ height: "100%", p: 2 }}
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
+            sx={{
+              height: "100%",
+              position: "relative",
+              flexGrow: "1",
+              overflowY: "scroll",
+            }}
+            p={3}
             spacing={3}
           >
-            <Typography variant="subtitle2">Group Info</Typography>
-            <IconButton onClick={() => dispatch(closeGroupSidebar())}>
-              <X />
-            </IconButton>
-          </Stack>
-        </Box>
-        <Divider />
-        <Stack
-          sx={{
-            height: "100%",
-            position: "relative",
-            flexGrow: "1",
-            overflowY: "scroll",
-          }}
-          p={3}
-          spacing={3}
-        >
-          <Stack alignItems="center" direction="row" spacing={2}>
-            <Stack spacing={0.5} alignSelf="flex-start">
-              <Typography variant="subtitle2" fontWeight={600}></Typography>
+            <Stack height="80%" alignItems="center" direction="row" spacing={2}>
+              <View />
             </Stack>
-          </Stack>
-          <Divider />
-          <Stack spacing={0.5}>
-            <Typography variant="body2" fontWeight={600}>
-              About
-            </Typography>
-            <Typography variant="subtitle2">Dieri</Typography>
-          </Stack>
-          <Divider />
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <Stack direction="row" alignItems="center" spacing={2}>
-              <Bell size={22} />
-              <Typography variant="subtitle2">Mute Notifications</Typography>
-            </Stack>
-            <Switch />
-          </Stack>
-          <Divider />
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <Button
-              size="small"
-              startIcon={<Trash />}
-              variant="outlined"
-              fullWidth
-              sx={{ textTransform: "capitalize" }}
-              onClick={() => setOpen(true)}
+            <Divider />
+
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
             >
-              Leave Group
-            </Button>
+              <Stack direction="row" alignItems="center" spacing={2}>
+                <Bell size={22} />
+                <Typography variant="subtitle2">Mute Notifications</Typography>
+              </Stack>
+              <Switch />
+            </Stack>
+            <Divider />
+            <Stack direction="row" alignItems="center" spacing={2}>
+              <Button
+                size="small"
+                startIcon={<Trash />}
+                variant="outlined"
+                fullWidth
+                sx={{ textTransform: "capitalize" }}
+                onClick={() => setOpen(true)}
+              >
+                Leave Group
+              </Button>
+            </Stack>
           </Stack>
         </Stack>
-      </Stack>
-
-      <>
+      </Box>
+      {open && (
         <DialogI open={open} handleClose={handleClose}>
           <DialogTitle>Leave Group?</DialogTitle>
           <DialogContent>
             <DialogContentText id="alert-dialog-slide-description">
-              <Typography>Do you really want to leave that group?</Typography>
+              Do you really want to leave that group?
             </DialogContentText>
           </DialogContent>
           <DialogActions>
@@ -119,8 +114,8 @@ const GroupComp = () => {
             <Button onClick={handleOnClick}>Yes</Button>
           </DialogActions>
         </DialogI>
-      </>
-    </Box>
+      )}
+    </>
   );
 };
 

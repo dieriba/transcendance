@@ -10,7 +10,12 @@ import {
   RestrictedUsersDto,
   UnrestrictedUsersDto,
 } from './dto/chatroom.dto';
-import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpStatus,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { MESSAGE_TYPES, RESTRICTION, ROLE, TYPE } from '@prisma/client';
 import { Argon2Service } from 'src/argon2/argon2.service';
@@ -139,18 +144,7 @@ export class ChatService {
   }
 
   async getAllUserChatroom(userId: string, chatroomId: string) {
-    const chatroomUser = await this.prismaService.chatroomUser.findFirst({
-      where: {
-        chatroomId,
-        userId,
-      },
-    });
-
-    if (!chatroomUser)
-      throw new CustomException(
-        'Cannot get user of a room you do not belong in',
-        HttpStatus.FORBIDDEN,
-      );
+    if (!chatroomId) throw new BadRequestException('Bad Request');
 
     const chatroom = await this.prismaService.chatroom.findFirst({
       where: {
@@ -158,6 +152,11 @@ export class ChatService {
       },
       select: {
         users: {
+          orderBy: {
+            user: {
+              nickname: 'asc',
+            },
+          },
           select: {
             user: {
               select: {
@@ -177,13 +176,30 @@ export class ChatService {
       },
     });
 
+    console.log({ chatroom });
+
     if (!chatroom)
       throw new CustomException(
         'chatroom does not exist',
         HttpStatus.NOT_FOUND,
       );
 
-    return chatroom.users;
+    const chatroomUser = await this.prismaService.chatroomUser.findFirst({
+      where: {
+        chatroomId,
+        userId,
+      },
+    });
+
+    if (!chatroomUser)
+      throw new CustomException(
+        'Cannot get user of a room you do not belong in',
+        HttpStatus.FORBIDDEN,
+      );
+
+    const { role } = chatroom.users.find((user) => user.user.id === userId);
+
+    return { users: chatroom.users, role };
   }
 
   async getAllChatroomMessage(userId: string, chatroomId: string) {

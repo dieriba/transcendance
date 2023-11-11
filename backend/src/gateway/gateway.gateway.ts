@@ -18,7 +18,7 @@ import {
   FriendEvent,
   GeneralEvent,
   ChatEventGroup,
-} from '@shared/socket.event';
+} from '../../../shared/socket.event';
 import { Server } from 'socket.io';
 import { Argon2Service } from 'src/argon2/argon2.service';
 import { SocketWithAuth } from 'src/auth/type';
