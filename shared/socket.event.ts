@@ -56,16 +56,15 @@ export enum ChatEventGroup {
   NEW_USER_CHATROOM = `${groupChatroom}.new.user.chatroom`,
   CHANGE_USER_ROLE = `${groupChatroom}.change.user.role`,
   USER_ROLE_CHANGED = `${groupChatroom}.user.role.changed`,
+  RESTRICT_USER = `${groupChatroom}.restrict.user`,
+  USER_RESTRICTED = `${groupChatroom}.user.restricted`,
+  USER_LIFE_RESTRICTED = `${groupChatroom}.user.life.restricted`,
+  UNRESTRICT_USER = `${groupChatroom}.unrestrict.user`,
+  USER_UNRESTRICTED = `${groupChatroom}.user.unrestricted`,
 
   ADD_USER = "chatroom.add.user",
   DELETE_USER = "chatroom.delete.user",
-  RESTRICT_USER = "chatroom.restrict.user",
-  UNRESTRICT_USER = "chatroom.unrestrict.user",
 
   USER_ADDED = "chatroom.user.added",
   USER_DELETED = "chatroom.user.deleted",
-  USER_RESTRICT_LIFE = "chatroom.user.restrict.life",
-  USER_RESTRICT_CHAT_ADMIN = "chatroom.user.restrict.chat.admin",
-  USER_RESTRICTED = "chatroom.user.restricted",
-  USER_UNRESTRICTED = "chatroom.user.unrestricted",
 }

@@ -41,7 +41,9 @@ export class isValidDurationConstraint implements ValidatorConstraintInterface {
           `Can't mute a user more than ${MUTE_MAX_HOURS} hours`,
         );
       else if (durationUnit === DURATION_UNIT.DAY && duration > MUTE_MAX_DAYS)
-        return this.setResponse(`Can't mute a user more than ${MUTE_MAX_DAYS}`);
+        return this.setResponse(
+          `Can't mute a user more than ${MUTE_MAX_DAYS} days`,
+        );
     } else if (restriction === RESTRICTION.KICKED) {
       if (durationUnit === DURATION_UNIT.MINUTES && duration > KICK_MAX_DAYS)
         return this.setResponse(
@@ -52,7 +54,9 @@ export class isValidDurationConstraint implements ValidatorConstraintInterface {
           `Can't kick a user more than ${KICK_MAX_HOURS} hours`,
         );
       else if (durationUnit === DURATION_UNIT.DAY && duration > MUTE_MAX_DAYS)
-        return this.setResponse(`Can't kick a user more than ${MUTE_MAX_DAYS}`);
+        return this.setResponse(
+          `Can't kick a user more than ${MUTE_MAX_DAYS} days`,
+        );
     } else if (restriction === RESTRICTION.BANNED) {
       if (
         durationUnit === DURATION_UNIT.DAY &&

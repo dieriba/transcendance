@@ -10,12 +10,10 @@ import {
   IsString,
   MaxLength,
   MinLength,
-  ValidateNested,
 } from 'class-validator';
 import { MESSAGE_TYPES, RESTRICTION, ROLE, TYPE } from '@prisma/client';
 import { DAYS, HOURS, MIN } from 'src/common/constant/enum.constant';
 import { isValidDuration } from '../validation-decorator/is-valid-duration.validation';
-import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export enum DURATION_UNIT {
@@ -133,6 +131,9 @@ export class RestrictedUsersDto {
   @IsString()
   chatroomId: string;
 
+  @IsOptional()
+  chatroomName: string;
+
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
@@ -161,9 +162,6 @@ export class RestrictedUsersDto {
 
   @IsOptional()
   isChatAdmin: boolean;
-
-  @IsOptional()
-  userId: string;
 
   @IsOptional()
   nickname: string;

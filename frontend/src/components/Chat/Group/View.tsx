@@ -57,6 +57,8 @@ const View = () => {
   } else {
     console.log({ role });
 
+    console.log({ data: data.data });
+
     if (role === "DIERIBA") {
       return <AdminView />;
     } else if (role === "CHAT_ADMIN") {

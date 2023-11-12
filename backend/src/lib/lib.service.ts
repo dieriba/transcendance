@@ -5,6 +5,7 @@ import { extname } from 'path';
 import { INTERNAL_SERVER_ERROR } from 'src/common/constant/http-error.constant';
 import { CustomException } from 'src/common/custom-exception/custom-exception';
 import * as fs from 'fs';
+import { MAX_DATE } from '../../../shared/constant';
 @Injectable()
 export class LibService {
   /*Generate secret for opt*/
@@ -31,8 +32,7 @@ export class LibService {
   }
 
   getEndBanTime(unit: string, date: Date, value: number): Date {
-    if (value === Number.MAX_SAFE_INTEGER)
-      return new Date('9999-12-31T23:59:59.999Z');
+    if (value === Number.MAX_SAFE_INTEGER) return new Date(MAX_DATE);
 
     const modifier = this.dateModifiers[unit];
     return modifier(date, value);

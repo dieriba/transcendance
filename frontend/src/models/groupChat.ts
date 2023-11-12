@@ -1,7 +1,12 @@
 import { z } from "zod";
 import { ProfileSchema } from "./ProfileFormSchema";
 import { UserSchemaWithProfile } from "./ChatContactSchema";
-import { groupTypes, messageTypes, roleType } from "./type-enum/typesEnum";
+import {
+  groupTypes,
+  messageTypes,
+  privilegeRoleType,
+  roleType,
+} from "./type-enum/typesEnum";
 import { BaseSchema } from "./BaseType";
 
 export const MessageGroupSchema = z.object({
@@ -47,8 +52,25 @@ export type JoinProtectedGroupFormType = z.infer<
   typeof JoinProtectedGroupSchema
 >;
 
+export const RestrictedGroupSchema = z.object({
+  admin: z.object({
+    user: z.object({
+      nickname: z.string().min(1),
+    }),
+    role: z.enum(privilegeRoleType),
+  }),
+  reason: z.string().min(1),
+  restriction: z.string().min(1),
+  restrictionTimeStart: z.date(),
+  restrictionTimeEnd: z.date(),
+});
+
+export type RestrictedGroupType = z.infer<typeof RestrictedGroupSchema>;
+
 export const UserGroupSchema = z.object({
-  user: UserSchemaWithProfile,
+  user: UserSchemaWithProfile.extend({
+    restrictedGroups: z.array(RestrictedGroupSchema),
+  }),
   role: z.enum(roleType),
 });
 

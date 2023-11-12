@@ -1,38 +1,38 @@
-import { IconButton, Stack, Tooltip, Typography } from "@mui/material";
+import { Tooltip, IconButton } from "@mui/material";
 import {
+  Notebook,
+  GameController,
   CrownSimple,
-  ArrowUp,
   UserMinus,
   X,
-  GameController,
-  Notebook,
+  ArrowUp,
 } from "phosphor-react";
-import { ROLE } from "../../../../models/type-enum/typesEnum";
+import { ChatRoleType, ROLE } from "../../../../models/type-enum/typesEnum";
 
-interface UserProps {
-  id: string;
+interface UserActionProps {
+  role: ChatRoleType;
   nickname: string;
+  me: boolean;
+  id: string;
   handleNewAdmin: (data: { id: string; nickname: string }) => void;
   handleChangeRole: (data: {
     id: string;
     nickname: string;
     role: ChatRoleType;
   }) => void;
-  /* handleDeleteUser: () => void;
-    handleSetModerator: () => void;
-    handleRestrictUser: () => void;*/
 }
 
-const User = ({
-  id,
+const UserAction = ({
+  role,
   nickname,
-  handleNewAdmin,
+  id,
+  me,
   handleChangeRole,
-}: UserProps) => {
-  return (
-    <Stack width="100%" alignItems="flex-start" justifyContent="space-between">
-      <Typography>{nickname}</Typography>
-      <Stack direction="row">
+  handleNewAdmin,
+}: UserActionProps) => {
+  if (role === "DIERIBA") {
+    return (
+      <>
         <Tooltip title={`play with ${nickname}`}>
           <IconButton>
             <GameController size={18} />
@@ -71,9 +71,46 @@ const User = ({
             <X size={18} />
           </IconButton>
         </Tooltip>
-      </Stack>
-    </Stack>
-  );
+      </>
+    );
+  } else if (role === "CHAT_ADMIN") {
+    return (
+      <>
+        <Tooltip title={`play with ${nickname}`}>
+          <IconButton>
+            <GameController size={20} />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title={`${nickname} details`}>
+          <IconButton>
+            <Notebook size={20} />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title={`restrict ${nickname}`}>
+          <IconButton>
+            <UserMinus size={20} />
+          </IconButton>
+        </Tooltip>
+      </>
+    );
+  } else {
+    return (
+      <>
+        {!me && (
+          <Tooltip title={`play with ${nickname}`}>
+            <IconButton>
+              <GameController size={20} />
+            </IconButton>
+          </Tooltip>
+        )}
+        <Tooltip title={`${nickname} details`}>
+          <IconButton>
+            <Notebook size={20} />
+          </IconButton>
+        </Tooltip>
+      </>
+    );
+  }
 };
 
-export default User;
+export default UserAction;

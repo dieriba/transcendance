@@ -17,7 +17,6 @@ import { useTheme } from "@mui/material/styles";
 import { useAppDispatch } from "../../../redux/hooks";
 import DialogI from "../../Dialog/DialogI";
 import { useEffect, useState } from "react";
-import View from "./View";
 import { connectSocket, socket } from "../../../utils/getSocket";
 import { ChatEventGroup } from "../../../../../shared/socket.event";
 import {
@@ -25,6 +24,7 @@ import {
   setNewRole,
 } from "../../../redux/features/groups/groupSlice";
 import { UserNewRoleResponseType } from "../../../models/groupChat";
+import View from "./View/View";
 
 const GroupComp = () => {
   const theme = useTheme();

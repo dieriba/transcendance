@@ -11,23 +11,23 @@ import {
   Alert,
   AlertColor,
 } from "@mui/material";
-import DialogI from "../../../Dialog/DialogI";
+import DialogI from "../../../../Dialog/DialogI";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { useTheme } from "@mui/material/styles";
 import { Eye, EyeSlash } from "phosphor-react";
-import CustomTextField from "../../../CustomTextField/CustomTextField";
-import { SocketServerErrorResponse } from "../../../../services/type";
-import { useAppDispatch, useAppSelector } from "../../../../redux/hooks";
+import CustomTextField from "../../../../CustomTextField/CustomTextField";
+import { SocketServerErrorResponse } from "../../../../../services/type";
+import { useAppDispatch, useAppSelector } from "../../../../../redux/hooks";
 import {
   EditGroupSchema,
   EditGroupType,
-} from "../../../../models/EditGroupSchema";
+} from "../../../../../models/EditGroupSchema";
 import { useState } from "react";
-import { RootState } from "../../../../redux/store";
-import { useEditGroupMutation } from "../../../../redux/features/groups/group.api.slice";
-import { ChatroomGroupType } from "../../../../models/groupChat";
-import { updateChatroom } from "../../../../redux/features/groups/groupSlice";
+import { RootState } from "../../../../../redux/store";
+import { useEditGroupMutation } from "../../../../../redux/features/groups/group.api.slice";
+import { ChatroomGroupType } from "../../../../../models/groupChat";
+import { updateChatroom } from "../../../../../redux/features/groups/groupSlice";
 
 interface EditGroupProps {
   open: boolean;

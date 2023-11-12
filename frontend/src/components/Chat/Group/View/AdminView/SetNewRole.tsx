@@ -9,15 +9,15 @@ import {
   Typography,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import DialogI from "../../../Dialog/DialogI";
+import DialogI from "../../../../Dialog/DialogI";
 import { useState } from "react";
-import { useAppDispatch, useAppSelector } from "../../../../redux/hooks";
-import { RootState } from "../../../../redux/store";
-import { SocketServerErrorResponse } from "../../../../services/type";
-import { useSetNewRoleMutation } from "../../../../redux/features/groups/group.api.slice";
-import { ChatroomGroupType } from "../../../../models/groupChat";
-import { setNewRole } from "../../../../redux/features/groups/groupSlice";
-import { ChatRoleType } from "../../../../models/type-enum/typesEnum";
+import { useAppDispatch, useAppSelector } from "../../../../../redux/hooks";
+import { RootState } from "../../../../../redux/store";
+import { SocketServerErrorResponse } from "../../../../../services/type";
+import { useSetNewRoleMutation } from "../../../../../redux/features/groups/group.api.slice";
+import { ChatroomGroupType } from "../../../../../models/groupChat";
+import { setNewRole } from "../../../../../redux/features/groups/groupSlice";
+import { ChatRoleType } from "../../../../../models/type-enum/typesEnum";
 
 interface SetNewRoleProps {
   open: boolean;

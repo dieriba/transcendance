@@ -1,38 +1,38 @@
-import { IconButton, Stack, Tooltip, Typography } from "@mui/material";
+import { Tooltip, IconButton } from "@mui/material";
 import {
-  CrownSimple,
+  Notebook,
+  GameController,
   ArrowDown,
+  CrownSimple,
   UserMinus,
   X,
-  GameController,
-  Notebook,
 } from "phosphor-react";
-import { ROLE } from "../../../../models/type-enum/typesEnum";
+import { ChatRoleType, ROLE } from "../../../../models/type-enum/typesEnum";
 
-interface ModeratorProps {
-  id: string;
+interface ModeratorActionProps {
+  role: ChatRoleType;
   nickname: string;
+  me: boolean;
+  id: string;
   handleNewAdmin: (data: { id: string; nickname: string }) => void;
   handleChangeRole: (data: {
     id: string;
     nickname: string;
     role: ChatRoleType;
   }) => void;
-  /*handleDeleteUser: () => void;
-  handleSetUser: () => void;
-  handleRestrictUser: () => void;*/
 }
 
-const Moderator = ({
-  id,
+const ModeratorAction = ({
+  role,
   nickname,
-  handleNewAdmin,
+  id,
+  me,
   handleChangeRole,
-}: ModeratorProps) => {
-  return (
-    <Stack width="100%" alignItems="flex-start">
-      <Typography>{nickname}</Typography>
-      <Stack direction="row">
+  handleNewAdmin,
+}: ModeratorActionProps) => {
+  if (role === "DIERIBA") {
+    return (
+      <>
         <Tooltip title={`play with ${nickname}`}>
           <IconButton>
             <GameController size={20} />
@@ -67,9 +67,26 @@ const Moderator = ({
             <X size={20} />
           </IconButton>
         </Tooltip>
-      </Stack>
-    </Stack>
-  );
+      </>
+    );
+  } else {
+    return (
+      <>
+        {!me && (
+          <Tooltip title={`play with ${nickname}`}>
+            <IconButton>
+              <GameController size={20} />
+            </IconButton>
+          </Tooltip>
+        )}
+        <Tooltip title={`${nickname} details`}>
+          <IconButton>
+            <Notebook size={20} />
+          </IconButton>
+        </Tooltip>
+      </>
+    );
+  }
 };
 
-export default Moderator;
+export default ModeratorAction;
