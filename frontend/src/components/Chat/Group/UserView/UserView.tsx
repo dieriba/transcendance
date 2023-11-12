@@ -31,8 +31,8 @@ const UserView = () => {
         {chatAdmin.length === 0 ? (
           <Typography>No Moderator</Typography>
         ) : (
-          chatAdmin.map((moderator) => {
-            return <Moderator nickname={moderator.user.nickname} />;
+          chatAdmin.map((moderator, index) => {
+            return <Moderator key={index} nickname={moderator.user.nickname} />;
           })
         )}
       </Stack>
@@ -45,9 +45,10 @@ const UserView = () => {
         {regularUser.length === 0 ? (
           <Typography>No Moderator</Typography>
         ) : (
-          regularUser.map((moderator) => {
+          regularUser.map((moderator, index) => {
             return (
               <User
+                key={index}
                 myNickname={myNickname as string}
                 nickname={moderator.user.nickname}
               />

@@ -1,9 +1,9 @@
-import { GroupTypeEnum } from "../../../models/groupChat";
 import { Tooltip } from "@mui/material";
 import { EyeSlash, Shield, UsersFour } from "phosphor-react";
+import { GroupTypeEnum, GroupTypes } from "../../../models/type-enum/typesEnum";
 
 interface GroupIconProps {
-  type: "PUBLIC" | "PROTECTED" | "PRIVATE";
+  type: GroupTypes;
   size: number;
 }
 

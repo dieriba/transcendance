@@ -3,7 +3,6 @@ import {
   Post,
   Get,
   Body,
-  Delete,
   UseInterceptors,
   HttpCode,
   HttpStatus,
@@ -12,19 +11,13 @@ import {
 } from '@nestjs/common';
 import { GetUser } from 'src/common/custom-decorator/get-user.decorator';
 import {
-  ChangeUserRoleDto,
-  ChatRoomDto,
-  ChatroomDataDto,
-  DieribaDto,
   JoinChatroomDto,
   RestrictedUsersDto,
   UnrestrictedUsersDto,
 } from './dto/chatroom.dto';
 import { ChatService } from './chat.service';
-import { CheckGroupCreationValidity } from './pipes/check-group-creation-validity.pipe';
 import { isDieribaOrAdmin } from './pipes/is-dieriba-or-admin.pipe';
 import { ResponseMessage } from 'src/common/custom-decorator/respone-message.decorator';
-import { IsDieriba } from './pipes/is-dieriba.pipe';
 import { IsRestrictedUserGuard } from './guards/is-restricted-user.guard';
 import { PassUserDataToBody } from 'src/common/interceptor/pass-user-data-to-body.interceptor';
 
@@ -50,27 +43,6 @@ export class ChatController {
     return await this.chatService.getJoinableChatroom(userId);
   }
 
-  @Post('create-chatroom')
-  @ResponseMessage(
-    'Successfully created chatroom and added user meeting the following criteria: not blocked you, not have blocked you and existing',
-  )
-  async createChatRoom(
-    @Body(CheckGroupCreationValidity) chatRoomDto: ChatRoomDto,
-    @GetUser('userId') userId: string,
-  ) {
-    return await this.chatService.createChatRoom(userId, chatRoomDto);
-  }
-
-  @Post('add-user')
-  @ResponseMessage(
-    'Successfully added user meeting the following criteria: not blocked you, not have blocked you, not already in chatroom and existing',
-  )
-  @HttpCode(HttpStatus.OK)
-  @UseInterceptors(PassUserDataToBody)
-  async addNewUserToChatroom(@Body(IsDieriba) body: ChatroomDataDto) {
-    return await this.chatService.addNewUserToChatroom(body.userId, body);
-  }
-
   @HttpCode(HttpStatus.OK)
   @Get('get-all-user-chatroom')
   async getAllUserChatroom(
@@ -78,34 +50,6 @@ export class ChatController {
     @Query('chatroomId') chatroomId: string,
   ) {
     return await this.chatService.getAllUserChatroom(userId, chatroomId);
-  }
-
-  @Post('set-chatroom-dieriba')
-  @ResponseMessage('Ownership given successfully')
-  @HttpCode(HttpStatus.OK)
-  @UseInterceptors(PassUserDataToBody)
-  async setNewChatroomDieriba(@Body(IsDieriba) dieribaDto: DieribaDto) {
-    return await this.chatService.setNewChatroomDieriba(dieribaDto);
-  }
-
-  @Delete('delete-user')
-  @UseInterceptors(PassUserDataToBody)
-  @HttpCode(HttpStatus.OK)
-  @ResponseMessage(
-    'Successfully deleted user from chatroom meeting the following criteria: existing and in chatroom',
-  )
-  async deleteUserFromChatroom(@Body(IsDieriba) body: ChatroomDataDto) {
-    return await this.chatService.deleteUserFromChatromm(body);
-  }
-
-  @Post('change-user-role')
-  @HttpCode(HttpStatus.OK)
-  @ResponseMessage(
-    'Successfully change the role of user meeting the following criteria: existing in chatroom and not have blocked you',
-  )
-  @UseInterceptors(PassUserDataToBody)
-  async changeUserRole(@Body(IsDieriba) body: ChangeUserRoleDto) {
-    return await this.chatService.changeUserRole(body);
   }
 
   @Post('restrict-users')

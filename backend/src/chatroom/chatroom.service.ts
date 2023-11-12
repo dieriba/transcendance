@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ROLE } from '@prisma/client';
+import { Chatroom, ROLE } from '@prisma/client';
 import { ChatroomInfo } from 'src/common/types/chatroom-info-type';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -10,6 +10,15 @@ export class ChatroomService {
     return await this.prismaService.chatroom.findFirst({
       where: { id: chatroomId },
       select,
+    });
+  }
+
+  async updateChatroom(chatroomId: string, data: Partial<Chatroom>) {
+    return await this.prismaService.chatroom.update({
+      where: {
+        id: chatroomId,
+      },
+      data,
     });
   }
 

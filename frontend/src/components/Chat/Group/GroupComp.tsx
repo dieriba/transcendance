@@ -16,8 +16,15 @@ import { closeGroupSidebar } from "../../../redux/features/sidebar.slices";
 import { useTheme } from "@mui/material/styles";
 import { useAppDispatch } from "../../../redux/hooks";
 import DialogI from "../../Dialog/DialogI";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import View from "./View";
+import { connectSocket, socket } from "../../../utils/getSocket";
+import { ChatEventGroup } from "../../../../../shared/socket.event";
+import {
+  setNewAdmin,
+  setNewRole,
+} from "../../../redux/features/groups/groupSlice";
+import { UserNewRoleResponseType } from "../../../models/groupChat";
 
 const GroupComp = () => {
   const theme = useTheme();
@@ -29,6 +36,25 @@ const GroupComp = () => {
   const handleOnClick = () => {
     handleClose();
   };
+
+  useEffect(() => {
+    connectSocket();
+    socket.on(ChatEventGroup.NEW_ADMIN, (data: UserNewRoleResponseType) => {
+      dispatch(setNewAdmin(data));
+    });
+
+    socket.on(
+      ChatEventGroup.USER_ROLE_CHANGED,
+      (data: UserNewRoleResponseType) => {
+        dispatch(setNewRole(data));
+      }
+    );
+
+    return () => {
+      socket.off(ChatEventGroup.NEW_ADMIN);
+      socket.off(ChatEventGroup.USER_ROLE_CHANGED);
+    };
+  }, [dispatch]);
 
   return (
     <>

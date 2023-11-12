@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ProfileSchema } from "./ProfileFormSchema";
+import { friendsType } from "./type-enum/typesEnum";
 
 export const BaseFriendSchema = z.object({
   friendId: z.string().min(1),
@@ -16,7 +17,7 @@ export const FriendSchema = z.object({
     .object({
       id: z.string().min(1),
       nickname: z.string().min(1),
-      status: z.enum(["ONLINE", "OFFLINE", "PLAYING"]),
+      status: z.enum(friendsType),
     })
     .merge(ProfileSchema),
 });

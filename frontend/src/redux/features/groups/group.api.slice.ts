@@ -1,3 +1,7 @@
+import {
+  SetNewRoleType,
+  UserNewRoleResponseType,
+} from "./../../../models/groupChat";
 import { MessageFormType } from "./../../../models/ChatContactSchema";
 import {
   BaseServerResponse,
@@ -17,8 +21,11 @@ import {
   JoinProtectedGroupFormType,
   JoinableChatroomType,
   MessageGroupType,
-  UserGroupType,
 } from "../../../models/groupChat";
+import {
+  EditGroupType,
+  editGroupResponseType,
+} from "../../../models/EditGroupSchema";
 
 export const GroupApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -30,6 +37,25 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
         connectSocket();
         return new Promise((resolve) => {
           socket.emit(ChatEventGroup.CREATE_GROUP_CHATROOM, data);
+
+          socket.on(GeneralEvent.SUCCESS, (data) => {
+            resolve({ data });
+          });
+
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
+            resolve({ error });
+          });
+        });
+      },
+    }),
+    editGroup: builder.mutation<
+      SocketServerSucessResponse & { data: editGroupResponseType },
+      EditGroupType
+    >({
+      queryFn: (data) => {
+        connectSocket();
+        return new Promise((resolve) => {
+          socket.emit(ChatEventGroup.EDIT_GROUP_CHATROOM, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
             resolve({ data });
@@ -71,6 +97,44 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
               resolve({ data: data });
             }
           );
+
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
+            resolve({ error });
+          });
+        });
+      },
+    }),
+    setNewDieriba: builder.mutation<
+      SocketServerSucessResponse & { data: UserNewRoleResponseType },
+      SetNewRoleType
+    >({
+      queryFn: (data) => {
+        connectSocket();
+        return new Promise((resolve) => {
+          socket.emit(ChatEventGroup.SET_DIERIBA, data);
+
+          socket.on(GeneralEvent.SUCCESS, (data) => {
+            resolve({ data });
+          });
+
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
+            resolve({ error });
+          });
+        });
+      },
+    }),
+    setNewRole: builder.mutation<
+      SocketServerSucessResponse & { data: UserNewRoleResponseType },
+      SetNewRoleType
+    >({
+      queryFn: (data) => {
+        connectSocket();
+        return new Promise((resolve) => {
+          socket.emit(ChatEventGroup.CHANGE_USER_ROLE, data);
+
+          socket.on(GeneralEvent.SUCCESS, (data) => {
+            resolve({ data });
+          });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
             resolve({ error });
@@ -141,4 +205,7 @@ export const {
   useGetAllJoinableGroupQuery,
   useJoinGroupMutation,
   useGetAllGroupUserQuery,
+  useEditGroupMutation,
+  useSetNewDieribaMutation,
+  useSetNewRoleMutation,
 } = GroupApiSlice;

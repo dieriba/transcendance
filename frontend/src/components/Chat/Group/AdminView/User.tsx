@@ -7,16 +7,28 @@ import {
   GameController,
   Notebook,
 } from "phosphor-react";
+import { ROLE } from "../../../../models/type-enum/typesEnum";
 
 interface UserProps {
+  id: string;
   nickname: string;
-  /*handleNewAdmin: () => void;
-    handleDeleteUser: () => void;
+  handleNewAdmin: (data: { id: string; nickname: string }) => void;
+  handleChangeRole: (data: {
+    id: string;
+    nickname: string;
+    role: ChatRoleType;
+  }) => void;
+  /* handleDeleteUser: () => void;
     handleSetModerator: () => void;
     handleRestrictUser: () => void;*/
 }
 
-const User = ({ nickname }: UserProps) => {
+const User = ({
+  id,
+  nickname,
+  handleNewAdmin,
+  handleChangeRole,
+}: UserProps) => {
   return (
     <Stack width="100%" alignItems="flex-start" justifyContent="space-between">
       <Typography>{nickname}</Typography>
@@ -32,12 +44,20 @@ const User = ({ nickname }: UserProps) => {
           </IconButton>
         </Tooltip>
         <Tooltip title={`set ${nickname} as chat admin`}>
-          <IconButton>
+          <IconButton
+            onClick={() => {
+              handleNewAdmin({ id, nickname });
+            }}
+          >
             <CrownSimple size={18} />
           </IconButton>
         </Tooltip>
         <Tooltip title={`set ${nickname} as moderator`}>
-          <IconButton>
+          <IconButton
+            onClick={() =>
+              handleChangeRole({ id, nickname, role: ROLE.CHAT_ADMIN })
+            }
+          >
             <ArrowUp size={18} />
           </IconButton>
         </Tooltip>
@@ -46,7 +66,7 @@ const User = ({ nickname }: UserProps) => {
             <UserMinus size={18} />
           </IconButton>
         </Tooltip>
-        <Tooltip title={`restrict ${nickname}`}>
+        <Tooltip title={`delete ${nickname}`}>
           <IconButton>
             <X size={18} />
           </IconButton>

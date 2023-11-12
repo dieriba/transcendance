@@ -32,9 +32,9 @@ import {
   ChatroomMessageDto,
   DmMessageDto,
   ChatRoomDto,
+  EditChatroomDto,
 } from 'src/chat/dto/chatroom.dto';
 import { isDieribaOrAdmin } from 'src/chat/pipes/is-dieriba-or-admin.pipe';
-import { IsDieriba } from 'src/chat/pipes/is-dieriba.pipe';
 import { ChatroomUserService } from 'src/chatroom-user/chatroom-user.service';
 import { ChatroomService } from 'src/chatroom/chatroom.service';
 import { BAD_REQUEST } from 'src/common/constant/http-error.constant';
@@ -66,6 +66,7 @@ import { FriendsService } from 'src/friends/friends.service';
 import { CheckGroupCreationValidity } from 'src/chat/pipes/check-group-creation-validity.pipe';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
 import { IsRestrictedUserGuard } from 'src/chat/guards/is-restricted-user.guard';
+import { ChatRoomNotFoundException } from 'src/chat/exception/chatroom-not-found.exception';
 
 @UseGuards(WsAccessTokenGuard)
 @UseFilters(WsCatchAllFilter)
@@ -195,12 +196,12 @@ export class GatewayGateway {
     const { id, type } = newChatroom;
 
     existingUserId.map((user) => {
-      this.sendToSocket(user, ChatEventGroup.NEW_CHATROOM, {
+      this.sendToSocket(this.server, user, ChatEventGroup.NEW_CHATROOM, {
         message: '',
         data: { id, chatroomName, type, messages: [] },
       });
       if (user === userId) {
-        this.sendToSocket(user, GeneralEvent.SUCCESS, {
+        this.sendToSocket(this.server, user, GeneralEvent.SUCCESS, {
           message: 'Group created succesfully',
           data: {},
         });
@@ -215,6 +216,85 @@ export class GatewayGateway {
           chatroomName: newChatroom.chatroomName,
         },
       });
+  }
+
+  @SubscribeMessage(ChatEventGroup.EDIT_GROUP_CHATROOM)
+  async editChatroom(
+    @ConnectedSocket() client: SocketWithAuth,
+    @MessageBody() editChatroomDto: EditChatroomDto,
+  ) {
+    const { chatroomId, ...data } = editChatroomDto;
+    const { userId } = client;
+    const { type, password } = data;
+    if (type === TYPE.PROTECTED && password === undefined)
+      throw new WsBadRequestException(
+        'Protected room must have a password set',
+      );
+    if (password !== undefined) {
+      if (type !== TYPE.PROTECTED)
+        throw new WsBadRequestException(
+          'Only protected chatroom can set password',
+        );
+    }
+
+    const chatroom = await this.prismaService.chatroom.findFirst({
+      where: {
+        id: chatroomId,
+      },
+      select: {
+        chatroomName: true,
+        type: true,
+        password: true,
+        users: {
+          where: {
+            role: ROLE.DIERIBA,
+          },
+          select: {
+            userId: true,
+          },
+        },
+      },
+    });
+
+    if (!chatroom) throw new ChatRoomNotFoundException();
+
+    if (chatroom.users[0].userId !== userId)
+      throw new WsUnauthorizedException(
+        'Only chatroom admin can edit the chatroom',
+      );
+
+    if (chatroom.type === TYPE.PROTECTED && type === TYPE.PROTECTED) {
+      const isSame = await this.argon2Service.compare(
+        chatroom.password,
+        password,
+      );
+
+      if (isSame)
+        throw new WsBadRequestException(
+          'Password is currently the room password',
+        );
+      data.password = await this.argon2Service.hash(password);
+    } else if (type !== TYPE.PROTECTED) {
+      if (chatroom.type === type)
+        throw new WsBadRequestException(
+          `Chatroom setting already set to ${type}`,
+        );
+      data.password = null;
+    }
+
+    await this.chatroomService.updateChatroom(chatroomId, data);
+
+    client
+      .to(chatroom.chatroomName)
+      .emit(ChatEventGroup.UPDATED_GROUP_CHATROOM, {
+        message: `${chatroom.chatroomName} is now ${type}`,
+        data: { chatroomId, type },
+      });
+
+    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+      message: 'Group edited succesflly',
+      data: { chatroomId, type },
+    });
   }
 
   //@SubscribeMessage(CHATROOM_ADD_USER)
@@ -241,12 +321,12 @@ export class GatewayGateway {
     //this.server.emit(CHATROOM_USER_ADDED, newUsers);
   }
 
-  //@SubscribeMessage(CHATROOM_SET_DIERIBA)
+  @SubscribeMessage(ChatEventGroup.SET_DIERIBA)
   async setNewChatroomDieriba(
-    @MessageBody(IsDieriba) dieribaDto: DieribaDto,
+    @MessageBody() dieribaDto: DieribaDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
-    const { id, chatroomId } = dieribaDto;
+    const { id, chatroomId, chatroomName } = dieribaDto;
     const { userId } = client;
     await this.isDieriba(userId, chatroomId);
     if (id === userId)
@@ -259,9 +339,8 @@ export class GatewayGateway {
       this.prismaService.restrictedUser.findFirst({ where: { userId: id } }),
     ]);
 
-    this.logger.log({ chatroomUser, id, userId, restrictedUser });
-
-    if (!chatroomUser) throw new WsUnknownException('User Not Found');
+    if (!chatroomUser)
+      throw new WsUnknownException('That user do not belong to that group');
 
     const now = new Date();
 
@@ -287,15 +366,33 @@ export class GatewayGateway {
       this.prismaService.chatroomUser.update({
         where: { userId_chatroomId: { userId: id, chatroomId } },
         data: { role: ROLE.DIERIBA },
+        select: {
+          user: {
+            select: {
+              nickname: true,
+            },
+          },
+        },
       }),
     ]);
+    console.log('MDR');
 
-    //this.server.emit(CHATROOM_NEW_DIERIBA, { updateMe, updateNewDieriba });
+    this.sendToSocket(client, chatroomName, ChatEventGroup.NEW_ADMIN, {
+      message: `${updateNewDieriba.user.nickname} is now admin of that group!`,
+      data: { id, role: chatroomUser.role },
+    });
+
+    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+      message: '',
+      data: { id, role: chatroomUser.role },
+    });
+
+    console.log('MDR');
   }
 
   //@SubscribeMessage(CHATROOM_DELETE_USER)
   async deleteUserFromChatromm(
-    @MessageBody(IsDieriba) chatroomData: ChatroomDataDto,
+    @MessageBody() chatroomData: ChatroomDataDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
     const { userId } = client;
@@ -321,55 +418,81 @@ export class GatewayGateway {
     //this.server.emit(CHATROOM_USER_DELETED, deletedUsers);
   }
 
-  //@SubscribeMessage(CHATROOM_CHANGE_USER_ROLE)
+  @SubscribeMessage(ChatEventGroup.CHANGE_USER_ROLE)
   async changeUserRole(
-    @MessageBody(IsDieriba) changeUserRoleDto: ChangeUserRoleDto,
+    @MessageBody() changeUserRoleDto: ChangeUserRoleDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
-    const { users, chatroomId } = changeUserRoleDto;
+    this.logger.log('ok0');
+
+    const { id, role, chatroomId, chatroomName } = changeUserRoleDto;
     const { userId } = client;
+
     await this.isDieriba(userId, chatroomId);
-    const idSet = new Set(users.map((user) => user.id));
 
-    if (idSet.size !== users.length)
-      throw new WsBadRequestException(BAD_REQUEST);
-
-    const foundUser = new Set(
-      await this.userService.getExistingUserFriend(
-        userId,
-        users.map((user) => user.id),
-        UserData,
-      ),
+    const chatroomUser = await this.chatroomUserService.findChatroomUser(
+      chatroomId,
+      id,
     );
 
-    if (foundUser.size === 0)
-      throw new WsUnknownException('None of the given user exist');
+    if (!chatroomUser)
+      throw new WsBadRequestException('User does not belong to that group');
 
-    const existingUsers = users.filter((user) => idSet.has(user.id));
+    if (chatroomUser.role === role) {
+      throw new WsBadRequestException('User already have that role');
+    }
 
-    const chatroom = await this.prismaService.chatroom.findUnique({
-      where: { id: chatroomId },
+    this.logger.log('ok1');
+
+    await this.prismaService.chatroomUser.update({
+      where: {
+        userId_chatroomId: {
+          userId: id,
+          chatroomId,
+        },
+      },
+      data: {
+        role,
+      },
+      select: {
+        role: true,
+        user: {
+          select: {
+            nickname: true,
+          },
+        },
+      },
     });
+    this.logger.log('ok2');
 
-    if (!chatroom) throw new WsUnknownException('Chatroom not found');
+    if (chatroomUser.role === 'CHAT_ADMIN') {
+      this.sendToSocket(
+        client,
+        chatroomName,
+        ChatEventGroup.USER_ROLE_CHANGED,
+        {
+          message: `${chatroomUser.user.nickname} is no longer a chat moderator`,
+          data: { id, role: chatroomUser.role },
+        },
+      );
+    } else {
+      this.sendToSocket(
+        client,
+        chatroomName,
+        ChatEventGroup.USER_ROLE_CHANGED,
+        {
+          message: `${chatroomUser.user.nickname} is now a chat moderator`,
+          data: { id, role: chatroomUser.role },
+        },
+      );
+    }
 
-    const updatedChatroomsUser = await this.prismaService.$transaction(
-      existingUsers.map((user) =>
-        this.prismaService.chatroomUser.update({
-          where: {
-            userId_chatroomId: {
-              userId: user.id,
-              chatroomId,
-            },
-          },
-          data: {
-            role: user.role,
-          },
-        }),
-      ),
-    );
-
-    //this.server.emit(CHATROOM_USER_ROLE_CHANGED, updatedChatroomsUser);
+    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+      message: `${chatroomUser.user.nickname} is now a ${
+        role === 'CHAT_ADMIN' ? 'moderator' : 'regular user'
+      }`,
+      data: { id, role: chatroomUser.role },
+    });
   }
 
   //@SubscribeMessage(CHATROOM_RESTRICT_USER)
@@ -550,7 +673,7 @@ export class GatewayGateway {
       },
     });
 
-    this.sendToSocket(userId, ChatEventGroup.GET_ALL_CHATROOM, {
+    this.sendToSocket(this.server, userId, ChatEventGroup.GET_ALL_CHATROOM, {
       message: '',
       data: chatrooms,
     });
@@ -572,6 +695,11 @@ export class GatewayGateway {
     const chatroom = await this.prismaService.chatroom.findFirst({
       where: {
         id: chatroomId,
+        users: {
+          some: {
+            userId,
+          },
+        },
       },
       select: {
         chatroomName: true,
@@ -614,12 +742,20 @@ export class GatewayGateway {
       },
     });
 
-    if (!chatroom) throw new WsNotFoundException('Chat does not exist');
+    if (!chatroom)
+      throw new WsNotFoundException(
+        'Chat does not exist or user is not part of that chat',
+      );
 
-    this.sendToSocket(client.userId, ChatEventGroup.GET_ALL_CHATROOM_MESSAGE, {
-      message: '',
-      data: chatroom.messages,
-    });
+    this.sendToSocket(
+      this.server,
+      client.userId,
+      ChatEventGroup.GET_ALL_CHATROOM_MESSAGE,
+      {
+        message: '',
+        data: chatroom.messages,
+      },
+    );
 
     if (
       !this.server
@@ -691,19 +827,24 @@ export class GatewayGateway {
     }
     await this.chatroomUserService.createNewChatroomUser(userId, chatroomId);
 
-    this.sendToSocket(chatroom.chatroomName, ChatEventGroup.NEW_USER_CHATROOM, {
-      message: `${client.nickname} has joined the group`,
-      data: {},
-    });
+    this.sendToSocket(
+      this.server,
+      chatroom.chatroomName,
+      ChatEventGroup.NEW_USER_CHATROOM,
+      {
+        message: `${client.nickname} has joined the group`,
+        data: {},
+      },
+    );
 
     const { id, chatroomName, type, messages } = chatroom;
 
-    this.sendToSocket(userId, ChatEventGroup.NEW_CHATROOM, {
+    this.sendToSocket(this.server, userId, ChatEventGroup.NEW_CHATROOM, {
       message: '',
       data: { id, chatroomName, type, messages },
     });
 
-    this.sendToSocket(userId, GeneralEvent.SUCCESS, {
+    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
       message: `Succesfully joined the group: ${chatroom.chatroomName}`,
       data: {},
     });
@@ -774,6 +915,7 @@ export class GatewayGateway {
     });
 
     this.sendToSocket(
+      this.server,
       chatroom.chatroomName,
       ChatEventGroup.RECEIVE_GROUP_MESSAGE,
       {
@@ -835,16 +977,21 @@ export class GatewayGateway {
       },
     });
 
-    this.sendToSocket(friendId, ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE, {
-      message: '',
-      data: {
-        id: res.id,
-        chatroomId,
-        userId,
-        content,
-        messageTypes,
+    this.sendToSocket(
+      this.server,
+      friendId,
+      ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE,
+      {
+        message: '',
+        data: {
+          id: res.id,
+          chatroomId,
+          userId,
+          content,
+          messageTypes,
+        },
       },
-    });
+    );
 
     this.server
       .to(client.userId)
@@ -904,7 +1051,6 @@ export class GatewayGateway {
   }
 
   private async isDieriba(userId: string, chatroomId: string): Promise<void> {
-    this.logger.log(`User is undefined ${userId}`);
     const chatroomUser = await this.chatroomUserService.findChatroomUser(
       chatroomId,
       userId,
@@ -1006,14 +1152,14 @@ export class GatewayGateway {
       },
     });
 
-    this.sendToSocket(friendId, FriendEvent.NEW_REQUEST_RECEIVED, {
+    this.sendToSocket(this.server, friendId, FriendEvent.NEW_REQUEST_RECEIVED, {
       message: `You received a friend request from ${client.nickname}`,
       data: {
         friendId: client.userId,
       },
     });
 
-    this.sendToSocket(friendId, FriendEvent.ADD_NEW_REQUEST, {
+    this.sendToSocket(this.server, friendId, FriendEvent.ADD_NEW_REQUEST, {
       message: '',
       data: {
         createdAt: request.createdAt,
@@ -1025,18 +1171,23 @@ export class GatewayGateway {
       },
     });
 
-    this.sendToSocket(client.userId, FriendEvent.NEW_REQUEST_SENT, {
-      message: '',
-      data: {
-        recipient: {
-          nickname: friend.nickname,
-          id: friend.id,
-          profile: { avatar: friend.profile?.avatar },
+    this.sendToSocket(
+      this.server,
+      client.userId,
+      FriendEvent.NEW_REQUEST_SENT,
+      {
+        message: '',
+        data: {
+          recipient: {
+            nickname: friend.nickname,
+            id: friend.id,
+            profile: { avatar: friend.profile?.avatar },
+          },
         },
       },
-    });
+    );
 
-    this.sendToSocket(client.userId, GeneralEvent.SUCCESS, {
+    this.sendToSocket(this.server, client.userId, GeneralEvent.SUCCESS, {
       message: 'Friend request succesfully sent',
       data: {},
     });
@@ -1079,19 +1230,19 @@ export class GatewayGateway {
 
     console.log({ friendId });
 
-    this.sendToSocket(friendId, FriendEvent.CANCEL_REQUEST, {
+    this.sendToSocket(this.server, friendId, FriendEvent.CANCEL_REQUEST, {
       message: '',
       data: { friendId: client.userId },
     });
 
-    this.sendToSocket(client.userId, FriendEvent.CANCEL_REQUEST, {
+    this.sendToSocket(this.server, client.userId, FriendEvent.CANCEL_REQUEST, {
       message: 'Friend request declined succesfully',
       data: {
         friendId,
       },
     });
 
-    this.sendToSocket(client.userId, GeneralEvent.SUCCESS, {
+    this.sendToSocket(this.server, client.userId, GeneralEvent.SUCCESS, {
       message: 'Friend request declined succesfully',
       data: {},
     });
@@ -1236,17 +1387,17 @@ export class GatewayGateway {
       });
     });
 
-    this.sendToSocket(friendId, FriendEvent.CANCEL_REQUEST, {
+    this.sendToSocket(this.server, friendId, FriendEvent.CANCEL_REQUEST, {
       message: '',
       data: { friendId: client.userId },
     });
 
-    this.sendToSocket(client.userId, FriendEvent.CANCEL_REQUEST, {
+    this.sendToSocket(this.server, client.userId, FriendEvent.CANCEL_REQUEST, {
       message: '',
       data: { friendId },
     });
 
-    this.sendToSocket(friendId, FriendEvent.NEW_REQUEST_ACCEPTED, {
+    this.sendToSocket(this.server, friendId, FriendEvent.NEW_REQUEST_ACCEPTED, {
       message: `${client.nickname} accepted your friend request`,
       data: { friendId: client.userId },
     });
@@ -1260,7 +1411,7 @@ export class GatewayGateway {
         data: { friendId },
       });
 
-    this.sendToSocket(friendId, FriendEvent.NEW_FRIEND, {
+    this.sendToSocket(this.server, friendId, FriendEvent.NEW_FRIEND, {
       message: '',
       data: {
         friend: {
@@ -1279,7 +1430,7 @@ export class GatewayGateway {
       },
     });
 
-    this.sendToSocket(client.userId, FriendEvent.NEW_FRIEND, {
+    this.sendToSocket(this.server, client.userId, FriendEvent.NEW_FRIEND, {
       message: '',
       data: {
         friend: {
@@ -1298,15 +1449,25 @@ export class GatewayGateway {
       },
     });
 
-    this.sendToSocket(client.userId, ChatEventPrivateRoom.NEW_CHATROOM, {
-      message: '',
-      data: chatroom,
-    });
+    this.sendToSocket(
+      this.server,
+      client.userId,
+      ChatEventPrivateRoom.NEW_CHATROOM,
+      {
+        message: '',
+        data: chatroom,
+      },
+    );
 
-    this.sendToSocket(friendId, ChatEventPrivateRoom.NEW_CHATROOM, {
-      message: '',
-      data: chatroom,
-    });
+    this.sendToSocket(
+      this.server,
+      friendId,
+      ChatEventPrivateRoom.NEW_CHATROOM,
+      {
+        message: '',
+        data: chatroom,
+      },
+    );
   }
 
   @SubscribeMessage(FriendEvent.DELETE_FRIEND)
@@ -1355,14 +1516,19 @@ export class GatewayGateway {
       }
     });
     this.logger.log({ res });
-    this.sendToSocket(friendId, FriendEvent.DELETE_FRIEND, {
+    this.sendToSocket(this.server, friendId, FriendEvent.DELETE_FRIEND, {
       message: '',
       data: { friendId: client.userId },
     });
-    this.sendToSocket(friendId, ChatEventPrivateRoom.CLEAR_CHATROOM, {
-      message: `${client.nickname} deleted you as friend`,
-      data: { chatroomId },
-    });
+    this.sendToSocket(
+      this.server,
+      friendId,
+      ChatEventPrivateRoom.CLEAR_CHATROOM,
+      {
+        message: `${client.nickname} deleted you as friend`,
+        data: { chatroomId },
+      },
+    );
     this.server
       .to(client.userId)
       .emit(FriendEvent.DELETE_FRIEND, { message: '', data: { friendId } });
@@ -1435,18 +1601,23 @@ export class GatewayGateway {
             where: { id: chatroom.id },
             data: { active: false },
           });
-          this.sendToSocket(friendId, ChatEventPrivateRoom.CLEAR_CHATROOM, {
-            message: `${client.nickname} deleted you as friend`,
-            data: { chatroomId: chatroom.id },
-          });
+          this.sendToSocket(
+            this.server,
+            friendId,
+            ChatEventPrivateRoom.CLEAR_CHATROOM,
+            {
+              message: `${client.nickname} deleted you as friend`,
+              data: { chatroomId: chatroom.id },
+            },
+          );
         }
       });
-      this.sendToSocket(friendId, FriendEvent.DELETE_FRIEND, {
+      this.sendToSocket(this.server, friendId, FriendEvent.DELETE_FRIEND, {
         message: '',
         data: { friendId: client.userId },
       });
 
-      this.sendToSocket(client.userId, FriendEvent.DELETE_FRIEND, {
+      this.sendToSocket(this.server, client.userId, FriendEvent.DELETE_FRIEND, {
         message: '',
         data: { friendId },
       });
@@ -1465,11 +1636,16 @@ export class GatewayGateway {
           },
         }),
       ]);
-      this.sendToSocket(client.userId, FriendEvent.CANCEL_REQUEST, {
-        message: '',
-        data: { friendId },
-      });
-      this.sendToSocket(friendId, FriendEvent.CANCEL_REQUEST, {
+      this.sendToSocket(
+        this.server,
+        client.userId,
+        FriendEvent.CANCEL_REQUEST,
+        {
+          message: '',
+          data: { friendId },
+        },
+      );
+      this.sendToSocket(this.server, friendId, FriendEvent.CANCEL_REQUEST, {
         message: '',
         data: { friendId: client.userId },
       });
@@ -1508,10 +1684,15 @@ export class GatewayGateway {
         data: { blockedUsers: { disconnect: { id: friendId } } },
       });
 
-      this.sendToSocket(client.userId, FriendEvent.UNBLOCK_FRIEND, {
-        message: '',
-        data: { friendId },
-      });
+      this.sendToSocket(
+        this.server,
+        client.userId,
+        FriendEvent.UNBLOCK_FRIEND,
+        {
+          message: '',
+          data: { friendId },
+        },
+      );
     }
     this.server
       .to(client.userId)
@@ -1519,11 +1700,12 @@ export class GatewayGateway {
   }
 
   private sendToSocket(
+    instance: SocketWithAuth | Server,
     room: string,
     emit: string,
     object?: SocketServerResponse,
   ) {
-    this.server.to(room).emit(emit, object);
+    instance.to(room).emit(emit, object);
   }
   /*------------------------------------------------------------------------------------------------------ */
 }

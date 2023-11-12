@@ -190,7 +190,7 @@ export class UnrestrictedUsersDto {
   nickname: string;
 }
 
-export class ChangeUserRole {
+export class ChangeUserRoleDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
@@ -199,27 +199,14 @@ export class ChangeUserRole {
   @ApiProperty()
   @IsIn([ROLE.CHAT_ADMIN, ROLE.REGULAR_USER])
   role: ROLE;
-}
-
-export class ChangeUserRoleDto {
-  @ApiProperty()
-  @IsArray()
-  @ArrayMinSize(1)
-  @ValidateNested({ each: true })
-  @Type(() => ChangeUserRole)
-  users: ChangeUserRole[];
 
   @ApiProperty()
   @IsString()
   chatroomId: string;
 
-  @IsOptional()
+  @ApiProperty()
   @IsString()
-  nickname: string;
-
-  @IsOptional()
-  @IsString()
-  userId: string;
+  chatroomName: string;
 }
 
 export class DieribaDto {
@@ -233,15 +220,26 @@ export class DieribaDto {
   @IsNotEmpty()
   chatroomId: string;
 
-  @IsOptional()
+  @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  userId: string;
+  chatroomName: string;
+}
 
-  @IsOptional()
+export class EditChatroomDto {
   @IsString()
   @IsNotEmpty()
-  nickname: string;
+  chatroomId: string;
+
+  @ApiProperty()
+  @IsEnum(TYPE)
+  @IsNotEmpty()
+  type: TYPE;
+
+  @IsString()
+  @IsOptional()
+  @MinLength(8)
+  password: string;
 }
 
 export class ChatroomDataDto {

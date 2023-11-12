@@ -1,10 +1,9 @@
 import { z } from "zod";
 import { groupTypes } from "./type-enum/typesEnum";
 
-export const CreateGroupSchema = z
+export const EditGroupSchema = z
   .object({
-    chatroomName: z.string().min(3).trim(),
-    users: z.array(z.string()).optional(),
+    chatroomId: z.string().optional(),
     type: z.enum(groupTypes),
     password: z.string().optional(),
   })
@@ -34,4 +33,11 @@ export const CreateGroupSchema = z
     return z.NEVER;
   });
 
-export type CreateGroupFormType = z.infer<typeof CreateGroupSchema>;
+export type EditGroupType = z.infer<typeof EditGroupSchema>;
+
+export const editGroupResponseSchema = z.object({
+  chatroomId: z.string().min(1),
+  type: z.enum(groupTypes),
+});
+
+export type editGroupResponseType = z.infer<typeof editGroupResponseSchema>;

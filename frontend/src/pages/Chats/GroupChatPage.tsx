@@ -14,11 +14,13 @@ import {
   addNewChatroom,
   deleteChatroom,
   setGroupChatroom,
+  updateChatroom,
 } from "../../redux/features/groups/groupSlice";
 import { ChatroomGroupType } from "../../models/groupChat";
 import GroupContact from "../../components/Chat/Group/GroupContact";
 import GroupConversation from "../../components/Chat/Group/GroupConversation";
 import { RootState } from "../../redux/store";
+import { editGroupResponseType } from "../../models/EditGroupSchema";
 
 const GroupChatPage = () => {
   const theme = useTheme();
@@ -57,6 +59,17 @@ const GroupChatPage = () => {
       );
 
       socket.on(
+        ChatEventGroup.UPDATED_GROUP_CHATROOM,
+        (
+          data: SocketServerSucessResponse & { data: editGroupResponseType }
+        ) => {
+          console.log("entered he");
+
+          dispatch(updateChatroom(data.data));
+        }
+      );
+
+      socket.on(
         ChatEventPrivateRoom.CLEAR_CHATROOM,
         (
           data: SocketServerSucessResponse & { data: { chatroomId: string } }
@@ -68,6 +81,7 @@ const GroupChatPage = () => {
     return () => {
       socket.off(ChatEventGroup.NEW_CHATROOM);
       socket.off(ChatEventGroup.CLEAR_CHATROOM);
+      socket.off(ChatEventGroup.EDIT_GROUP_CHATROOM);
       //socket.off(GeneralEvent.USER_LOGGED_IN);
       //socket.off(GeneralEvent.USER_LOGGED_OUT);
     };

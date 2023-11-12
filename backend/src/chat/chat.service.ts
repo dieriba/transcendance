@@ -232,65 +232,6 @@ export class ChatService {
     return chatroom.messages;
   }
 
-  async createChatRoom(creatorId: string, chatroomDto: ChatRoomDto) {
-    const { users, ...chatroom } = chatroomDto;
-    const { chatroomName } = chatroom;
-    const user = await this.userService.findUserById(creatorId, UserData);
-
-    if (!user) throw new UserNotFoundException();
-
-    this.logger.log(
-      `Attempting to create the chatroom: ${chatroomName} who will be owned by ${user.nickname}`,
-    );
-
-    const chatRoom = await this.prismaService.chatroom.findFirst({
-      where: { chatroomName },
-    });
-
-    if (chatRoom)
-      throw new CustomException(
-        `The chatroom name: ${chatroomName} is already taken`,
-        HttpStatus.BAD_REQUEST,
-      );
-
-    users.push(creatorId);
-
-    this.logger.log({ users });
-
-    const existingUserId = await this.userService.getExistingUserFriend(
-      creatorId,
-      users,
-      UserId,
-    );
-
-    this.logger.log({ existingUserId });
-
-    this.logger.log({ existingUserId });
-
-    const newChatroom = await this.prismaService.chatroom.create({
-      data: {
-        ...chatroom,
-        users: {
-          create: existingUserId.map((id) => ({
-            user: {
-              connect: { id },
-            },
-            role: creatorId === id ? ROLE.DIERIBA : ROLE.REGULAR_USER,
-          })),
-        },
-      },
-      select: {
-        id: true,
-        chatroomName: true,
-        type: true,
-        users: true,
-      },
-    });
-
-    this.logger.log('New chatroom created and users linked:', newChatroom);
-    return newChatroom;
-  }
-
   async addNewUserToChatroom(userId: string, chatRoomData: ChatroomDataDto) {
     const { users, chatroomId } = chatRoomData;
     this.logger.log({ chatroomId, users });
@@ -305,57 +246,6 @@ export class ChatService {
       ),
     );
     return newUsers;
-  }
-
-  async setNewChatroomDieriba(dieribaDto: DieribaDto) {
-    const { id, userId, chatroomId } = dieribaDto;
-
-    if (id === userId)
-      throw new CustomException(
-        'You already are the DIERIBA of that chatroom',
-        HttpStatus.BAD_REQUEST,
-      );
-
-    const [chatroomUser, restrictedUser] = await Promise.all([
-      this.chatroomUserService.findChatroomUser(chatroomId, id),
-      this.prismaService.restrictedUser.findFirst({ where: { userId: id } }),
-    ]);
-
-    this.logger.log({ chatroomUser, id, userId, restrictedUser });
-
-    if (!chatroomUser) throw new UserNotFoundException();
-
-    const now = new Date();
-
-    if (restrictedUser && restrictedUser.restrictionTimeEnd > now)
-      throw new CustomException(
-        "Can't set as DIERIBA someone that is currently on a restriction, please remove the restriction first",
-        HttpStatus.BAD_REQUEST,
-      );
-
-    if (chatroomUser.user.blockedUsers.length)
-      throw new CustomException(
-        "That user blocked you, hence you can't set him as Chat owner",
-        HttpStatus.BAD_REQUEST,
-      );
-    else if (chatroomUser.user.blockedBy.length)
-      throw new CustomException(
-        "You blocked that user, hence you can't set him as Chat owner",
-        HttpStatus.BAD_REQUEST,
-      );
-
-    const [updateMe, updateNewDieriba] = await this.prismaService.$transaction([
-      this.prismaService.chatroomUser.update({
-        where: { userId_chatroomId: { userId, chatroomId } },
-        data: { role: ROLE.REGULAR_USER },
-      }),
-      this.prismaService.chatroomUser.update({
-        where: { userId_chatroomId: { userId: id, chatroomId } },
-        data: { role: ROLE.DIERIBA },
-      }),
-    ]);
-
-    return { updateMe, updateNewDieriba };
   }
 
   async deleteUserFromChatromm(chatroomData: ChatroomDataDto) {
@@ -379,55 +269,6 @@ export class ChatService {
     });
 
     return deletedUsers;
-  }
-
-  async changeUserRole(changeUserRoleDto: ChangeUserRoleDto) {
-    const { users, chatroomId, userId } = changeUserRoleDto;
-
-    const idSet = new Set(users.map((user) => user.id));
-
-    if (idSet.size !== users.length)
-      throw new CustomException(BAD_REQUEST, HttpStatus.BAD_REQUEST);
-
-    const foundUser = new Set(
-      await this.userService.getExistingUserFriend(
-        userId,
-        users.map((user) => user.id),
-        UserData,
-      ),
-    );
-
-    if (foundUser.size === 0)
-      throw new CustomException(
-        'None of the given user exist',
-        HttpStatus.NOT_FOUND,
-      );
-
-    const existingUsers = users.filter((user) => idSet.has(user.id));
-
-    const chatroom = await this.prismaService.chatroom.findUnique({
-      where: { id: chatroomId },
-    });
-
-    if (!chatroom) throw new ChatRoomNotFoundException();
-
-    const updatedChatroomsUser = await this.prismaService.$transaction(
-      existingUsers.map((user) =>
-        this.prismaService.chatroomUser.update({
-          where: {
-            userId_chatroomId: {
-              userId: user.id,
-              chatroomId,
-            },
-          },
-          data: {
-            role: user.role,
-          },
-        }),
-      ),
-    );
-
-    return updatedChatroomsUser;
   }
 
   async restrictUser(restrictedUserDto: RestrictedUsersDto) {
