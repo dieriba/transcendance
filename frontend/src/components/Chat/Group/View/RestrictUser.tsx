@@ -74,7 +74,6 @@ const RestrictUser = ({
   };
 
   const restrictionWatcher = watch("restriction");
-  const durationUnitWatcher = watch("durationUnit");
 
   const [restrictUser, { isLoading }] = useRestrictUserMutation();
 

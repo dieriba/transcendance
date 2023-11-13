@@ -195,7 +195,7 @@ const View = () => {
                       avatar={profile?.avatar}
                     >
                       <UserAction
-                        handleRestrict={handleRestriction}
+                        handleRestriction={handleRestriction}
                         handleChangeRole={handleChangeRole}
                         handleNewAdmin={handleNewAdmin}
                         role={role as ChatRoleType}

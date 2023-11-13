@@ -15,7 +15,7 @@ interface UserActionProps {
   me: boolean;
   id: string;
   handleNewAdmin: (data: { id: string; nickname: string }) => void;
-  handleRestrict: (data: { id: string; nickname: string }) => void;
+  handleRestriction: (data: { id: string; nickname: string }) => void;
   handleChangeRole: (data: {
     id: string;
     nickname: string;
@@ -30,7 +30,7 @@ const UserAction = ({
   me,
   handleChangeRole,
   handleNewAdmin,
-  handleRestrict,
+  handleRestriction,
 }: UserActionProps) => {
   if (role === "DIERIBA") {
     return (
@@ -64,7 +64,7 @@ const UserAction = ({
           </IconButton>
         </Tooltip>
         <Tooltip title={`restrict ${nickname}`}>
-          <IconButton onClick={() => handleRestrict({ id, nickname })}>
+          <IconButton onClick={() => handleRestriction({ id, nickname })}>
             <UserMinus size={18} />
           </IconButton>
         </Tooltip>
@@ -89,7 +89,7 @@ const UserAction = ({
           </IconButton>
         </Tooltip>
         <Tooltip title={`restrict ${nickname}`}>
-          <IconButton>
+          <IconButton onClick={() => handleRestriction({ id, nickname })}>
             <UserMinus size={20} />
           </IconButton>
         </Tooltip>
