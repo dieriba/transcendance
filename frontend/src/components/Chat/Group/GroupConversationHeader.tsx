@@ -1,11 +1,11 @@
 import { Box, Divider, IconButton, Stack, Typography } from "@mui/material";
-import { CaretDown } from "phosphor-react";
+import { CaretDown, X } from "phosphor-react";
 import { useTheme } from "@mui/material/styles";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { RootState } from "../../../redux/store";
 import { ChatroomGroupType } from "../../../models/groupChat";
 import GroupIcon from "./GroupIcon";
-import { toggleOpenGroupSidebar } from "../../../redux/features/sidebar.slices";
+import { toggleOpenGroupSidebar } from "../../../redux/features/groups/groupSlice";
 
 const GroupConversationHeader = () => {
   const theme = useTheme();
@@ -13,7 +13,9 @@ const GroupConversationHeader = () => {
   const chatroomInfo = useAppSelector(
     (state: RootState) => state.groups.currentChatroom
   );
-
+  const open = useAppSelector(
+    (state: RootState) => state.groups.openGroupSidebar
+  );
   const { chatroomName, type } = chatroomInfo as ChatroomGroupType;
 
   return (
@@ -57,7 +59,7 @@ const GroupConversationHeader = () => {
                 dispatch(toggleOpenGroupSidebar());
               }}
             >
-              <CaretDown />
+              {open ? <X /> : <CaretDown />}
             </IconButton>
           </Stack>
         </Stack>

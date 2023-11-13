@@ -6,7 +6,7 @@ import {
   Typography,
 } from "@mui/material";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useGetAllGroupUserQuery } from "../../../../redux/features/groups/group.api.slice";
 import { setGroupMembersAndRole } from "../../../../redux/features/groups/groupSlice";
 import { useAppSelector, useAppDispatch } from "../../../../redux/hooks";
@@ -15,22 +15,24 @@ import { ChatRoleType } from "../../../../models/type-enum/typesEnum";
 import UserInfo from "./UserInfo";
 import AdminAction from "./AdminAction";
 import ModeratorAction from "./ModeratorAction";
-import { User } from "../../../../redux/features/auth/auth.slice";
 import SetAsAdmin from "./AdminView/SetAsAdmin";
 import SetNewRole from "./AdminView/SetNewRole";
 import UserAction from "./UserAction";
+import RestrictUser from "./RestrictUser";
 
 const View = () => {
-  const chatroomId = useAppSelector(
-    (state: RootState) => state.groups.currentGroupChatroomId
-  );
+  const {
+    groups: { admin, currentGroupChatroomId, chatAdmin, regularUser, role },
+    user: { user },
+  } = useAppSelector((state: RootState) => state);
 
   const { data, isLoading, isError } = useGetAllGroupUserQuery(
-    chatroomId as string,
+    currentGroupChatroomId as string,
     { refetchOnMountOrArgChange: true }
   );
   const dispatch = useAppDispatch();
-
+  const memoizedChatAdmin = useMemo(() => chatAdmin, [chatAdmin]);
+  const memoizedRegularUser = useMemo(() => regularUser, [regularUser]);
   useEffect(() => {
     if (data?.data) {
       dispatch(setGroupMembersAndRole(data.data));
@@ -39,14 +41,7 @@ const View = () => {
     }
   }, [data, dispatch]);
 
-  const { role, admin, chatAdmin, regularUser } = useAppSelector(
-    (state: RootState) => state.groups
-  );
-  const userData = useAppSelector(
-    (state: RootState) => state.user.user
-  ) as User;
-
-  const [user, setUser] = useState<{
+  const [userData, setUserData] = useState<{
     id: string;
     nickname: string;
     role?: ChatRoleType;
@@ -55,9 +50,14 @@ const View = () => {
     nickname: "",
   });
 
-  const [open, setOpen] = useState<{ admin: boolean; role: boolean }>({
+  const [open, setOpen] = useState<{
+    admin: boolean;
+    role: boolean;
+    restriction: boolean;
+  }>({
     admin: false,
     role: false,
+    restriction: false,
   });
 
   const handleNewAdmin = ({
@@ -67,7 +67,7 @@ const View = () => {
     id: string;
     nickname: string;
   }) => {
-    setUser({ id, nickname });
+    setUserData({ id, nickname });
     setOpen((prev) => {
       return { ...prev, admin: true };
     });
@@ -82,9 +82,22 @@ const View = () => {
     nickname: string;
     role: ChatRoleType;
   }) => {
-    setUser({ id, nickname, role });
+    setUserData({ id, nickname, role });
     setOpen((prev) => {
       return { ...prev, role: true };
+    });
+  };
+
+  const handleRestriction = ({
+    id,
+    nickname,
+  }: {
+    id: string;
+    nickname: string;
+  }) => {
+    setUserData({ id, nickname });
+    setOpen((prev) => {
+      return { ...prev, restriction: true };
     });
   };
 
@@ -110,6 +123,7 @@ const View = () => {
       </Box>
     );
   } else {
+
     return (
       <>
         <Stack spacing={1} height="100%" width="100%" alignSelf="flex-start">
@@ -138,7 +152,7 @@ const View = () => {
             {chatAdmin.length === 0 ? (
               <Typography>No Moderator</Typography>
             ) : (
-              chatAdmin.map(
+              memoizedChatAdmin.map(
                 ({ user: { nickname, status, profile, id } }, index) => {
                   return (
                     <UserInfo
@@ -148,12 +162,13 @@ const View = () => {
                       avatar={profile?.avatar}
                     >
                       <ModeratorAction
+                        handleRestriction={handleRestriction}
                         handleChangeRole={handleChangeRole}
                         handleNewAdmin={handleNewAdmin}
                         role={role as ChatRoleType}
                         id={id}
                         nickname={nickname}
-                        me={nickname === userData.nickname}
+                        me={nickname === user?.nickname}
                       />
                     </UserInfo>
                   );
@@ -170,7 +185,7 @@ const View = () => {
             {regularUser.length === 0 ? (
               <Typography>No User</Typography>
             ) : (
-              regularUser.map(
+              memoizedRegularUser.map(
                 ({ user: { nickname, status, profile, id } }, index) => {
                   return (
                     <UserInfo
@@ -180,12 +195,13 @@ const View = () => {
                       avatar={profile?.avatar}
                     >
                       <UserAction
+                        handleRestrict={handleRestriction}
                         handleChangeRole={handleChangeRole}
                         handleNewAdmin={handleNewAdmin}
                         role={role as ChatRoleType}
                         id={id}
                         nickname={nickname}
-                        me={nickname === userData.nickname}
+                        me={nickname === user?.nickname}
                       />
                     </UserInfo>
                   );
@@ -202,8 +218,8 @@ const View = () => {
                 return { ...prev, admin: false };
               })
             }
-            nickname={user.nickname}
-            id={user.id}
+            nickname={userData.nickname}
+            id={userData.id}
           />
         )}
         {open.role && (
@@ -214,9 +230,22 @@ const View = () => {
                 return { ...prev, role: false };
               })
             }
-            nickname={user.nickname}
-            id={user.id}
-            role={user.role as ChatRoleType}
+            nickname={userData.nickname}
+            id={userData.id}
+            role={userData.role as ChatRoleType}
+          />
+        )}
+        {open.restriction && (
+          <RestrictUser
+            role={role as ChatRoleType}
+            open={open.restriction}
+            handleClose={() =>
+              setOpen((prev) => {
+                return { ...prev, restriction: false };
+              })
+            }
+            nickname={userData.nickname}
+            id={userData.id}
           />
         )}
       </>

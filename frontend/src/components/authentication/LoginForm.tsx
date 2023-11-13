@@ -27,6 +27,7 @@ import { ResponseLoginSchema } from "../../models/login/ResponseLogin";
 import { useNavigate } from "react-router-dom";
 import { PATH_APP } from "../../routes/paths";
 import CustomAlert from "../Alert/CustomAlert";
+import { setMyId } from "../../redux/features/groups/groupSlice";
 
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -51,6 +52,7 @@ const LoginForm = () => {
       } else {
         const data = parse.data;
         dispatch(authenticateUser(data));
+        dispatch(setMyId(data.user.id));
         methods.reset();
         navigate(PATH_APP.dashboard.profile);
       }
@@ -72,7 +74,7 @@ const LoginForm = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <Stack  spacing={3}>
+      <Stack spacing={3}>
         {(error || errMsg.length > 0) && (
           <>
             <CustomAlert

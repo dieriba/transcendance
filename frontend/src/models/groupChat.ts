@@ -2,12 +2,24 @@ import { z } from "zod";
 import { ProfileSchema } from "./ProfileFormSchema";
 import { UserSchemaWithProfile } from "./ChatContactSchema";
 import {
+  durationUnit,
   groupTypes,
   messageTypes,
   privilegeRoleType,
+  restrictionType,
   roleType,
 } from "./type-enum/typesEnum";
 import { BaseSchema } from "./BaseType";
+import {
+  BAN_LIFE_VALUE,
+  BAN_MAX_DAYS,
+  KICK_MAX_DAYS,
+  KICK_MAX_HOURS,
+  KICK_MAX_MIN,
+  MUTE_MAX_DAYS,
+  MUTE_MAX_HOURS,
+  MUTE_MAX_MIN,
+} from "../../../shared/restriction.constant";
 
 export const MessageGroupSchema = z.object({
   id: z.string().min(1),
@@ -97,3 +109,100 @@ export const UserNewRoleResponseSchema = BaseSchema.extend({
 });
 
 export type UserNewRoleResponseType = z.infer<typeof UserNewRoleResponseSchema>;
+
+export const RestrictUserFormSchema = z
+  .object({
+    id: z.string().optional(),
+    restriction: z.enum(restrictionType),
+    duration: z.coerce.number(),
+    durationUnit: z.enum(durationUnit),
+    reason: z.string().min(1).max(255),
+  })
+  .superRefine((data, ctx) => {
+    if (data.duration < 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Duration must at least 1",
+        path: ["duration"],
+      });
+    }
+
+    if (data.restriction === "MUTED") {
+      if (data.durationUnit === "MIN" && data.duration > MUTE_MAX_MIN) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `A user can be muted at most ${MUTE_MAX_MIN} minutes`,
+          path: ["duration"],
+        });
+      }
+
+      if (data.durationUnit === "HOURS" && data.duration > MUTE_MAX_HOURS) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `A user can be muted at most ${MUTE_MAX_HOURS} hours`,
+          path: ["duration"],
+        });
+      }
+
+      if (data.durationUnit === "DAYS" && data.duration > MUTE_MAX_DAYS) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `A user can be muted at most ${MUTE_MAX_DAYS} days`,
+          path: ["duration"],
+        });
+      }
+    } else if (data.restriction === "KICKED") {
+      if (data.durationUnit === "MIN" && data.duration > KICK_MAX_MIN) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `A user can be muted at most ${KICK_MAX_MIN} minutes`,
+          path: ["duration"],
+        });
+      }
+
+      if (data.durationUnit === "HOURS" && data.duration > KICK_MAX_HOURS) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `A user can be muted at most ${KICK_MAX_HOURS} hours`,
+          path: ["duration"],
+        });
+      }
+
+      if (data.durationUnit === "DAYS" && data.duration > KICK_MAX_DAYS) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `A user can be muted at most ${KICK_MAX_DAYS} days`,
+          path: ["duration"],
+        });
+      }
+    } else {
+      if (
+        data.durationUnit === "DAYS" &&
+        data.duration !== BAN_LIFE_VALUE &&
+        data.duration > BAN_MAX_DAYS
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `A user can be muted at most ${BAN_MAX_DAYS} days`,
+          path: ["duration"],
+        });
+      }
+    }
+    return z.never;
+  });
+
+export type RestrictUserType = z.infer<typeof RestrictUserFormSchema>;
+
+export const RestrictUserServerResponseSchema = z.object({
+  id: z.string().min(1),
+  restriction: z.string().min(1),
+  restrictionTimeEnd: z.date(),
+  restrictionTimeStart: z.date(),
+  reason: z.string(),
+  admin: z.string().min(1),
+  banLife: z.boolean(),
+});
+
+export type RestrictedUserResponseType = z.infer<
+  typeof RestrictUserServerResponseSchema
+>;

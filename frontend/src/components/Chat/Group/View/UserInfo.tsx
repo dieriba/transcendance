@@ -13,7 +13,13 @@ interface UserInfoProps {
 const UserInfo = ({ online, nickname, avatar, children }: UserInfoProps) => {
   return (
     <Stack width="100%" alignItems="flex-start">
-      <Stack direction="row" height='100%' spacing={1} alignItems="flex-center" width="100%">
+      <Stack
+        direction="row"
+        height="100%"
+        spacing={1}
+        alignItems="center"
+        width="100%"
+      >
         {online ? (
           <BadgeAvatar>
             <Avatar sx={{ height: "2rem", width: "2rem" }} src={avatar} />

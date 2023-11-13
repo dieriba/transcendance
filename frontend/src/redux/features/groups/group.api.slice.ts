@@ -1,4 +1,6 @@
 import {
+  RestrictUserType,
+  RestrictedUserResponseType,
   SetNewRoleType,
   UserNewRoleResponseType,
 } from "./../../../models/groupChat";
@@ -142,6 +144,25 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
         });
       },
     }),
+    restrictUser: builder.mutation<
+      SocketServerSucessResponse & { data: RestrictedUserResponseType },
+      RestrictUserType
+    >({
+      queryFn: (data) => {
+        connectSocket();
+        return new Promise((resolve) => {
+          socket.emit(ChatEventGroup.RESTRICT_USER, data);
+
+          socket.on(GeneralEvent.SUCCESS, (data) => {
+            resolve({ data });
+          });
+
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
+            resolve({ error });
+          });
+        });
+      },
+    }),
     getAllGroup: builder.query<
       SocketServerSucessResponse & { data: ChatroomGroupType[] },
       void
@@ -205,6 +226,7 @@ export const {
   useGetAllJoinableGroupQuery,
   useJoinGroupMutation,
   useGetAllGroupUserQuery,
+  useRestrictUserMutation,
   useEditGroupMutation,
   useSetNewDieribaMutation,
   useSetNewRoleMutation,

@@ -19,6 +19,8 @@ export interface GroupState {
   admin: UserGroupType | undefined;
   chatAdmin: UserGroupType[];
   regularUser: UserGroupType[];
+  openGroupSidebar: boolean;
+  myId: string | undefined;
 }
 
 const initialState: GroupState = {
@@ -31,12 +33,19 @@ const initialState: GroupState = {
   admin: undefined,
   chatAdmin: [],
   regularUser: [],
+  openGroupSidebar: false,
+  myId: undefined,
 };
 
 export const GroupSlice = createSlice({
   name: "group",
   initialState,
   reducers: {
+    toggleOpenGroupSidebar: (state) => {
+      state.openGroupSidebar = !state.openGroupSidebar;
+      state.chatAdmin = [];
+      state.regularUser = [];
+    },
     setGroupChatroom: (state, action: PayloadAction<ChatroomGroupType[]>) => {
       state.groupChatroom = action.payload;
     },
@@ -48,6 +57,10 @@ export const GroupSlice = createSlice({
     },
     setGroupMembersAndRole: (state, action: PayloadAction<GroupMembertype>) => {
       const { users, role } = action.payload;
+
+      if (state.chatAdmin.length > 0) state.chatAdmin = [];
+      if (state.regularUser.length > 0) state.regularUser = [];
+
       users.forEach((user) => {
         if (user.role === ROLE.DIERIBA) {
           state.admin = user;
@@ -92,6 +105,9 @@ export const GroupSlice = createSlice({
         }
       }
     },
+    setMyId: (state, action: PayloadAction<string>) => {
+      state.myId = action.payload;
+    },
     setNewAdmin: (state, action: PayloadAction<UserNewRoleResponseType>) => {
       const { id, role } = action.payload;
 
@@ -105,7 +121,7 @@ export const GroupSlice = createSlice({
           (state.admin as UserGroupType).role = ROLE.REGULAR_USER;
           newAdmin = state.chatAdmin.splice(index, 1)[0];
           newAdmin.role = ROLE.DIERIBA;
-          state.chatAdmin.push(state.admin as UserGroupType);
+          state.regularUser.push(state.admin as UserGroupType);
           state.admin = newAdmin;
         }
       } else {
@@ -120,16 +136,22 @@ export const GroupSlice = createSlice({
           state.admin = newAdmin;
         }
       }
-      state.role = ROLE.REGULAR_USER;
+      if (state.myId === state.admin?.user.id) {
+        state.role = ROLE.DIERIBA;
+      } else {
+        state.role = ROLE.REGULAR_USER;
+      }
     },
     setNewRole: (state, action: PayloadAction<UserNewRoleResponseType>) => {
       const { id, role } = action.payload;
-
+      console.log(action.payload);
       let index: number;
       if (role === "CHAT_ADMIN") {
         index = state.chatAdmin.findIndex(
           (moderator) => moderator.user.id === id
         );
+        console.log({ indexMod: index });
+
         if (index !== -1) {
           const moderator = state.chatAdmin.splice(index, 1)[0];
           moderator.role = ROLE.REGULAR_USER;
@@ -139,6 +161,8 @@ export const GroupSlice = createSlice({
         index = state.regularUser.findIndex(
           (regularUser) => regularUser.user.id === id
         );
+        console.log({ index });
+
         if (index !== -1) {
           const regularUser = state.regularUser.splice(index, 1)[0];
           regularUser.role = ROLE.CHAT_ADMIN;
@@ -268,6 +292,8 @@ export const {
   setNewAdmin,
   deleteGroupMembers,
   setNewRole,
+  toggleOpenGroupSidebar,
+  setMyId,
 } = GroupSlice.actions;
 
 export default GroupSlice.reducer;

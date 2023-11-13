@@ -12,7 +12,6 @@ import {
   DialogTitle,
 } from "@mui/material";
 import { X, Bell, Trash } from "phosphor-react";
-import { closeGroupSidebar } from "../../../redux/features/sidebar.slices";
 import { useTheme } from "@mui/material/styles";
 import { useAppDispatch } from "../../../redux/hooks";
 import DialogI from "../../Dialog/DialogI";
@@ -22,6 +21,7 @@ import { ChatEventGroup } from "../../../../../shared/socket.event";
 import {
   setNewAdmin,
   setNewRole,
+  toggleOpenGroupSidebar,
 } from "../../../redux/features/groups/groupSlice";
 import { UserNewRoleResponseType } from "../../../models/groupChat";
 import View from "./View/View";
@@ -39,14 +39,17 @@ const GroupComp = () => {
 
   useEffect(() => {
     connectSocket();
-    socket.on(ChatEventGroup.NEW_ADMIN, (data: UserNewRoleResponseType) => {
-      dispatch(setNewAdmin(data));
-    });
+    socket.on(
+      ChatEventGroup.NEW_ADMIN,
+      (data: { data: UserNewRoleResponseType }) => {
+        dispatch(setNewAdmin(data.data));
+      }
+    );
 
     socket.on(
       ChatEventGroup.USER_ROLE_CHANGED,
-      (data: UserNewRoleResponseType) => {
-        dispatch(setNewRole(data));
+      (data: { data: UserNewRoleResponseType }) => {
+        dispatch(setNewRole(data.data));
       }
     );
 
@@ -79,7 +82,7 @@ const GroupComp = () => {
               spacing={3}
             >
               <Typography variant="subtitle2">Group Info</Typography>
-              <IconButton onClick={() => dispatch(closeGroupSidebar())}>
+              <IconButton onClick={() => dispatch(toggleOpenGroupSidebar())}>
                 <X />
               </IconButton>
             </Stack>

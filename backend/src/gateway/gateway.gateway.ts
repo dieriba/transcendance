@@ -461,7 +461,7 @@ export class GatewayGateway {
     });
     this.logger.log('ok2');
 
-    if (chatroomUser.role === 'CHAT_ADMIN') {
+    if (chatroomUser.role === ROLE.CHAT_ADMIN) {
       this.sendToSocket(
         client,
         chatroomName,
@@ -590,12 +590,9 @@ export class GatewayGateway {
       restriction,
       restrictionTimeEnd,
       restrictionTimeStart,
-      duration,
-      durationUnit,
       reason,
       admin: client.nickname,
       banLife: duration === Number.MAX_SAFE_INTEGER,
-      role: isChatAdmin ? ROLE.CHAT_ADMIN : ROLE.REGULAR_USER,
     };
 
     this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {

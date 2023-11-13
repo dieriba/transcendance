@@ -1,5 +1,5 @@
 import { Tooltip, IconButton } from "@mui/material";
-import { Notebook, Eraser, GameController } from "phosphor-react";
+import { Notebook, Eraser, GameController, UserCirclePlus, UserGear } from "phosphor-react";
 import { ChatRoleType } from "../../../../models/type-enum/typesEnum";
 import { useState } from "react";
 import EditGroup from "./AdminView/EditGroup";
@@ -15,6 +15,16 @@ const AdminAction = ({ role, nickname }: AdminActionProps) => {
   if (role === "DIERIBA") {
     return (
       <>
+        <Tooltip title="add new user">
+          <IconButton onClick={() => setOpen(true)}>
+            <UserCirclePlus size={20} />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="unrestrict user">
+          <IconButton onClick={() => setOpen(true)}>
+            <UserGear size={20} />
+          </IconButton>
+        </Tooltip>
         <Tooltip title={`${nickname} details`}>
           <IconButton>
             <Notebook size={20} />

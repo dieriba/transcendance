@@ -10,8 +10,10 @@ import { useAppSelector } from "../../../redux/hooks";
 const GroupConversation = () => {
   const theme = useTheme();
   const open = useAppSelector(
-    (state: RootState) => state.sidebar.openGroupSidebar
+    (state: RootState) => state.groups.openGroupSidebar
   );
+  console.log({ open });
+
   return (
     <>
       <Box

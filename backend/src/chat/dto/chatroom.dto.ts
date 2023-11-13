@@ -155,7 +155,6 @@ export class RestrictedUsersDto {
   durationUnit: DURATION_UNIT;
 
   @ApiProperty()
-  @IsOptional()
   @IsString()
   @MaxLength(255)
   reason: string;
