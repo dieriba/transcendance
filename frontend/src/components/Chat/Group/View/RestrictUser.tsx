@@ -88,6 +88,8 @@ const RestrictUser = ({
       data.id = id;
       data.chatroomId = chatroomId;
       const res = await restrictUser(data).unwrap();
+      console.log({ res });
+
       dispatch(addRestrictedUser(res.data));
       setMessage(res.message);
       setOpenSnack(true);

@@ -21,6 +21,12 @@ import {
   MUTE_MAX_MIN,
 } from "../../../shared/restriction.constant";
 
+export const BaseChatroomSchema = z.object({
+  chatroomId: z.string().min(1),
+});
+
+export type BaseChatroomType = z.infer<typeof BaseChatroomSchema>;
+
 export const MessageGroupSchema = z.object({
   id: z.string().min(1),
   chatroomId: z.string().min(1),
@@ -50,7 +56,39 @@ export const JoinableChatroomSchema = z.object({
 
 export type JoinableChatroomType = z.infer<typeof JoinableChatroomSchema>;
 
+export const RestrictedUserInGroupSchema = z.object({
+  restriction: z.enum(restrictionType),
+  restrictionTimeEnd: z.date(),
+  reason: z.string().min(1),
+  banLife: z.boolean().optional(),
+  admin: z.object({
+    user: z.object({
+      nickname: z.string().min(1),
+    }),
+    role: z.string().min(1).optional(),
+  }),
+});
+
+export type RestrictedUserInGroupType = z.infer<typeof RestrictedGroupSchema>;
+
+export const RestrictedUserResponseSchema = BaseChatroomSchema.merge(
+  RestrictedUserInGroupSchema
+);
+
+export type RestrictedUserResponseType = z.infer<
+  typeof RestrictedUserResponseSchema
+>;
+
+export const UnrestrictSchema = z.object({
+  message: z.array(MessageGroupSchema),
+  chatroomId: z.string().min(1),
+  restriction: z.enum(restrictionType),
+});
+
+export type UnrestrictType = z.infer<typeof UnrestrictSchema>;
+
 export const ChatroomGroupSchema = JoinableChatroomSchema.extend({
+  restrictedUsers: z.array(RestrictedUserInGroupSchema),
   messages: z.array(MessageGroupSchema),
 });
 
@@ -73,7 +111,6 @@ export const RestrictedGroupSchema = z.object({
   }),
   reason: z.string().min(1),
   restriction: z.string().min(1),
-  restrictionTimeStart: z.date(),
   restrictionTimeEnd: z.date(),
 });
 
@@ -193,18 +230,3 @@ export const RestrictUserFormSchema = z
   });
 
 export type RestrictUserType = z.infer<typeof RestrictUserFormSchema>;
-
-export const RestrictUserServerResponseSchema = z.object({
-  id: z.string().min(1),
-  role: z.string().min(1).optional(),
-  restriction: z.string().min(1),
-  restrictionTimeEnd: z.date(),
-  restrictionTimeStart: z.date(),
-  reason: z.string(),
-  admin: z.string().min(1),
-  banLife: z.boolean(),
-});
-
-export type RestrictedUserResponseType = z.infer<
-  typeof RestrictUserServerResponseSchema
->;

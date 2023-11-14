@@ -72,6 +72,20 @@ export class ChatroomUserService {
         userId,
         chatroomId,
       },
+      select: {
+        user: {
+          select: {
+            id: true,
+            nickname: true,
+            status: true,
+            profile: {
+              select: {
+                avatar: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     return user;

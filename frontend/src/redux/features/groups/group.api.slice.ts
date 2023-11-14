@@ -6,7 +6,7 @@ import {
 } from "./../../../models/groupChat";
 import {
   MessageFormType,
-  UserWithProfile,
+  UserProfileBanLifeType,
 } from "./../../../models/ChatContactSchema";
 import {
   BaseServerResponse,
@@ -164,7 +164,7 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
       },
     }),
     unrestrictUser: builder.mutation<
-      SocketServerSucessResponse & { data: { user: UserWithProfile } },
+      SocketServerSucessResponse & { data: UserProfileBanLifeType },
       { chatroomId: string; id: string }
     >({
       queryFn: (data) => {

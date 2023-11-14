@@ -1,6 +1,14 @@
-import { Controller, Get, HttpCode, HttpStatus, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { GetUser } from 'src/common/custom-decorator/get-user.decorator';
 import { ChatService } from './chat.service';
+import { IsRestrictedUserGuardHttp } from './guards/is-restricted-user.guard.http';
 
 @Controller('chat')
 export class ChatController {
@@ -17,6 +25,7 @@ export class ChatController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @UseGuards(IsRestrictedUserGuardHttp)
   @Get('get-all-user-chatroom')
   async getAllUserChatroom(
     @GetUser('userId') userId: string,

@@ -12,7 +12,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { ROLE, TYPE, Chatroom } from '@prisma/client';
+import { ROLE, TYPE, Chatroom, RESTRICTION, STATUS } from '@prisma/client';
 import {
   ChatEventPrivateRoom,
   FriendEvent,
@@ -59,10 +59,9 @@ import { IsFriendExistWs } from 'src/friends/pipe/is-friend-exist-ws.pipe';
 import { FriendsService } from 'src/friends/friends.service';
 import { CheckGroupCreationValidity } from 'src/chat/pipes/check-group-creation-validity.pipe';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
-import { IsRestrictedUserGuard } from 'src/chat/guards/is-restricted-user.guard';
 import { ChatRoomNotFoundException } from 'src/chat/exception/chatroom-not-found.exception';
 import { ChatRoute } from 'src/common/custom-decorator/metadata.decorator';
-import { MAX_DATE } from '../../../shared/constant';
+import { IsRestrictedUserGuard } from 'src/chat/guards/is-restricted-user.guard.ws';
 
 @UseGuards(WsAccessTokenGuard)
 @UseFilters(WsCatchAllFilter)
@@ -255,23 +254,28 @@ export class GatewayGateway {
 
     if (!chatroom) throw new ChatRoomNotFoundException();
 
+    if (type !== TYPE.PROTECTED && chatroom.type === type)
+      throw new WsBadRequestException('Chatroom already of that type');
+
     if (chatroom.users[0].userId !== userId)
       throw new WsUnauthorizedException(
         'Only chatroom admin can edit the chatroom',
       );
 
-    if (chatroom.type === TYPE.PROTECTED && type === TYPE.PROTECTED) {
-      const isSame = await this.argon2Service.compare(
-        chatroom.password,
-        password,
-      );
-
-      if (isSame)
-        throw new WsBadRequestException(
-          'Password is currently the room password',
+    if (type === TYPE.PROTECTED) {
+      if (chatroom.type === TYPE.PROTECTED) {
+        const isSame = await this.argon2Service.compare(
+          chatroom.password,
+          password,
         );
+
+        if (isSame)
+          throw new WsBadRequestException(
+            'Password is currently the room password',
+          );
+      }
       data.password = await this.argon2Service.hash(password);
-    } else if (type !== TYPE.PROTECTED) {
+    } else {
       if (chatroom.type === type)
         throw new WsBadRequestException(
           `Chatroom setting already set to ${type}`,
@@ -279,19 +283,36 @@ export class GatewayGateway {
       data.password = null;
     }
 
-    await this.chatroomService.updateChatroom(chatroomId, data);
+    const chat = await this.chatroomService.updateChatroom(chatroomId, data);
 
-    client
-      .to(chatroom.chatroomName)
-      .emit(ChatEventGroup.UPDATED_GROUP_CHATROOM, {
+    this.sendToSocket(
+      client,
+      chatroom.chatroomName,
+      ChatEventGroup.UPDATED_GROUP_CHATROOM,
+      {
         message: `${chatroom.chatroomName} is now ${type}`,
         data: { chatroomId, type },
-      });
+      },
+    );
 
     this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
       message: 'Group edited succesflly',
       data: { chatroomId, type },
     });
+
+    if (type !== TYPE.PRIVATE) {
+      client.broadcast.emit(ChatEventGroup.NEW_AVAILABLE_CHATROOM, {
+        data: {
+          id: chatroomId,
+          type: type,
+          chatroomName: chat.chatroomName,
+        },
+      });
+    } else {
+      client.broadcast.emit(ChatEventGroup.DELETE_JOINABLE_GROUP, {
+        data: { chatroomId },
+      });
+    }
   }
 
   //@SubscribeMessage(CHATROOM_ADD_USER)
@@ -355,7 +376,7 @@ export class GatewayGateway {
         "You blocked that user, hence you can't set him as Chat owner",
       );
 
-    const [updateMe, updateNewDieriba] = await this.prismaService.$transaction([
+    const [, updateNewDieriba] = await this.prismaService.$transaction([
       this.prismaService.chatroomUser.update({
         where: { userId_chatroomId: { userId, chatroomId } },
         data: { role: ROLE.REGULAR_USER },
@@ -576,7 +597,7 @@ export class GatewayGateway {
       duration,
     );
 
-    const res = await this.prismaService.$transaction(async (tx) => {
+    await this.prismaService.$transaction(async (tx) => {
       const data = await tx.restrictedUser.upsert({
         where: {
           userId_chatroomId: {
@@ -589,6 +610,7 @@ export class GatewayGateway {
           restriction,
           restrictionTimeStart,
           restrictionTimeEnd,
+          banLife: duration === Number.MAX_SAFE_INTEGER,
           reason,
         },
         create: {
@@ -598,6 +620,7 @@ export class GatewayGateway {
           restriction,
           restrictionTimeStart,
           restrictionTimeEnd,
+          banLife: duration === Number.MAX_SAFE_INTEGER,
           reason,
         },
         select: {
@@ -635,12 +658,6 @@ export class GatewayGateway {
             },
           },
         });
-
-        const sockets = this.gatewayService.getAllUserSocket(id);
-
-        if (sockets) {
-          sockets.forEach((socket) => socket.leave(chatroomName));
-        }
       } else if (isChatAdmin) {
         await tx.chatroomUser.update({
           where: {
@@ -654,19 +671,37 @@ export class GatewayGateway {
           },
         });
       }
-      if (duration === Number.MAX_SAFE_INTEGER) {
-        this.sendToSocket(
-          this.server,
-          id,
-          ChatEventGroup.USER_LIFE_RESTRICTED,
-          {
-            message: '',
-            data: { chatroomId },
-          },
-        );
-      }
 
       const { user, admin } = data;
+
+      if (
+        duration === Number.MAX_SAFE_INTEGER ||
+        restriction === RESTRICTION.KICKED ||
+        restriction === RESTRICTION.BANNED
+      ) {
+        const sockets = this.gatewayService.getAllUserSocket(id);
+
+        if (sockets) {
+          sockets.forEach((socket) => socket.leave(chatroomName));
+        }
+      }
+
+      this.sendToSocket(
+        this.server,
+        id,
+        ChatEventGroup.USER_BANNED_MUTED_KICKED_RESTRICTION,
+        {
+          message: '',
+          data: {
+            chatroomId,
+            reason,
+            restrictionTimeEnd,
+            restriction,
+            admin,
+          },
+        },
+      );
+
       this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
         data: {
           role: isChatAdmin ? ROLE.CHAT_ADMIN : ROLE.REGULAR_USER,
@@ -677,7 +712,6 @@ export class GatewayGateway {
                 admin,
                 reason,
                 restrictionTimeEnd,
-                restrictionTimeStart,
                 restriction,
               },
             ],
@@ -700,7 +734,6 @@ export class GatewayGateway {
                 admin,
                 reason,
                 restrictionTimeEnd,
-                restrictionTimeStart,
                 restriction,
               },
             ],
@@ -739,6 +772,7 @@ export class GatewayGateway {
           chatroom: { select: { chatroomName: true } },
           adminId: true,
           restrictionTimeEnd: true,
+          banLife: true,
           user: {
             select: {
               id: true,
@@ -783,8 +817,53 @@ export class GatewayGateway {
       );
     }
 
-    if (restrictedUser.restrictionTimeEnd === new Date(MAX_DATE))
+    if (restrictedUser.banLife && chatroomUser.role !== ROLE.DIERIBA)
       throw new WsUnauthorizedException('Only Admin can undo that restriction');
+
+    const {
+      chatroom: { chatroomName },
+      user,
+      restriction,
+    } = restrictedUser;
+
+    const message = await this.prismaService.message.findMany({
+      where: {
+        chatroomId,
+        user: {
+          blockedBy: {
+            none: {
+              id,
+            },
+          },
+          blockedUsers: {
+            none: {
+              id,
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: 1,
+      select: {
+        id: true,
+        content: true,
+        user: {
+          select: {
+            id: true,
+            nickname: true,
+            profile: {
+              select: {
+                avatar: true,
+              },
+            },
+          },
+        },
+        chatroomId: true,
+        messageTypes: true,
+      },
+    });
 
     await this.prismaService.restrictedUser.delete({
       where: {
@@ -794,22 +873,27 @@ export class GatewayGateway {
         },
       },
     });
-    const {
-      chatroom: { chatroomName },
-      user,
-      restriction,
-    } = restrictedUser;
-    console.log({ user });
+
+    this.sendToSocket(
+      this.server,
+      id,
+      ChatEventGroup.USER_UNBANNED_UNKICKED_UNMUTED,
+      {
+        message: '',
+        data: { message, chatroomId, restriction },
+      },
+    );
 
     this.sendToSocket(client, chatroomName, ChatEventGroup.USER_UNRESTRICTED, {
-      data: { user },
+      data: { user: { ...user, banLife: restrictedUser.banLife } },
       message: '',
     });
 
     this.sendToSocket(this.server, client.userId, GeneralEvent.SUCCESS, {
-      data: { user },
+      data: { ...user, banLife: restrictedUser.banLife },
       message: `${user.nickname} is no longer ${restriction}`,
     });
+    console.log({ ...user, banLife: restrictedUser.banLife });
   }
 
   @SubscribeMessage(ChatEventGroup.REQUEST_ALL_CHATROOM)
@@ -858,18 +942,38 @@ export class GatewayGateway {
             messageTypes: true,
           },
         },
+        restrictedUsers: {
+          where: {
+            userId,
+            restrictionTimeEnd: {
+              gt: new Date(),
+            },
+          },
+          select: {
+            restriction: true,
+            restrictionTimeEnd: true,
+            admin: { select: { user: { select: { nickname: true } } } },
+          },
+        },
       },
       orderBy: {
         updatedAt: 'asc',
       },
     });
 
+    chatrooms.map((chatroom) => {
+      if (
+        chatroom.restrictedUsers.length == 0 ||
+        chatroom.restrictedUsers[0].restriction === RESTRICTION.MUTED
+      ) {
+        client.join(chatroom.chatroomName);
+      }
+    });
+
     this.sendToSocket(this.server, userId, ChatEventGroup.GET_ALL_CHATROOM, {
       message: '',
       data: chatrooms,
     });
-
-    chatrooms.map((chatroom) => client.join(chatroom.chatroomName));
   }
 
   @SubscribeMessage(ChatEventGroup.REQUEST_ALL_CHATROOM_MESSAGE)
@@ -1036,7 +1140,10 @@ export class GatewayGateway {
           "Wrong password, you can't acces that chatroom",
         );
     }
-    await this.chatroomUserService.createNewChatroomUser(userId, chatroomId);
+    const { user } = await this.chatroomUserService.createNewChatroomUser(
+      userId,
+      chatroomId,
+    );
 
     this.sendToSocket(
       this.server,
@@ -1044,7 +1151,9 @@ export class GatewayGateway {
       ChatEventGroup.NEW_USER_CHATROOM,
       {
         message: `${client.nickname} has joined the group`,
-        data: {},
+        data: {
+          ...user,
+        },
       },
     );
 

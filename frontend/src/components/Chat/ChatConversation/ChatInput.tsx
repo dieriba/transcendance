@@ -1,11 +1,11 @@
-import { InputAdornment, IconButton, TextField, Icon } from "@mui/material";
-import { FolderSimplePlus } from "phosphor-react";
+import { TextField } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { Control, Controller, FieldValues, Path } from "react-hook-form";
 
 interface ChatInputProps<T extends FieldValues, U> {
   control: Control<T, U>;
   name: Path<T>;
+  disabled?: boolean;
 }
 
 const StyledInput = styled(TextField)(() => ({
@@ -18,6 +18,7 @@ const StyledInput = styled(TextField)(() => ({
 const ChatInput = <T extends FieldValues, U>({
   control,
   name,
+  disabled,
 }: ChatInputProps<T, U>) => {
   return (
     <Controller
@@ -25,6 +26,7 @@ const ChatInput = <T extends FieldValues, U>({
       control={control}
       render={({ field: { value, onChange } }) => (
         <StyledInput
+          disabled={disabled}
           fullWidth
           autoComplete="off"
           value={value || ""}

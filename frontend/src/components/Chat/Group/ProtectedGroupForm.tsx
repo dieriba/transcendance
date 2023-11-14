@@ -23,7 +23,10 @@ import {
   JoinProtectedGroupFormType,
   JoinProtectedGroupSchema,
 } from "../../../models/groupChat";
-import { deleteJoinableGroup } from "../../../redux/features/groups/group.slice";
+import {
+  addNewChatroom,
+  deleteJoinableGroup,
+} from "../../../redux/features/groups/group.slice";
 
 interface ProtectGroupFormProps {
   chatroomId: string;
@@ -68,6 +71,7 @@ const ProtectedGroupForm = ({
 
       console.log({ res });
       dispatch(deleteJoinableGroup(chatroomId));
+      dispatch(addNewChatroom({ ...res.data, restrictedUsers: [] }));
       setSeverity("success");
       setMessage(res.message);
       setOpenSnack(true);

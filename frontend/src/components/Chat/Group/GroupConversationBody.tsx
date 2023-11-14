@@ -1,4 +1,10 @@
-import { Box, CircularProgress, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Stack,
+  Typography,
+} from "@mui/material";
 import ImageMessage from "../ChatBodyComponents/ImageMessage";
 import ReplyMessage from "../ChatBodyComponents/ReplyMessage";
 import DocumentMessage from "../ChatBodyComponents/DocumentMessage";
@@ -14,7 +20,10 @@ import {
   setChatroomMessage,
   updateGroupChatroomListAndMessage,
 } from "../../../redux/features/groups/group.slice";
-import { SocketServerSucessResponse } from "../../../services/type";
+import {
+  SocketServerErrorResponse,
+  SocketServerSucessResponse,
+} from "../../../services/type";
 import TextMessage from "./TextMessageGroup";
 export interface GroupConversationBodyProps {
   id: string;
@@ -27,7 +36,7 @@ const GroupConversationBody = () => {
   const chatroom = useAppSelector(
     (state: RootState) => state.groups.currentChatroom
   ) as ChatroomGroupType;
-  const { data, isLoading, isError } = useGetAllGroupMessagesQuery(
+  const { data, isLoading, isError, error } = useGetAllGroupMessagesQuery(
     {
       chatroomId: chatroom.id,
     },
@@ -77,7 +86,12 @@ const GroupConversationBody = () => {
         p={3}
       >
         <Stack alignItems="center" height="100%" justifyContent="center">
-          <Typography>An error has occured</Typography>
+          <Typography>
+            {(error as SocketServerErrorResponse).message}
+          </Typography>
+          <Button variant="contained" color="inherit">
+            Leave Group?
+          </Button>
         </Stack>
       </Box>
     );

@@ -9,8 +9,11 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { useGetAllGroupUserQuery } from "../../../../redux/features/groups/group.api.slice";
 import {
+  addNewChatroomUser,
   addRestrictedUser,
   setGroupMembersAndRole,
+  setOfflineUser,
+  setOnlineUser,
 } from "../../../../redux/features/groups/group.slice";
 import { useAppSelector, useAppDispatch } from "../../../../redux/hooks";
 import { RootState } from "../../../../redux/store";
@@ -23,10 +26,15 @@ import SetNewRole from "./AdminView/SetNewRole";
 import UserAction from "./UserAction";
 import RestrictUser from "./RestrictUser";
 import { connectSocket, socket } from "../../../../utils/getSocket";
-import { ChatEventGroup } from "../../../../../../shared/socket.event";
+import {
+  ChatEventGroup,
+  GeneralEvent,
+} from "../../../../../../shared/socket.event";
 import { UserGroupType } from "../../../../models/groupChat";
 import { SocketServerSucessResponse } from "../../../../services/type";
 import UnRestrictUser from "./UnrestrictUser";
+import { BaseFriendType } from "../../../../models/FriendsSchema";
+import { UserWithProfile } from "../../../../models/ChatContactSchema";
 
 const View = () => {
   const {
@@ -57,8 +65,32 @@ const View = () => {
         }
       );
 
+      socket.on(
+        GeneralEvent.USER_LOGGED_OUT,
+        (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
+          dispatch(setOfflineUser(data.data));
+        }
+      );
+
+      socket.on(
+        GeneralEvent.USER_LOGGED_IN,
+        (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
+          dispatch(setOnlineUser(data.data));
+        }
+      );
+
+      socket.on(
+        ChatEventGroup.NEW_USER_CHATROOM,
+        (data: SocketServerSucessResponse & { data: UserWithProfile }) => {
+          dispatch(addNewChatroomUser(data.data));
+        }
+      );
+
       return () => {
+        socket.off(GeneralEvent.USER_LOGGED_IN);
+        socket.off(GeneralEvent.USER_LOGGED_OUT);
         socket.off(ChatEventGroup.USER_RESTRICTED);
+        socket.off(ChatEventGroup.NEW_USER_CHATROOM);
       };
     }
   }, [data, dispatch]);

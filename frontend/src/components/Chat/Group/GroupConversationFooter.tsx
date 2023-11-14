@@ -6,11 +6,13 @@ import { useForm } from "react-hook-form";
 import { useAppSelector } from "../../../redux/hooks";
 import { RootState } from "../../../redux/store";
 import {
+  ChatroomGroupType,
   MessageGroupFormSchema,
   MessageGroupFormType,
 } from "../../../models/groupChat";
 import ChatInput from "../ChatConversation/ChatInput";
 import { useSendGroupMessageMutation } from "../../../redux/features/groups/group.api.slice";
+import { Restriction } from "../../../models/type-enum/typesEnum";
 
 const GroupConversationFooter = () => {
   const theme = useTheme();
@@ -19,8 +21,8 @@ const GroupConversationFooter = () => {
     resolver: zodResolver(MessageGroupFormSchema),
   });
 
-  const chatroom = useAppSelector(
-    (state: RootState) => state.groups.currentChatroom
+  const { currentGroupChatroomId, currentChatroom } = useAppSelector(
+    (state: RootState) => state.groups
   );
   const [sendMessage] = useSendGroupMessageMutation();
 
@@ -30,15 +32,27 @@ const GroupConversationFooter = () => {
       reset({ content: "" });
       await sendMessage({
         ...data,
-        chatroomId: chatroom?.id,
+        chatroomId: currentGroupChatroomId,
         messageTypes: "TEXT",
       }).unwrap();
     } catch (error) {
       console.log(error);
     }
   };
+  const toShow =
+    (currentChatroom as ChatroomGroupType).restrictedUsers.length === 0 ||
+    (currentChatroom as ChatroomGroupType).restrictedUsers[0].restriction ===
+      Restriction.MUTED;
 
-  return (
+  console.log({
+    length: (currentChatroom as ChatroomGroupType).restrictedUsers.length,
+  });
+
+  const disabled =
+    (currentChatroom as ChatroomGroupType).restrictedUsers.length > 0 &&
+    (currentChatroom as ChatroomGroupType).restrictedUsers[0].restriction ===
+      Restriction.MUTED;
+  return toShow ? (
     <>
       <Box
         sx={{
@@ -54,7 +68,7 @@ const GroupConversationFooter = () => {
         <form onSubmit={handleSubmit(onSubmit)}>
           <Stack direction="row" spacing={1}>
             <Stack width="100%">
-              <ChatInput name="content" control={control} />
+              <ChatInput disabled={disabled} name="content" control={control} />
             </Stack>
             <Box
               sx={{
@@ -81,6 +95,8 @@ const GroupConversationFooter = () => {
         </form>
       </Box>
     </>
+  ) : (
+    <></>
   );
 };
 

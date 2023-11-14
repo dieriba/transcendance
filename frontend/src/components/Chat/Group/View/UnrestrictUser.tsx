@@ -28,7 +28,7 @@ import {
 } from "../../../../redux/features/groups/group.slice";
 import { connectSocket, socket } from "../../../../utils/getSocket";
 import { ChatEventGroup } from "../../../../../../shared/socket.event";
-import { UserWithProfile } from "../../../../models/ChatContactSchema";
+import { UserProfileBanLifeType } from "../../../../models/ChatContactSchema";
 import { UserGroupType } from "../../../../models/groupChat";
 import { RootState } from "../../../../redux/store";
 interface UnrestrictUserProps {
@@ -74,15 +74,17 @@ const UnRestrictUser = ({
       socket.on(
         ChatEventGroup.USER_UNRESTRICTED,
         (
-          data: SocketServerSucessResponse & { data: { user: UserWithProfile } }
+          data: SocketServerSucessResponse & { data: UserProfileBanLifeType }
         ) => {
-          dispatch(unrestrictUser(data.data.user));
+          dispatch(unrestrictUser(data.data));
         }
       );
 
       socket.on(
         ChatEventGroup.USER_RESTRICTED,
         (data: SocketServerSucessResponse & { data: UserGroupType }) => {
+          console.log({ data });
+
           dispatch(addRestrictedUser(data.data));
         }
       );
@@ -103,7 +105,7 @@ const UnRestrictUser = ({
   const handleSubmit = async (id: string) => {
     try {
       const res = await UnrestrictUser({ id, chatroomId }).unwrap();
-      dispatch(unrestrictUser(res.data.user));
+      dispatch(unrestrictUser(res.data));
       setMessage(res.message);
       setOpenSnack(true);
       setSeverity("success");
@@ -129,7 +131,7 @@ const UnRestrictUser = ({
         <DialogI maxWidth="md" open={open} handleClose={handleClose}>
           <DialogTitle>{`Restrict ${nickname}`}</DialogTitle>
           <DialogContent>
-            <Stack width='100%' p={2}>
+            <Stack width="100%" p={2}>
               <Stack spacing={2}>
                 {openSnack && (
                   <Alert

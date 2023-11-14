@@ -156,6 +156,7 @@ export class ChatService {
                     },
                   },
                   select: {
+                    banLife: true,
                     admin: {
                       select: {
                         user: {

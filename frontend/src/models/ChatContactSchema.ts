@@ -12,6 +12,12 @@ export const UserSchemaWithProfile = z
 
 export type UserWithProfile = z.infer<typeof UserSchemaWithProfile>;
 
+export const UserSchemaProfileBanLife = UserSchemaWithProfile.extend({
+  banLife: z.boolean(),
+});
+
+export type UserProfileBanLifeType = z.infer<typeof UserSchemaProfileBanLife>;
+
 export const MessageSchema = z.object({
   id: z.string(),
   chatroomId: z.string().min(1),

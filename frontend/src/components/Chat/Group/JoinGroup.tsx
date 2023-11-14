@@ -10,7 +10,10 @@ import {
 } from "@mui/material";
 import DialogI from "../../Dialog/DialogI";
 import { useEffect, useState } from "react";
-import { SocketServerErrorResponse } from "../../../services/type";
+import {
+  SocketServerErrorResponse,
+  SocketServerSucessResponse,
+} from "../../../services/type";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import {
   useGetAllJoinableGroupQuery,
@@ -18,13 +21,13 @@ import {
 } from "../../../redux/features/groups/group.api.slice";
 import {
   addNewChatroom,
-  addNewJoinableGroup,
+  addJoinableGroup,
   deleteJoinableGroup,
   setJoinableGroup,
 } from "../../../redux/features/groups/group.slice";
 import { connectSocket, socket } from "../../../utils/getSocket";
 import { ChatEventGroup } from "../../../../../shared/socket.event";
-import { ChatroomGroupType } from "../../../models/groupChat";
+import { BaseChatroomType, ChatroomGroupType } from "../../../models/groupChat";
 import { RootState } from "../../../redux/store";
 import GroupIcon from "./GroupIcon";
 import { Plus } from "phosphor-react";
@@ -67,12 +70,20 @@ const JoinGroup = ({ open, handleClose }: JoinGroupProps) => {
       socket.on(
         ChatEventGroup.NEW_AVAILABLE_CHATROOM,
         (data: { data: ChatroomGroupType }) => {
-          dispatch(addNewJoinableGroup(data.data));
+          dispatch(addJoinableGroup(data.data));
+        }
+      );
+
+      socket.on(
+        ChatEventGroup.DELETE_JOINABLE_GROUP,
+        (data: SocketServerSucessResponse & { data: BaseChatroomType }) => {
+          dispatch(deleteJoinableGroup(data.data.chatroomId));
         }
       );
 
       return () => {
         socket.off(ChatEventGroup.NEW_AVAILABLE_CHATROOM);
+        socket.off(ChatEventGroup.DELETE_JOINABLE_GROUP);
       };
     }
   }, [data, dispatch]);
@@ -80,7 +91,7 @@ const JoinGroup = ({ open, handleClose }: JoinGroupProps) => {
     try {
       const res = await joinGroup({ chatroomId, password }).unwrap();
       dispatch(deleteJoinableGroup(chatroomId));
-      dispatch(addNewChatroom(res.data))
+      dispatch(addNewChatroom({ ...res.data, restrictedUsers: [] }));
       setSeverity("success");
       setMessage(res.message);
       setOpenSnack(true);

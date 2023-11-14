@@ -136,6 +136,7 @@ model RestrictedUser {
   restriction          RESTRICTION?
   restrictionTimeStart DateTime?
   restrictionTimeEnd   DateTime?
+  banLife              Boolean
   reason               String?      @db.VarChar(255)
 
   @@unique([userId, chatroomId])

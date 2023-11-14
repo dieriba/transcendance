@@ -6,7 +6,6 @@ import { connectSocket, socket } from "../../utils/getSocket";
 import {
   ChatEventPrivateRoom,
   ChatEventGroup,
-  GeneralEvent,
 } from "../../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../services/type";
 import { useGetAllGroupQuery } from "../../redux/features/groups/group.api.slice";
@@ -14,16 +13,14 @@ import {
   addNewChatroom,
   deleteChatroom,
   setGroupChatroom,
-  setOfflineUser,
-  setOnlineUser,
+  unrestrict,
   updateChatroom,
 } from "../../redux/features/groups/group.slice";
-import { ChatroomGroupType } from "../../models/groupChat";
+import { ChatroomGroupType, UnrestrictType } from "../../models/groupChat";
 import GroupContact from "../../components/Chat/Group/GroupContact";
 import GroupConversation from "../../components/Chat/Group/GroupConversation";
 import { RootState } from "../../redux/store";
 import { editGroupResponseType } from "../../models/EditGroupSchema";
-import { BaseFriendType } from "../../models/FriendsSchema";
 
 const GroupChatPage = () => {
   const theme = useTheme();
@@ -40,19 +37,6 @@ const GroupChatPage = () => {
       dispatch(setGroupChatroom(data.data));
       connectSocket();
       if (!socket) return;
-      socket.on(
-        GeneralEvent.USER_LOGGED_OUT,
-        (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
-          dispatch(setOfflineUser(data.data));
-        }
-      );
-
-      socket.on(
-        GeneralEvent.USER_LOGGED_IN,
-        (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
-          dispatch(setOnlineUser(data.data));
-        }
-      );
 
       socket.on(
         ChatEventGroup.NEW_CHATROOM,
@@ -66,8 +50,6 @@ const GroupChatPage = () => {
         (
           data: SocketServerSucessResponse & { data: editGroupResponseType }
         ) => {
-          console.log("entered he");
-
           dispatch(updateChatroom(data.data));
         }
       );
@@ -80,13 +62,19 @@ const GroupChatPage = () => {
           dispatch(deleteChatroom(data.data.chatroomId));
         }
       );
+
+      socket.on(
+        ChatEventGroup.USER_UNBANNED_UNKICKED_UNMUTED,
+        (data: SocketServerSucessResponse & { data: UnrestrictType }) => {
+          dispatch(unrestrict(data.data));
+        }
+      );
     }
     return () => {
       socket.off(ChatEventGroup.NEW_CHATROOM);
       socket.off(ChatEventGroup.CLEAR_CHATROOM);
       socket.off(ChatEventGroup.EDIT_GROUP_CHATROOM);
-      //socket.off(GeneralEvent.USER_LOGGED_IN);
-      //socket.off(GeneralEvent.USER_LOGGED_OUT);
+      socket.off(ChatEventGroup.USER_UNBANNED_UNKICKED_UNMUTED);
     };
   }, [data, dispatch]);
   if (isLoading) {

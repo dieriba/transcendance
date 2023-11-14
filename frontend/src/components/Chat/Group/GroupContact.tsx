@@ -65,25 +65,36 @@ const GroupContact = () => {
             spacing={1}
           >
             <Stack p={2}>
-              {groups.map(({ id, chatroomName, type, messages }, index) => {
-                return (
-                  <GroupBox
-                    chatroomId={id}
-                    chatroomName={chatroomName}
-                    type={type}
-                    unread={0}
-                    time="11"
-                    key={index}
-                    msg={
-                      messages.length === 0
-                        ? "Start Conversation"
-                        : messages[0].user.id === myId
-                        ? `You: ${messages[0].content}`
-                        : messages[0].content
-                    }
-                  />
-                );
-              })}
+              {groups.map(
+                (
+                  { id, chatroomName, type, messages, restrictedUsers },
+                  index
+                ) => {
+                  const restrictedUser =
+                    restrictedUsers.length === 0
+                      ? undefined
+                      : restrictedUsers[0];
+                  return (
+                    <GroupBox
+                      chatroomId={id}
+                      chatroomName={chatroomName}
+                      type={type}
+                      unread={0}
+                      time="11"
+                      key={index}
+                      msg={
+                        restrictedUser
+                          ? `${restrictedUser.restriction} by ${restrictedUser.admin.user.nickname}`
+                          : messages.length === 0
+                          ? "Start Conversation"
+                          : messages[0].user.id === myId
+                          ? `You: ${messages[0].content}`
+                          : messages[0].content
+                      }
+                    />
+                  );
+                }
+              )}
             </Stack>
           </Stack>
         </Stack>
