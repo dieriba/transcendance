@@ -31,6 +31,17 @@ export class ChatroomUserService {
     return chatroom;
   }
 
+  async deleteChatroomUserById(userId: string, chatroomId: string) {
+    await this.prismaService.chatroomUser.delete({
+      where: {
+        userId_chatroomId: {
+          userId,
+          chatroomId,
+        },
+      },
+    });
+  }
+
   async findChatroomUserDmWithoutSelect(senderId: string, receiverId: string) {
     const chatroom = await this.prismaService.chatroomUser.findFirst({
       where: {

@@ -252,9 +252,21 @@ export class ChatroomDataDto {
   userId: string;
 }
 
+export class DeleteChatroomMemberDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  id: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  chatroomId: string;
+}
+
 export class ChatroomIdDto {
   @ApiProperty()
   @IsString()
-  @MinLength(1)
+  @IsNotEmpty()
   chatroomId: string;
 }

@@ -12,7 +12,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { ROLE, TYPE, Chatroom, RESTRICTION, STATUS } from '@prisma/client';
+import { ROLE, TYPE, Chatroom, RESTRICTION } from '@prisma/client';
 import {
   ChatEventPrivateRoom,
   FriendEvent,
@@ -33,6 +33,8 @@ import {
   DmMessageDto,
   ChatRoomDto,
   EditChatroomDto,
+  DeleteChatroomMemberDto,
+  ChatroomIdDto,
 } from 'src/chat/dto/chatroom.dto';
 import { ChatroomUserService } from 'src/chatroom-user/chatroom-user.service';
 import { ChatroomService } from 'src/chatroom/chatroom.service';
@@ -50,7 +52,6 @@ import { UserData, UserId } from 'src/common/types/user-info.type';
 import { LibService } from 'src/lib/lib.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserService } from 'src/user/user.service';
-import { GatewayService } from './gateway.service';
 import {
   FriendsTypeNicknameDto,
   FriendsTypeDto,
@@ -188,15 +189,7 @@ export class GatewayGateway {
         data: { id, chatroomName, type, messages: [], restrictedUsers: [] },
       });
 
-      const rooms = this.server.of('/').adapter.rooms;
-
-      const socketIds = rooms.get(user);
-
-      if (socketIds) {
-        socketIds.forEach((socket) => {
-          this.server.sockets.sockets.get(socket).join(chatroomName);
-        });
-      }
+      this.joinOrLeaveRoom(user, GeneralEvent.JOIN, chatroomName);
 
       if (user === userId) {
         this.sendToSocket(this.server, user, GeneralEvent.SUCCESS, {
@@ -409,32 +402,223 @@ export class GatewayGateway {
     console.log('MDR');
   }
 
-  //@SubscribeMessage(CHATROOM_DELETE_USER)
-  async deleteUserFromChatromm(
-    @MessageBody() chatroomData: ChatroomDataDto,
+  @SubscribeMessage(ChatEventGroup.KICK_USER)
+  async kickUser(
+    @MessageBody() deleteChatroomMember: DeleteChatroomMemberDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
     const { userId } = client;
-    const { users, chatroomId } = chatroomData;
+    const { id, chatroomId } = deleteChatroomMember;
 
     await this.isDieriba(userId, chatroomId);
-    const creator = users.find((user) => user == userId);
 
-    if (creator)
+    if (id === userId)
       throw new WsBadRequestException(
         'Cannot delete the CHATROOM owner of that room',
       );
 
-    const deletedUsers = await this.prismaService.chatroomUser.deleteMany({
+    const chatroomUser = await this.prismaService.chatroomUser.findUnique({
       where: {
-        chatroomId: chatroomId,
-        userId: {
-          in: users,
+        userId_chatroomId: {
+          userId: id,
+          chatroomId,
+        },
+      },
+      select: {
+        chatroom: {
+          select: {
+            chatroomName: true,
+          },
+        },
+        user: {
+          select: {
+            nickname: true,
+          },
         },
       },
     });
 
-    //this.server.emit(CHATROOM_USER_DELETED, deletedUsers);
+    if (!chatroomUser) {
+      throw new WsNotFoundException('user is not in that group');
+    }
+
+    await this.prismaService.chatroomUser.delete({
+      where: {
+        userId_chatroomId: {
+          userId: id,
+          chatroomId,
+        },
+      },
+    });
+    const {
+      chatroom: { chatroomName },
+      user: { nickname },
+    } = chatroomUser;
+
+    this.joinOrLeaveRoom(id, GeneralEvent.LEAVE, chatroomName);
+
+    this.sendToSocket(client, chatroomName, ChatEventGroup.USER_KICKED, {
+      data: { id },
+      message: `${client.nickname} has kicked ${nickname}`,
+    });
+
+    this.sendToSocket(this.server, id, ChatEventGroup.BEEN_KICKED, {
+      message: `You have been kicked out of the group ${chatroomName}`,
+      data: { chatroomId },
+    });
+
+    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+      data: { id },
+      message: `${nickname} has been kicked`,
+    });
+  }
+
+  @SubscribeMessage(ChatEventGroup.LEAVE_GROUP)
+  async leaveGroup(
+    @MessageBody() chatroomIdDto: ChatroomIdDto,
+    @ConnectedSocket() client: SocketWithAuth,
+  ) {
+    const { userId } = client;
+    const { chatroomId } = chatroomIdDto;
+
+    const chatroomUser = await this.prismaService.chatroomUser.findUnique({
+      where: {
+        userId_chatroomId: {
+          userId,
+          chatroomId,
+        },
+      },
+      select: {
+        chatroom: {
+          select: {
+            chatroomName: true,
+          },
+        },
+        user: {
+          select: {
+            nickname: true,
+          },
+        },
+        role: true,
+      },
+    });
+
+    if (!chatroomUser) {
+      throw new WsNotFoundException('You do no belong to that group');
+    }
+
+    if (chatroomUser.role === ROLE.DIERIBA) {
+      await this.prismaService.$transaction(async (tx) => {
+        const chatroom = await tx.chatroom.findFirst({
+          where: {
+            id: chatroomId,
+          },
+          select: {
+            users: {
+              select: {
+                userId: true,
+                user: {
+                  select: {
+                    nickname: true,
+                  },
+                },
+              },
+              orderBy: {
+                createdAt: 'asc',
+              },
+            },
+          },
+        });
+
+        if (!chatroom) throw new WsNotFoundException('Chatroom not found');
+
+        const newAdmin = chatroom.users.find((user) => user.userId !== userId);
+
+        if (!newAdmin) {
+          await tx.chatroom.delete({
+            where: {
+              id: chatroomId,
+            },
+          });
+          this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+            data: { chatroomId },
+            message: `You leaved the group ${chatroomName}`,
+          });
+
+          this.joinOrLeaveRoom(userId, GeneralEvent.LEAVE, chatroomName);
+
+          return;
+        }
+        const { role } = await tx.chatroomUser.update({
+          where: {
+            userId_chatroomId: {
+              userId: newAdmin.userId,
+              chatroomId,
+            },
+          },
+          data: {
+            role: ROLE.DIERIBA,
+          },
+        });
+        await tx.chatroomUser.delete({
+          where: {
+            userId_chatroomId: {
+              userId,
+              chatroomId,
+            },
+          },
+        });
+
+        this.joinOrLeaveRoom(userId, GeneralEvent.LEAVE, chatroomName);
+
+        this.sendToSocket(
+          this.server,
+          newAdmin.userId,
+          ChatEventGroup.PREVIOUS_ADMIN_LEAVED,
+          {
+            data: {
+              previousAdminId: userId,
+              newAdminId: newAdmin.userId,
+              newAdminPreviousRole: role,
+            },
+            message: `${client.nickname} and the new admin randomly choosen is now ${newAdmin.user.nickname}`,
+          },
+        );
+
+        this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+          data: { chatroomId },
+          message: `You left the group ${chatroomName}`,
+        });
+
+        return;
+      });
+    } else {
+      await this.prismaService.chatroomUser.delete({
+        where: {
+          userId_chatroomId: {
+            userId,
+            chatroomId,
+          },
+        },
+      });
+    }
+
+    const {
+      chatroom: { chatroomName },
+      user: { nickname },
+    } = chatroomUser;
+
+    this.joinOrLeaveRoom(userId, GeneralEvent.LEAVE, chatroomName);
+
+    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+      data: { chatroomId },
+      message: `chatroom ${chatroomName} leaved`,
+    });
+
+    this.sendToSocket(client, chatroomName, ChatEventGroup.USER_LEAVED, {
+      data: { userId },
+      message: `${nickname} has leaved the chatroom`,
+    });
   }
 
   @SubscribeMessage(ChatEventGroup.CHANGE_USER_ROLE)
@@ -681,15 +865,7 @@ export class GatewayGateway {
         restriction === RESTRICTION.KICKED ||
         restriction === RESTRICTION.BANNED
       ) {
-        const rooms = this.server.of('/').adapter.rooms;
-
-        const socketIds = rooms.get(id);
-
-        if (socketIds) {
-          socketIds.forEach((socket) => {
-            this.server.sockets.sockets.get(socket).leave(chatroomName);
-          });
-        }
+        this.joinOrLeaveRoom(id, GeneralEvent.LEAVE, chatroomName);
       }
 
       this.sendToSocket(
@@ -892,15 +1068,7 @@ export class GatewayGateway {
     );
 
     if (restriction !== RESTRICTION.MUTED) {
-      const rooms = this.server.of('/').adapter.rooms;
-
-      const socketIds = rooms.get(id);
-
-      if (socketIds) {
-        socketIds.forEach((socket) => {
-          this.server.sockets.sockets.get(socket).join(chatroomName);
-        });
-      }
+      this.joinOrLeaveRoom(id, GeneralEvent.JOIN, chatroomName);
     }
 
     this.sendToSocket(client, chatroomName, ChatEventGroup.USER_UNRESTRICTED, {
@@ -1993,6 +2161,28 @@ export class GatewayGateway {
     object?: SocketServerResponse,
   ) {
     instance.to(room).emit(emit, object);
+  }
+
+  private joinOrLeaveRoom(
+    userId: string,
+    action: GeneralEvent.JOIN | GeneralEvent.LEAVE,
+    room: string,
+  ) {
+    const rooms = this.server.of('/').adapter.rooms;
+    const socketIds = rooms.get(userId);
+    if (action === GeneralEvent.LEAVE) {
+      if (socketIds) {
+        socketIds.forEach((socket) => {
+          this.server.sockets.sockets.get(socket).leave(room);
+        });
+      }
+      return;
+    }
+    if (socketIds) {
+      socketIds.forEach((socket) => {
+        this.server.sockets.sockets.get(socket).join(room);
+      });
+    }
   }
   /*------------------------------------------------------------------------------------------------------ */
 }

@@ -26,7 +26,7 @@ import {
 } from "../../../redux/features/groups/group.slice";
 import { UserNewRoleResponseType } from "../../../models/groupChat";
 import View from "./View/View";
-import { UserWithProfile } from "../../../models/ChatContactSchema";
+import { UserProfileBanLifeType } from "../../../models/ChatContactSchema";
 import { SocketServerSucessResponse } from "../../../services/type";
 
 const GroupComp = () => {
@@ -59,7 +59,9 @@ const GroupComp = () => {
     socket.on(
       ChatEventGroup.USER_UNRESTRICTED,
       (
-        data: SocketServerSucessResponse & { data: { user: UserWithProfile } }
+        data: SocketServerSucessResponse & {
+          data: { user: UserProfileBanLifeType };
+        }
       ) => {
         console.log({ data });
 

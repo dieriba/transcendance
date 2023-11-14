@@ -5,6 +5,8 @@ export enum GeneralEvent {
   USER_LOGGED_IN = `${General}.user.logged.in`,
   EXCEPTION = "exception",
   SUCCESS = `${General}.success`,
+  JOIN = `${General}.join`,
+  LEAVE = `${General}.leave`,
 }
 
 const friend = "friend";
@@ -54,6 +56,7 @@ export enum ChatEventGroup {
   SET_DIERIBA = `${groupChatroom}.set.dieriba`,
   DELETE_JOINABLE_GROUP = `${groupChatroom}.delete.joinable.group`,
   NEW_ADMIN = `${groupChatroom}.new.admin`,
+  PREVIOUS_ADMIN_LEAVED = `${groupChatroom}.previous.admin.leaved`,
   NEW_USER_CHATROOM = `${groupChatroom}.new.user.chatroom`,
   CHANGE_USER_ROLE = `${groupChatroom}.change.user.role`,
   USER_ROLE_CHANGED = `${groupChatroom}.user.role.changed`,
@@ -63,10 +66,12 @@ export enum ChatEventGroup {
   USER_UNBANNED_UNKICKED_UNMUTED = `${groupChatroom}.user.unbanned.unkicked.unmuted.restriction`,
   UNRESTRICT_USER = `${groupChatroom}.unrestrict.user`,
   USER_UNRESTRICTED = `${groupChatroom}.user.unrestricted`,
+  KICK_USER = `${groupChatroom}.kick.user`,
+  USER_KICKED = `${groupChatroom}.user.kicked`,
+  BEEN_KICKED = `${groupChatroom}.been.kicked`,
+  LEAVE_GROUP = `${groupChatroom}.leave.group`,
+  USER_LEAVED = `${groupChatroom}.user.leaved`,
 
   ADD_USER = "chatroom.add.user",
-  DELETE_USER = "chatroom.delete.user",
-
   USER_ADDED = "chatroom.user.added",
-  USER_DELETED = "chatroom.user.deleted",
 }
