@@ -12,11 +12,18 @@ import { useGetAllGroupQuery } from "../../redux/features/groups/group.api.slice
 import {
   addNewChatroom,
   deleteChatroom,
+  restrict,
   setGroupChatroom,
   unrestrict,
   updateChatroom,
+  updateGroupChatroomListAndMessage,
 } from "../../redux/features/groups/group.slice";
-import { ChatroomGroupType, UnrestrictType } from "../../models/groupChat";
+import {
+  ChatroomGroupType,
+  MessageGroupType,
+  RestrictedUserResponseType,
+  UnrestrictType,
+} from "../../models/groupChat";
 import GroupContact from "../../components/Chat/Group/GroupContact";
 import GroupConversation from "../../components/Chat/Group/GroupConversation";
 import { RootState } from "../../redux/store";
@@ -37,6 +44,17 @@ const GroupChatPage = () => {
       dispatch(setGroupChatroom(data.data));
       connectSocket();
       if (!socket) return;
+
+      socket.on(
+        ChatEventGroup.USER_BANNED_MUTED_KICKED_RESTRICTION,
+        (
+          data: SocketServerSucessResponse & {
+            data: RestrictedUserResponseType;
+          }
+        ) => {
+          dispatch(restrict(data.data));
+        }
+      );
 
       socket.on(
         ChatEventGroup.NEW_CHATROOM,
@@ -69,12 +87,21 @@ const GroupChatPage = () => {
           dispatch(unrestrict(data.data));
         }
       );
+
+      socket.on(
+        ChatEventGroup.RECEIVE_GROUP_MESSAGE,
+        (data: SocketServerSucessResponse & { data: MessageGroupType }) => {
+          dispatch(updateGroupChatroomListAndMessage(data.data));
+        }
+      );
     }
     return () => {
       socket.off(ChatEventGroup.NEW_CHATROOM);
       socket.off(ChatEventGroup.CLEAR_CHATROOM);
       socket.off(ChatEventGroup.EDIT_GROUP_CHATROOM);
       socket.off(ChatEventGroup.USER_UNBANNED_UNKICKED_UNMUTED);
+      socket.off(ChatEventGroup.USER_BANNED_MUTED_KICKED_RESTRICTION);
+      socket.off(ChatEventGroup.RECEIVE_GROUP_MESSAGE);
     };
   }, [data, dispatch]);
   if (isLoading) {

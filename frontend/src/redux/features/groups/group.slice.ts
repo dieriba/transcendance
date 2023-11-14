@@ -293,6 +293,8 @@ export const GroupSlice = createSlice({
                 data);
         }
 
+        console.log({ banLife: data.banLife });
+
         if (!data.banLife) {
           state.groupChatroom[index].restrictedUsers.length === 0
             ? state.groupChatroom[index].restrictedUsers.push(data)

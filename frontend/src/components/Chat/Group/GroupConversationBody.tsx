@@ -11,19 +11,12 @@ import DocumentMessage from "../ChatBodyComponents/DocumentMessage";
 import StackChatCompo from "../ChatBodyComponents/StackChatCompo";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { useEffect } from "react";
-import { connectSocket, socket } from "../../../utils/getSocket";
-import { ChatEventGroup } from "../../../../../shared/socket.event";
+
 import { useGetAllGroupMessagesQuery } from "../../../redux/features/groups/group.api.slice";
 import { RootState } from "../../../redux/store";
-import { ChatroomGroupType, MessageGroupType } from "../../../models/groupChat";
-import {
-  setChatroomMessage,
-  updateGroupChatroomListAndMessage,
-} from "../../../redux/features/groups/group.slice";
-import {
-  SocketServerErrorResponse,
-  SocketServerSucessResponse,
-} from "../../../services/type";
+import { ChatroomGroupType } from "../../../models/groupChat";
+import { setChatroomMessage } from "../../../redux/features/groups/group.slice";
+import { SocketServerErrorResponse } from "../../../services/type";
 import TextMessage from "./TextMessageGroup";
 export interface GroupConversationBodyProps {
   id: string;
@@ -47,16 +40,6 @@ const GroupConversationBody = () => {
   useEffect(() => {
     if (data?.data) {
       dispatch(setChatroomMessage(data.data));
-      connectSocket();
-      socket.on(
-        ChatEventGroup.RECEIVE_GROUP_MESSAGE,
-        (data: SocketServerSucessResponse & { data: MessageGroupType }) => {
-          dispatch(updateGroupChatroomListAndMessage(data.data));
-        }
-      );
-      return () => {
-        socket.off(ChatEventGroup.RECEIVE_GROUP_MESSAGE);
-      };
     }
   }, [data, dispatch]);
   const messages = useAppSelector((state: RootState) => state.groups.messages);

@@ -69,7 +69,6 @@ import { IsRestrictedUserGuard } from 'src/chat/guards/is-restricted-user.guard.
 @WebSocketGateway()
 export class GatewayGateway {
   constructor(
-    private readonly gatewayService: GatewayService,
     private readonly prismaService: PrismaService,
     private readonly userService: UserService,
     private readonly chatroomService: ChatroomService,
@@ -92,10 +91,6 @@ export class GatewayGateway {
     );
     this.logger.log(`Socket data: `, sockets);
     this.logger.debug(`Number of connected sockets: ${sockets.size}`);
-    this.gatewayService.setUserSocket(client.userId, client);
-    this.logger.log(
-      `Size of socket map ${this.gatewayService.getSockets().size}`,
-    );
     client.join(client.userId);
     const rooms = this.server.of('/').adapter.rooms;
     console.log({ rooms });
@@ -111,11 +106,7 @@ export class GatewayGateway {
     this.logger.log(`WS client with id: ${client.id} disconnected!`);
     this.logger.log(`Socket data: `, sockets);
     this.logger.debug(`Number of connected sockets: ${sockets.size}`);
-    this.logger.log(
-      `Size of socket map ${this.gatewayService.getSockets().size}`,
-    );
     const rooms = this.server.sockets.adapter.rooms.get(client.userId);
-    this.gatewayService.removeUserSocket(client.userId, client);
 
     if (!rooms) {
       console.log('LOGGED OUT');
@@ -194,8 +185,19 @@ export class GatewayGateway {
     existingUserId.map((user) => {
       this.sendToSocket(this.server, user, ChatEventGroup.NEW_CHATROOM, {
         message: '',
-        data: { id, chatroomName, type, messages: [] },
+        data: { id, chatroomName, type, messages: [], restrictedUsers: [] },
       });
+
+      const rooms = this.server.of('/').adapter.rooms;
+
+      const socketIds = rooms.get(user);
+
+      if (socketIds) {
+        socketIds.forEach((socket) => {
+          this.server.sockets.sockets.get(socket).join(chatroomName);
+        });
+      }
+
       if (user === userId) {
         this.sendToSocket(this.server, user, GeneralEvent.SUCCESS, {
           message: 'Group created succesfully',
@@ -679,10 +681,14 @@ export class GatewayGateway {
         restriction === RESTRICTION.KICKED ||
         restriction === RESTRICTION.BANNED
       ) {
-        const sockets = this.gatewayService.getAllUserSocket(id);
+        const rooms = this.server.of('/').adapter.rooms;
 
-        if (sockets) {
-          sockets.forEach((socket) => socket.leave(chatroomName));
+        const socketIds = rooms.get(id);
+
+        if (socketIds) {
+          socketIds.forEach((socket) => {
+            this.server.sockets.sockets.get(socket).leave(chatroomName);
+          });
         }
       }
 
@@ -698,6 +704,7 @@ export class GatewayGateway {
             restrictionTimeEnd,
             restriction,
             admin,
+            banLife: duration === Number.MAX_SAFE_INTEGER,
           },
         },
       );
@@ -884,6 +891,18 @@ export class GatewayGateway {
       },
     );
 
+    if (restriction !== RESTRICTION.MUTED) {
+      const rooms = this.server.of('/').adapter.rooms;
+
+      const socketIds = rooms.get(id);
+
+      if (socketIds) {
+        socketIds.forEach((socket) => {
+          this.server.sockets.sockets.get(socket).join(chatroomName);
+        });
+      }
+    }
+
     this.sendToSocket(client, chatroomName, ChatEventGroup.USER_UNRESTRICTED, {
       data: { user: { ...user, banLife: restrictedUser.banLife } },
       message: '',
@@ -893,7 +912,6 @@ export class GatewayGateway {
       data: { ...user, banLife: restrictedUser.banLife },
       message: `${user.nickname} is no longer ${restriction}`,
     });
-    console.log({ ...user, banLife: restrictedUser.banLife });
   }
 
   @SubscribeMessage(ChatEventGroup.REQUEST_ALL_CHATROOM)
@@ -957,7 +975,7 @@ export class GatewayGateway {
         },
       },
       orderBy: {
-        updatedAt: 'asc',
+        updatedAt: 'desc',
       },
     });
 
