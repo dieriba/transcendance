@@ -179,12 +179,6 @@ export class UnrestrictedUsersDto {
 
   @IsOptional()
   isChatAdmin: boolean;
-
-  @IsOptional()
-  userId: string;
-
-  @IsOptional()
-  nickname: string;
 }
 
 export class ChangeUserRoleDto {

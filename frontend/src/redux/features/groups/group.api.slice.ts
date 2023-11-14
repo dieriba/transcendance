@@ -1,10 +1,13 @@
 import {
   RestrictUserType,
-  RestrictedUserResponseType,
   SetNewRoleType,
+  UserGroupType,
   UserNewRoleResponseType,
 } from "./../../../models/groupChat";
-import { MessageFormType } from "./../../../models/ChatContactSchema";
+import {
+  MessageFormType,
+  UserWithProfile,
+} from "./../../../models/ChatContactSchema";
 import {
   BaseServerResponse,
   SocketServerSucessResponse,
@@ -85,7 +88,7 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
       },
     }),
     joinGroup: builder.mutation<
-      SocketServerSucessResponse,
+      SocketServerSucessResponse & { data: ChatroomGroupType },
       { chatroomId: string } & Partial<JoinProtectedGroupFormType>
     >({
       queryFn: (data) => {
@@ -93,12 +96,9 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
         return new Promise((resolve) => {
           socket.emit(ChatEventGroup.JOIN_CHATROOM, data);
 
-          socket.on(
-            GeneralEvent.SUCCESS,
-            (data: SocketServerSucessResponse) => {
-              resolve({ data: data });
-            }
-          );
+          socket.on(GeneralEvent.SUCCESS, (data) => {
+            resolve({ data });
+          });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
             resolve({ error });
@@ -145,13 +145,32 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
       },
     }),
     restrictUser: builder.mutation<
-      SocketServerSucessResponse & { data: RestrictedUserResponseType },
+      SocketServerSucessResponse & { data: UserGroupType },
       RestrictUserType
     >({
       queryFn: (data) => {
         connectSocket();
         return new Promise((resolve) => {
           socket.emit(ChatEventGroup.RESTRICT_USER, data);
+
+          socket.on(GeneralEvent.SUCCESS, (data) => {
+            resolve({ data });
+          });
+
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
+            resolve({ error });
+          });
+        });
+      },
+    }),
+    unrestrictUser: builder.mutation<
+      SocketServerSucessResponse & { data: { user: UserWithProfile } },
+      { chatroomId: string; id: string }
+    >({
+      queryFn: (data) => {
+        connectSocket();
+        return new Promise((resolve) => {
+          socket.emit(ChatEventGroup.UNRESTRICT_USER, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
             resolve({ data });
@@ -213,6 +232,14 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
         url: `chat/get-all-user-chatroom?chatroomId=${chatroomId}`,
       }),
     }),
+    getAllRestrictedUser: builder.query<
+      BaseServerResponse & { data: UserGroupType[] },
+      string
+    >({
+      query: (chatroomId) => ({
+        url: `chat/get-all-restricted-user?chatroomId=${chatroomId}`,
+      }),
+    }),
   }),
 
   overrideExisting: false,
@@ -222,12 +249,14 @@ export const {
   useCreateGroupMutation,
   useSendGroupMessageMutation,
   useGetAllGroupMessagesQuery,
+  useGetAllRestrictedUserQuery,
   useGetAllGroupQuery,
   useGetAllJoinableGroupQuery,
   useJoinGroupMutation,
   useGetAllGroupUserQuery,
   useRestrictUserMutation,
   useEditGroupMutation,
+  useUnrestrictUserMutation,
   useSetNewDieribaMutation,
   useSetNewRoleMutation,
 } = GroupApiSlice;

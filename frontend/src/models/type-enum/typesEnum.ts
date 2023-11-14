@@ -19,6 +19,10 @@ export type RestrictionType = "MUTED" | "KICKED" | "BANNED";
 export const durationUnit = ["MIN", "HOURS", "DAYS"] as const;
 export type DurationUnitType = "MIN" | "HOURS" | "DAYS";
 
+export const statusTypes = ["ONLINE", "OFFLINE", "PLAYING"] as const;
+export type StatusType = "ONLINE" | "OFFLINE" | "PLAYING";
+
+
 export enum GroupTypeEnum {
   PUBLIC = "PUBLIC",
   PROTECTED = "PROTECTED",
@@ -41,4 +45,10 @@ export enum DurationUnit {
   MIN = "MIN",
   HOURS = "HOURS",
   DAYS = "DAYS",
+}
+
+export enum STATUS {
+  ONLINE = "ONLINE",
+  OFFLINE = "OFFLINE",
+  PLAYING = "PLAYING",
 }

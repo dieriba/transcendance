@@ -14,7 +14,7 @@ import { useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../../../../redux/hooks";
 import { RootState } from "../../../../../redux/store";
 import { SocketServerErrorResponse } from "../../../../../services/type";
-import { setNewAdmin } from "../../../../../redux/features/groups/groupSlice";
+import { setNewAdmin } from "../../../../../redux/features/groups/group.slice";
 import { useSetNewDieribaMutation } from "../../../../../redux/features/groups/group.api.slice";
 import { ChatroomGroupType } from "../../../../../models/groupChat";
 
@@ -62,6 +62,7 @@ const SetAsAdmin = ({ id, nickname, open, handleClose }: SetAdminProps) => {
       console.log({ response });
 
       dispatch(setNewAdmin(response.data));
+      handleClose();
     } catch (error) {
       console.log({ error });
 

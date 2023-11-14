@@ -27,7 +27,7 @@ import { useState } from "react";
 import { RootState } from "../../../../../redux/store";
 import { useEditGroupMutation } from "../../../../../redux/features/groups/group.api.slice";
 import { ChatroomGroupType } from "../../../../../models/groupChat";
-import { updateChatroom } from "../../../../../redux/features/groups/groupSlice";
+import { updateChatroom } from "../../../../../redux/features/groups/group.slice";
 
 interface EditGroupProps {
   open: boolean;
@@ -165,7 +165,6 @@ const EditGroup = ({ open, handleClose }: EditGroupProps) => {
                   size="large"
                   type="submit"
                   variant="contained"
-                  disabled={isLoading}
                   sx={{
                     ":hover": {
                       backgroundColor: theme.palette.primary.main,

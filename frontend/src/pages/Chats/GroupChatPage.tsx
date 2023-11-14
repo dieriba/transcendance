@@ -14,13 +14,16 @@ import {
   addNewChatroom,
   deleteChatroom,
   setGroupChatroom,
+  setOfflineUser,
+  setOnlineUser,
   updateChatroom,
-} from "../../redux/features/groups/groupSlice";
+} from "../../redux/features/groups/group.slice";
 import { ChatroomGroupType } from "../../models/groupChat";
 import GroupContact from "../../components/Chat/Group/GroupContact";
 import GroupConversation from "../../components/Chat/Group/GroupConversation";
 import { RootState } from "../../redux/store";
 import { editGroupResponseType } from "../../models/EditGroupSchema";
+import { BaseFriendType } from "../../models/FriendsSchema";
 
 const GroupChatPage = () => {
   const theme = useTheme();
@@ -37,7 +40,7 @@ const GroupChatPage = () => {
       dispatch(setGroupChatroom(data.data));
       connectSocket();
       if (!socket) return;
-      /*socket.on(
+      socket.on(
         GeneralEvent.USER_LOGGED_OUT,
         (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
           dispatch(setOfflineUser(data.data));
@@ -49,7 +52,7 @@ const GroupChatPage = () => {
         (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
           dispatch(setOnlineUser(data.data));
         }
-      );*/
+      );
 
       socket.on(
         ChatEventGroup.NEW_CHATROOM,

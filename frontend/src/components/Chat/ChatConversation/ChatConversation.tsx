@@ -4,8 +4,8 @@ import ChatConversationBody from "./ChatConversationBody";
 import ChatConversationFooter from "./ChatConversationFooter";
 import { useTheme } from "@mui/material/styles";
 import { useAppSelector } from "../../../redux/hooks";
-import ChatComp from "./ChatComp";
 import { RootState } from "../../../redux/store";
+import ChatContactInfo from "../ChatContactInfo";
 
 const ChatConversation = () => {
   const theme = useTheme();
@@ -30,7 +30,7 @@ const ChatConversation = () => {
           <ChatConversationFooter />
         </Stack>
       </Box>
-      <ChatComp />
+      {open && <ChatContactInfo />}
     </>
   );
 };

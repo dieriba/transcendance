@@ -37,7 +37,7 @@ const BlockedUserTable = () => {
   const { data, isLoading, isError } = useGetAllBlockedUserQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
-  const [unblockFriend] = useUnblockFriendMutation();
+  const [unblockFriend, unblockAction] = useUnblockFriendMutation();
 
   const dispatch = useAppDispatch();
 
@@ -66,7 +66,9 @@ const BlockedUserTable = () => {
 
   const handleUnblockFriend = async (friend: BaseFriendType) => {
     try {
-      await unblockFriend(friend).unwrap();
+      if (!unblockAction.isLoading) {
+        await unblockFriend(friend).unwrap();
+      }
     } catch (error) {
       console.log(error);
     }

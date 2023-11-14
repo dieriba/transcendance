@@ -15,6 +15,7 @@ interface ModeratorActionProps {
   nickname: string;
   me: boolean;
   id: string;
+  handleUnrestriction: ({ nickname }: { nickname: string }) => void;
   handleRestriction: (data: { id: string; nickname: string }) => void;
   handleNewAdmin: (data: { id: string; nickname: string }) => void;
   handleChangeRole: (data: {
@@ -32,26 +33,27 @@ const ModeratorAction = ({
   handleChangeRole,
   handleNewAdmin,
   handleRestriction,
+  handleUnrestriction,
 }: ModeratorActionProps) => {
   if (role === "DIERIBA") {
     return (
       <>
-        <Tooltip title={`play with ${nickname}`}>
+        <Tooltip placement="top" title={`play with ${nickname}`}>
           <IconButton>
             <GameController size={20} />
           </IconButton>
         </Tooltip>
-        <Tooltip title={`${nickname} details`}>
+        <Tooltip placement="top" title={`${nickname} details`}>
           <IconButton>
             <Notebook size={20} />
           </IconButton>
         </Tooltip>
-        <Tooltip title={`set ${nickname} as chat admin`}>
+        <Tooltip placement="top" title={`set ${nickname} as chat admin`}>
           <IconButton onClick={() => handleNewAdmin({ id, nickname })}>
             <CrownSimple size={20} />
           </IconButton>
         </Tooltip>
-        <Tooltip title={`set ${nickname} as user`}>
+        <Tooltip placement="top" title={`set ${nickname} as user`}>
           <IconButton
             onClick={() =>
               handleChangeRole({ id, nickname, role: ROLE.REGULAR_USER })
@@ -60,12 +62,12 @@ const ModeratorAction = ({
             <ArrowDown size={20} />
           </IconButton>
         </Tooltip>
-        <Tooltip title={`restrict ${nickname}`}>
+        <Tooltip placement="top" title={`restrict ${nickname}`}>
           <IconButton onClick={() => handleRestriction({ id, nickname })}>
             <UserMinus size={20} />
           </IconButton>
         </Tooltip>
-        <Tooltip title={`delete ${nickname}`}>
+        <Tooltip placement="top" title={`delete ${nickname}`}>
           <IconButton>
             <X size={20} />
           </IconButton>
@@ -76,19 +78,19 @@ const ModeratorAction = ({
     return (
       <>
         {!me ? (
-          <Tooltip title={`play with ${nickname}`}>
+          <Tooltip placement="top" title={`play with ${nickname}`}>
             <IconButton>
               <GameController size={20} />
             </IconButton>
           </Tooltip>
         ) : (
-          <Tooltip title="unrestrict user">
-            <IconButton>
+          <Tooltip placement="top" title="unrestrict user">
+            <IconButton onClick={() => handleUnrestriction({ nickname })}>
               <UserGear size={20} />
             </IconButton>
           </Tooltip>
         )}
-        <Tooltip title={`${nickname} details`}>
+        <Tooltip placement="top" title={`${nickname} details`}>
           <IconButton>
             <Notebook size={20} />
           </IconButton>

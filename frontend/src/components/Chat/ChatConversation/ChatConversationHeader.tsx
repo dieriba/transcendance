@@ -13,6 +13,7 @@ import { toggle } from "../../../redux/features/sidebar.slices";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { RootState } from "../../../redux/store";
 import { PrivateChatroomType } from "../../../models/ChatContactSchema";
+import { STATUS } from "../../../models/type-enum/typesEnum";
 
 const ChatConversationHeader = () => {
   const theme = useTheme();
@@ -48,7 +49,7 @@ const ChatConversationHeader = () => {
           <Stack direction="row" spacing={2}>
             <div onClick={() => dispatch(toggle())}>
               <Box>
-                {status === "ONLINE" ? (
+                {status === STATUS.ONLINE ? (
                   <StyledBadge
                     sx={{ cursor: "pointer" }}
                     overlap="circular"
@@ -71,7 +72,7 @@ const ChatConversationHeader = () => {
 
             <Stack>
               <Typography variant="subtitle2">{nickname}</Typography>
-              {status === "ONLINE" ? (
+              {status === STATUS.ONLINE ? (
                 <Typography variant="subtitle2">Online</Typography>
               ) : (
                 <Typography variant="subtitle2">Offline</Typography>

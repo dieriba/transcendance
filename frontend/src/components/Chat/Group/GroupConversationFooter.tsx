@@ -1,9 +1,6 @@
 import { Box, IconButton, Stack } from "@mui/material";
 import { PaperPlaneTilt } from "phosphor-react";
 import { useTheme } from "@mui/material/styles";
-import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
-import { Theme } from "emoji-picker-react";
-import { useBoolean } from "usehooks-ts";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useAppSelector } from "../../../redux/hooks";
@@ -27,7 +24,7 @@ const GroupConversationFooter = () => {
   );
   const [sendMessage] = useSendGroupMessageMutation();
 
-  const { control, handleSubmit, reset, setValue, getValues } = methods;
+  const { control, handleSubmit, reset } = methods;
   const onSubmit = async (data: MessageGroupFormType) => {
     try {
       reset({ content: "" });
@@ -40,11 +37,7 @@ const GroupConversationFooter = () => {
       console.log(error);
     }
   };
-  const handleEmoji = (emoji: EmojiClickData) => {
-    setValue("content", getValues("content") + emoji.emoji);
-  };
 
-  const { value, toggle } = useBoolean(false);
   return (
     <>
       <Box
@@ -59,25 +52,9 @@ const GroupConversationFooter = () => {
         p={1}
       >
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Stack direction="row" spacing={3}>
+          <Stack direction="row" spacing={1}>
             <Stack width="100%">
-              <Box
-                sx={{
-                  display: value ? "inline" : "none",
-                  zIndex: 10,
-                  position: "fixed",
-                  bottom: 56,
-                  right: 80,
-                }}
-              >
-                <EmojiPicker
-                  theme={
-                    theme.palette.mode === "light" ? Theme.LIGHT : Theme.DARK
-                  }
-                  onEmojiClick={handleEmoji}
-                />
-              </Box>
-              <ChatInput name="content" control={control} toggle={toggle} />
+              <ChatInput name="content" control={control} />
             </Stack>
             <Box
               sx={{

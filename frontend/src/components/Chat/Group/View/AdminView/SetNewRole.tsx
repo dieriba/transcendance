@@ -16,7 +16,7 @@ import { RootState } from "../../../../../redux/store";
 import { SocketServerErrorResponse } from "../../../../../services/type";
 import { useSetNewRoleMutation } from "../../../../../redux/features/groups/group.api.slice";
 import { ChatroomGroupType } from "../../../../../models/groupChat";
-import { setNewRole } from "../../../../../redux/features/groups/groupSlice";
+import { setNewRole } from "../../../../../redux/features/groups/group.slice";
 import { ChatRoleType } from "../../../../../models/type-enum/typesEnum";
 
 interface SetNewRoleProps {
@@ -70,6 +70,7 @@ const SetNewRole = ({
 
       console.log({ response });
       dispatch(setNewRole(response.data));
+      handleClose();
     } catch (error) {
       console.log({ error });
 

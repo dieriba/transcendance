@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { RootState } from "../../../redux/store";
 import { ChatroomGroupType } from "../../../models/groupChat";
 import GroupIcon from "./GroupIcon";
-import { toggleOpenGroupSidebar } from "../../../redux/features/groups/groupSlice";
+import { toggleOpenGroupSidebar } from "../../../redux/features/groups/group.slice";
 
 const GroupConversationHeader = () => {
   const theme = useTheme();

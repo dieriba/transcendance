@@ -1,10 +1,7 @@
 import { Box, IconButton, Stack } from "@mui/material";
 import { PaperPlaneTilt } from "phosphor-react";
 import { useTheme } from "@mui/material/styles";
-import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
-import { Theme } from "emoji-picker-react";
 import ChatInput from "./ChatInput";
-import { useBoolean } from "usehooks-ts";
 import {
   MessageFormSchema,
   MessageFormType,
@@ -22,10 +19,12 @@ const ChatConversationFooter = () => {
     resolver: zodResolver(MessageFormSchema),
   });
 
-  const chatroom = useAppSelector((state: RootState) => state.chat.currentChatroom);
+  const chatroom = useAppSelector(
+    (state: RootState) => state.chat.currentChatroom
+  );
   const [sendMessage] = useSendPrivateMessageMutation();
 
-  const { control, handleSubmit, reset, setValue, getValues } = methods;
+  const { control, handleSubmit, reset } = methods;
   const onSubmit = async (data: MessageFormType) => {
     try {
       reset({ content: "" });
@@ -39,11 +38,7 @@ const ChatConversationFooter = () => {
       console.log(error);
     }
   };
-  const handleEmoji = (emoji: EmojiClickData) => {
-    setValue("content", getValues("content") + emoji.emoji);
-  };
 
-  const { value, toggle } = useBoolean(false);
   return (
     <>
       <Box
@@ -60,23 +55,7 @@ const ChatConversationFooter = () => {
         <form onSubmit={handleSubmit(onSubmit)}>
           <Stack direction="row" spacing={3}>
             <Stack width="100%">
-              <Box
-                sx={{
-                  display: value ? "inline" : "none",
-                  zIndex: 10,
-                  position: "fixed",
-                  bottom: 56,
-                  right: 80,
-                }}
-              >
-                <EmojiPicker
-                  theme={
-                    theme.palette.mode === "light" ? Theme.LIGHT : Theme.DARK
-                  }
-                  onEmojiClick={handleEmoji}
-                />
-              </Box>
-              <ChatInput name="content" control={control} toggle={toggle} />
+              <ChatInput name="content" control={control} />
             </Stack>
             <Box
               sx={{

@@ -23,10 +23,7 @@ import {
   JoinProtectedGroupFormType,
   JoinProtectedGroupSchema,
 } from "../../../models/groupChat";
-import {
-  addNewJoinableGroup,
-  deleteJoinableGroup,
-} from "../../../redux/features/groups/groupSlice";
+import { deleteJoinableGroup } from "../../../redux/features/groups/group.slice";
 
 interface ProtectGroupFormProps {
   chatroomId: string;
@@ -71,7 +68,6 @@ const ProtectedGroupForm = ({
 
       console.log({ res });
       dispatch(deleteJoinableGroup(chatroomId));
-      dispatch(addNewJoinableGroup(res.data));
       setSeverity("success");
       setMessage(res.message);
       setOpenSnack(true);
@@ -114,7 +110,6 @@ const ProtectedGroupForm = ({
                   }) => (
                     <CustomTextField error={error} message={error?.message}>
                       <TextField
-                        disabled={isLoading}
                         label="password"
                         fullWidth
                         value={value || ""}
@@ -140,6 +135,7 @@ const ProtectedGroupForm = ({
                 <Button
                   color="inherit"
                   fullWidth
+                  disabled={isLoading}
                   size="large"
                   type="submit"
                   variant="contained"

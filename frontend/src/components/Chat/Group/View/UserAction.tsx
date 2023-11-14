@@ -35,40 +35,40 @@ const UserAction = ({
   if (role === "DIERIBA") {
     return (
       <>
-        <Tooltip title={`play with ${nickname}`}>
+        <Tooltip placement="top" title={`play with ${nickname}`}>
           <IconButton>
-            <GameController size={18} />
+            <GameController size={20} />
           </IconButton>
         </Tooltip>
-        <Tooltip title={`${nickname} details`}>
+        <Tooltip placement="top" title={`${nickname} details`}>
           <IconButton>
-            <Notebook size={18} />
+            <Notebook size={20} />
           </IconButton>
         </Tooltip>
-        <Tooltip title={`set ${nickname} as chat admin`}>
+        <Tooltip placement="top" title={`set ${nickname} as chat admin`}>
           <IconButton
             onClick={() => {
               handleNewAdmin({ id, nickname });
             }}
           >
-            <CrownSimple size={18} />
+            <CrownSimple size={20} />
           </IconButton>
         </Tooltip>
-        <Tooltip title={`set ${nickname} as moderator`}>
+        <Tooltip placement="top" title={`set ${nickname} as moderator`}>
           <IconButton
             onClick={() =>
               handleChangeRole({ id, nickname, role: ROLE.CHAT_ADMIN })
             }
           >
-            <ArrowUp size={18} />
+            <ArrowUp size={20} />
           </IconButton>
         </Tooltip>
-        <Tooltip title={`restrict ${nickname}`}>
+        <Tooltip placement="top" title={`restrict ${nickname}`}>
           <IconButton onClick={() => handleRestriction({ id, nickname })}>
-            <UserMinus size={18} />
+            <UserMinus size={20} />
           </IconButton>
         </Tooltip>
-        <Tooltip title={`delete ${nickname}`}>
+        <Tooltip placement="top" title={`delete ${nickname}`}>
           <IconButton>
             <X size={18} />
           </IconButton>
@@ -78,17 +78,17 @@ const UserAction = ({
   } else if (role === "CHAT_ADMIN") {
     return (
       <>
-        <Tooltip title={`play with ${nickname}`}>
+        <Tooltip placement="top" title={`play with ${nickname}`}>
           <IconButton>
             <GameController size={20} />
           </IconButton>
         </Tooltip>
-        <Tooltip title={`${nickname} details`}>
+        <Tooltip placement="top" title={`${nickname} details`}>
           <IconButton>
             <Notebook size={20} />
           </IconButton>
         </Tooltip>
-        <Tooltip title={`restrict ${nickname}`}>
+        <Tooltip placement="top" title={`restrict ${nickname}`}>
           <IconButton onClick={() => handleRestriction({ id, nickname })}>
             <UserMinus size={20} />
           </IconButton>
@@ -99,13 +99,13 @@ const UserAction = ({
     return (
       <>
         {!me && (
-          <Tooltip title={`play with ${nickname}`}>
+          <Tooltip placement="top" title={`play with ${nickname}`}>
             <IconButton>
               <GameController size={20} />
             </IconButton>
           </Tooltip>
         )}
-        <Tooltip title={`${nickname} details`}>
+        <Tooltip placement="top" title={`${nickname} details`}>
           <IconButton>
             <Notebook size={20} />
           </IconButton>

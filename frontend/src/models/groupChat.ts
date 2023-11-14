@@ -113,6 +113,7 @@ export type UserNewRoleResponseType = z.infer<typeof UserNewRoleResponseSchema>;
 export const RestrictUserFormSchema = z
   .object({
     id: z.string().optional(),
+    chatroomId: z.string().optional(),
     restriction: z.enum(restrictionType),
     duration: z.coerce.number(),
     durationUnit: z.enum(durationUnit),
@@ -195,6 +196,7 @@ export type RestrictUserType = z.infer<typeof RestrictUserFormSchema>;
 
 export const RestrictUserServerResponseSchema = z.object({
   id: z.string().min(1),
+  role: z.string().min(1).optional(),
   restriction: z.string().min(1),
   restrictionTimeEnd: z.date(),
   restrictionTimeStart: z.date(),

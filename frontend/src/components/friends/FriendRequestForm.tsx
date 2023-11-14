@@ -28,7 +28,7 @@ const FriendRequestForm = ({ open, handleClose }: CreateGroupProps) => {
   const { control, handleSubmit } = useForm<FriendRequestType>({
     resolver: zodResolver(FriendRequestSchema),
   });
-  const [sendFriendRequest] = useSendFriendRequestMutation();
+  const [sendFriendRequest, { isLoading }] = useSendFriendRequestMutation();
 
   const [message, setMessage] = useState("");
   const [severity, setSeverity] = useState<AlertColor>("success");
@@ -92,6 +92,7 @@ const FriendRequestForm = ({ open, handleClose }: CreateGroupProps) => {
                 size="large"
                 type="submit"
                 variant="contained"
+                disabled={isLoading}
                 sx={{
                   ":hover": {
                     backgroundColor: theme.palette.primary.main,

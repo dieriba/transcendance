@@ -62,6 +62,7 @@ import { UserNotFoundException } from 'src/common/custom-exception/user-not-foun
 import { IsRestrictedUserGuard } from 'src/chat/guards/is-restricted-user.guard';
 import { ChatRoomNotFoundException } from 'src/chat/exception/chatroom-not-found.exception';
 import { ChatRoute } from 'src/common/custom-decorator/metadata.decorator';
+import { MAX_DATE } from '../../../shared/constant';
 
 @UseGuards(WsAccessTokenGuard)
 @UseFilters(WsCatchAllFilter)
@@ -371,7 +372,6 @@ export class GatewayGateway {
         },
       }),
     ]);
-    console.log('MDR');
 
     this.sendToSocket(client, chatroomName, ChatEventGroup.NEW_ADMIN, {
       message: `${updateNewDieriba.user.nickname} is now admin of that group!`,
@@ -419,8 +419,6 @@ export class GatewayGateway {
     @MessageBody() changeUserRoleDto: ChangeUserRoleDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
-    this.logger.log('ok0');
-
     const { id, role, chatroomId, chatroomName } = changeUserRoleDto;
     const { userId } = client;
 
@@ -438,28 +436,49 @@ export class GatewayGateway {
       throw new WsBadRequestException('User already have that role');
     }
 
-    this.logger.log('ok1');
-
-    await this.prismaService.chatroomUser.update({
-      where: {
-        userId_chatroomId: {
-          userId: id,
-          chatroomId,
-        },
-      },
-      data: {
-        role,
-      },
-      select: {
-        role: true,
-        user: {
-          select: {
-            nickname: true,
+    await this.prismaService.$transaction(async (tx) => {
+      await tx.chatroomUser.update({
+        where: {
+          userId_chatroomId: {
+            userId: id,
+            chatroomId,
           },
         },
-      },
+        data: {
+          role,
+        },
+        select: {
+          role: true,
+          user: {
+            select: {
+              nickname: true,
+            },
+          },
+        },
+      });
+
+      if (chatroomUser.role === ROLE.REGULAR_USER) {
+        const isRestricted = await tx.restrictedUser.findUnique({
+          where: {
+            userId_chatroomId: {
+              userId: id,
+              chatroomId,
+            },
+          },
+        });
+
+        if (isRestricted) {
+          await tx.restrictedUser.delete({
+            where: {
+              userId_chatroomId: {
+                userId: id,
+                chatroomId,
+              },
+            },
+          });
+        }
+      }
     });
-    this.logger.log('ok2');
 
     if (chatroomUser.role === ROLE.CHAT_ADMIN) {
       this.sendToSocket(
@@ -485,7 +504,7 @@ export class GatewayGateway {
 
     this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
       message: `${chatroomUser.user.nickname} is now a ${
-        role === 'CHAT_ADMIN' ? 'moderator' : 'regular user'
+        role === ROLE.CHAT_ADMIN ? 'moderator' : 'regular user'
       }`,
       data: { id, role: chatroomUser.role },
     });
@@ -497,11 +516,21 @@ export class GatewayGateway {
     @ConnectedSocket() client: SocketWithAuth,
   ) {
     const { userId } = client;
-    restrictedUserDto = (await this.isDieribaOrModerator(
-      userId,
-      restrictedUserDto,
-    )) as RestrictedUsersDto;
+    const [chatroomUser, userToRestrict] = await Promise.all([
+      this.chatroomUserService.findChatroomUser(
+        restrictedUserDto.chatroomId,
+        userId,
+      ),
+      this.chatroomUserService.findChatroomUser(
+        restrictedUserDto.chatroomId,
+        restrictedUserDto.id,
+      ),
+    ]);
 
+    restrictedUserDto.isChatAdmin =
+      userToRestrict.role === ROLE.CHAT_ADMIN ? true : false;
+    const { chatroomName } = chatroomUser.chatroom;
+    const { nickname } = userToRestrict.user;
     const {
       chatroomId,
       id,
@@ -510,9 +539,35 @@ export class GatewayGateway {
       durationUnit,
       reason,
       isChatAdmin,
-      chatroomName,
-      nickname,
     } = restrictedUserDto;
+
+    if (!chatroomUser)
+      throw new WsNotFoundException(
+        'You are not part of that group or that group does not exist',
+      );
+
+    if (
+      chatroomUser.role !== ROLE.DIERIBA &&
+      chatroomUser.role !== ROLE.CHAT_ADMIN
+    ) {
+      throw new WsUnauthorizedException(
+        'You have no right to perform such action',
+      );
+    }
+
+    if (!userToRestrict)
+      throw new WsNotFoundException('User to restrict not found');
+
+    if (userToRestrict.user.id === userId)
+      throw new WsBadRequestException('Cannot restrict myself');
+
+    if (chatroomUser.role !== ROLE.DIERIBA) {
+      if (
+        userToRestrict.role === ROLE.DIERIBA ||
+        userToRestrict.role === ROLE.CHAT_ADMIN
+      )
+        throw new WsBadRequestException('Cannot Restrict chat admin');
+    }
 
     const restrictionTimeStart = new Date();
     const restrictionTimeEnd = this.libService.getEndBanTime(
@@ -521,131 +576,217 @@ export class GatewayGateway {
       duration,
     );
 
-    const restrictedUser = this.prismaService.restrictedUser.upsert({
-      where: {
-        userId_chatroomId: {
+    const res = await this.prismaService.$transaction(async (tx) => {
+      const data = await tx.restrictedUser.upsert({
+        where: {
+          userId_chatroomId: {
+            userId: id,
+            chatroomId: chatroomId,
+          },
+        },
+        update: {
+          adminId: userId,
+          restriction,
+          restrictionTimeStart,
+          restrictionTimeEnd,
+          reason,
+        },
+        create: {
+          adminId: userId,
           userId: id,
-          chatroomId: chatroomId,
+          chatroomId,
+          restriction,
+          restrictionTimeStart,
+          restrictionTimeEnd,
+          reason,
         },
-      },
-      update: {
-        adminId: userId,
-        restriction,
-        restrictionTimeStart,
-        restrictionTimeEnd,
-        reason,
-      },
-      create: {
-        adminId: userId,
-        userId: id,
-        chatroomId,
-        restriction,
-        restrictionTimeStart,
-        restrictionTimeEnd,
-        reason,
-      },
-    });
-
-    if (duration === Number.MAX_SAFE_INTEGER) {
-      const deletedUser = this.prismaService.chatroomUser.delete({
-        where: {
-          userId_chatroomId: {
-            userId: id,
-            chatroomId,
+        select: {
+          user: {
+            select: {
+              id: true,
+              nickname: true,
+              status: true,
+              profile: {
+                select: {
+                  avatar: true,
+                },
+              },
+            },
+          },
+          admin: {
+            select: {
+              user: {
+                select: {
+                  nickname: true,
+                },
+              },
+              role: true,
+            },
           },
         },
       });
 
-      await this.prismaService.$transaction([restrictedUser, deletedUser]);
+      if (duration === Number.MAX_SAFE_INTEGER) {
+        await tx.chatroomUser.delete({
+          where: {
+            userId_chatroomId: {
+              userId: id,
+              chatroomId,
+            },
+          },
+        });
 
-      this.sendToSocket(this.server, id, ChatEventGroup.USER_LIFE_RESTRICTED, {
-        message: '',
-        data: { chatroomId },
-      });
+        const sockets = this.gatewayService.getAllUserSocket(id);
 
-      const sockets = this.gatewayService.getAllUserSocket(id);
-
-      if (sockets) {
-        sockets.forEach((socket) => socket.leave(chatroomName));
+        if (sockets) {
+          sockets.forEach((socket) => socket.leave(chatroomName));
+        }
+      } else if (isChatAdmin) {
+        await tx.chatroomUser.update({
+          where: {
+            userId_chatroomId: {
+              userId: id,
+              chatroomId,
+            },
+          },
+          data: {
+            role: ROLE.REGULAR_USER,
+          },
+        });
       }
-    } else if (isChatAdmin) {
-      const oldAdmin = this.prismaService.chatroomUser.update({
-        where: {
-          userId_chatroomId: {
-            userId: id,
-            chatroomId,
+      if (duration === Number.MAX_SAFE_INTEGER) {
+        this.sendToSocket(
+          this.server,
+          id,
+          ChatEventGroup.USER_LIFE_RESTRICTED,
+          {
+            message: '',
+            data: { chatroomId },
+          },
+        );
+      }
+
+      const { user, admin } = data;
+      this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+        data: {
+          role: isChatAdmin ? ROLE.CHAT_ADMIN : ROLE.REGULAR_USER,
+          user: {
+            ...user,
+            restrictedGroups: [
+              {
+                admin,
+                reason,
+                restrictionTimeEnd,
+                restrictionTimeStart,
+                restriction,
+              },
+            ],
           },
         },
-        data: {
-          role: ROLE.REGULAR_USER,
-        },
+        message: `${nickname} has sucessfully been ${restriction} for ${
+          duration === Number.MAX_SAFE_INTEGER
+            ? 'life'
+            : `${duration} ${durationUnit}`
+        }`,
       });
 
-      await this.prismaService.$transaction([restrictedUser, oldAdmin]);
-    } else {
-      await restrictedUser;
-    }
-    const data = {
-      id,
-      restriction,
-      restrictionTimeEnd,
-      restrictionTimeStart,
-      reason,
-      admin: client.nickname,
-      banLife: duration === Number.MAX_SAFE_INTEGER,
-    };
-
-    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
-      data,
-      message: `${nickname} has sucessfully been ${restriction} for ${
-        duration === Number.MAX_SAFE_INTEGER
-          ? 'life'
-          : `${duration} ${durationUnit}`
-      }`,
-    });
-
-    this.sendToSocket(
-      this.server,
-      chatroomName,
-      ChatEventGroup.USER_RESTRICTED,
-      {
-        data,
+      this.sendToSocket(client, chatroomName, ChatEventGroup.USER_RESTRICTED, {
+        data: {
+          role: isChatAdmin ? ROLE.CHAT_ADMIN : ROLE.REGULAR_USER,
+          user: {
+            ...user,
+            restrictedGroups: [
+              {
+                admin,
+                reason,
+                restrictionTimeEnd,
+                restrictionTimeStart,
+                restriction,
+              },
+            ],
+          },
+        },
         message: `${nickname} has been ${restriction} for ${
           duration === Number.MAX_SAFE_INTEGER
             ? 'life'
             : `${duration} ${durationUnit}`
         }`,
-      },
-    );
+      });
+    });
   }
 
-  //@SubscribeMessage(CHATROOM_UNRESTRICT_USER)
+  @SubscribeMessage(ChatEventGroup.UNRESTRICT_USER)
   async unrestrictUser(
     @MessageBody()
     unrestrictedUserDto: UnrestrictedUsersDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
     const { userId } = client;
-    await this.isDieribaOrModerator(userId, unrestrictedUserDto);
 
-    const { chatroomId, id, isChatAdmin } = unrestrictedUserDto;
+    const [chatroomUser, restrictedUser] = await Promise.all([
+      this.chatroomUserService.findChatroomUser(
+        unrestrictedUserDto.chatroomId,
+        userId,
+      ),
+      this.prismaService.restrictedUser.findUnique({
+        where: {
+          userId_chatroomId: {
+            userId: unrestrictedUserDto.id,
+            chatroomId: unrestrictedUserDto.chatroomId,
+          },
+        },
+        select: {
+          chatroom: { select: { chatroomName: true } },
+          adminId: true,
+          restrictionTimeEnd: true,
+          user: {
+            select: {
+              id: true,
+              nickname: true,
+              status: true,
+              profile: {
+                select: {
+                  avatar: true,
+                },
+              },
+            },
+          },
+          restriction: true,
+        },
+      }),
+    ]);
 
-    const unrestrictedUser = await this.prismaService.restrictedUser.findFirst({
-      where: { userId: id },
-    });
+    unrestrictedUserDto.isChatAdmin =
+      chatroomUser.role === ROLE.CHAT_ADMIN ? true : false;
 
-    if (!unrestrictedUser)
-      throw new WsUnknownException(
-        "The user either don't exist or have not been restricted",
+    const { isChatAdmin, chatroomId, id } = unrestrictedUserDto;
+
+    if (!chatroomUser)
+      throw new WsNotFoundException(
+        'You are not part of that group or that group does not exist',
       );
 
-    if (isChatAdmin && userId !== unrestrictedUser.adminId) {
+    if (
+      chatroomUser.role !== ROLE.DIERIBA &&
+      chatroomUser.role !== ROLE.CHAT_ADMIN
+    ) {
       throw new WsUnauthorizedException(
-        'Only Dieriba or admin who restricted that use can unrestrict him',
+        'You have no right to perform such action',
+      );
+    }
+    if (!restrictedUser)
+      throw new WsUnknownException(`The user is not restricted`);
+
+    if (isChatAdmin && userId !== restrictedUser.adminId) {
+      throw new WsUnauthorizedException(
+        'Only Admin or moderator who restricted that user can unrestrict him',
       );
     }
 
-    const data = await this.prismaService.restrictedUser.delete({
+    if (restrictedUser.restrictionTimeEnd === new Date(MAX_DATE))
+      throw new WsUnauthorizedException('Only Admin can undo that restriction');
+
+    await this.prismaService.restrictedUser.delete({
       where: {
         userId_chatroomId: {
           userId: id,
@@ -653,7 +794,22 @@ export class GatewayGateway {
         },
       },
     });
-    //this.server.emit(CHATROOM_USER_UNRESTRICTED, data);
+    const {
+      chatroom: { chatroomName },
+      user,
+      restriction,
+    } = restrictedUser;
+    console.log({ user });
+
+    this.sendToSocket(client, chatroomName, ChatEventGroup.USER_UNRESTRICTED, {
+      data: { user },
+      message: '',
+    });
+
+    this.sendToSocket(this.server, client.userId, GeneralEvent.SUCCESS, {
+      data: { user },
+      message: `${user.nickname} is no longer ${restriction}`,
+    });
   }
 
   @SubscribeMessage(ChatEventGroup.REQUEST_ALL_CHATROOM)
@@ -822,8 +978,8 @@ export class GatewayGateway {
       select: {
         id: true,
         chatroomName: true,
-        type: true,
         password: true,
+        type: true,
         messages: {
           orderBy: {
             createdAt: 'desc',
@@ -832,10 +988,24 @@ export class GatewayGateway {
           select: {
             id: true,
             chatroomId: true,
+            user: {
+              select: {
+                id: true,
+                nickname: true,
+                profile: {
+                  select: {
+                    avatar: true,
+                  },
+                },
+              },
+            },
             content: true,
             messageTypes: true,
           },
         },
+      },
+      orderBy: {
+        updatedAt: 'asc',
       },
     });
 
@@ -849,13 +1019,15 @@ export class GatewayGateway {
     if (foundChatroomUser)
       throw new WsBadRequestException('You already belong to that group');
 
+    const { password, ...data } = chatroom;
+
     if (chatroom.type === TYPE.PRIVATE) {
       throw new WsUnauthorizedException(
         "You can't join that private chatroom, you need to be invited first",
       );
     } else if (chatroom.type === TYPE.PROTECTED) {
       const match = await this.argon2Service.compare(
-        chatroom.password,
+        password,
         joinChatroomDto.password,
       );
 
@@ -876,16 +1048,9 @@ export class GatewayGateway {
       },
     );
 
-    const { id, chatroomName, type, messages } = chatroom;
-
-    this.sendToSocket(this.server, userId, ChatEventGroup.NEW_CHATROOM, {
-      message: '',
-      data: { id, chatroomName, type, messages },
-    });
-
     this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
       message: `Succesfully joined the group: ${chatroom.chatroomName}`,
-      data: {},
+      data,
     });
   }
 
@@ -1048,51 +1213,6 @@ export class GatewayGateway {
       });
   }
 
-  private async isDieribaOrModerator(
-    userId: string,
-    data: RestrictedUsersDto | UnrestrictedUsersDto,
-  ): Promise<RestrictedUsersDto | UnrestrictedUsersDto> {
-    const { chatroomId, id } = data;
-
-    const [chatroomUser, userToRestrict] = await Promise.all([
-      this.chatroomUserService.findChatroomUser(chatroomId, userId),
-      this.chatroomUserService.findChatroomUser(chatroomId, id),
-    ]);
-
-    if (!chatroomUser)
-      throw new WsNotFoundException(
-        'You are not part of that group or that group does not exist',
-      );
-
-    if (!userToRestrict)
-      throw new WsNotFoundException('User to restrict not found');
-
-    if (
-      chatroomUser.role !== ROLE.DIERIBA &&
-      chatroomUser.role !== ROLE.CHAT_ADMIN
-    ) {
-      throw new WsBadRequestException('Unauthorized');
-    }
-
-    if (userToRestrict.user.id === userId)
-      throw new WsBadRequestException('Cannot restrict myself');
-
-    if (chatroomUser.role !== ROLE.DIERIBA) {
-      if (
-        userToRestrict.role === ROLE.DIERIBA ||
-        userToRestrict.role === ROLE.CHAT_ADMIN
-      )
-        throw new WsBadRequestException('Cannot Restrict chat admin');
-    }
-
-    return {
-      ...data,
-      chatroomName: chatroomUser.chatroom.chatroomName,
-      nickname: userToRestrict.user.nickname,
-      isChatAdmin: userToRestrict.role === ROLE.CHAT_ADMIN ? true : false,
-    };
-  }
-
   private async isDieriba(userId: string, chatroomId: string): Promise<void> {
     const chatroomUser = await this.chatroomUserService.findChatroomUser(
       chatroomId,
@@ -1120,7 +1240,6 @@ export class GatewayGateway {
   ) {
     const { nickname } = body;
     const userId = client.userId;
-    console.log({ userId, nickname });
     const user = await this.userService.findUserById(userId, UserData);
 
     if (!user) throw new WsNotFoundException('User not found');
@@ -1270,8 +1389,6 @@ export class GatewayGateway {
         },
       },
     });
-
-    console.log({ friendId });
 
     this.sendToSocket(this.server, friendId, FriendEvent.CANCEL_REQUEST, {
       message: '',

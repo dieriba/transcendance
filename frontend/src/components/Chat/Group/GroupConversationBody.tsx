@@ -13,7 +13,7 @@ import { ChatroomGroupType, MessageGroupType } from "../../../models/groupChat";
 import {
   setChatroomMessage,
   updateGroupChatroomListAndMessage,
-} from "../../../redux/features/groups/groupSlice";
+} from "../../../redux/features/groups/group.slice";
 import { SocketServerSucessResponse } from "../../../services/type";
 import TextMessage from "./TextMessageGroup";
 export interface GroupConversationBodyProps {
@@ -138,7 +138,12 @@ const GroupConversationBody = () => {
                 );
               default:
                 return (
-                  <Stack key={id} direction="row" mb={1} justifyContent={"start"}>
+                  <Stack
+                    key={id}
+                    direction="row"
+                    mb={1}
+                    justifyContent={"start"}
+                  >
                     <TextMessage
                       nickname={user.nickname}
                       id={id}

@@ -24,4 +24,13 @@ export class ChatController {
   ) {
     return await this.chatService.getAllUserChatroom(userId, chatroomId);
   }
+
+  @HttpCode(HttpStatus.OK)
+  @Get('get-all-restricted-user')
+  async getAllRestrictedUser(
+    @GetUser('userId') userId: string,
+    @Query('chatroomId') chatroomId: string,
+  ) {
+    return await this.chatService.getAllRestrictedUser(userId, chatroomId);
+  }
 }

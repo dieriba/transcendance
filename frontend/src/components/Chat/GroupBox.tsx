@@ -2,7 +2,7 @@ import { Badge, Box, Stack, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import GroupIcon from "./Group/GroupIcon";
-import { setGroupChatroomId } from "../../redux/features/groups/groupSlice";
+import { setGroupChatroomId } from "../../redux/features/groups/group.slice";
 export interface GroupBoxProps {
   chatroomName: string;
   msg: string;

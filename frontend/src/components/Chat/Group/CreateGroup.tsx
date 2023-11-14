@@ -42,7 +42,7 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
       resolver: zodResolver(CreateGroupSchema),
     });
 
-  const [createGroupChat] = useCreateGroupMutation();
+  const [createGroupChat, groupMutation] = useCreateGroupMutation();
 
   const [message, setMessage] = useState("");
   const [severity, setSeverity] = useState<AlertColor>("success");
@@ -246,6 +246,7 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
                       },
                     }}
                     disableElevation={true}
+                    disabled={groupMutation.isLoading}
                   >
                     Create Group
                   </Button>

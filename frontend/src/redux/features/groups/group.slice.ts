@@ -1,13 +1,20 @@
-import { editGroupResponseType } from "./../../../models/EditGroupSchema";
+import { editGroupResponseType } from "../../../models/EditGroupSchema";
 import {
   GroupMembertype,
   JoinableChatroomType,
   UserGroupType,
   UserNewRoleResponseType,
-} from "./../../../models/groupChat";
+} from "../../../models/groupChat";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { ChatroomGroupType, MessageGroupType } from "../../../models/groupChat";
-import { ChatRoleType, ROLE } from "../../../models/type-enum/typesEnum";
+import {
+  ChatRoleType,
+  ROLE,
+  Restriction,
+  STATUS,
+} from "../../../models/type-enum/typesEnum";
+import { BaseFriendType } from "../../../models/FriendsSchema";
+import { UserWithProfile } from "../../../models/ChatContactSchema";
 
 export interface GroupState {
   joinableGroup: JoinableChatroomType[];
@@ -19,6 +26,7 @@ export interface GroupState {
   admin: UserGroupType | undefined;
   chatAdmin: UserGroupType[];
   regularUser: UserGroupType[];
+  restrictedUser: UserGroupType[];
   openGroupSidebar: boolean;
   myId: string | undefined;
 }
@@ -33,6 +41,7 @@ const initialState: GroupState = {
   admin: undefined,
   chatAdmin: [],
   regularUser: [],
+  restrictedUser: [],
   openGroupSidebar: false,
   myId: undefined,
 };
@@ -61,6 +70,8 @@ export const GroupSlice = createSlice({
       if (state.chatAdmin.length > 0) state.chatAdmin = [];
       if (state.regularUser.length > 0) state.regularUser = [];
 
+      state.role = role;
+
       users.forEach((user) => {
         if (user.role === ROLE.DIERIBA) {
           state.admin = user;
@@ -70,7 +81,6 @@ export const GroupSlice = createSlice({
           state.regularUser.push(user);
         }
       });
-      state.role = role;
     },
     setGroupChatroomId: (state, action: PayloadAction<string | undefined>) => {
       if (action.payload !== undefined) {
@@ -113,6 +123,7 @@ export const GroupSlice = createSlice({
 
       let index: number;
       let newAdmin: UserGroupType;
+      const prevAdminId = (state.admin as UserGroupType).user.id;
       if (role === "CHAT_ADMIN") {
         index = state.chatAdmin.findIndex(
           (moderator) => moderator.user.id === id
@@ -136,21 +147,21 @@ export const GroupSlice = createSlice({
           state.admin = newAdmin;
         }
       }
-      if (state.myId === state.admin?.user.id) {
-        state.role = ROLE.DIERIBA;
-      } else {
-        state.role = ROLE.REGULAR_USER;
+      if (index !== -1) {
+        if (state.myId === id) {
+          state.role = ROLE.DIERIBA;
+        } else if (state.myId === prevAdminId) {
+          state.role = ROLE.REGULAR_USER;
+        }
       }
     },
     setNewRole: (state, action: PayloadAction<UserNewRoleResponseType>) => {
       const { id, role } = action.payload;
-      console.log(action.payload);
       let index: number;
-      if (role === "CHAT_ADMIN") {
+      if (role === ROLE.CHAT_ADMIN) {
         index = state.chatAdmin.findIndex(
           (moderator) => moderator.user.id === id
         );
-        console.log({ indexMod: index });
 
         if (index !== -1) {
           const moderator = state.chatAdmin.splice(index, 1)[0];
@@ -161,13 +172,116 @@ export const GroupSlice = createSlice({
         index = state.regularUser.findIndex(
           (regularUser) => regularUser.user.id === id
         );
-        console.log({ index });
 
         if (index !== -1) {
           const regularUser = state.regularUser.splice(index, 1)[0];
           regularUser.role = ROLE.CHAT_ADMIN;
+          regularUser.user.restrictedGroups = [];
+
           state.chatAdmin.push(regularUser);
         }
+      }
+
+      if (state.myId === id) {
+        if (role === ROLE.REGULAR_USER) {
+          state.role = ROLE.CHAT_ADMIN;
+          return;
+        }
+        state.role = ROLE.REGULAR_USER;
+      }
+    },
+    setRestrictedUser: (state, action: PayloadAction<UserGroupType[]>) => {
+      state.restrictedUser = action.payload;
+    },
+    addRestrictedUser: (state, action: PayloadAction<UserGroupType>) => {
+      const {
+        role,
+        user: { id, restrictedGroups },
+      } = action.payload;
+      const { restriction } = restrictedGroups[0];
+
+      let index: number = -1;
+      if (restriction !== Restriction.MUTED) {
+        if (role === ROLE.CHAT_ADMIN) {
+          index = state.chatAdmin.findIndex(
+            (moderator) => moderator.user.id === id
+          );
+
+          if (index !== -1) {
+            state.chatAdmin.splice(index, 1);
+          }
+        } else {
+          index = state.regularUser.findIndex(
+            (regularUser) => regularUser.user.id === id
+          );
+
+          if (index !== -1) {
+            state.regularUser.splice(index, 1);
+          }
+        }
+      } else {
+        if (role === ROLE.CHAT_ADMIN) {
+          index = state.chatAdmin.findIndex(
+            (moderator) => moderator.user.id === id
+          );
+
+          if (index !== -1) {
+            state.chatAdmin.splice(index, 1);
+            state.regularUser.push({
+              ...action.payload,
+              role: ROLE.REGULAR_USER,
+            });
+          }
+        } else {
+          index = state.regularUser.findIndex(
+            (regularUser) => regularUser.user.id === id
+          );
+
+          if (index !== -1) {
+            state.regularUser[index] = {
+              ...action.payload,
+              role: ROLE.REGULAR_USER,
+            };
+          }
+        }
+      }
+
+      if (state.role !== ROLE.REGULAR_USER) {
+        state.restrictedUser.push({
+          ...action.payload,
+          role: ROLE.REGULAR_USER,
+        });
+      }
+    },
+    unrestrictUser: (state, action: PayloadAction<UserWithProfile>) => {
+      const { id, nickname, status, profile } = action.payload;
+      const index = state.restrictedUser.findIndex(
+        (user) => user.user.id === id
+      );
+      console.log({
+        index,
+        data: action.payload,
+        id,
+        firstId: state.restrictedUser[0].user.id,
+      });
+
+      if (index !== -1) {
+        const user = state.restrictedUser.splice(index, 1)[0];
+
+        user.user.restrictedGroups = [];
+        user.user.nickname = nickname;
+        user.user.status = status;
+        user.user.profile = profile;
+        user.role = ROLE.REGULAR_USER;
+
+        const pos = state.regularUser.findIndex((user) => user.user.id === id);
+
+        if (pos !== -1) {
+          state.regularUser[pos] = user;
+          return;
+        }
+
+        state.regularUser.push(user);
       }
     },
     addNewGroupMember: (
@@ -247,29 +361,47 @@ export const GroupSlice = createSlice({
         state.groupChatroom.unshift(removedObject);
       }
     },
-    /*setOfflineUser: (state, action: PayloadAction<BaseFriendType>) => {
-      state.privateChatroom = state.privateChatroom?.map((chatroom) => {
-        const user = chatroom.users[0].user;
-        return user.id === action.payload.friendId
-          ? { status: (user.status = "OFFLINE"), ...chatroom }
-          : chatroom;
-      });
-      if (action.payload.friendId === state.currentChatroom?.users[0].user.id) {
-        state.currentChatroom.users[0].user.status = "OFFLINE";
+    setOfflineUser: (state, action: PayloadAction<BaseFriendType>) => {
+      const { friendId } = action.payload;
+      if (state.admin?.user.id === friendId) {
+        state.admin.user.status = STATUS.OFFLINE;
+        return;
+      }
+      let index: number = state.chatAdmin.findIndex(
+        (user) => user.user.id === friendId
+      );
+
+      if (index !== -1) {
+        state.chatAdmin[index].user.status = STATUS.OFFLINE;
+        return;
+      }
+
+      index = state.regularUser.findIndex((user) => user.user.id === friendId);
+      if (index !== -1) {
+        state.regularUser[index].user.status = STATUS.OFFLINE;
       }
     },
     setOnlineUser: (state, action: PayloadAction<BaseFriendType>) => {
-      state.privateChatroom = state.privateChatroom?.map((chatroom) => {
-        const user = chatroom.users[0].user;
-        return user.id === action.payload.friendId
-          ? { status: (user.status = "ONLINE"), ...chatroom }
-          : chatroom;
-      });
-
-      if (action.payload.friendId === state.currentChatroom?.users[0].user.id) {
-        state.currentChatroom.users[0].user.status = "ONLINE";
+      const { friendId } = action.payload;
+      if (state.admin?.user.id === friendId) {
+        state.admin.user.status = STATUS.ONLINE;
+        return;
       }
-    },*/
+      let index: number = state.chatAdmin.findIndex(
+        (user) => user.user.id === friendId
+      );
+      console.log({ index, friendId });
+
+      if (index !== -1) {
+        state.chatAdmin[index].user.status = STATUS.ONLINE;
+        return;
+      }
+
+      index = state.regularUser.findIndex((user) => user.user.id === friendId);
+      if (index !== -1) {
+        state.regularUser[index].user.status = STATUS.ONLINE;
+      }
+    },
   },
 });
 
@@ -280,15 +412,18 @@ export const {
   updateGroupChatroomListAndMessage,
   deleteChatroom,
   setChatroomMessage,
+  setRestrictedUser,
+  unrestrictUser,
   addNewJoinableGroup,
   setJoinableGroup,
   deleteJoinableGroup,
-  /*setOfflineUser,
-  setOnlineUser,*/
+  setOfflineUser,
+  setOnlineUser,
   addNewChatroom,
   updateChatroom,
   setGroupMembersAndRole,
   addNewGroupMember,
+  addRestrictedUser,
   setNewAdmin,
   deleteGroupMembers,
   setNewRole,

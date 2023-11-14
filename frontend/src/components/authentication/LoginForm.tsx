@@ -27,7 +27,7 @@ import { ResponseLoginSchema } from "../../models/login/ResponseLogin";
 import { useNavigate } from "react-router-dom";
 import { PATH_APP } from "../../routes/paths";
 import CustomAlert from "../Alert/CustomAlert";
-import { setMyId } from "../../redux/features/groups/groupSlice";
+import { setMyId } from "../../redux/features/groups/group.slice";
 
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);

@@ -8,12 +8,11 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { RESTRICTION, TYPE } from '@prisma/client';
+import { RESTRICTION, ROLE, TYPE } from '@prisma/client';
 import { UserData } from 'src/common/types/user-info.type';
 import { ChatroomUserBaseData } from 'src/common/types/chatroom-user-type';
 import { ChatroomUserService } from 'src/chatroom-user/chatroom-user.service';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
-import { MAX_DATE } from '../../../shared/constant';
 
 @Injectable()
 export class ChatService {
@@ -102,12 +101,12 @@ export class ChatService {
               { userId },
               {
                 restriction: {
-                  in: [RESTRICTION.BANNED],
+                  in: [RESTRICTION.BANNED, RESTRICTION.KICKED],
                 },
               },
               {
                 restrictionTimeEnd: {
-                  equals: new Date(MAX_DATE),
+                  lt: new Date(),
                 },
               },
             ],
@@ -200,9 +199,72 @@ export class ChatService {
         HttpStatus.FORBIDDEN,
       );
 
-    const { role } = chatroom.users.find((user) => user.user.id === userId);
+    let userRole: ROLE;
 
-    return { users: chatroom.users, role };
+    const users = chatroom.users.filter(({ user, role }) => {
+      if (user.id === userId) userRole = role;
+
+      return (
+        user.restrictedGroups.length === 0 ||
+        user.restrictedGroups[0].restriction === RESTRICTION.MUTED
+      );
+    });
+
+    this.logger.log({
+      user: userRole === ROLE.REGULAR_USER ? users : chatroom.users,
+    });
+
+    return {
+      users,
+      role: userRole,
+    };
+  }
+
+  async getAllRestrictedUser(userId: string, chatroomId: string) {
+    const restrictedUser = await this.prismaService.restrictedUser.findMany({
+      where: {
+        chatroomId,
+        restrictionTimeEnd: {
+          gt: new Date(),
+        },
+      },
+      select: {
+        user: {
+          select: {
+            id: true,
+            nickname: true,
+            status: true,
+            profile: {
+              select: {
+                avatar: true,
+              },
+            },
+            restrictedGroups: {
+              select: {
+                admin: {
+                  select: {
+                    user: {
+                      select: {
+                        nickname: true,
+                      },
+                    },
+                    role: true,
+                  },
+                },
+                reason: true,
+                restriction: true,
+                restrictionTimeStart: true,
+                restrictionTimeEnd: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    console.log({ restrictedUser });
+
+    return restrictedUser;
   }
 
   async addNewUserToChatroom(userId: string, chatRoomData: ChatroomDataDto) {

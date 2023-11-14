@@ -39,9 +39,12 @@ import {
   MUTE_MAX_MIN,
 } from "../../../../../../shared/restriction.constant";
 import { useRestrictUserMutation } from "../../../../redux/features/groups/group.api.slice";
+import { useAppDispatch } from "../../../../redux/hooks";
+import { addRestrictedUser } from "../../../../redux/features/groups/group.slice";
 interface RestrictUserProps {
   open: boolean;
   nickname: string;
+  chatroomId: string;
   handleClose: () => void;
   role: ChatRoleType;
   id: string;
@@ -53,6 +56,7 @@ const RestrictUser = ({
   nickname,
   id,
   role,
+  chatroomId,
 }: RestrictUserProps) => {
   const { control, handleSubmit, watch, setValue } = useForm<RestrictUserType>({
     resolver: zodResolver(RestrictUserFormSchema),
@@ -78,14 +82,14 @@ const RestrictUser = ({
   const [restrictUser, { isLoading }] = useRestrictUserMutation();
 
   const theme = useTheme();
-
+  const dispatch = useAppDispatch();
   const onSubmit = async (data: RestrictUserType) => {
     try {
       data.id = id;
+      data.chatroomId = chatroomId;
       const res = await restrictUser(data).unwrap();
-      console.log({ data });
-
-      setMessage("");
+      dispatch(addRestrictedUser(res.data));
+      setMessage(res.message);
       setOpenSnack(true);
       setSeverity("success");
     } catch (error) {
@@ -213,6 +217,9 @@ const RestrictUser = ({
                     <>
                       <Button
                         fullWidth
+                        disableElevation
+                        color="inherit"
+                        variant="contained"
                         onClick={() => {
                           setValue("restriction", "BANNED");
                           setValue("durationUnit", "DAYS");

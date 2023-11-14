@@ -38,7 +38,6 @@ export class SocketIOAdapter extends IoAdapter {
 const createTokenMiddleware =
   (jwtService: JwtTokenService, logger: Logger) =>
   async (socket: SocketWithAuth, next) => {
-    // for Postman testing support, fallback to token header
     const token: string =
       socket.handshake.auth.token || socket.handshake.headers['token'];
 
@@ -52,7 +51,6 @@ const createTokenMiddleware =
       socket.userId = payload.sub;
       socket.email = payload.email;
       socket.nickname = payload.nickname;
-      console.log({ payload });
 
       next();
     } catch (error) {

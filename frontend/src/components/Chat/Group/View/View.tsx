@@ -8,10 +8,13 @@ import {
 
 import { useEffect, useMemo, useState } from "react";
 import { useGetAllGroupUserQuery } from "../../../../redux/features/groups/group.api.slice";
-import { setGroupMembersAndRole } from "../../../../redux/features/groups/groupSlice";
+import {
+  addRestrictedUser,
+  setGroupMembersAndRole,
+} from "../../../../redux/features/groups/group.slice";
 import { useAppSelector, useAppDispatch } from "../../../../redux/hooks";
 import { RootState } from "../../../../redux/store";
-import { ChatRoleType } from "../../../../models/type-enum/typesEnum";
+import { ChatRoleType, STATUS } from "../../../../models/type-enum/typesEnum";
 import UserInfo from "./UserInfo";
 import AdminAction from "./AdminAction";
 import ModeratorAction from "./ModeratorAction";
@@ -19,6 +22,11 @@ import SetAsAdmin from "./AdminView/SetAsAdmin";
 import SetNewRole from "./AdminView/SetNewRole";
 import UserAction from "./UserAction";
 import RestrictUser from "./RestrictUser";
+import { connectSocket, socket } from "../../../../utils/getSocket";
+import { ChatEventGroup } from "../../../../../../shared/socket.event";
+import { UserGroupType } from "../../../../models/groupChat";
+import { SocketServerSucessResponse } from "../../../../services/type";
+import UnRestrictUser from "./UnrestrictUser";
 
 const View = () => {
   const {
@@ -37,27 +45,46 @@ const View = () => {
     if (data?.data) {
       dispatch(setGroupMembersAndRole(data.data));
 
-      return () => {};
+      connectSocket();
+      socket.on(
+        ChatEventGroup.USER_RESTRICTED,
+        (
+          data: SocketServerSucessResponse & {
+            data: UserGroupType;
+          }
+        ) => {
+          dispatch(addRestrictedUser(data.data));
+        }
+      );
+
+      return () => {
+        socket.off(ChatEventGroup.USER_RESTRICTED);
+      };
     }
   }, [data, dispatch]);
 
   const [userData, setUserData] = useState<{
     id: string;
     nickname: string;
-    role?: ChatRoleType;
+    role: ChatRoleType;
+    chatroomId: string;
   }>({
     id: "",
     nickname: "",
+    chatroomId: currentGroupChatroomId as string,
+    role: role as ChatRoleType,
   });
 
   const [open, setOpen] = useState<{
     admin: boolean;
     role: boolean;
     restriction: boolean;
+    unrestriction: boolean;
   }>({
     admin: false,
     role: false,
     restriction: false,
+    unrestriction: false,
   });
 
   const handleNewAdmin = ({
@@ -67,7 +94,7 @@ const View = () => {
     id: string;
     nickname: string;
   }) => {
-    setUserData({ id, nickname });
+    setUserData((prev) => ({ ...prev, id, nickname }));
     setOpen((prev) => {
       return { ...prev, admin: true };
     });
@@ -82,7 +109,7 @@ const View = () => {
     nickname: string;
     role: ChatRoleType;
   }) => {
-    setUserData({ id, nickname, role });
+    setUserData((prev) => ({ ...prev, id, nickname, role }));
     setOpen((prev) => {
       return { ...prev, role: true };
     });
@@ -95,9 +122,16 @@ const View = () => {
     id: string;
     nickname: string;
   }) => {
-    setUserData({ id, nickname });
+    setUserData((prev) => ({ ...prev, id, nickname }));
     setOpen((prev) => {
       return { ...prev, restriction: true };
+    });
+  };
+
+  const handleUnrestriction = ({ nickname }: { nickname: string }) => {
+    setUserData((prev) => ({ ...prev, nickname }));
+    setOpen((prev) => {
+      return { ...prev, unrestriction: true };
     });
   };
 
@@ -123,7 +157,6 @@ const View = () => {
       </Box>
     );
   } else {
-
     return (
       <>
         <Stack spacing={1} height="100%" width="100%" alignSelf="flex-start">
@@ -135,9 +168,10 @@ const View = () => {
           <UserInfo
             avatar={admin?.user.profile?.avatar}
             nickname={admin?.user.nickname as string}
-            online={admin?.user.status === "ONLINE"}
+            online={admin?.user.status === STATUS.ONLINE}
           >
             <AdminAction
+              handleUnrestriction={handleUnrestriction}
               nickname={admin?.user.nickname as string}
               role={role as ChatRoleType}
             />
@@ -158,10 +192,11 @@ const View = () => {
                     <UserInfo
                       key={index}
                       nickname={nickname}
-                      online={status === "ONLINE"}
+                      online={status === STATUS.ONLINE}
                       avatar={profile?.avatar}
                     >
                       <ModeratorAction
+                        handleUnrestriction={handleUnrestriction}
                         handleRestriction={handleRestriction}
                         handleChangeRole={handleChangeRole}
                         handleNewAdmin={handleNewAdmin}
@@ -186,13 +221,21 @@ const View = () => {
               <Typography>No User</Typography>
             ) : (
               memoizedRegularUser.map(
-                ({ user: { nickname, status, profile, id } }, index) => {
+                (
+                  { user: { nickname, status, profile, id, restrictedGroups } },
+                  index
+                ) => {
                   return (
                     <UserInfo
                       key={index}
                       nickname={nickname}
-                      online={status === "ONLINE"}
+                      online={status === STATUS.ONLINE}
                       avatar={profile?.avatar}
+                      restrictedUser={
+                        restrictedGroups.length == 0
+                          ? undefined
+                          : restrictedGroups[0]
+                      }
                     >
                       <UserAction
                         handleRestriction={handleRestriction}
@@ -237,6 +280,7 @@ const View = () => {
         )}
         {open.restriction && (
           <RestrictUser
+            chatroomId={currentGroupChatroomId as string}
             role={role as ChatRoleType}
             open={open.restriction}
             handleClose={() =>
@@ -246,6 +290,19 @@ const View = () => {
             }
             nickname={userData.nickname}
             id={userData.id}
+          />
+        )}
+        {open.unrestriction && (
+          <UnRestrictUser
+            chatroomId={currentGroupChatroomId as string}
+            role={role as ChatRoleType}
+            open={open.unrestriction}
+            handleClose={() =>
+              setOpen((prev) => {
+                return { ...prev, unrestriction: false };
+              })
+            }
+            nickname={userData.nickname}
           />
         )}
       </>

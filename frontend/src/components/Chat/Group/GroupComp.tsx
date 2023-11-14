@@ -22,7 +22,7 @@ import {
   setNewAdmin,
   setNewRole,
   toggleOpenGroupSidebar,
-} from "../../../redux/features/groups/groupSlice";
+} from "../../../redux/features/groups/group.slice";
 import { UserNewRoleResponseType } from "../../../models/groupChat";
 import View from "./View/View";
 
