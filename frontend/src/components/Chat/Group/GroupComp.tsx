@@ -22,9 +22,12 @@ import {
   setNewAdmin,
   setNewRole,
   toggleOpenGroupSidebar,
+  unrestrictUser,
 } from "../../../redux/features/groups/group.slice";
 import { UserNewRoleResponseType } from "../../../models/groupChat";
 import View from "./View/View";
+import { UserWithProfile } from "../../../models/ChatContactSchema";
+import { SocketServerSucessResponse } from "../../../services/type";
 
 const GroupComp = () => {
   const theme = useTheme();
@@ -53,9 +56,21 @@ const GroupComp = () => {
       }
     );
 
+    socket.on(
+      ChatEventGroup.USER_UNRESTRICTED,
+      (
+        data: SocketServerSucessResponse & { data: { user: UserWithProfile } }
+      ) => {
+        console.log({ data });
+
+        dispatch(unrestrictUser(data.data.user));
+      }
+    );
+
     return () => {
       socket.off(ChatEventGroup.NEW_ADMIN);
       socket.off(ChatEventGroup.USER_ROLE_CHANGED);
+      socket.off(ChatEventGroup.USER_UNRESTRICTED);
     };
   }, [dispatch]);
 

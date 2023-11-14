@@ -254,35 +254,32 @@ export const GroupSlice = createSlice({
       }
     },
     unrestrictUser: (state, action: PayloadAction<UserWithProfile>) => {
-      const { id, nickname, status, profile } = action.payload;
-      const index = state.restrictedUser.findIndex(
-        (user) => user.user.id === id
-      );
-      console.log({
-        index,
-        data: action.payload,
-        id,
-        firstId: state.restrictedUser[0].user.id,
-      });
+      const { id } = action.payload;
 
-      if (index !== -1) {
-        const user = state.restrictedUser.splice(index, 1)[0];
+      if (state.role === ROLE.DIERIBA || state.role === ROLE.CHAT_ADMIN) {
+        const index = state.restrictedUser.findIndex(
+          (user) => user.user.id === id
+        );
 
-        user.user.restrictedGroups = [];
-        user.user.nickname = nickname;
-        user.user.status = status;
-        user.user.profile = profile;
-        user.role = ROLE.REGULAR_USER;
-
-        const pos = state.regularUser.findIndex((user) => user.user.id === id);
-
-        if (pos !== -1) {
-          state.regularUser[pos] = user;
-          return;
+        if (index !== -1) {
+          state.restrictedUser.splice(index, 1);
         }
-
-        state.regularUser.push(user);
       }
+
+      const pos = state.regularUser.findIndex((user) => user.user.id === id);
+
+      if (pos !== -1) {
+        state.regularUser[pos] = {
+          user: { ...action.payload, restrictedGroups: [] },
+          role: ROLE.REGULAR_USER,
+        };
+        return;
+      }
+
+      state.regularUser.push({
+        user: { ...action.payload, restrictedGroups: [] },
+        role: ROLE.REGULAR_USER,
+      });
     },
     addNewGroupMember: (
       state,
