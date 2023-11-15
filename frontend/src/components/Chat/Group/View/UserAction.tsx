@@ -68,7 +68,7 @@ const UserAction = ({
             <UserMinus size={20} />
           </IconButton>
         </Tooltip>
-        <Tooltip placement="top" title={`delete ${nickname}`}>
+        <Tooltip placement="top" title={`kick ${nickname}`}>
           <IconButton>
             <X size={18} />
           </IconButton>

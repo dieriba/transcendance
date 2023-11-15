@@ -24,6 +24,7 @@ import {
 } from "../../models/ChatContactSchema";
 import { SocketServerSucessResponse } from "../../services/type";
 import { BaseFriendType } from "../../models/FriendsSchema";
+import { RootState } from "../../redux/store";
 
 const Chat = () => {
   const theme = useTheme();
@@ -33,9 +34,9 @@ const Chat = () => {
     { refetchOnMountOrArgChange: true }
   );
   const currentPrivateChatroomId = useAppSelector(
-    (state) => state.chat.currentPrivateChatroomId
+    (state: RootState) => state.chat.currentPrivateChatroomId
   );
-  const { open } = useAppSelector((state) => state.sidebar);
+  const { open } = useAppSelector((state: RootState) => state.sidebar);
   useEffect(() => {
     if (data && data.data) {
       dispatch(setPrivateChatroom(data.data));

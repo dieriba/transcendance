@@ -28,6 +28,7 @@ import BadgeAvatar from "../Badge/BadgeAvatar";
 import { deleteChatroom } from "../../redux/features/chat/chatSlice";
 import { BaseFriendTypeWithChatroom } from "../../services/type";
 import { PrivateChatroomType } from "../../models/ChatContactSchema";
+import { RootState } from "../../redux/store";
 const ChatContactInfo = () => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
@@ -67,7 +68,7 @@ const ChatContactInfo = () => {
   const [blockUser] = useBlockFriendMutation();
 
   const chatroomInfo = useAppSelector(
-    (state) => state.chat.currentChatroom as PrivateChatroomType
+    (state: RootState) => state.chat.currentChatroom as PrivateChatroomType
   );
   const user = chatroomInfo.users[0].user;
   return (

@@ -30,6 +30,7 @@ import { useCreateGroupMutation } from "../../../redux/features/groups/group.api
 import { SocketServerErrorResponse } from "../../../services/type";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { setFriends } from "../../../redux/features/friends/friends.slice";
+import { RootState } from "../../../redux/store";
 
 interface CreateGroupProps {
   open: boolean;
@@ -72,7 +73,7 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
       dispatch(setFriends(data.data));
     }
   }, [data, dispatch]);
-  const friends = useAppSelector((state) => state.friends.friends);
+  const friends = useAppSelector((state: RootState) => state.friends.friends);
   const onSubmit = async (data: CreateGroupFormType) => {
     try {
       if (data.users)

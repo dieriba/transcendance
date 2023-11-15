@@ -14,9 +14,12 @@ import {
   setOfflineUser,
   setOnlineUser,
 } from "../../redux/features/chat/chatSlice";
+import { RootState } from "../../redux/store";
 
 const ProtectedDashboardLayout = () => {
-  const isAuthenticated = useAppSelector((state) => state.user.access_token);
+  const isAuthenticated = useAppSelector(
+    (state: RootState) => state.user.access_token
+  );
   const dispatch = useAppDispatch();
 
   useEffect(() => {

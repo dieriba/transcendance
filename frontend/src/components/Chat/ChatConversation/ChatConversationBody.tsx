@@ -5,6 +5,7 @@ import ReplyMessage from "../ChatBodyComponents/ReplyMessage";
 import DocumentMessage from "../ChatBodyComponents/DocumentMessage";
 import StackChatCompo from "../ChatBodyComponents/StackChatCompo";
 import { useAppSelector } from "../../../redux/hooks";
+import { RootState } from "../../../redux/store";
 
 export interface ChatConversationBodyProps {
   id: string;
@@ -13,8 +14,10 @@ export interface ChatConversationBodyProps {
 }
 
 const ChatConversationBody = () => {
-  const chatroomInfo = useAppSelector((state) => state.chat.currentChatroom);
-  const myId = useAppSelector((state) => state.user.user?.id);
+  const chatroomInfo = useAppSelector(
+    (state: RootState) => state.chat.currentChatroom
+  );
+  const myId = useAppSelector((state: RootState) => state.user.user?.id);
 
   const messages = chatroomInfo?.messages;
   console.log({ chatroomInfo });

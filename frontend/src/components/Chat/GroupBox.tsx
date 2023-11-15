@@ -3,6 +3,7 @@ import { useTheme } from "@mui/material/styles";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import GroupIcon from "./Group/GroupIcon";
 import { setGroupChatroomId } from "../../redux/features/groups/group.slice";
+import { RootState } from "../../redux/store";
 export interface GroupBoxProps {
   chatroomName: string;
   msg: string;
@@ -23,7 +24,7 @@ const GroupBox = ({
   const theme = useTheme();
   const dispatch = useAppDispatch();
   const currentGroupChatroomId = useAppSelector(
-    (state) => state.groups.currentGroupChatroomId
+    (state: RootState) => state.groups.currentGroupChatroomId
   );
   const divStyle = {
     width: "100%",

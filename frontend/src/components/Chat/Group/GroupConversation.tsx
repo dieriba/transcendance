@@ -16,10 +16,6 @@ const GroupConversation = () => {
     (state: RootState) => state.groups
   );
 
-  console.log({
-    count: (currentChatroom as ChatroomGroupType).restrictedUsers.length,
-  });
-
   const toOpen =
     (currentChatroom as ChatroomGroupType).restrictedUsers.length === 0 ||
     (currentChatroom as ChatroomGroupType).restrictedUsers[0].restriction ===

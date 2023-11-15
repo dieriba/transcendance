@@ -123,8 +123,6 @@ export class GatewayGateway {
     @MessageBody(CheckGroupCreationValidity) chatroomDto: ChatRoomDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
-    this.logger.log('ok');
-
     const { users, ...chatroom } = chatroomDto;
     const { chatroomName } = chatroom;
     const { userId } = client;

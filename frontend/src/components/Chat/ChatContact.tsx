@@ -4,11 +4,14 @@ import { Search, SearchIconWrapper, StyledInputBase } from "../search";
 import ChatBox from "./ChatBox";
 import { useTheme } from "@mui/material/styles";
 import { useAppSelector } from "../../redux/hooks";
+import { RootState } from "../../redux/store";
 
 const ChatContact = () => {
   const theme = useTheme();
-  const chats = useAppSelector((state) => state.chat.privateChatroom);
-  const myId = useAppSelector((state) => state.user.user?.id);
+  const chats = useAppSelector(
+    (state: RootState) => state.chat.privateChatroom
+  );
+  const myId = useAppSelector((state: RootState) => state.user.user?.id);
   return (
     <Box
       sx={{

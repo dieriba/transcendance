@@ -36,7 +36,7 @@ const GroupChatPage = () => {
     refetchOnMountOrArgChange: true,
   });
   const { currentGroupChatroomId, groupChatroom } = useAppSelector(
-    (state) => state.groups
+    (state: RootState) => state.groups
   );
   const { open } = useAppSelector((state: RootState) => state.sidebar);
   useEffect(() => {

@@ -3,6 +3,7 @@ import BadgeAvatar from "../Badge/BadgeAvatar";
 import { useTheme } from "@mui/material/styles";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { setPrivateChatroomId } from "../../redux/features/chat/chatSlice";
+import { RootState } from "../../redux/store";
 export interface ChatBoxProps {
   username: string;
   msg: string;
@@ -25,7 +26,7 @@ const ChatBox = ({
   const theme = useTheme();
   const dispatch = useAppDispatch();
   const currentPrivateChatroomId = useAppSelector(
-    (state) => state.chat.currentPrivateChatroomId
+    (state: RootState) => state.chat.currentPrivateChatroomId
   );
   const divStyle = {
     width: "100%",
