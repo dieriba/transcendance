@@ -50,8 +50,6 @@ const FriendRequestForm = ({ open, handleClose }: CreateGroupProps) => {
   const onSubmit = async (data: FriendRequestType) => {
     try {
       const res = await sendFriendRequest(data).unwrap();
-      console.log("entered");
-
       setSeverity("success");
       setMessage(res.message);
       setOpenSnack(true);

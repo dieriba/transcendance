@@ -26,22 +26,16 @@ import SetNewRole from "./AdminView/SetNewRole";
 import UserAction from "./UserAction";
 import RestrictUser from "./RestrictUser";
 import { connectSocket, socket } from "../../../../utils/getSocket";
-import {
-  ChatEventGroup,
-  GeneralEvent,
-} from "../../../../../../shared/socket.event";
-import { UserGroupType } from "../../../../models/groupChat";
+import { GeneralEvent } from "../../../../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../../../services/type";
 import UnRestrictUser from "./UnrestrictUser";
 import { BaseFriendType } from "../../../../models/FriendsSchema";
-import { UserWithProfile } from "../../../../models/ChatContactSchema";
 import KickUser from "./KickUser";
 
 const View = () => {
-  const {
-    groups: { admin, currentGroupChatroomId, chatAdmin, regularUser, role },
-    user: { user },
-  } = useAppSelector((state: RootState) => state);
+  const { admin, currentGroupChatroomId, chatAdmin, regularUser, role } =
+    useAppSelector((state: RootState) => state.groups);
+  const { user } = useAppSelector((state: RootState) => state.user);
 
   const { data, isLoading, isError } = useGetAllGroupUserQuery(
     currentGroupChatroomId as string,
@@ -55,18 +49,6 @@ const View = () => {
       dispatch(setGroupMembersAndRole(data.data));
 
       connectSocket();
-      socket.on(
-        ChatEventGroup.USER_RESTRICTED,
-        (
-          data: SocketServerSucessResponse & {
-            data: UserGroupType;
-          }
-        ) => {
-          console.log({ data: data.data });
-
-          dispatch(addRestrictedUser(data.data));
-        }
-      );
 
       socket.on(
         GeneralEvent.USER_LOGGED_OUT,
@@ -82,18 +64,9 @@ const View = () => {
         }
       );
 
-      socket.on(
-        ChatEventGroup.NEW_USER_CHATROOM,
-        (data: SocketServerSucessResponse & { data: UserWithProfile }) => {
-          dispatch(addNewChatroomUser(data.data));
-        }
-      );
-
       return () => {
         socket.off(GeneralEvent.USER_LOGGED_IN);
         socket.off(GeneralEvent.USER_LOGGED_OUT);
-        socket.off(ChatEventGroup.USER_RESTRICTED);
-        socket.off(ChatEventGroup.NEW_USER_CHATROOM);
       };
     }
   }, [data, dispatch]);

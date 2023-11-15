@@ -55,11 +55,7 @@ const SetAsAdmin = ({ id, nickname, open, handleClose }: SetAdminProps) => {
     chatroomId: string;
   }) => {
     try {
-      console.log("inside");
-
       const response = await setDieriba(data).unwrap();
-
-      console.log({ response });
 
       dispatch(setNewAdmin(response.data));
       handleClose();

@@ -9,14 +9,9 @@ import {
   Typography,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { Bell, CaretRight, Trash, X } from "phosphor-react";
+import { Bell, Trash, X } from "phosphor-react";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
-import {
-  SHARED,
-  closeSidebar,
-  switchSidebarTab,
-} from "../../redux/features/sidebar.slices";
-import { faker } from "@faker-js/faker";
+import { closeSidebar } from "../../redux/features/sidebar.slices";
 import { useState } from "react";
 
 import CustomDialog from "../Dialog/CustomDialog";
@@ -36,11 +31,9 @@ const ChatContactInfo = () => {
   const handleDeleteFriend = async (data: BaseFriendTypeWithChatroom) => {
     try {
       const { friendId, chatroomId } = data;
-      console.log("ok");
 
-      const res = await deleteFriend({ friendId }).unwrap();
+      await deleteFriend({ friendId }).unwrap();
       chatroomId && dispatch(deleteChatroom(chatroomId));
-      console.log({ res });
     } catch (error) {
       console.log(error);
     }
@@ -50,10 +43,9 @@ const ChatContactInfo = () => {
     try {
       const { friendId, chatroomId } = data;
 
-      const res = await blockUser({ friendId }).unwrap();
+      await blockUser({ friendId }).unwrap();
 
-      chatroomId && dispatch(deleteChatroom(chatroomId));
-      console.log({ res });
+      dispatch(deleteChatroom(chatroomId as string));
     } catch (error) {
       console.log(error);
     }
@@ -141,34 +133,6 @@ const ChatContactInfo = () => {
             <Typography variant="subtitle2">Dieri</Typography>
           </Stack>
           <Divider />
-          <Stack>
-            <Stack
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-            >
-              <Typography variant="subtitle2">Media & Docs</Typography>
-              <Button
-                onClick={() => dispatch(switchSidebarTab({ tab: SHARED }))}
-                endIcon={<CaretRight />}
-              >
-                {" "}
-                50
-              </Button>
-            </Stack>
-            <Stack direction="row" alignItems="center" spacing={2}>
-              {[1, 2, 3].map((elem) => (
-                <Box key={elem}>
-                  <img
-                    height="50px"
-                    width="75px"
-                    src={faker.image.food()}
-                    alt={faker.person.fullName()}
-                  />
-                </Box>
-              ))}
-            </Stack>
-          </Stack>
           <Divider />
           <Stack
             direction="row"
@@ -182,10 +146,6 @@ const ChatContactInfo = () => {
             <Switch />
           </Stack>
           <Divider />
-          {/*<Typography>2 Groups in common</Typography>
-          <Stack spacing={2}>
-             {[1,2,3].map((el) => <Avatar src/>)}
-            </Stack> */}
           <Stack direction="row" alignItems="center" spacing={2}>
             <Button
               size="small"

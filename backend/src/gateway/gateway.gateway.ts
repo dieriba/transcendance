@@ -398,6 +398,59 @@ export class GatewayGateway {
     });
   }
 
+  @SubscribeMessage(ChatEventGroup.DELETE_GROUP_CHATROOM)
+  async deleteChatroom(
+    @ConnectedSocket() client: SocketWithAuth,
+    @MessageBody() chatroomIdDto: ChatroomIdDto,
+  ) {
+    const { chatroomId } = chatroomIdDto;
+    const { userId } = client;
+
+    const chatroomUser = await this.prismaService.chatroomUser.findUnique({
+      where: {
+        userId_chatroomId: {
+          userId,
+          chatroomId,
+        },
+      },
+    });
+
+    if (!chatroomUser) throw new WsNotFoundException('User not found');
+
+    if (chatroomUser.role !== ROLE.DIERIBA)
+      throw new WsUnauthorizedException(
+        'Only admin of that room can delete it',
+      );
+
+    const chatroom = await this.prismaService.chatroom.delete({
+      where: {
+        id: chatroomId,
+      },
+      select: {
+        chatroomName: true,
+      },
+    });
+
+    const { chatroomName } = chatroom;
+
+    this.sendToSocket(
+      client,
+      chatroomName,
+      ChatEventGroup.GROUP_CHATROOM_DELETED,
+      {
+        data: { chatroomId },
+        message: `${client.nickname} deleted the chatroom`,
+      },
+    );
+
+    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+      data: { chatroomId },
+      message: 'chatroom deleted',
+    });
+
+    this.deleteRoom(chatroomName);
+  }
+
   @SubscribeMessage(ChatEventGroup.KICK_USER)
   async kickUser(
     @MessageBody() deleteChatroomMember: DeleteChatroomMemberDto,
@@ -421,6 +474,7 @@ export class GatewayGateway {
         },
       },
       select: {
+        role: true,
         chatroom: {
           select: {
             chatroomName: true,
@@ -454,7 +508,7 @@ export class GatewayGateway {
     this.joinOrLeaveRoom(id, GeneralEvent.LEAVE, chatroomName);
 
     this.sendToSocket(client, chatroomName, ChatEventGroup.USER_KICKED, {
-      data: { id },
+      data: { id, chatroomId, role: chatroomUser.role },
       message: `${client.nickname} has kicked ${nickname}`,
     });
 
@@ -464,7 +518,7 @@ export class GatewayGateway {
     });
 
     this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
-      data: { id },
+      data: { id, chatroomId, role: chatroomUser.role },
       message: `${nickname} has been kicked`,
     });
   }
@@ -510,6 +564,7 @@ export class GatewayGateway {
             id: chatroomId,
           },
           select: {
+            chatroomName: true,
             users: {
               select: {
                 userId: true,
@@ -528,6 +583,8 @@ export class GatewayGateway {
 
         if (!chatroom) throw new WsNotFoundException('Chatroom not found');
 
+        const { chatroomName } = chatroom;
+
         const newAdmin = chatroom.users.find((user) => user.userId !== userId);
 
         if (!newAdmin) {
@@ -540,9 +597,10 @@ export class GatewayGateway {
             data: { chatroomId },
             message: `You leaved the group ${chatroomName}`,
           });
-
-          this.joinOrLeaveRoom(userId, GeneralEvent.LEAVE, chatroomName);
-
+          client.broadcast.emit(ChatEventGroup.DELETE_JOINABLE_GROUP, {
+            data: { chatroomId },
+          });
+          this.deleteRoom(chatroomName);
           return;
         }
         const { role } = await tx.chatroomUser.update({
@@ -573,7 +631,6 @@ export class GatewayGateway {
           ChatEventGroup.PREVIOUS_ADMIN_LEAVED,
           {
             data: {
-              previousAdminId: userId,
               newAdminId: newAdmin.userId,
               newAdminPreviousRole: role,
             },
@@ -612,7 +669,7 @@ export class GatewayGateway {
     });
 
     this.sendToSocket(client, chatroomName, ChatEventGroup.USER_LEAVED, {
-      data: { userId },
+      data: { id: userId, chatroomId, role: chatroomUser.role },
       message: `${nickname} has leaved the chatroom`,
     });
   }
@@ -1039,6 +1096,7 @@ export class GatewayGateway {
             },
           },
         },
+        createdAt: true,
         chatroomId: true,
         messageTypes: true,
       },
@@ -1120,6 +1178,7 @@ export class GatewayGateway {
                 },
               },
             },
+            createdAt: true,
             content: true,
             messageTypes: true,
           },
@@ -1139,7 +1198,7 @@ export class GatewayGateway {
         },
       },
       orderBy: {
-        updatedAt: 'desc',
+        updatedAt: 'asc',
       },
     });
 
@@ -1217,6 +1276,7 @@ export class GatewayGateway {
               },
             },
             chatroomId: true,
+            createdAt: true,
             messageTypes: true,
           },
         },
@@ -1285,6 +1345,7 @@ export class GatewayGateway {
                 },
               },
             },
+            createdAt: true,
             content: true,
             messageTypes: true,
           },
@@ -1343,6 +1404,8 @@ export class GatewayGateway {
       message: `Succesfully joined the group: ${chatroom.chatroomName}`,
       data,
     });
+
+    this.joinOrLeaveRoom(userId, GeneralEvent.JOIN, chatroom.chatroomName);
   }
 
   @SubscribeMessage(ChatEventGroup.SEND_GROUP_MESSAGE)
@@ -1396,6 +1459,7 @@ export class GatewayGateway {
         id: true,
         content: true,
         chatroomId: true,
+        createdAt: true,
         messageTypes: true,
         user: {
           select: {
@@ -1421,6 +1485,7 @@ export class GatewayGateway {
           id: res.id,
           content,
           chatroomId,
+          createdAt: res.createdAt,
           messageTypes,
           user: {
             id: userId,
@@ -2157,6 +2222,11 @@ export class GatewayGateway {
     object?: SocketServerResponse,
   ) {
     instance.to(room).emit(emit, object);
+  }
+
+  private deleteRoom(room: string) {
+    if (this.server.of('/').adapter.rooms.get(room))
+      this.server.of('/').adapter.rooms.delete(room);
   }
 
   private joinOrLeaveRoom(

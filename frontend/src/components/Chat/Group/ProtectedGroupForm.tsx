@@ -42,7 +42,6 @@ const ProtectedGroupForm = ({
   const { control, handleSubmit } = useForm<JoinProtectedGroupFormType>({
     resolver: zodResolver(JoinProtectedGroupSchema),
   });
-  console.log({ chatroomId });
 
   const [joinProtectedGroup, { isLoading }] = useJoinGroupMutation();
 
@@ -69,7 +68,6 @@ const ProtectedGroupForm = ({
         chatroomId,
       }).unwrap();
 
-      console.log({ res });
       dispatch(deleteJoinableGroup(chatroomId));
       dispatch(addNewChatroom({ ...res.data, restrictedUsers: [] }));
       setSeverity("success");

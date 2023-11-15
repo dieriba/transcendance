@@ -10,71 +10,102 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  AlertColor,
+  Alert,
 } from "@mui/material";
 import { X, Bell, Trash } from "phosphor-react";
 import { useTheme } from "@mui/material/styles";
-import { useAppDispatch } from "../../../redux/hooks";
+import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import DialogI from "../../Dialog/DialogI";
-import { useEffect, useState } from "react";
-import { connectSocket, socket } from "../../../utils/getSocket";
-import { ChatEventGroup } from "../../../../../shared/socket.event";
+import { useState } from "react";
 import {
-  setNewAdmin,
-  setNewRole,
+  leaveChatroom,
   toggleOpenGroupSidebar,
-  unrestrictUser,
 } from "../../../redux/features/groups/group.slice";
-import { UserNewRoleResponseType } from "../../../models/groupChat";
 import View from "./View/View";
-import { UserProfileBanLifeType } from "../../../models/ChatContactSchema";
-import { SocketServerSucessResponse } from "../../../services/type";
+import { SocketServerErrorResponse } from "../../../services/type";
+import { RootState } from "../../../redux/store";
+import { ChatRoleType, ROLE } from "../../../models/type-enum/typesEnum";
+import {
+  useDeleteGroupMutation,
+  useLeaveGroupMutation,
+} from "../../../redux/features/groups/group.api.slice";
 
 const GroupComp = () => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
-  const [open, setOpen] = useState(false);
-  const handleClose = () => {
-    setOpen(false);
+  const [open, setOpen] = useState<{ leave: boolean; delete: boolean }>({
+    leave: false,
+    delete: false,
+  });
+
+  const handleCloseSnack = (
+    _event?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpenSnack(false);
   };
-  const handleOnClick = () => {
-    handleClose();
+
+  const role = useAppSelector(
+    (state: RootState) => state.groups.role
+  ) as ChatRoleType;
+
+  const chatroomId = useAppSelector(
+    (state: RootState) => state.groups.currentGroupChatroomId
+  ) as string;
+
+  const handleCloseLeave = () => {
+    setOpen((prev) => ({ ...prev, leave: false }));
   };
 
-  useEffect(() => {
-    connectSocket();
-    socket.on(
-      ChatEventGroup.NEW_ADMIN,
-      (data: { data: UserNewRoleResponseType }) => {
-        dispatch(setNewAdmin(data.data));
-      }
-    );
+  const [message, setMessage] = useState("");
+  const [severity, setSeverity] = useState<AlertColor>("success");
+  const [openSnack, setOpenSnack] = useState(false);
 
-    socket.on(
-      ChatEventGroup.USER_ROLE_CHANGED,
-      (data: { data: UserNewRoleResponseType }) => {
-        dispatch(setNewRole(data.data));
-      }
-    );
+  const handleCloseDelete = () => {
+    setOpen((prev) => ({ ...prev, delete: false }));
+  };
 
-    socket.on(
-      ChatEventGroup.USER_UNRESTRICTED,
-      (
-        data: SocketServerSucessResponse & {
-          data: { user: UserProfileBanLifeType };
-        }
-      ) => {
-        console.log({ data });
+  const [leaveGroup, { isLoading }] = useLeaveGroupMutation();
+  const [deleteGroup, deleteGroupMutation] = useDeleteGroupMutation();
 
-        dispatch(unrestrictUser(data.data.user));
-      }
-    );
+  const handleOnClickLeave = async () => {
+    try {
+      const res = await leaveGroup({ chatroomId }).unwrap();
 
-    return () => {
-      socket.off(ChatEventGroup.NEW_ADMIN);
-      socket.off(ChatEventGroup.USER_ROLE_CHANGED);
-      socket.off(ChatEventGroup.USER_UNRESTRICTED);
-    };
-  }, [dispatch]);
+      dispatch(leaveChatroom({ chatroomId: res.data.chatroomId }));
+      setSeverity("success");
+      setMessage(res.message);
+      setOpenSnack(true);
+    } catch (error) {
+      console.log({ error });
+
+      setSeverity("error");
+      setMessage((error as SocketServerErrorResponse).message);
+      setOpenSnack(true);
+    }
+  };
+
+  const handleOnClickDelete = async () => {
+    try {
+      const res = await deleteGroup({ chatroomId }).unwrap();
+
+      dispatch(leaveChatroom({ chatroomId: res.data.chatroomId }));
+      setSeverity("success");
+      setMessage(res.message);
+      setOpenSnack(true);
+    } catch (error) {
+      console.log({ error });
+
+      setSeverity("error");
+      setMessage((error as SocketServerErrorResponse).message);
+      setOpenSnack(true);
+    }
+  };
 
   return (
     <>
@@ -133,13 +164,25 @@ const GroupComp = () => {
             </Stack>
             <Divider />
             <Stack direction="row" alignItems="center" spacing={2}>
+              {role === ROLE.DIERIBA && (
+                <Button
+                  size="small"
+                  startIcon={<Trash />}
+                  variant="outlined"
+                  fullWidth
+                  sx={{ textTransform: "capitalize" }}
+                  onClick={() => setOpen((prev) => ({ ...prev, delete: true }))}
+                >
+                  Delete Group
+                </Button>
+              )}
               <Button
                 size="small"
                 startIcon={<Trash />}
                 variant="outlined"
                 fullWidth
                 sx={{ textTransform: "capitalize" }}
-                onClick={() => setOpen(true)}
+                onClick={() => setOpen((prev) => ({ ...prev, leave: true }))}
               >
                 Leave Group
               </Button>
@@ -147,17 +190,60 @@ const GroupComp = () => {
           </Stack>
         </Stack>
       </Box>
-      {open && (
-        <DialogI open={open} handleClose={handleClose}>
+      {open.leave && (
+        <DialogI open={open.leave} handleClose={handleCloseLeave}>
           <DialogTitle>Leave Group?</DialogTitle>
           <DialogContent>
+            {openSnack && (
+              <Alert
+                onClose={handleCloseSnack}
+                severity={severity}
+                sx={{ width: "100%" }}
+              >
+                {message}
+              </Alert>
+            )}
             <DialogContentText id="alert-dialog-slide-description">
-              Do you really want to leave that group?
+              {role === ROLE.DIERIBA
+                ? "Do you really want to leave that group, Please note that upon leaving the group, your privileges will be forfeited and randomly transferred to another user if present. If no users remain in the group, it will be deleted."
+                : "Do you really want to leave that group?"}
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleClose}>No</Button>
-            <Button onClick={handleOnClick}>Yes</Button>
+            <Button onClick={handleCloseLeave}>No</Button>
+            <Button disabled={isLoading} onClick={handleOnClickLeave}>
+              Yes
+            </Button>
+          </DialogActions>
+        </DialogI>
+      )}
+      {role === ROLE.DIERIBA && open.delete && (
+        <DialogI open={open.delete} handleClose={handleCloseDelete}>
+          <DialogTitle>Delete Group?</DialogTitle>
+          <DialogContent>
+            {openSnack && (
+              <Alert
+                onClose={handleCloseSnack}
+                severity={severity}
+                sx={{ width: "100%" }}
+              >
+                {message}
+              </Alert>
+            )}
+            <DialogContentText id="alert-dialog-slide-description">
+              Please be aware that deleting your group will result in the loss
+              of all messages and the removal of all users from the group, along
+              with the deletion of the group itself.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseLeave}>No</Button>
+            <Button
+              disabled={deleteGroupMutation.isLoading}
+              onClick={handleOnClickDelete}
+            >
+              Yes
+            </Button>
           </DialogActions>
         </DialogI>
       )}

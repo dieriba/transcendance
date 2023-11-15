@@ -72,11 +72,11 @@ const ProtectedDashboardLayout = () => {
       );
 
       return () => {
-        socket.off(GeneralEvent.EXCEPTION);
-        socket.off(FriendEvent.REQUEST_ACCEPTED);
-        socket.off(FriendEvent.NEW_REQUEST_RECEIVED);
         socket.off(GeneralEvent.USER_LOGGED_IN);
         socket.off(GeneralEvent.USER_LOGGED_OUT);
+        socket.off(FriendEvent.REQUEST_ACCEPTED_FROM_RECIPIENT);
+        socket.off(FriendEvent.NEW_REQUEST_RECEIVED);
+        socket.off(FriendEvent.NEW_REQUEST_ACCEPTED);
       };
     }
   }, [isAuthenticated, dispatch]);

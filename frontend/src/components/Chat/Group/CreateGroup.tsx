@@ -68,8 +68,6 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
 
   useEffect(() => {
     if (data && data.data) {
-      console.log({ data: data.data });
-
       dispatch(setFriends(data.data));
     }
   }, [data, dispatch]);
@@ -80,8 +78,6 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
         data.users = friends
           .filter((friend) => data.users?.includes(friend.friend.nickname))
           .map((friend) => friend.friend.id);
-
-      console.log({ data });
 
       const res = await createGroupChat(data).unwrap();
 

@@ -1,6 +1,7 @@
 import {
   BaseChatroomType,
   BaseChatroomWithUserIdType,
+  PreviousAdminLeaveType,
 } from "./../../../models/groupChat";
 import { editGroupResponseType } from "../../../models/EditGroupSchema";
 import {
@@ -31,7 +32,7 @@ export interface GroupState {
   currentGroupChatroomId: string | undefined;
   currentChatroom: ChatroomGroupType | undefined;
   messages: MessageGroupType[];
-  role: string | undefined;
+  role: ChatRoleType | undefined;
   admin: UserGroupType | undefined;
   chatAdmin: UserGroupType[];
   regularUser: UserGroupType[];
@@ -103,9 +104,6 @@ export const GroupSlice = createSlice({
       state.groupChatroom.unshift(action.payload);
     },
     addNewChatroomUser: (state, action: PayloadAction<UserWithProfile>) => {
-      console.log("inside");
-      console.log(action.payload.status);
-
       state.regularUser.unshift({
         user: { ...action.payload, restrictedGroups: [] },
         role: ROLE.REGULAR_USER,
@@ -165,6 +163,50 @@ export const GroupSlice = createSlice({
         } else if (state.myId === prevAdminId) {
           state.role = ROLE.REGULAR_USER;
         }
+      }
+    },
+    previousAdminLeaved: (
+      state,
+      action: PayloadAction<PreviousAdminLeaveType>
+    ) => {
+      const { newAdminId, newAdminPreviousRole } = action.payload;
+
+      if (newAdminPreviousRole === ROLE.CHAT_ADMIN) {
+        const previousAdminIndex = state.chatAdmin.findIndex(
+          (user) => user.user.id === newAdminId
+        );
+        if (previousAdminIndex === -1) {
+          state.currentChatroom = undefined;
+          state.currentGroupChatroomId = undefined;
+          state.messages = [];
+          return;
+        }
+
+        if (state.myId === newAdminId) {
+          state.role = state.admin?.role;
+        }
+
+        const admin = state.chatAdmin.splice(previousAdminIndex, 1)[0];
+
+        state.admin = admin;
+      } else {
+        const previousAdminIndex = state.regularUser.findIndex(
+          (user) => user.user.id === newAdminId
+        );
+        if (previousAdminIndex === -1) {
+          state.currentChatroom = undefined;
+          state.currentGroupChatroomId = undefined;
+          state.messages = [];
+          return;
+        }
+
+        if (state.myId === newAdminId) {
+          state.role = state.admin?.role;
+        }
+
+        const admin = state.regularUser.splice(previousAdminIndex, 1)[0];
+
+        state.admin = admin;
       }
     },
     setNewRole: (state, action: PayloadAction<UserNewRoleResponseType>) => {
@@ -284,16 +326,12 @@ export const GroupSlice = createSlice({
           state.admin = undefined;
           state.role = undefined;
         } else if (data.restriction === Restriction.MUTED) {
-          (state.currentChatroom as ChatroomGroupType).restrictedUsers
-            .length === 0
-            ? (state.currentChatroom as ChatroomGroupType).restrictedUsers.push(
-                data
-              )
-            : ((state.currentChatroom as ChatroomGroupType).restrictedUsers[0] =
-                data);
+          if (state.currentChatroom) {
+            state.currentChatroom.restrictedUsers.length === 0
+              ? state.currentChatroom.restrictedUsers.push(data)
+              : (state.currentChatroom.restrictedUsers[0] = data);
+          }
         }
-
-        console.log({ banLife: data.banLife });
 
         if (!data.banLife) {
           state.groupChatroom[index].restrictedUsers.length === 0
@@ -310,7 +348,6 @@ export const GroupSlice = createSlice({
         (chatroom) => chatroom.id === chatroomId
       );
 
-      console.log({ index });
       if (index !== -1) {
         if (
           restriction !== Restriction.MUTED &&
@@ -321,8 +358,8 @@ export const GroupSlice = createSlice({
         }
         state.groupChatroom[index].messages = message;
         state.groupChatroom[index].restrictedUsers = [];
-        if (restriction === Restriction.MUTED)
-          (state.currentChatroom as ChatroomGroupType).restrictedUsers = [];
+        if (state.currentChatroom && restriction === Restriction.MUTED)
+          state.currentChatroom.restrictedUsers = [];
       }
     },
     unrestrictUser: (state, action: PayloadAction<UserProfileBanLifeType>) => {
@@ -560,6 +597,7 @@ export const {
   unrestrict,
   addNewChatroomUser,
   leaveChatroom,
+  previousAdminLeaved,
 } = GroupSlice.actions;
 
 export default GroupSlice.reducer;

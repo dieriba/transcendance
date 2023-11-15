@@ -71,7 +71,8 @@ export enum ChatEventGroup {
   BEEN_KICKED = `${groupChatroom}.been.kicked`,
   LEAVE_GROUP = `${groupChatroom}.leave.group`,
   USER_LEAVED = `${groupChatroom}.user.leaved`,
-
+  DELETE_GROUP_CHATROOM = `${groupChatroom}.delete.group`,
+  GROUP_CHATROOM_DELETED = `${groupChatroom}.chatroom.deleted`,
   ADD_USER = "chatroom.add.user",
   USER_ADDED = "chatroom.user.added",
 }

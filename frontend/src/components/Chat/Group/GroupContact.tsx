@@ -69,17 +69,30 @@ const GroupContact = () => {
                   { id, chatroomName, type, messages, restrictedUsers },
                   index
                 ) => {
+                  let date: Date | undefined = undefined;
                   const restrictedUser =
                     restrictedUsers.length === 0
                       ? undefined
                       : restrictedUsers[0];
+                  if (messages.length > 0)
+                    date = new Date(messages[0].createdAt);
                   return (
                     <GroupBox
                       chatroomId={id}
                       chatroomName={chatroomName}
                       type={type}
                       unread={0}
-                      time="11"
+                      time={
+                        date
+                          ? `${date
+                              .getHours()
+                              .toString()
+                              .padStart(2, "0")}:${date
+                              .getMinutes()
+                              .toString()
+                              .padStart(2, "0")}`
+                          : ""
+                      }
                       key={index}
                       msg={
                         restrictedUser

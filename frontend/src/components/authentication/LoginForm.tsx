@@ -65,8 +65,6 @@ const LoginForm = () => {
         }
       } else if (isErrorWithMessage(err)) {
         setErrMsg(err.message);
-
-        console.log(err);
       }
     }
   };

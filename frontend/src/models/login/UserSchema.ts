@@ -7,3 +7,9 @@ export const UserSchema = z.object({
 });
 
 export type BaseUserType = z.infer<typeof UserSchema>;
+
+export const BaseUserSchema = z.object({
+  id: z.string().min(1),
+});
+
+export type BaseUserTypeId = z.infer<typeof BaseUserSchema>;

@@ -43,6 +43,7 @@ export const MessageGroupSchema = z.object({
     .object({ id: z.string().min(1), nickname: z.string().min(1) })
     .merge(ProfileSchema),
   content: z.string().min(1),
+  createdAt: z.date(),
   messageTypes: z.string().min(1),
 });
 
@@ -239,3 +240,10 @@ export const RestrictUserFormSchema = z
   });
 
 export type RestrictUserType = z.infer<typeof RestrictUserFormSchema>;
+
+export const PreviousAdminLeaveSchema = z.object({
+  newAdminId: z.string().min(1),
+  newAdminPreviousRole: z.enum(roleType),
+});
+
+export type PreviousAdminLeaveType = z.infer<typeof PreviousAdminLeaveSchema>

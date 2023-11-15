@@ -222,6 +222,25 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
         });
       },
     }),
+    deleteGroup: builder.mutation<
+      SocketServerSucessResponse & { data: BaseChatroomType },
+      BaseChatroomType
+    >({
+      queryFn: (data) => {
+        connectSocket();
+        return new Promise((resolve) => {
+          socket.emit(ChatEventGroup.DELETE_GROUP_CHATROOM, data);
+
+          socket.on(GeneralEvent.SUCCESS, (data) => {
+            resolve({ data });
+          });
+
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
+            resolve({ error });
+          });
+        });
+      },
+    }),
     getAllGroup: builder.query<
       SocketServerSucessResponse & { data: ChatroomGroupType[] },
       void
@@ -301,4 +320,5 @@ export const {
   useUnrestrictUserMutation,
   useSetNewDieribaMutation,
   useSetNewRoleMutation,
+  useDeleteGroupMutation,
 } = GroupApiSlice;

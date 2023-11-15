@@ -106,7 +106,6 @@ const JoinGroup = ({ open, handleClose }: JoinGroupProps) => {
   const groups = useAppSelector(
     (state: RootState) => state.groups.joinableGroup
   );
-  console.log({ groups });
 
   if (isLoading) {
     return (

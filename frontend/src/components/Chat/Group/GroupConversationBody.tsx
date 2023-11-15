@@ -14,10 +14,30 @@ import { useEffect } from "react";
 
 import { useGetAllGroupMessagesQuery } from "../../../redux/features/groups/group.api.slice";
 import { RootState } from "../../../redux/store";
-import { ChatroomGroupType } from "../../../models/groupChat";
-import { setChatroomMessage } from "../../../redux/features/groups/group.slice";
-import { SocketServerErrorResponse } from "../../../services/type";
+import {
+  BaseChatroomWithUserIdType,
+  ChatroomGroupType,
+  PreviousAdminLeaveType,
+  UserGroupType,
+  UserNewRoleResponseType,
+} from "../../../models/groupChat";
+import {
+  addNewChatroomUser,
+  addRestrictedUser,
+  previousAdminLeaved,
+  removeUser,
+  setChatroomMessage,
+  setNewAdmin,
+  setNewRole,
+} from "../../../redux/features/groups/group.slice";
+import {
+  SocketServerErrorResponse,
+  SocketServerSucessResponse,
+} from "../../../services/type";
 import TextMessage from "./TextMessageGroup";
+import { connectSocket, socket } from "../../../utils/getSocket";
+import { ChatEventGroup } from "../../../../../shared/socket.event";
+import { UserWithProfile } from "../../../models/ChatContactSchema";
 export interface GroupConversationBodyProps {
   id: string;
   incoming: boolean;
@@ -39,7 +59,83 @@ const GroupConversationBody = () => {
   const dispatch = useAppDispatch();
   useEffect(() => {
     if (data?.data) {
+      connectSocket();
+
       dispatch(setChatroomMessage(data.data));
+
+      socket.on(
+        ChatEventGroup.PREVIOUS_ADMIN_LEAVED,
+        (
+          data: SocketServerSucessResponse & { data: PreviousAdminLeaveType }
+        ) => {
+          dispatch(previousAdminLeaved(data.data));
+        }
+      );
+
+      socket.on(
+        ChatEventGroup.NEW_ADMIN,
+        (
+          data: SocketServerSucessResponse & { data: UserNewRoleResponseType }
+        ) => {
+          dispatch(setNewAdmin(data.data));
+        }
+      );
+
+      socket.on(
+        ChatEventGroup.USER_LEAVED,
+        (
+          data: SocketServerSucessResponse & {
+            data: BaseChatroomWithUserIdType;
+          }
+        ) => {
+          dispatch(removeUser(data.data));
+        }
+      );
+
+      socket.on(
+        ChatEventGroup.USER_ROLE_CHANGED,
+        (data: { data: UserNewRoleResponseType }) => {
+          dispatch(setNewRole(data.data));
+        }
+      );
+      socket.on(
+        ChatEventGroup.USER_RESTRICTED,
+        (
+          data: SocketServerSucessResponse & {
+            data: UserGroupType;
+          }
+        ) => {
+          dispatch(addRestrictedUser(data.data));
+        }
+      );
+
+      socket.on(
+        ChatEventGroup.USER_KICKED,
+        (
+          data: SocketServerSucessResponse & {
+            data: BaseChatroomWithUserIdType;
+          }
+        ) => {
+          dispatch(removeUser(data.data));
+        }
+      );
+
+      socket.on(
+        ChatEventGroup.NEW_USER_CHATROOM,
+        (data: SocketServerSucessResponse & { data: UserWithProfile }) => {
+          dispatch(addNewChatroomUser(data.data));
+        }
+      );
+
+      return () => {
+        socket.off(ChatEventGroup.NEW_USER_CHATROOM);
+        socket.off(ChatEventGroup.USER_KICKED);
+        socket.off(ChatEventGroup.USER_RESTRICTED);
+        socket.off(ChatEventGroup.USER_LEAVED);
+        socket.off(ChatEventGroup.NEW_ADMIN);
+        socket.off(ChatEventGroup.USER_ROLE_CHANGED);
+        socket.off(ChatEventGroup.PREVIOUS_ADMIN_LEAVED);
+      };
     }
   }, [data, dispatch]);
   const messages = useAppSelector((state: RootState) => state.groups.messages);

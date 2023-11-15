@@ -7,8 +7,6 @@ const connectSocket = () => {
   const state: RootState = store.getState();
 
   if (!socket) {
-    console.log("entered inside condtion");
-    console.log("Before", { socket, token: state.user.access_token });
     socket = io("http://localhost:9000", {
       auth: {
         token: state.user.access_token as string,
@@ -16,7 +14,7 @@ const connectSocket = () => {
       transports: ["websocket", "polling"],
       withCredentials: true,
     });
-  } else console.log("not entered inside condtion");
+  }
 };
 
 export { socket, connectSocket };

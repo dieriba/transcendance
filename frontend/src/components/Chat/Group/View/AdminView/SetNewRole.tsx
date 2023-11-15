@@ -68,7 +68,6 @@ const SetNewRole = ({
         role,
       }).unwrap();
 
-      console.log({ response });
       dispatch(setNewRole(response.data));
       handleClose();
     } catch (error) {

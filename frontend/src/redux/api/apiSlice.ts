@@ -27,21 +27,18 @@ const baseQueryWithReauth: BaseQueryFn<
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
-  console.log({ args, api, extraOptions });
-  console.log("data");
 
   if (result.error && result.error.status === 401) {
-    // try to get a new token
+
     const refreshResult = await baseQuery("/auth/refresh", api, extraOptions);
     if (refreshResult.data) {
-      // store the new token
 
       api.dispatch(
         newAccessToken({
           access_token: (refreshResult.data as AccessTokenType).access_token,
         })
       );
-      // retry the initial query
+
       result = await baseQuery(args, api, extraOptions);
     } else {
       api.dispatch(logout());

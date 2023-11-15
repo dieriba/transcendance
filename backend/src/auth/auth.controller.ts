@@ -50,8 +50,8 @@ export class AuthController {
     res.cookie('refresh', refresh_token, {
       httpOnly: true,
       path: '/auth/refresh',
-      domain: process.env.FRONTEND_DOMAIN,
       maxAge: 7 * 60 * 60 * 24,
+      sameSite: 'strict',
     });
     return data;
   }
@@ -63,7 +63,7 @@ export class AuthController {
     @GetUser('userId') id: string,
     @Res({ passthrough: true }) res: Response,
   ) {
-    res.cookie('refresh', '');
+    res.cookie('refresh', '', { sameSite: 'strict' });
     return this.authService.logout(id);
   }
 
@@ -77,8 +77,8 @@ export class AuthController {
     res.cookie('refresh', refresh_token, {
       httpOnly: true,
       path: '/auth/refresh',
-      domain: process.env.FRONTEND_DOMAIN,
       maxAge: 7 * 60 * 60 * 24,
+      sameSite: 'strict',
     });
     return data;
   }
@@ -100,8 +100,8 @@ export class AuthController {
     res.cookie('refresh', refresh_token, {
       httpOnly: true,
       path: '/auth/refresh',
-      domain: process.env.FRONTEND_DOMAIN,
       maxAge: 7 * 60 * 60 * 24,
+      sameSite: 'strict',
     });
     return data;
   }

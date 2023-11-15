@@ -88,7 +88,7 @@ const FriendRequestReceived = () => {
       return () => {
         socket.off(FriendEvent.ADD_NEW_REQUEST);
         socket.off(FriendEvent.CANCEL_REQUEST);
-        socket.off(FriendEvent.REQUEST_ACCEPTED);
+        socket.off(FriendEvent.REQUEST_ACCEPTED_FROM_RECIPIENT);
       };
     }
   }, [data, dispatch]);

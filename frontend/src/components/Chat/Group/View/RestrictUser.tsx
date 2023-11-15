@@ -88,7 +88,6 @@ const RestrictUser = ({
       data.id = id;
       data.chatroomId = chatroomId;
       const res = await restrictUser(data).unwrap();
-      console.log({ res });
 
       dispatch(addRestrictedUser(res.data));
       setMessage(res.message);
@@ -246,9 +245,6 @@ const RestrictUser = ({
                           error={!!error}
                           onChange={onChange}
                           value={value}
-                          onKeyDown={(
-                            event: React.KeyboardEvent<HTMLDivElement>
-                          ) => console.log(event)}
                           type="number"
                           sx={{
                             "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":

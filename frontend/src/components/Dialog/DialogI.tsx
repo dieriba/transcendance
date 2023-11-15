@@ -32,6 +32,8 @@ const DialogI = ({
   sx,
   maxWidth,
 }: DialogIProps) => {
+  console.log({ maxWidth });
+
   return (
     <Dialog
       open={open}
@@ -40,7 +42,7 @@ const DialogI = ({
       onClose={handleClose}
       aria-describedby="alert-dialog-slide-description"
       fullWidth
-      maxWidth={maxWidth ? maxWidth : "xs"}
+      maxWidth={maxWidth}
       sx={sx}
     >
       {children}

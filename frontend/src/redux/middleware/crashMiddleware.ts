@@ -1,7 +1,6 @@
 import { Middleware } from "redux";
 
 const crashMiddleware: Middleware = () => (next) => (action) => {
-  console.log("crashMiddleware");
   try {
     return next(action);
   } catch (error) {

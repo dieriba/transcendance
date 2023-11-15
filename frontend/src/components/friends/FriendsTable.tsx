@@ -26,7 +26,7 @@ import { BaseFriendType, FriendType } from "../../models/FriendsSchema";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { useEffect } from "react";
 import { connectSocket, socket } from "../../utils/getSocket";
-import { FriendEvent, GeneralEvent } from "../../../../shared/socket.event";
+import { FriendEvent } from "../../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../services/type";
 import {
   addFriend,
@@ -105,8 +105,7 @@ const FriendsTable = () => {
 
   const handleDeleteFriend = async (data: BaseFriendType) => {
     try {
-      const res = await deleteFriendMutation(data).unwrap();
-      console.log({ res });
+      await deleteFriendMutation(data).unwrap();
     } catch (error) {
       console.log(error);
     }
@@ -114,8 +113,7 @@ const FriendsTable = () => {
 
   const handleBlock = async (data: BaseFriendType) => {
     try {
-      const res = await blockUser(data).unwrap();
-      console.log({ res });
+      await blockUser(data).unwrap();
     } catch (error) {
       console.log(error);
     }

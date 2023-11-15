@@ -13,16 +13,15 @@ import {
   addNewChatroom,
   deleteChatroom,
   leaveChatroom,
-  removeUser,
   restrict,
   setGroupChatroom,
   unrestrict,
+  unrestrictUser,
   updateChatroom,
   updateGroupChatroomListAndMessage,
 } from "../../redux/features/groups/group.slice";
 import {
   BaseChatroomType,
-  BaseChatroomWithUserIdType,
   ChatroomGroupType,
   MessageGroupType,
   RestrictedUserResponseType,
@@ -32,6 +31,7 @@ import GroupContact from "../../components/Chat/Group/GroupContact";
 import GroupConversation from "../../components/Chat/Group/GroupConversation";
 import { RootState } from "../../redux/store";
 import { editGroupResponseType } from "../../models/EditGroupSchema";
+import { UserProfileBanLifeType } from "../../models/ChatContactSchema";
 
 const GroupChatPage = () => {
   const theme = useTheme();
@@ -77,6 +77,17 @@ const GroupChatPage = () => {
       );
 
       socket.on(
+        ChatEventGroup.USER_UNRESTRICTED,
+        (
+          data: SocketServerSucessResponse & {
+            data: { user: UserProfileBanLifeType };
+          }
+        ) => {
+          dispatch(unrestrictUser(data.data.user));
+        }
+      );
+
+      socket.on(
         ChatEventPrivateRoom.CLEAR_CHATROOM,
         (
           data: SocketServerSucessResponse & { data: { chatroomId: string } }
@@ -100,22 +111,26 @@ const GroupChatPage = () => {
       );
 
       socket.on(
-        ChatEventGroup.USER_KICKED,
-        (data: BaseChatroomWithUserIdType) => {
-          dispatch(removeUser(data));
+        ChatEventGroup.BEEN_KICKED,
+        (data: SocketServerSucessResponse & { data: BaseChatroomType }) => {
+          dispatch(leaveChatroom(data.data));
         }
       );
 
-      socket.on(ChatEventGroup.BEEN_KICKED, (data: BaseChatroomType) => {
-        dispatch(leaveChatroom(data));
-      });
+      socket.on(
+        ChatEventGroup.GROUP_CHATROOM_DELETED,
+        (data: SocketServerSucessResponse & { data: BaseChatroomType }) => {
+          dispatch(leaveChatroom(data.data));
+        }
+      );
     }
     return () => {
+      socket.off(ChatEventGroup.USER_UNRESTRICTED);
+      socket.off(ChatEventGroup.GROUP_CHATROOM_DELETED);
       socket.off(ChatEventGroup.BEEN_KICKED);
-      socket.off(ChatEventGroup.USER_KICKED);
       socket.off(ChatEventGroup.NEW_CHATROOM);
       socket.off(ChatEventGroup.CLEAR_CHATROOM);
-      socket.off(ChatEventGroup.EDIT_GROUP_CHATROOM);
+      socket.off(ChatEventGroup.UPDATED_GROUP_CHATROOM);
       socket.off(ChatEventGroup.USER_UNBANNED_UNKICKED_UNMUTED);
       socket.off(ChatEventGroup.USER_BANNED_MUTED_KICKED_RESTRICTION);
       socket.off(ChatEventGroup.RECEIVE_GROUP_MESSAGE);

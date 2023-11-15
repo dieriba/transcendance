@@ -71,6 +71,7 @@ export class ChatService {
             userId: true,
             content: true,
             messageTypes: true,
+            createdAt: true,
           },
         },
       },

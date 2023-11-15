@@ -44,10 +44,6 @@ const GroupConversationFooter = () => {
     (currentChatroom as ChatroomGroupType).restrictedUsers[0].restriction ===
       Restriction.MUTED;
 
-  console.log({
-    length: (currentChatroom as ChatroomGroupType).restrictedUsers.length,
-  });
-
   const disabled =
     (currentChatroom as ChatroomGroupType).restrictedUsers.length > 0 &&
     (currentChatroom as ChatroomGroupType).restrictedUsers[0].restriction ===
