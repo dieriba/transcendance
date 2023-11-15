@@ -14,6 +14,7 @@ interface UserActionProps {
   nickname: string;
   me: boolean;
   id: string;
+  handleKickUser: (data: { id: string; nickname: string }) => void;
   handleNewAdmin: (data: { id: string; nickname: string }) => void;
   handleRestriction: (data: { id: string; nickname: string }) => void;
   handleChangeRole: (data: {
@@ -31,6 +32,7 @@ const UserAction = ({
   handleChangeRole,
   handleNewAdmin,
   handleRestriction,
+  handleKickUser,
 }: UserActionProps) => {
   if (role === "DIERIBA") {
     return (
@@ -69,7 +71,7 @@ const UserAction = ({
           </IconButton>
         </Tooltip>
         <Tooltip placement="top" title={`kick ${nickname}`}>
-          <IconButton>
+          <IconButton onClick={() => handleKickUser({ id, nickname })}>
             <X size={18} />
           </IconButton>
         </Tooltip>

@@ -1,3 +1,7 @@
+import {
+  BaseChatroomType,
+  BaseChatroomWithUserIdType,
+} from "./../../../models/groupChat";
 import { editGroupResponseType } from "../../../models/EditGroupSchema";
 import {
   GroupMembertype,
@@ -350,6 +354,58 @@ export const GroupSlice = createSlice({
           role: ROLE.REGULAR_USER,
         });
     },
+    removeUser: (state, action: PayloadAction<BaseChatroomWithUserIdType>) => {
+      const { id, chatroomId, role } = action.payload;
+
+      if (chatroomId !== state.currentGroupChatroomId) return;
+
+      if (role === ROLE.CHAT_ADMIN) {
+        const index = state.chatAdmin.findIndex((user) => user.user.id === id);
+
+        if (index !== -1) {
+          state.chatAdmin.splice(index, 1);
+        }
+      } else {
+        const index = state.regularUser.findIndex(
+          (user) => user.user.id === id
+        );
+
+        if (index !== -1) {
+          state.regularUser.splice(index, 1);
+        }
+      }
+
+      if (state.role !== ROLE.REGULAR_USER) {
+        const index = state.restrictedUser.findIndex(
+          (user) => user.user.id === id
+        );
+
+        if (index !== -1) {
+          state.restrictedUser.splice(index, 1);
+        }
+      }
+    },
+    leaveChatroom: (state, action: PayloadAction<BaseChatroomType>) => {
+      const { chatroomId } = action.payload;
+
+      const index = state.groupChatroom.findIndex(
+        (chatroom) => chatroom.id === chatroomId
+      );
+
+      if (index !== -1) {
+        state.groupChatroom.splice(index, 1);
+
+        if (state.currentGroupChatroomId !== chatroomId) return;
+
+        state.currentChatroom = undefined;
+        state.currentGroupChatroomId = undefined;
+        state.role = undefined;
+        state.messages = [];
+        state.chatAdmin = [];
+        state.regularUser = [];
+        state.restrictedUser = [];
+      }
+    },
     addNewGroupMember: (
       state,
       action: PayloadAction<{
@@ -487,6 +543,7 @@ export const {
   addJoinableGroup,
   setJoinableGroup,
   deleteJoinableGroup,
+  removeUser,
   setOfflineUser,
   setOnlineUser,
   addNewChatroom,
@@ -502,6 +559,7 @@ export const {
   restrict,
   unrestrict,
   addNewChatroomUser,
+  leaveChatroom,
 } = GroupSlice.actions;
 
 export default GroupSlice.reducer;

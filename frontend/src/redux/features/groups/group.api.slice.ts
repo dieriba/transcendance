@@ -1,4 +1,6 @@
 import {
+  BaseChatroomType,
+  BaseChatroomWithUserIdType,
   RestrictUserType,
   SetNewRoleType,
   UserGroupType,
@@ -165,12 +167,50 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
     }),
     unrestrictUser: builder.mutation<
       SocketServerSucessResponse & { data: UserProfileBanLifeType },
-      { chatroomId: string; id: string }
+      BaseChatroomWithUserIdType
     >({
       queryFn: (data) => {
         connectSocket();
         return new Promise((resolve) => {
           socket.emit(ChatEventGroup.UNRESTRICT_USER, data);
+
+          socket.on(GeneralEvent.SUCCESS, (data) => {
+            resolve({ data });
+          });
+
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
+            resolve({ error });
+          });
+        });
+      },
+    }),
+    kickUser: builder.mutation<
+      SocketServerSucessResponse & { data: BaseChatroomWithUserIdType },
+      BaseChatroomWithUserIdType
+    >({
+      queryFn: (data) => {
+        connectSocket();
+        return new Promise((resolve) => {
+          socket.emit(ChatEventGroup.KICK_USER, data);
+
+          socket.on(GeneralEvent.SUCCESS, (data) => {
+            resolve({ data });
+          });
+
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
+            resolve({ error });
+          });
+        });
+      },
+    }),
+    leaveGroup: builder.mutation<
+      SocketServerSucessResponse & { data: BaseChatroomWithUserIdType },
+      BaseChatroomType
+    >({
+      queryFn: (data) => {
+        connectSocket();
+        return new Promise((resolve) => {
+          socket.emit(ChatEventGroup.LEAVE_GROUP, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
             resolve({ data });
@@ -254,6 +294,8 @@ export const {
   useGetAllJoinableGroupQuery,
   useJoinGroupMutation,
   useGetAllGroupUserQuery,
+  useLeaveGroupMutation,
+  useKickUserMutation,
   useRestrictUserMutation,
   useEditGroupMutation,
   useUnrestrictUserMutation,

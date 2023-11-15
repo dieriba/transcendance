@@ -27,6 +27,15 @@ export const BaseChatroomSchema = z.object({
 
 export type BaseChatroomType = z.infer<typeof BaseChatroomSchema>;
 
+export const BaseChatroomWithUserIdSchema = BaseChatroomSchema.extend({
+  id: z.string().min(1),
+  role: z.enum(roleType).optional(),
+});
+
+export type BaseChatroomWithUserIdType = z.infer<
+  typeof BaseChatroomWithUserIdSchema
+>;
+
 export const MessageGroupSchema = z.object({
   id: z.string().min(1),
   chatroomId: z.string().min(1),

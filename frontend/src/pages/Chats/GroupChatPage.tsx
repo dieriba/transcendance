@@ -12,6 +12,8 @@ import { useGetAllGroupQuery } from "../../redux/features/groups/group.api.slice
 import {
   addNewChatroom,
   deleteChatroom,
+  leaveChatroom,
+  removeUser,
   restrict,
   setGroupChatroom,
   unrestrict,
@@ -19,6 +21,8 @@ import {
   updateGroupChatroomListAndMessage,
 } from "../../redux/features/groups/group.slice";
 import {
+  BaseChatroomType,
+  BaseChatroomWithUserIdType,
   ChatroomGroupType,
   MessageGroupType,
   RestrictedUserResponseType,
@@ -94,8 +98,21 @@ const GroupChatPage = () => {
           dispatch(updateGroupChatroomListAndMessage(data.data));
         }
       );
+
+      socket.on(
+        ChatEventGroup.USER_KICKED,
+        (data: BaseChatroomWithUserIdType) => {
+          dispatch(removeUser(data));
+        }
+      );
+
+      socket.on(ChatEventGroup.BEEN_KICKED, (data: BaseChatroomType) => {
+        dispatch(leaveChatroom(data));
+      });
     }
     return () => {
+      socket.off(ChatEventGroup.BEEN_KICKED);
+      socket.off(ChatEventGroup.USER_KICKED);
       socket.off(ChatEventGroup.NEW_CHATROOM);
       socket.off(ChatEventGroup.CLEAR_CHATROOM);
       socket.off(ChatEventGroup.EDIT_GROUP_CHATROOM);

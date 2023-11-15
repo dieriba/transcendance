@@ -94,7 +94,6 @@ const UnRestrictUser = ({
       <Typography>An error has occured</Typography>
     </Stack>;
   } else {
-    console.log({ restrictedUsers });
     return (
       <>
         <DialogI maxWidth="md" open={open} handleClose={handleClose}>

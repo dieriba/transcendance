@@ -15,6 +15,7 @@ interface ModeratorActionProps {
   nickname: string;
   me: boolean;
   id: string;
+  handleKickUser: (data: { id: string; nickname: string }) => void;
   handleUnrestriction: ({ nickname }: { nickname: string }) => void;
   handleRestriction: (data: { id: string; nickname: string }) => void;
   handleNewAdmin: (data: { id: string; nickname: string }) => void;
@@ -31,6 +32,7 @@ const ModeratorAction = ({
   id,
   me,
   handleChangeRole,
+  handleKickUser,
   handleNewAdmin,
   handleRestriction,
   handleUnrestriction,
@@ -68,7 +70,7 @@ const ModeratorAction = ({
           </IconButton>
         </Tooltip>
         <Tooltip placement="top" title={`kick ${nickname}`}>
-          <IconButton>
+          <IconButton onClick={() => handleKickUser({ id, nickname })}>
             <X size={20} />
           </IconButton>
         </Tooltip>

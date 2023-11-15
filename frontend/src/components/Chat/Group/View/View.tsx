@@ -35,6 +35,7 @@ import { SocketServerSucessResponse } from "../../../../services/type";
 import UnRestrictUser from "./UnrestrictUser";
 import { BaseFriendType } from "../../../../models/FriendsSchema";
 import { UserWithProfile } from "../../../../models/ChatContactSchema";
+import KickUser from "./KickUser";
 
 const View = () => {
   const {
@@ -114,11 +115,13 @@ const View = () => {
     role: boolean;
     restriction: boolean;
     unrestriction: boolean;
+    kick: boolean;
   }>({
     admin: false,
     role: false,
     restriction: false,
     unrestriction: false,
+    kick: false,
   });
 
   const handleNewAdmin = ({
@@ -167,6 +170,11 @@ const View = () => {
     setOpen((prev) => {
       return { ...prev, unrestriction: true };
     });
+  };
+
+  const handleKickUser = (data: { id: string; nickname: string }) => {
+    setUserData((prev) => ({ ...prev, ...data }));
+    setOpen((prev) => ({ ...prev, kick: true }));
   };
 
   if (isLoading) {
@@ -230,6 +238,7 @@ const View = () => {
                       avatar={profile?.avatar}
                     >
                       <ModeratorAction
+                        handleKickUser={handleKickUser}
                         handleUnrestriction={handleUnrestriction}
                         handleRestriction={handleRestriction}
                         handleChangeRole={handleChangeRole}
@@ -272,6 +281,7 @@ const View = () => {
                       }
                     >
                       <UserAction
+                        handleKickUser={handleKickUser}
                         handleRestriction={handleRestriction}
                         handleChangeRole={handleChangeRole}
                         handleNewAdmin={handleNewAdmin}
@@ -336,6 +346,15 @@ const View = () => {
                 return { ...prev, unrestriction: false };
               })
             }
+            nickname={userData.nickname}
+          />
+        )}
+        {open.kick && (
+          <KickUser
+            open={open.kick}
+            chatroomId={currentGroupChatroomId as string}
+            handleClose={() => setOpen((prev) => ({ ...prev, kick: false }))}
+            id={userData.id}
             nickname={userData.nickname}
           />
         )}
