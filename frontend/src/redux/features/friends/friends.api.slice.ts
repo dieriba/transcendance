@@ -34,7 +34,7 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
 
           socket.on(
             GeneralEvent.SUCCESS,
-            (data: SocketServerSucessResponse) => {
+            (data: SocketServerSucessResponse & { data: unknown }) => {
               resolve({ data });
             }
           );

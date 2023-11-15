@@ -59,13 +59,15 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
     setOpenSnack(false);
   };
 
-  const { data, isLoading, isError } = useGetAllFriendsQuery();
+  const { data, isLoading, isError } = useGetAllFriendsQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
 
   const dispatch = useAppDispatch();
 
   useEffect(() => {
     if (data && data.data) {
-      console.log(data.data);
+      console.log({ data: data.data });
 
       dispatch(setFriends(data.data));
     }

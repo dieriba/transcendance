@@ -10,10 +10,7 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import DialogI from "../../../Dialog/DialogI";
-import {
-  SocketServerErrorResponse,
-  SocketServerSucessResponse,
-} from "../../../../services/type";
+import { SocketServerErrorResponse } from "../../../../services/type";
 import { ChatRoleType } from "../../../../models/type-enum/typesEnum";
 
 import {
@@ -22,14 +19,9 @@ import {
 } from "../../../../redux/features/groups/group.api.slice";
 import { useAppDispatch, useAppSelector } from "../../../../redux/hooks";
 import {
-  addRestrictedUser,
   setRestrictedUser,
   unrestrictUser,
 } from "../../../../redux/features/groups/group.slice";
-import { connectSocket, socket } from "../../../../utils/getSocket";
-import { ChatEventGroup } from "../../../../../../shared/socket.event";
-import { UserProfileBanLifeType } from "../../../../models/ChatContactSchema";
-import { UserGroupType } from "../../../../models/groupChat";
 import { RootState } from "../../../../redux/store";
 interface UnrestrictUserProps {
   open: boolean;
@@ -70,29 +62,6 @@ const UnRestrictUser = ({
   useEffect(() => {
     if (data?.data) {
       dispatch(setRestrictedUser(data.data));
-      connectSocket();
-      socket.on(
-        ChatEventGroup.USER_UNRESTRICTED,
-        (
-          data: SocketServerSucessResponse & { data: UserProfileBanLifeType }
-        ) => {
-          dispatch(unrestrictUser(data.data));
-        }
-      );
-
-      socket.on(
-        ChatEventGroup.USER_RESTRICTED,
-        (data: SocketServerSucessResponse & { data: UserGroupType }) => {
-          console.log({ data });
-
-          dispatch(addRestrictedUser(data.data));
-        }
-      );
-
-      return () => {
-        socket.off(ChatEventGroup.USER_UNRESTRICTED);
-        socket.off(ChatEventGroup.USER_RESTRICTED);
-      };
     }
   }, [data, dispatch]);
 

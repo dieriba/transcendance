@@ -83,8 +83,6 @@ export class ChatService {
   }
 
   async getJoinableChatroom(userId: string) {
-    console.log({ userId });
-
     const joinableChatroom = await this.prismaService.chatroom.findMany({
       where: {
         type: {
@@ -211,10 +209,6 @@ export class ChatService {
       );
     });
 
-    this.logger.log({
-      user: userRole === ROLE.REGULAR_USER ? users : chatroom.users,
-    });
-
     return {
       users,
       role: userRole,
@@ -263,19 +257,15 @@ export class ChatService {
       },
     });
 
-    console.log({ restrictedUser });
-
     return restrictedUser;
   }
 
   async addNewUserToChatroom(userId: string, chatRoomData: ChatroomDataDto) {
     const { users, chatroomId } = chatRoomData;
-    this.logger.log({ chatroomId, users });
 
     const existingUserAndNonBlocked =
       await this.userService.getExistingUserFriend(userId, users, UserData);
 
-    this.logger.log({ existingUserAndNonBlocked });
     const newUsers = await this.prismaService.$transaction(
       existingUserAndNonBlocked.map((userId) =>
         this.chatroomUserService.createNewChatroomUser(userId, chatroomId),

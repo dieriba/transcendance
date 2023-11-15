@@ -35,8 +35,8 @@ const GroupChatPage = () => {
   const { data, isLoading, isError } = useGetAllGroupQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
-  const currentGroupChatroomId = useAppSelector(
-    (state) => state.groups.currentGroupChatroomId
+  const { currentGroupChatroomId, groupChatroom } = useAppSelector(
+    (state) => state.groups
   );
   const { open } = useAppSelector((state: RootState) => state.sidebar);
   useEffect(() => {
@@ -149,7 +149,11 @@ const GroupChatPage = () => {
               justifyContent="center"
               height="100%"
             >
-              <Typography>Select a group chat !</Typography>
+              <Typography>
+                {groupChatroom.length === 0
+                  ? "Join a chatroom or create one!"
+                  : "Select a group chat !"}
+              </Typography>
             </Stack>
           </Box>
         ) : (

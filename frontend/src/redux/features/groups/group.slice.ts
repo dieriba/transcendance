@@ -93,10 +93,6 @@ export const GroupSlice = createSlice({
         state.currentChatroom = state.groupChatroom?.find(
           (chatroom) => chatroom.id === action.payload
         );
-        state.role = undefined;
-        state.admin = undefined;
-        state.chatAdmin = [];
-        state.regularUser = [];
       }
     },
     addNewChatroom: (state, action: PayloadAction<ChatroomGroupType>) => {

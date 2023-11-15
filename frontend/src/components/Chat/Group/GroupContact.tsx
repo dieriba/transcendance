@@ -17,7 +17,6 @@ const GroupContact = () => {
     (state: RootState) => state.groups.groupChatroom
   );
   const myId = useAppSelector((state) => state.user.user?.id);
-  console.log({ groups });
 
   return (
     <>

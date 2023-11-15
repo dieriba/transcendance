@@ -61,6 +61,8 @@ const View = () => {
             data: UserGroupType;
           }
         ) => {
+          console.log({ data: data.data });
+
           dispatch(addRestrictedUser(data.data));
         }
       );

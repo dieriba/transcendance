@@ -398,8 +398,6 @@ export class GatewayGateway {
       message: '',
       data: { id, role: chatroomUser.role },
     });
-
-    console.log('MDR');
   }
 
   @SubscribeMessage(ChatEventGroup.KICK_USER)
@@ -2168,19 +2166,17 @@ export class GatewayGateway {
     action: GeneralEvent.JOIN | GeneralEvent.LEAVE,
     room: string,
   ) {
-    const rooms = this.server.of('/').adapter.rooms;
-    const socketIds = rooms.get(userId);
-    if (action === GeneralEvent.LEAVE) {
-      if (socketIds) {
-        socketIds.forEach((socket) => {
-          this.server.sockets.sockets.get(socket).leave(room);
-        });
-      }
-      return;
-    }
+    const socketIds = this.server.of('/').adapter.rooms.get(userId);
     if (socketIds) {
+      if (action === GeneralEvent.LEAVE) {
+        socketIds.forEach((socket) => {
+          this.logger.log(`Leaving room ${room}`);
+          this.server.sockets.sockets.get(socket)?.leave(room);
+        });
+        return;
+      }
       socketIds.forEach((socket) => {
-        this.server.sockets.sockets.get(socket).join(room);
+        this.server.sockets.sockets.get(socket)?.join(room);
       });
     }
   }
