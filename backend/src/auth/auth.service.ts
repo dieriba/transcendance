@@ -67,6 +67,7 @@ export class AuthService {
         nickname: string;
         isTwoFaEnabled: boolean;
         allowForeignToDm: boolean;
+        profile: Partial<Profile>;
       };
     } & Tokens
   > {
@@ -76,13 +77,14 @@ export class AuthService {
       );
       const tokens = await this.jwtTokenService.getTokens(id, email, nickname);
 
-      const { allowForeignToDm } = await this.userService.updateUserById(id, {
-        status: STATUS.ONLINE,
-        hashedRefreshToken: await this.argon2.hash(tokens.refresh_token),
-      });
+      const { allowForeignToDm, profile } =
+        await this.userService.updateUserById(id, {
+          status: STATUS.ONLINE,
+          hashedRefreshToken: await this.argon2.hash(tokens.refresh_token),
+        });
 
       return {
-        user: { id, nickname, isTwoFaEnabled, allowForeignToDm },
+        user: { id, nickname, isTwoFaEnabled, allowForeignToDm, profile },
         ...tokens,
       };
     } catch (error) {
@@ -113,6 +115,7 @@ export class AuthService {
         nickname: string;
         isTwoFaEnabled: boolean;
         allowForeignToDm: boolean;
+        profile: Partial<Profile>;
       };
     } & Tokens
   > {
@@ -156,6 +159,7 @@ export class AuthService {
     const profile: Profile = {
       firstname: data.first_name,
       lastname: data.last_name,
+      avatar: undefined,
     };
 
     try {
@@ -174,6 +178,7 @@ export class AuthService {
           nickname,
           isTwoFaEnabled: twoFa?.otpEnabled ? twoFa.otpEnabled : false,
           allowForeignToDm,
+          profile,
         },
         ...tokens,
       };

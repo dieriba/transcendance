@@ -16,7 +16,7 @@ import { Stack } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import RHFTextField from "../controlled-components/RHFTextField";
 import CustomAlert from "../Alert/CustomAlert";
-import { useRegisterMutation } from "../../redux/features/auth/auth.api.slice";
+import { useRegisterMutation } from "../../redux/features/user/user.api.slice";
 import {
   isErrorWithMessage,
   isFetchBaseQueryError,

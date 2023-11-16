@@ -36,7 +36,7 @@ import {
 import TextMessage from "./TextMessageGroup";
 import { connectSocket, socket } from "../../../utils/getSocket";
 import { ChatEventGroup } from "../../../../../shared/socket.event";
-import { UserWithProfile } from "../../../models/ChatContactSchema";
+import { UserWithProfileFriendsType } from "../../../models/ChatContactSchema";
 export interface GroupConversationBodyProps {
   id: string;
   incoming: boolean;
@@ -122,7 +122,11 @@ const GroupConversationBody = () => {
 
       socket.on(
         ChatEventGroup.NEW_USER_CHATROOM,
-        (data: SocketServerSucessResponse & { data: UserWithProfile }) => {
+        (
+          data: SocketServerSucessResponse & {
+            data: UserWithProfileFriendsType;
+          }
+        ) => {
           dispatch(addNewChatroomUser(data.data));
         }
       );
@@ -241,7 +245,9 @@ const GroupConversationBody = () => {
                         id={id}
                         content={content}
                         incoming={myId === id}
-                        avatar={user.profile.avatar}
+                        avatar={
+                          user.profile?.avatar ? user.profile.avatar : undefined
+                        }
                       />
                     }
                   />

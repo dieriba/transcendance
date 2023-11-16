@@ -16,13 +16,13 @@ import { useState } from "react";
 import { Eye, EyeSlash } from "phosphor-react";
 import CustomTextField from "../CustomTextField/CustomTextField";
 import RHFTextField from "../controlled-components/RHFTextField";
-import { useLoginMutation } from "../../redux/features/auth/auth.api.slice";
+import { useLoginMutation } from "../../redux/features/user/user.api.slice";
 import {
   isFetchBaseQueryError,
   isErrorWithMessage,
 } from "../../services/helpers";
 import { useAppDispatch } from "../../redux/hooks";
-import { authenticateUser } from "../../redux/features/auth/auth.slice";
+import { authenticateUser } from "../../redux/features/user/user.slice";
 import { ResponseLoginSchema } from "../../models/login/ResponseLogin";
 import { useNavigate } from "react-router-dom";
 import { PATH_APP } from "../../routes/paths";

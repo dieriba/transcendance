@@ -53,15 +53,29 @@ export class LibService {
   }
 
   generateFilename(file: Express.Multer.File) {
-    return `${Date.now()}.${extname(file.originalname)}`;
+    return `${Date.now()}${extname(file.originalname)}`;
+  }
+
+  checkFolderFileExistence(path: string): boolean {
+    console.log({ path });
+
+    if (fs.existsSync(path)) return true;
+
+    return false;
+  }
+
+  deleteFile(path: string) {
+    fs.unlink(path, () => {});
   }
 
   createFile(directory: string, file: Express.Multer.File): string | undefined {
     if (!file) return undefined;
 
-    if (!fs.existsSync(directory)) fs.mkdirSync(directory);
+    if (!this.checkFolderFileExistence(directory)) fs.mkdirSync(directory);
 
-    const uploadPath = directory + '/' + this.generateFilename(file);
+    const filename = this.generateFilename(file);
+
+    const uploadPath = directory + '/' + filename;
 
     fs.writeFile(uploadPath, file.buffer, (err) => {
       if (err)
@@ -71,6 +85,6 @@ export class LibService {
         );
     });
 
-    return uploadPath;
+    return filename;
   }
 }

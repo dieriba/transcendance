@@ -4,7 +4,6 @@ import { combineReducers } from "@reduxjs/toolkit";
 import persistReducer from "redux-persist/es/persistReducer";
 import storage from "redux-persist/lib/storage";
 import { SidebarSlice } from "./features/sidebar.slices";
-import { AuthSlice } from "./features/auth/auth.slice";
 import { apiSlice } from "./api/apiSlice";
 import crashMiddleware from "./middleware/crashMiddleware";
 import { ChatSlice } from "./features/chat/chat.slice";
@@ -12,6 +11,7 @@ import { LOGOUT } from "./type";
 import { FriendsSlice } from "./features/friends/friends.slice";
 import { GroupSlice } from "./features/groups/group.slice";
 import AppSlice from "./features/app/app.slice";
+import { UserSlice } from "./features/user/user.slice";
 
 const persistConfig = {
   keyPrefix: "redux-",
@@ -22,7 +22,7 @@ const persistConfig = {
 const reducers = combineReducers({
   app: AppSlice.reducer,
   sidebar: SidebarSlice.reducer,
-  user: AuthSlice.reducer,
+  user: UserSlice.reducer,
   chat: ChatSlice.reducer,
   friends: FriendsSlice.reducer,
   groups: GroupSlice.reducer,

@@ -59,7 +59,7 @@ const ChatContact = () => {
                           .padStart(2, "0")}`
                       : ""
                   }
-                  avatar={user.profile?.avatar}
+                  avatar={user.profile?.avatar ? user.profile?.avatar : undefined}
                   online={user.status === "ONLINE" ? true : false}
                   username={users[0].user.nickname}
                   msg={

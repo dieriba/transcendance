@@ -137,7 +137,7 @@ const ChatConversationBody = () => {
                     children={
                       <TextMessage
                         nickname={user.nickname}
-                        avatar={user.profile.avatar}
+                        avatar={user.profile?.avatar ? user.profile?.avatar : undefined}
                         id={id}
                         content={content}
                         incoming={myId === id}

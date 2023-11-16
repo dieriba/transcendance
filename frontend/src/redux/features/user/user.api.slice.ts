@@ -4,7 +4,7 @@ import { ResponseLoginType } from "../../../models/login/ResponseLogin";
 import { BaseServerResponse } from "../../../services/type";
 import { apiSlice } from "../../api/apiSlice";
 
-export const authApiSlice = apiSlice.injectEndpoints({
+export const UserApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation<
       BaseServerResponse & { data: ResponseLoginType },
@@ -48,4 +48,4 @@ export const {
   useRegisterMutation,
   useOauthQuery,
   useLogoutMutation,
-} = authApiSlice;
+} = UserApiSlice;

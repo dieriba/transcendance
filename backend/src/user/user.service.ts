@@ -101,10 +101,19 @@ export class UserService {
     });
   }
 
-  async updateUserById(id: string, data: optionalDataUser) {
+  async updateUserById(id: string, data: Partial<User>) {
     return await this.prismaService.user.update({
       where: { id },
       data,
+      include: {
+        profile: {
+          select: {
+            avatar: true,
+            lastname: true,
+            firstname: true,
+          },
+        },
+      },
     });
   }
 

@@ -6,6 +6,11 @@ export interface User {
   id: string | undefined;
   nickname: string | undefined;
   allowForeignToDm: boolean;
+  profile: {
+    avatar?: string | undefined | null;
+    lastname: string;
+    firstname: string;
+  };
 }
 
 export interface UserInfo {
@@ -18,12 +23,18 @@ const initialState: UserInfo = {
     id: undefined,
     nickname: undefined,
     allowForeignToDm: false,
+    profile: {
+      avatar: undefined,
+      lastname: "",
+      firstname: "",
+    },
   },
+
   access_token: undefined,
 };
 
-export const AuthSlice = createSlice({
-  name: "auth",
+export const UserSlice = createSlice({
+  name: "user",
   initialState,
   reducers: {
     authenticateUser: (state, action: PayloadAction<ResponseLoginType>) => {
@@ -41,5 +52,5 @@ export const AuthSlice = createSlice({
   },
 });
 
-export const { authenticateUser, newAccessToken, logout } = AuthSlice.actions;
-export default AuthSlice.reducer;
+export const { authenticateUser, newAccessToken, logout } = UserSlice.actions;
+export default UserSlice.reducer;

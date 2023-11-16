@@ -6,10 +6,10 @@ import {
   Typography,
 } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
-import { useOauthQuery } from "../../redux/features/auth/auth.api.slice";
+import { useOauthQuery } from "../../redux/features/user/user.api.slice";
 import { useQuery } from "../../hooks/useQuery";
 import { useAppDispatch } from "../../redux/hooks";
-import { authenticateUser } from "../../redux/features/auth/auth.slice";
+import { authenticateUser } from "../../redux/features/user/user.slice";
 import { useNavigate } from "react-router-dom";
 import { PATH_APP } from "../../routes/paths";
 import { useEffect } from "react";

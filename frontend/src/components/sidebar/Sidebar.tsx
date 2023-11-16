@@ -10,7 +10,7 @@ import { matchPath, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { apiSlice } from "../../redux/api/apiSlice";
 import { LOGOUT } from "../../redux/type";
-import { useLogoutMutation } from "../../redux/features/auth/auth.api.slice";
+import { useLogoutMutation } from "../../redux/features/user/user.api.slice";
 import { RootState } from "../../redux/store";
 import { useLocation } from "react-router-dom";
 

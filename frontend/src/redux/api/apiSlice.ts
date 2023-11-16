@@ -8,7 +8,7 @@ import {
 } from "@reduxjs/toolkit/query/react";
 import { BASE_URL } from "../../config";
 import { RootState } from "../store";
-import { logout, newAccessToken } from "../features/auth/auth.slice";
+import { logout, newAccessToken } from "../features/user/user.slice";
 import { AccessTokenType } from "../../models/login/AccessTokenSchema";
 
 const baseQuery = fetchBaseQuery({
@@ -29,10 +29,8 @@ const baseQueryWithReauth: BaseQueryFn<
   let result = await baseQuery(args, api, extraOptions);
 
   if (result.error && result.error.status === 401) {
-
     const refreshResult = await baseQuery("/auth/refresh", api, extraOptions);
     if (refreshResult.data) {
-
       api.dispatch(
         newAccessToken({
           access_token: (refreshResult.data as AccessTokenType).access_token,

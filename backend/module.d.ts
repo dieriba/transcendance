@@ -23,5 +23,6 @@ declare namespace NodeJS {
     FRONTEND_DOMAIN: string;
     FRONTEND_PORT: string;
     UPLOAD_DIR: string;
+    AVATAR_UPLOAD_PATH: string;
   }
 }

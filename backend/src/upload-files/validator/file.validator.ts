@@ -2,7 +2,6 @@
 import { FileValidator } from '@nestjs/common';
 
 export const MAX_PROFILE_PICTURE_SIZE_IN_BYTES = 2 * 1024 * 1024;
-export const VALID_UPLOADS_MIME_TYPES = ['image/jpeg', 'image/png'];
 
 export interface CustomUploadTypeValidatorOptions {
   fileType: string[];

@@ -9,8 +9,6 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { useGetAllGroupUserQuery } from "../../../../redux/features/groups/group.api.slice";
 import {
-  addNewChatroomUser,
-  addRestrictedUser,
   setGroupMembersAndRole,
   setOfflineUser,
   setOnlineUser,
@@ -181,7 +179,11 @@ const View = () => {
           <Divider />
 
           <UserInfo
-            avatar={admin?.user.profile?.avatar}
+            avatar={
+              admin?.user.profile?.avatar
+                ? admin?.user.profile?.avatar
+                : undefined
+            }
             nickname={admin?.user.nickname as string}
             online={admin?.user.status === STATUS.ONLINE}
           >
@@ -208,7 +210,7 @@ const View = () => {
                       key={index}
                       nickname={nickname}
                       online={status === STATUS.ONLINE}
-                      avatar={profile?.avatar}
+                      avatar={profile?.avatar ? profile.avatar : undefined}
                     >
                       <ModeratorAction
                         handleKickUser={handleKickUser}
@@ -246,7 +248,7 @@ const View = () => {
                       key={index}
                       nickname={nickname}
                       online={status === STATUS.ONLINE}
-                      avatar={profile?.avatar}
+                      avatar={profile?.avatar ? profile.avatar : undefined}
                       restrictedUser={
                         restrictedGroups.length == 0
                           ? undefined

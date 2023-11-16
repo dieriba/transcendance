@@ -106,7 +106,9 @@ const ChatContactInfo = () => {
               <>
                 <BadgeAvatar>
                   <Avatar
-                    src={user.profile?.avatar}
+                    src={
+                      user.profile?.avatar ? user.profile?.avatar : undefined
+                    }
                     sx={{ height: 64, width: 64 }}
                   />
                 </BadgeAvatar>
@@ -114,7 +116,7 @@ const ChatContactInfo = () => {
             ) : (
               <>
                 <Avatar
-                  src={user.profile?.avatar}
+                  src={user.profile?.avatar ? user.profile?.avatar : undefined}
                   sx={{ height: 64, width: 64 }}
                 />
               </>
