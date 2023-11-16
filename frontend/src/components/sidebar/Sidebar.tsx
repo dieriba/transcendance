@@ -13,6 +13,7 @@ import { LOGOUT } from "../../redux/type";
 import { useLogoutMutation } from "../../redux/features/user/user.api.slice";
 import { RootState } from "../../redux/store";
 import { useLocation } from "react-router-dom";
+import { User } from "../../redux/features/user/user.slice";
 
 const Sidebar = () => {
   const { pathname } = useLocation();
@@ -25,9 +26,11 @@ const Sidebar = () => {
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
-  const nickname = useAppSelector(
-    (state: RootState) => state.user.user?.nickname
-  );
+  const user = useAppSelector((state: RootState) => state.user.user);
+
+  const nickname = (user as User).nickname;
+  const avatar = (user as User).profile.avatar as string | undefined;
+
   const handleClose = () => {
     setAnchorEl(null);
   };
@@ -119,6 +122,7 @@ const Sidebar = () => {
                 aria-expanded={open ? "true" : undefined}
                 onClick={handleClick}
                 sx={{ cursor: "pointer" }}
+                src={avatar}
               />
             </Tooltip>
             <Menu

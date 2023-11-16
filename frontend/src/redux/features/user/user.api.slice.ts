@@ -40,6 +40,21 @@ export const UserApiSlice = apiSlice.injectEndpoints({
         url: `/auth/oauth_callback/${data.code}`,
       }),
     }),
+    changeAvatar: builder.mutation<
+      BaseServerResponse & { data: string },
+      FormData
+    >({
+      query: (data) => ({
+        url: "/files/upload-avatar",
+        method: "POST",
+        body: data,
+        Accept: "*/*",
+        formData: true,
+        headers: {
+          contentType: undefined,
+        },
+      }),
+    }),
   }),
 });
 
@@ -48,4 +63,5 @@ export const {
   useRegisterMutation,
   useOauthQuery,
   useLogoutMutation,
+  useChangeAvatarMutation,
 } = UserApiSlice;

@@ -1,4 +1,5 @@
 import {
+  Alert,
   AlertColor,
   Avatar,
   Box,
@@ -7,7 +8,7 @@ import {
   Typography,
 } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
-import { useAppSelector } from "../../redux/hooks";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { CloudArrowUp } from "phosphor-react";
 import {
   UploadAvatarSchema,
@@ -16,8 +17,13 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
-import { SocketServerErrorResponse } from "../../services/type";
+import {
+  BaseServerResponse,
+  SocketServerErrorResponse,
+} from "../../services/type";
 import CustomTextField from "../../components/CustomTextField/CustomTextField";
+import { useChangeAvatarMutation } from "../../redux/features/user/user.api.slice";
+import { setNewAvatarSrc } from "../../redux/features/user/user.slice";
 const ProfilePage = () => {
   const user = useAppSelector((state) => state.user.user);
 
@@ -36,10 +42,10 @@ const ProfilePage = () => {
   const { control, handleSubmit, reset } = useForm<UploadAvatarType>({
     resolver: zodResolver(UploadAvatarSchema),
   });
-
+  const dispatch = useAppDispatch();
   const [file, setFile] = useState<File>();
   const [image, setImage] = useState<string | undefined>(undefined);
-
+  const [changeAvatar, { isLoading }] = useChangeAvatarMutation();
   const [message, setMessage] = useState("");
   const [severity, setSeverity] = useState<AlertColor>("success");
   const [openSnack, setOpenSnack] = useState(false);
@@ -74,17 +80,21 @@ const ProfilePage = () => {
         .catch(() => setImage(undefined));
   }, [file]);
 
-  const onSubmit = async (data: UploadAvatarType) => {
+  const onSubmit = async ({ avatar }: UploadAvatarType) => {
     try {
-      setSeverity("success");
-      // setMessage(res.message);*
+      const formData = new FormData();
 
+      formData.append("avatar", avatar);
+
+      const { message, data } = await changeAvatar(formData).unwrap();
+
+      dispatch(setNewAvatarSrc(data));
+      setMessage(message);
+      setSeverity("success");
       setOpenSnack(true);
     } catch (error) {
-      console.log({ error });
-
       setSeverity("error");
-      setMessage((error as SocketServerErrorResponse).message);
+      setMessage(error.data.message);
       setOpenSnack(true);
     }
   };
@@ -108,6 +118,15 @@ const ProfilePage = () => {
             <Stack direction="row" alignItems="center" spacing={3}>
               <Typography variant="h5">Profile</Typography>
             </Stack>
+            {openSnack && (
+              <Alert
+                onClose={handleCloseSnack}
+                severity={severity}
+                sx={{ width: "100%" }}
+              >
+                {message}
+              </Alert>
+            )}
             <Stack spacing={2} alignItems={"center"}>
               {image ? (
                 <>
@@ -176,6 +195,7 @@ const ProfilePage = () => {
                       size="medium"
                       color="inherit"
                       type="submit"
+                      disabled={isLoading}
                     >
                       Upload Avatar
                     </Button>

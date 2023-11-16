@@ -45,6 +45,10 @@ export const UserSlice = createSlice({
     newAccessToken: (state, action: PayloadAction<AccessTokenType>) => {
       state.access_token = action.payload.access_token;
     },
+    setNewAvatarSrc: (state, action: PayloadAction<string>) => {
+      (state.user as User).profile.avatar =
+        "http://localhost:3000/avatar/" + action.payload;
+    },
     logout: (state) => {
       state.user = undefined;
       state.access_token = undefined;
@@ -52,5 +56,6 @@ export const UserSlice = createSlice({
   },
 });
 
-export const { authenticateUser, newAccessToken, logout } = UserSlice.actions;
+export const { authenticateUser, newAccessToken, setNewAvatarSrc, logout } =
+  UserSlice.actions;
 export default UserSlice.reducer;

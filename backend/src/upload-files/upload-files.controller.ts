@@ -1,3 +1,4 @@
+import { ResponseMessageInterceptor } from './../common/global-interceptros/response.interceptor';
 import {
   Controller,
   Get,
@@ -22,6 +23,7 @@ import { CustomException } from 'src/common/custom-exception/custom-exception';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { GetUser } from 'src/common/custom-decorator/get-user.decorator';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
+import { PublicRoute } from 'src/common/custom-decorator/metadata.decorator';
 
 @Controller('files')
 export class UploadFilesController {
@@ -31,6 +33,7 @@ export class UploadFilesController {
   ) {}
   @Post('upload-avatar')
   @ResponseMessage('File uploaded succesfully')
+  @UseInterceptors(ResponseMessageInterceptor)
   @UseInterceptors(FileInterceptor('avatar'))
   async uploadAvatar(
     @GetUser('userId') userId: string,
@@ -65,16 +68,15 @@ export class UploadFilesController {
 
     const avatartPath = user.profile.avatar;
 
-    const fullPath = process.env.AVATAR_UPLOAD_PATH + '/' + avatartPath;
+    const fullPath = process.env.BACKEND_DOMAIN_AVATAR + '/' + avatartPath;
 
     if (avatartPath) {
       this.libService.deleteFile(fullPath);
     }
 
-    const avatar = this.libService.createFile(
-      process.env.AVATAR_UPLOAD_PATH,
-      file,
-    );
+    const avatar =
+      process.env.BACKEND_DOMAIN_AVATAR +
+      this.libService.createFile(process.env.AVATAR_UPLOAD_PATH, file);
 
     await this.prismaService.profile.update({
       where: {
@@ -89,6 +91,7 @@ export class UploadFilesController {
   }
 
   @Get('avatar/:filename')
+  @PublicRoute()
   async serveAvatar(
     @Param('filename') filename: string,
     @Res() res: Response,
