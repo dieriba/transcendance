@@ -8,7 +8,7 @@ import { connectSocket, socket } from "../../utils/getSocket";
 import { FriendEvent, GeneralEvent } from "../../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../services/type";
 import { FriendReceivedRequestType } from "../../models/FriendRequestSchema";
-import { showSnackBar } from "../../redux/features/app_notify/app.slice";
+import { showSnackBar } from "../../redux/features/app/app.slice";
 import { BaseFriendType } from "../../models/FriendsSchema";
 import {
   setOfflineUser,

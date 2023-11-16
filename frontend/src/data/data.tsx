@@ -68,9 +68,6 @@ const Nav_Buttons = [
     path: PATH_APP.dashboard.games,
     icon: <GameController />,
   },
-];
-
-const Nav_Setting = [
   {
     path: PATH_APP.dashboard.settings,
     icon: <GearSix />,
@@ -89,4 +86,4 @@ const Message_options = [
   },
 ];
 
-export { Profile_Menu, Nav_Setting, Nav_Buttons, Message_options };
+export { Profile_Menu, Nav_Buttons, Message_options };

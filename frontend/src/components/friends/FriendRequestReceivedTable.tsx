@@ -37,7 +37,7 @@ import { FriendEvent } from "../../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../services/type";
 import { connectSocket, socket } from "../../utils/getSocket";
 import { FriendReceivedRequestType } from "../../models/FriendRequestSchema";
-import { showSnackBar } from "../../redux/features/app_notify/app.slice";
+import { showSnackBar } from "../../redux/features/app/app.slice";
 import { RootState } from "../../redux/store";
 
 const FriendRequestReceived = () => {
@@ -145,7 +145,6 @@ const FriendRequestReceived = () => {
   } else {
     return (
       <>
-     
         <Stack spacing={2}>
           <FriendSearch placeholder="Search Friend Request" />
           <Stack spacing={3} alignItems="center">

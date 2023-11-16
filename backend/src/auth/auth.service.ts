@@ -60,13 +60,15 @@ export class AuthService {
     }
   }
 
-  async login({
-    id,
-    email,
-    nickname,
-    isTwoFaEnabled,
-  }: LoginUserDto): Promise<
-    { user: { id: string; nickname: string; isTwoFaEnabled: boolean } } & Tokens
+  async login({ id, email, nickname, isTwoFaEnabled }: LoginUserDto): Promise<
+    {
+      user: {
+        id: string;
+        nickname: string;
+        isTwoFaEnabled: boolean;
+        allowForeignToDm: boolean;
+      };
+    } & Tokens
   > {
     try {
       this.logger.log(
@@ -74,12 +76,15 @@ export class AuthService {
       );
       const tokens = await this.jwtTokenService.getTokens(id, email, nickname);
 
-      await this.userService.updateUserById(id, {
+      const { allowForeignToDm } = await this.userService.updateUserById(id, {
         status: STATUS.ONLINE,
         hashedRefreshToken: await this.argon2.hash(tokens.refresh_token),
       });
 
-      return { user: { id, nickname, isTwoFaEnabled }, ...tokens };
+      return {
+        user: { id, nickname, isTwoFaEnabled, allowForeignToDm },
+        ...tokens,
+      };
     } catch (error) {
       this.logger.log(
         `Failled to create new tokens for user identified by email: ${email}`,
@@ -101,10 +106,15 @@ export class AuthService {
     } catch (error) {}
   }
 
-  async oauth(
-    code: string,
-  ): Promise<
-    { user: { id: string; nickname: string; isTwoFaEnabled: boolean } } & Tokens
+  async oauth(code: string): Promise<
+    {
+      user: {
+        id: string;
+        nickname: string;
+        isTwoFaEnabled: boolean;
+        allowForeignToDm: boolean;
+      };
+    } & Tokens
   > {
     const response = await this.httpService.axiosRef.post(
       process.env.TOKEN_URI,
@@ -154,7 +164,7 @@ export class AuthService {
 
       const tokens = await this.jwtTokenService.getTokens(id, email, nickname);
 
-      await this.userService.updateUserById(id, {
+      const { allowForeignToDm } = await this.userService.updateUserById(id, {
         hashedRefreshToken: await this.argon2.hash(tokens.refresh_token),
       });
 
@@ -163,6 +173,7 @@ export class AuthService {
           id,
           nickname,
           isTwoFaEnabled: twoFa?.otpEnabled ? twoFa.otpEnabled : false,
+          allowForeignToDm,
         },
         ...tokens,
       };

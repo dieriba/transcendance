@@ -38,7 +38,7 @@ model User {
   chatrooms             ChatroomUser[]
   messages              Message[]
   restrictedGroups      RestrictedUser[]
-  allowedToForeignDm    Boolean
+  allowForeignToDm    Boolean @default(false)
 }
 
 model Friends {

@@ -1,23 +1,23 @@
 import { Menu, MenuItem, Tooltip } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { Avatar, Box, IconButton, Stack } from "@mui/material";
-import { Nav_Buttons, Nav_Setting, Profile_Menu } from "../../data/data";
-import { Gear, SignOut } from "phosphor-react";
-import { useState } from "react";
+import { Nav_Buttons, Profile_Menu } from "../../data/data";
+import { SignOut } from "phosphor-react";
 import { useThemeContext } from "../../theme/ThemeContextProvider";
 import MaterialUISwitch from "./Switch";
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { matchPath, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { apiSlice } from "../../redux/api/apiSlice";
 import { LOGOUT } from "../../redux/type";
 import { useLogoutMutation } from "../../redux/features/auth/auth.api.slice";
 import { RootState } from "../../redux/store";
+import { useLocation } from "react-router-dom";
 
 const Sidebar = () => {
+  const { pathname } = useLocation();
   const theme = useTheme();
   const navigate = useNavigate();
-  const [selectedIcon, setSelectedIcon] = useState(0);
   const { toggleColorMode } = useThemeContext();
   const dispatch = useAppDispatch();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -31,9 +31,7 @@ const Sidebar = () => {
   const handleClose = () => {
     setAnchorEl(null);
   };
-  const handleNavigate = (index: number, path: string) => {
-    setSelectedIcon(index);
-
+  const handleNavigate = (path: string) => {
     navigate(path);
   };
   const [loggingOut] = useLogoutMutation();
@@ -51,6 +49,7 @@ const Sidebar = () => {
       window.location = window.location;
     }
   };
+
   return (
     <>
       <Box
@@ -75,7 +74,7 @@ const Sidebar = () => {
             sx={{ width: "max-content", alignItems: "center" }}
           >
             {Nav_Buttons.map((button, index) =>
-              index === selectedIcon ? (
+              matchPath(button.path, pathname) ? (
                 <Box
                   p={1}
                   sx={{
@@ -98,40 +97,13 @@ const Sidebar = () => {
                     borderRadius: 1.5,
                   }}
                   key={index}
-                  onClick={() => handleNavigate(index, button.path)}
+                  onClick={() => handleNavigate(button.path)}
                 >
                   <IconButton sx={{ width: "max-content" }} key={index}>
                     {button.icon}
                   </IconButton>
                 </Box>
               )
-            )}
-            {selectedIcon === Nav_Buttons.length + 1 ? (
-              <Box
-                p={1}
-                sx={{
-                  borderRadius: 1.5,
-                  backgroundColor: theme.palette?.primary.main,
-                }}
-              >
-                <IconButton sx={{ width: "max-content", color: "#fff" }}>
-                  <Gear />
-                </IconButton>
-              </Box>
-            ) : (
-              <Box
-                p={1}
-                sx={{
-                  borderRadius: 1.5,
-                }}
-                onClick={() =>
-                  handleNavigate(Nav_Buttons.length + 1, Nav_Setting[0].path)
-                }
-              >
-                <IconButton>
-                  <Gear />
-                </IconButton>
-              </Box>
             )}
           </Stack>
           <Stack alignItems="center" spacing={2}>

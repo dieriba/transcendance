@@ -9,7 +9,7 @@ import CustomNotificationBar from "./components/snackbar/customNotificationBar";
 const App = () => {
   const { theme } = useThemeContext();
   const { open, severity, message } = useAppSelector(
-    (state: RootState) => state.appNotify
+    (state: RootState) => state.app
   );
 
   return (

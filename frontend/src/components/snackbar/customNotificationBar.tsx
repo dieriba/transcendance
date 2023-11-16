@@ -2,7 +2,7 @@ import { Snackbar } from "@mui/material";
 import MuiAlert, { AlertColor, AlertProps } from "@mui/material/Alert";
 import React from "react";
 import { useAppDispatch } from "../../redux/hooks";
-import { closeSnackBar } from "../../redux/features/app_notify/app.slice";
+import { closeSnackBar } from "../../redux/features/app/app.slice";
 
 interface CustomNotificationBarProps {
   message: string;
@@ -30,7 +30,7 @@ const CustomNotificationBar = ({
           open={open}
           autoHideDuration={4000}
           onClose={() => dispatch(closeSnackBar())}
-          sx={{maxWidth:'500px'}}
+          sx={{ maxWidth: "500px" }}
         >
           <Alert sx={{ width: "100%" }} severity={severity}>
             {message}

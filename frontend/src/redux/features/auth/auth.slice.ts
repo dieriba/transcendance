@@ -5,6 +5,7 @@ import { AccessTokenType } from "../../../models/login/AccessTokenSchema";
 export interface User {
   id: string | undefined;
   nickname: string | undefined;
+  allowForeignToDm: boolean;
 }
 
 export interface UserInfo {
@@ -16,6 +17,7 @@ const initialState: UserInfo = {
   user: {
     id: undefined,
     nickname: undefined,
+    allowForeignToDm: false,
   },
   access_token: undefined,
 };
