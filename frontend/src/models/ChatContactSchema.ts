@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ProfileSchema } from "./ProfileFormSchema";
 import { messageTypes } from "./type-enum/typesEnum";
+import { BaseFriendSchema } from "./FriendsSchema";
 
 export const UserSchemaWithProfile = z
   .object({
@@ -12,7 +13,15 @@ export const UserSchemaWithProfile = z
 
 export type UserWithProfile = z.infer<typeof UserSchemaWithProfile>;
 
-export const UserSchemaProfileBanLife = UserSchemaWithProfile.extend({
+export const UserWithProfileFriendsSchema = UserSchemaWithProfile.extend({
+  friends: z.array(BaseFriendSchema),
+});
+
+export type UserWithProfileFriendsType = z.infer<
+  typeof UserWithProfileFriendsSchema
+>;
+
+export const UserSchemaProfileBanLife = UserWithProfileFriendsSchema.extend({
   banLife: z.boolean(),
 });
 
@@ -23,6 +32,8 @@ export const MessageSchema = z.object({
   chatroomId: z.string().min(1),
   userId: z.string(),
   content: z.string(),
+  createdAt: z.date(),
+  user: UserSchemaWithProfile,
   messageTypes: z.enum(messageTypes),
 });
 

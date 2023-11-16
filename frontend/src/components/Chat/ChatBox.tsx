@@ -2,7 +2,7 @@ import { Avatar, Badge, Box, Stack, Typography } from "@mui/material";
 import BadgeAvatar from "../Badge/BadgeAvatar";
 import { useTheme } from "@mui/material/styles";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
-import { setPrivateChatroomId } from "../../redux/features/chat/chatSlice";
+import { setPrivateChatroomId } from "../../redux/features/chat/chat.slice";
 import { RootState } from "../../redux/store";
 export interface ChatBoxProps {
   username: string;

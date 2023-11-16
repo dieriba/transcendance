@@ -38,6 +38,7 @@ model User {
   chatrooms             ChatroomUser[]
   messages              Message[]
   restrictedGroups      RestrictedUser[]
+  allowedToForeignDm    Boolean
 }
 
 model Friends {

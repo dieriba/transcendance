@@ -20,7 +20,7 @@ import {
   useBlockFriendMutation,
 } from "../../redux/features/friends/friends.api.slice";
 import BadgeAvatar from "../Badge/BadgeAvatar";
-import { deleteChatroom } from "../../redux/features/chat/chatSlice";
+import { deleteChatroom } from "../../redux/features/chat/chat.slice";
 import { BaseFriendTypeWithChatroom } from "../../services/type";
 import { PrivateChatroomType } from "../../models/ChatContactSchema";
 import { RootState } from "../../redux/store";

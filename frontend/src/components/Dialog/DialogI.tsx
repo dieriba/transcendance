@@ -32,7 +32,6 @@ const DialogI = ({
   sx,
   maxWidth,
 }: DialogIProps) => {
-  console.log({ maxWidth });
 
   return (
     <Dialog

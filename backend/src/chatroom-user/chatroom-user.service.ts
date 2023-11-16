@@ -94,6 +94,11 @@ export class ChatroomUserService {
                 avatar: true,
               },
             },
+            friends: {
+              select: {
+                friendId: true,
+              },
+            },
           },
         },
       },

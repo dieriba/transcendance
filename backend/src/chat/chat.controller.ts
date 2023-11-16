@@ -35,6 +35,15 @@ export class ChatController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @Get('get-all-chatroom-message')
+  async getAllChatroomMessage(
+    @GetUser('userId') userId: string,
+    @Query('chatroomId') chatroomId: string,
+  ) {
+    return await this.chatService.getAllChatroomMessage(userId, chatroomId);
+  }
+
+  @HttpCode(HttpStatus.OK)
   @Get('get-all-restricted-user')
   async getAllRestrictedUser(
     @GetUser('userId') userId: string,

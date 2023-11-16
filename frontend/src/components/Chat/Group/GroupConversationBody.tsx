@@ -10,13 +10,12 @@ import ReplyMessage from "../ChatBodyComponents/ReplyMessage";
 import DocumentMessage from "../ChatBodyComponents/DocumentMessage";
 import StackChatCompo from "../ChatBodyComponents/StackChatCompo";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { useGetAllGroupMessagesQuery } from "../../../redux/features/groups/group.api.slice";
 import { RootState } from "../../../redux/store";
 import {
   BaseChatroomWithUserIdType,
-  ChatroomGroupType,
   PreviousAdminLeaveType,
   UserGroupType,
   UserNewRoleResponseType,
@@ -46,12 +45,13 @@ export interface GroupConversationBodyProps {
 
 const GroupConversationBody = () => {
   const myId = useAppSelector((state: RootState) => state.user.user?.id);
-  const chatroom = useAppSelector(
-    (state: RootState) => state.groups.currentChatroom
-  ) as ChatroomGroupType;
+  const lastMessage = useRef<HTMLDivElement>(null);
+  const chatroomId = useAppSelector(
+    (state: RootState) => state.groups.currentGroupChatroomId
+  ) as string;
   const { data, isLoading, isError, error } = useGetAllGroupMessagesQuery(
     {
-      chatroomId: chatroom.id,
+      chatroomId,
     },
     { refetchOnMountOrArgChange: true }
   );
@@ -139,6 +139,11 @@ const GroupConversationBody = () => {
     }
   }, [data, dispatch]);
   const messages = useAppSelector((state: RootState) => state.groups.messages);
+
+  useEffect(() => {
+    lastMessage.current?.scrollIntoView();
+  }, [messages]);
+
   if (isLoading) {
     return (
       <Box
@@ -197,7 +202,6 @@ const GroupConversationBody = () => {
                         image={content}
                       />
                     }
-                    incoming={incoming}
                   />
                 );
               case "DOCUMENT":
@@ -211,7 +215,6 @@ const GroupConversationBody = () => {
                         content={content}
                       />
                     }
-                    incoming={incoming}
                   />
                 );
               case "REPLY":
@@ -226,28 +229,26 @@ const GroupConversationBody = () => {
                         reply={content}
                       />
                     }
-                    incoming={incoming}
                   />
                 );
               default:
                 return (
-                  <Stack
+                  <StackChatCompo
                     key={id}
-                    direction="row"
-                    mb={1}
-                    justifyContent={"start"}
-                  >
-                    <TextMessage
-                      nickname={user.nickname}
-                      id={id}
-                      content={content}
-                      incoming={myId === id}
-                      avatar={user.profile.avatar}
-                    />
-                  </Stack>
+                    children={
+                      <TextMessage
+                        nickname={user.nickname}
+                        id={id}
+                        content={content}
+                        incoming={myId === id}
+                        avatar={user.profile.avatar}
+                      />
+                    }
+                  />
                 );
             }
           })}
+          <div ref={lastMessage}></div>
         </Stack>
       </Box>
     );

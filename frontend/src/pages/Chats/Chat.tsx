@@ -11,7 +11,7 @@ import {
   setOnlineUser,
   setPrivateChatroom,
   updatePrivateChatroomList,
-} from "../../redux/features/chat/chatSlice";
+} from "../../redux/features/chat/chat.slice";
 import { useEffect } from "react";
 import { connectSocket, socket } from "../../utils/getSocket";
 import {
@@ -36,7 +36,10 @@ const Chat = () => {
   const currentPrivateChatroomId = useAppSelector(
     (state: RootState) => state.chat.currentPrivateChatroomId
   );
-  const { open } = useAppSelector((state: RootState) => state.sidebar);
+  const open = useAppSelector((state: RootState) => state.sidebar.open);
+  const privateChatroom = useAppSelector(
+    (state: RootState) => state.chat.privateChatroom
+  );
   useEffect(() => {
     if (data && data.data) {
       dispatch(setPrivateChatroom(data.data));
@@ -133,7 +136,11 @@ const Chat = () => {
               justifyContent="center"
               height="100%"
             >
-              <Typography>Select a conversation!</Typography>
+              <Typography>
+                {privateChatroom.length === 0
+                  ? "No conversation started yet!"
+                  : "Select a conversation !"}
+              </Typography>
             </Stack>
           </Box>
         ) : (

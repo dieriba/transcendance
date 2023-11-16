@@ -1019,6 +1019,11 @@ export class GatewayGateway {
                   avatar: true,
                 },
               },
+              friends: {
+                select: {
+                  friendId: true,
+                },
+              },
             },
           },
           restriction: true,
@@ -1231,15 +1236,11 @@ export class GatewayGateway {
     const chatroom = await this.prismaService.chatroom.findFirst({
       where: {
         id: chatroomId,
-        OR: [
-          {
-            users: {
-              some: {
-                userId,
-              },
-            },
+        users: {
+          some: {
+            userId,
           },
-        ],
+        },
       },
       select: {
         chatroomName: true,
@@ -1536,9 +1537,20 @@ export class GatewayGateway {
       },
       select: {
         id: true,
+        createdAt: true,
+        user: {
+          select: {
+            id: true,
+            nickname: true,
+            profile: {
+              select: {
+                avatar: true,
+              },
+            },
+          },
+        },
       },
     });
-
     this.sendToSocket(
       this.server,
       friendId,
@@ -1551,6 +1563,8 @@ export class GatewayGateway {
           userId,
           content,
           messageTypes,
+          user: res.user,
+          createdAt: res.createdAt,
         },
       },
     );
@@ -1564,6 +1578,8 @@ export class GatewayGateway {
           chatroomId,
           userId,
           content,
+          user: res.user,
+          createdAt: res.createdAt,
           messageTypes,
         },
       });

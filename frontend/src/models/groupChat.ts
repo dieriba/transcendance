@@ -20,6 +20,7 @@ import {
   MUTE_MAX_HOURS,
   MUTE_MAX_MIN,
 } from "../../../shared/restriction.constant";
+import { BaseFriendSchema } from "./FriendsSchema";
 
 export const BaseChatroomSchema = z.object({
   chatroomId: z.string().min(1),
@@ -129,6 +130,7 @@ export type RestrictedGroupType = z.infer<typeof RestrictedGroupSchema>;
 export const UserGroupSchema = z.object({
   user: UserSchemaWithProfile.extend({
     restrictedGroups: z.array(RestrictedGroupSchema),
+    friends: z.array(BaseFriendSchema),
   }),
   role: z.enum(roleType),
 });
@@ -246,4 +248,4 @@ export const PreviousAdminLeaveSchema = z.object({
   newAdminPreviousRole: z.enum(roleType),
 });
 
-export type PreviousAdminLeaveType = z.infer<typeof PreviousAdminLeaveSchema>
+export type PreviousAdminLeaveType = z.infer<typeof PreviousAdminLeaveSchema>;

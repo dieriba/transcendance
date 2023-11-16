@@ -8,7 +8,7 @@ import { AuthSlice } from "./features/auth/auth.slice";
 import { apiSlice } from "./api/apiSlice";
 import crashMiddleware from "./middleware/crashMiddleware";
 import AppNotifySlice from "./features/app_notify/app.slice";
-import { ChatSlice } from "./features/chat/chatSlice";
+import { ChatSlice } from "./features/chat/chat.slice";
 import { LOGOUT } from "./type";
 import { FriendsSlice } from "./features/friends/friends.slice";
 import { GroupSlice } from "./features/groups/group.slice";

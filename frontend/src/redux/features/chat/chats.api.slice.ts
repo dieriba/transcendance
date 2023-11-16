@@ -1,5 +1,6 @@
 import {
   MessageFormType,
+  MessageType,
   PrivateChatroomType,
 } from "./../../../models/ChatContactSchema";
 import {
@@ -13,6 +14,7 @@ import {
 } from "./../../../../../shared/socket.event";
 
 import { connectSocket, socket } from "../../../utils/getSocket";
+import { BaseChatroomType, MessageGroupType } from "../../../models/groupChat";
 
 export const chatApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -37,9 +39,20 @@ export const chatApiSlice = apiSlice.injectEndpoints({
     >({
       query: () => ({ url: "chat/get-all-private-chatroom" }),
     }),
+    getAllChatroomMessage: builder.query<
+      BaseServerResponse & { data: MessageType[] },
+      BaseChatroomType
+    >({
+      query: ({ chatroomId }) => ({
+        url: `chat/get-all-chatroom-message?chatroomId=${chatroomId}`,
+      }),
+    }),
   }),
   overrideExisting: false,
 });
 
-export const { useGetAllPrivateChatroomsQuery, useSendPrivateMessageMutation } =
-  chatApiSlice;
+export const {
+  useGetAllPrivateChatroomsQuery,
+  useSendPrivateMessageMutation,
+  useGetAllChatroomMessageQuery,
+} = chatApiSlice;

@@ -9,12 +9,14 @@ export interface ChatState {
   privateChatroom: PrivateChatroomType[];
   currentPrivateChatroomId: string | undefined;
   currentChatroom: PrivateChatroomType | undefined;
+  messages: MessageType[];
 }
 
 const initialState: ChatState = {
   privateChatroom: [],
   currentPrivateChatroomId: undefined,
   currentChatroom: undefined,
+  messages: [],
 };
 
 export const ChatSlice = createSlice({
@@ -45,6 +47,9 @@ export const ChatSlice = createSlice({
         state.privateChatroom.unshift(action.payload);
       }
     },
+    setChatroomMessage: (state, action: PayloadAction<MessageType[]>) => {
+      state.messages = action.payload;
+    },
     deleteChatroom: (state, action: PayloadAction<string | undefined>) => {
       const chatroomId = action.payload;
       if (chatroomId) {
@@ -64,8 +69,12 @@ export const ChatSlice = createSlice({
       );
 
       const removedObject = state.privateChatroom?.splice(indexToRemove, 1)[0];
-      removedObject.messages.push(message);
-      state.currentChatroom = removedObject;
+      if (message.chatroomId === state.currentPrivateChatroomId) {
+        state.messages.push(message);
+      }
+      removedObject.messages.length === 0
+        ? removedObject.messages.push(message)
+        : (removedObject.messages[0] = message);
       state.privateChatroom.unshift(removedObject);
     },
     setOfflineUser: (state, action: PayloadAction<BaseFriendType>) => {
@@ -103,6 +112,7 @@ export const {
   setOfflineUser,
   setOnlineUser,
   addNewChatroom,
+  setChatroomMessage,
 } = ChatSlice.actions;
 
 export default ChatSlice.reducer;

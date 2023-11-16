@@ -13,7 +13,7 @@ import { BaseFriendType } from "../../models/FriendsSchema";
 import {
   setOfflineUser,
   setOnlineUser,
-} from "../../redux/features/chat/chatSlice";
+} from "../../redux/features/chat/chat.slice";
 import { RootState } from "../../redux/store";
 
 const ProtectedDashboardLayout = () => {

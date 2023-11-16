@@ -60,10 +60,13 @@ export class ChatService {
               },
             },
           },
+          orderBy: {
+            createdAt: 'asc',
+          },
         },
         messages: {
           orderBy: {
-            createdAt: 'asc',
+            createdAt: 'desc',
           },
           select: {
             id: true,
@@ -73,6 +76,7 @@ export class ChatService {
             messageTypes: true,
             createdAt: true,
           },
+          take: 1,
         },
       },
       orderBy: {
@@ -81,6 +85,60 @@ export class ChatService {
     });
 
     return chatrooms;
+  }
+
+  async getAllChatroomMessage(userId: string, chatroomId: string) {
+    if (!chatroomId) throw new BadRequestException('Bad Request');
+
+    const user = await this.prismaService.user.findFirst({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) throw new UserNotFoundException();
+
+    const chatroom = await this.prismaService.chatroom.findFirst({
+      where: {
+        id: chatroomId,
+        type: TYPE.DM,
+        users: {
+          some: {
+            userId,
+          },
+        },
+      },
+      select: {
+        messages: {
+          select: {
+            id: true,
+            content: true,
+            user: {
+              select: {
+                id: true,
+                nickname: true,
+                profile: {
+                  select: {
+                    avatar: true,
+                  },
+                },
+              },
+            },
+            chatroomId: true,
+            createdAt: true,
+            messageTypes: true,
+          },
+        },
+      },
+    });
+
+    if (!chatroom)
+      throw new CustomException(
+        'Chatroom not found or user do not belong to that chatroom',
+        HttpStatus.BAD_REQUEST,
+      );
+
+    return chatroom.messages;
   }
 
   async getJoinableChatroom(userId: string) {
@@ -145,6 +203,14 @@ export class ChatService {
                 profile: {
                   select: {
                     avatar: true,
+                  },
+                },
+                friends: {
+                  where: {
+                    friendId: userId,
+                  },
+                  select: {
+                    friendId: true,
                   },
                 },
                 restrictedGroups: {

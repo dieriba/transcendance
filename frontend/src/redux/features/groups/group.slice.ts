@@ -23,7 +23,7 @@ import {
 import { BaseFriendType } from "../../../models/FriendsSchema";
 import {
   UserProfileBanLifeType,
-  UserWithProfile,
+  UserWithProfileFriendsType,
 } from "../../../models/ChatContactSchema";
 
 export interface GroupState {
@@ -103,7 +103,10 @@ export const GroupSlice = createSlice({
     addNewChatroom: (state, action: PayloadAction<ChatroomGroupType>) => {
       state.groupChatroom.unshift(action.payload);
     },
-    addNewChatroomUser: (state, action: PayloadAction<UserWithProfile>) => {
+    addNewChatroomUser: (
+      state,
+      action: PayloadAction<UserWithProfileFriendsType>
+    ) => {
       state.regularUser.unshift({
         user: { ...action.payload, restrictedGroups: [] },
         role: ROLE.REGULAR_USER,
@@ -470,9 +473,7 @@ export const GroupSlice = createSlice({
       state.joinableGroup[index] = action.payload;
     },
     setChatroomMessage: (state, action: PayloadAction<MessageGroupType[]>) => {
-      if (state.currentChatroom) {
-        state.messages = action.payload;
-      }
+      state.messages = action.payload;
     },
     deleteChatroom: (state, action: PayloadAction<string>) => {
       const chatroomId = action.payload;

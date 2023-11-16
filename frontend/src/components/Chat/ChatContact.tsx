@@ -46,9 +46,19 @@ const ChatContact = () => {
             {chats.map(({ id, users, messages }) => {
               const user = users[0].user;
               const lastMsg = messages[messages.length - 1];
+              let date: Date | undefined = undefined;
+
+              if (messages.length > 0) date = new Date(messages[0].createdAt);
               return (
                 <ChatBox
-                  time={messages.length === 0 ? "" : "11"}
+                  time={
+                    date
+                      ? `${date.getHours().toString().padStart(2, "0")}:${date
+                          .getMinutes()
+                          .toString()
+                          .padStart(2, "0")}`
+                      : ""
+                  }
                   avatar={user.profile?.avatar}
                   online={user.status === "ONLINE" ? true : false}
                   username={users[0].user.nickname}
