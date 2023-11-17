@@ -5,7 +5,7 @@ import {
   HttpStatus,
   Param,
   ParseFilePipeBuilder,
-  Post,
+  Put,
   Res,
   UploadedFile,
   UseInterceptors,
@@ -31,7 +31,7 @@ export class UploadFilesController {
     private readonly libService: LibService,
     private readonly prismaService: PrismaService,
   ) {}
-  @Post('upload-avatar')
+  @Put('upload-avatar')
   @ResponseMessage('File uploaded succesfully')
   @UseInterceptors(ResponseMessageInterceptor)
   @UseInterceptors(FileInterceptor('avatar'))

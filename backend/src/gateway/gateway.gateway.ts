@@ -125,8 +125,6 @@ export class GatewayGateway {
     @ConnectedSocket() client: SocketWithAuth,
     @MessageBody() avatarUpdateDto: AvatarUpdateDto,
   ) {
-    console.log('entered');
-
     const { userId } = client;
     const { avatar } = avatarUpdateDto;
 

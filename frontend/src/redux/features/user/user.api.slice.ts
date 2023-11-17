@@ -55,7 +55,7 @@ export const UserApiSlice = apiSlice.injectEndpoints({
       query: (formData) => {
         return {
           url: "/files/upload-avatar",
-          method: "POST",
+          method: "PUT",
           body: formData,
         };
       },

@@ -11,12 +11,12 @@ import { CreatedUser } from 'src/user/types/user.types';
 @Injectable()
 export class HashPassword implements PipeTransform {
   constructor(private argon2Service: Argon2Service) {}
-  async transform(user: CreatedUser, metadata: ArgumentMetadata) {
+  async transform(data: CreatedUser, metadata: ArgumentMetadata) {
     if (metadata.type === 'body') {
       try {
-        user.password = await this.argon2Service.hash(user.password);
+        data.password = await this.argon2Service.hash(data.password);
 
-        return user;
+        return data;
       } catch (error) {
         throw new InternalServerErrorException();
       }
