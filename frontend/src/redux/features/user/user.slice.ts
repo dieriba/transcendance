@@ -46,11 +46,11 @@ export const UserSlice = createSlice({
       state.access_token = action.payload.access_token;
     },
     setNewAvatarSrc: (state, action: PayloadAction<string>) => {
-      console.log("insde");
-
       (state.user as User).profile.avatar = action.payload;
     },
-
+    setNewNickname: (state, action: PayloadAction<string>) => {
+      if (state.user) state.user.nickname = action.payload;
+    },
     logout: (state) => {
       state.user = undefined;
       state.access_token = undefined;
@@ -58,6 +58,11 @@ export const UserSlice = createSlice({
   },
 });
 
-export const { authenticateUser, newAccessToken, setNewAvatarSrc, logout } =
-  UserSlice.actions;
+export const {
+  authenticateUser,
+  newAccessToken,
+  setNewAvatarSrc,
+  setNewNickname,
+  logout,
+} = UserSlice.actions;
 export default UserSlice.reducer;

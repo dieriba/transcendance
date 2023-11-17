@@ -66,16 +66,16 @@ const FriendRequestForm = ({ open, handleClose }: CreateGroupProps) => {
     <DialogI maxWidth="sm" open={open} handleClose={handleClose}>
       <DialogTitle>Add new Friend </DialogTitle>
       <DialogContent>
-        {openSnack && (
-          <Alert
-            onClose={handleCloseSnack}
-            severity={severity}
-            sx={{ width: "100%" }}
-          >
-            {message}
-          </Alert>
-        )}
-        <Stack p={2}>
+        <Stack spacing={2} p={2}>
+          {openSnack && (
+            <Alert
+              onClose={handleCloseSnack}
+              severity={severity}
+              sx={{ width: "100%" }}
+            >
+              {message}
+            </Alert>
+          )}
           <form onSubmit={handleSubmit(onSubmit)}>
             <Stack spacing={3}>
               <RHFTextField

@@ -129,8 +129,6 @@ export class UserService {
     profile: Profile,
     select: UserInfo,
   ) {
-    console.log({ user, profile });
-
     const foundUser = await this.prismaService.user.findUnique({
       where: { email: user.email },
       select,

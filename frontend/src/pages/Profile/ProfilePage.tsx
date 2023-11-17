@@ -21,12 +21,22 @@ import CustomTextField from "../../components/CustomTextField/CustomTextField";
 import {
   useChangeAvatarMutation,
   useNotifyNewProfilePicMutation,
+  useUpdateUserMutation,
 } from "../../redux/features/user/user.api.slice";
-import { setNewAvatarSrc } from "../../redux/features/user/user.slice";
+import {
+  setNewAvatarSrc,
+  setNewNickname,
+} from "../../redux/features/user/user.slice";
 import {
   isErrorWithMessage,
   isFetchBaseQueryError,
 } from "../../services/helpers";
+import {
+  UpdateUserSchema,
+  UpdateUserType,
+} from "../../models/login/UserSchema";
+import { SocketServerErrorResponse } from "../../services/type";
+import RHFTextField from "../../components/controlled-components/RHFTextField";
 const ProfilePage = () => {
   const user = useAppSelector((state) => state.user.user);
 
@@ -45,6 +55,11 @@ const ProfilePage = () => {
   const { control, handleSubmit, reset } = useForm<UploadAvatarType>({
     resolver: zodResolver(UploadAvatarSchema),
   });
+
+  const methods = useForm<UpdateUserType>({
+    resolver: zodResolver(UpdateUserSchema),
+  });
+
   const dispatch = useAppDispatch();
   const [file, setFile] = useState<File>();
   const [image, setImage] = useState<string | undefined>(undefined);
@@ -63,7 +78,7 @@ const ProfilePage = () => {
 
     setOpenSnack(false);
   };
-
+  const [updateUser, updateUserAction] = useUpdateUserMutation();
   const loadImage = (file: Blob) =>
     new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
@@ -86,14 +101,12 @@ const ProfilePage = () => {
   const onSubmit = async ({ avatar }: UploadAvatarType) => {
     try {
       const formData = new FormData();
-      console.log({ avatar: avatar[0] });
-
       formData.append("avatar", avatar[0]);
 
       const { message, data } = await changeAvatar(formData).unwrap();
 
       dispatch(setNewAvatarSrc(data.data));
-      notifyNewProfilePic(data.data);
+      await notifyNewProfilePic({ avatar: data.data }).unwrap();
       setMessage(message);
       setSeverity("success");
       setOpenSnack(true);
@@ -110,6 +123,21 @@ const ProfilePage = () => {
           setMessage("An error has occured, please try again later!");
         }
       }
+    }
+  };
+
+  const handleOnSubmitUpdateUser = async (data: UpdateUserType) => {
+    try {
+      const res = await updateUser(data).unwrap();
+
+      dispatch(setNewNickname(res.data.nickname));
+      setMessage(res.message);
+      setSeverity("success");
+      setOpenSnack(true);
+    } catch (err) {
+      setMessage((err as SocketServerErrorResponse).message);
+      setSeverity("error");
+      setOpenSnack(true);
     }
   };
 
@@ -209,13 +237,34 @@ const ProfilePage = () => {
                       size="medium"
                       color="inherit"
                       type="submit"
-                      disabled={isLoading}
+                      disabled={isLoading || updateUserAction.isLoading}
                     >
                       Upload Avatar
                     </Button>
                   )}
                 </Stack>
               </form>
+              <Stack>
+                <form onSubmit={methods.handleSubmit(handleOnSubmitUpdateUser)}>
+                  <Stack spacing={1}>
+                    <RHFTextField
+                      defaultValue={user?.nickname}
+                      control={methods.control}
+                      name="nickname"
+                      label="nickname"
+                    />
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      color="inherit"
+                      type="submit"
+                      disabled={isLoading || updateUserAction.isLoading}
+                    >
+                      Edit Nickname
+                    </Button>
+                  </Stack>
+                </form>
+              </Stack>
             </Stack>
           </Stack>
         </Box>

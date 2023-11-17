@@ -26,15 +26,19 @@ import { BaseFriendType, FriendType } from "../../models/FriendsSchema";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { useEffect } from "react";
 import { connectSocket, socket } from "../../utils/getSocket";
-import { FriendEvent } from "../../../../shared/socket.event";
+import { FriendEvent, GeneralEvent } from "../../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../services/type";
 import {
   addFriend,
   deleteFriend,
   setFriends,
+  setOfflineFriend,
+  setOnlineFriend,
+  updatePage,
 } from "../../redux/features/friends/friends.slice";
 import { RootState } from "../../redux/store";
 import { deleteChatroom } from "../../redux/features/chat/chat.slice";
+import BadgeAvatar from "../Badge/BadgeAvatar";
 
 export interface FriendProps {
   id: number;
@@ -53,6 +57,7 @@ const FriendsTable = () => {
 
   useEffect(() => {
     if (data && data.data) {
+      dispatch(updatePage("FRIENDS"));
       dispatch(setFriends(data.data));
       connectSocket();
       socket.on(
@@ -66,19 +71,19 @@ const FriendsTable = () => {
         }
       );
 
-      /*socket.on(
+      socket.on(
         GeneralEvent.USER_LOGGED_IN,
         (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
-
+          dispatch(setOnlineFriend(data.data));
         }
       );
 
       socket.on(
         GeneralEvent.USER_LOGGED_OUT,
         (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
-          
+          dispatch(setOfflineFriend(data.data));
         }
-      );*/
+      );
 
       socket.on(
         FriendEvent.DELETE_FRIEND,
@@ -94,8 +99,8 @@ const FriendsTable = () => {
       return () => {
         socket.off(FriendEvent.NEW_FRIEND);
         socket.off(FriendEvent.DELETE_FRIEND);
-        //socket.off(GeneralEvent.USER_LOGGED_IN);
-        //socket.off(GeneralEvent.USER_LOGGED_OUT);
+        socket.off(GeneralEvent.USER_LOGGED_IN);
+        socket.off(GeneralEvent.USER_LOGGED_OUT);
       };
     }
   }, [data, dispatch]);
@@ -161,6 +166,7 @@ const FriendsTable = () => {
                       friend: {
                         id,
                         nickname,
+                        status,
                         profile: { avatar },
                       },
                     }) => (
@@ -173,9 +179,22 @@ const FriendsTable = () => {
                         <TableCell padding="checkbox"></TableCell>
 
                         <TableCell component="th" scope="row">
-                          <Avatar src={avatar ? avatar : undefined} />
+                          {status === "ONLINE" ? (
+                            <BadgeAvatar>
+                              <Avatar
+                                sx={{ width: "50px", height: "50px" }}
+                                src={avatar ? avatar : undefined}
+                              />
+                            </BadgeAvatar>
+                          ) : (
+                            <Avatar src={avatar ? avatar : undefined} />
+                          )}
                         </TableCell>
-                        <TableCell align="center">{nickname}</TableCell>
+                        <TableCell align="center">
+                          <Typography variant="subtitle1">
+                            {nickname}
+                          </Typography>
+                        </TableCell>
                         <TableCell align="center">
                           <Button>Profile</Button>
                         </TableCell>

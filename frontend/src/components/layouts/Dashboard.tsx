@@ -15,6 +15,7 @@ import {
   setOnlineUser,
 } from "../../redux/features/chat/chat.slice";
 import { RootState } from "../../redux/store";
+import { addNewFriendRequestReceived, deleteReceivedFriendRequest } from "../../redux/features/friends/friends.slice";
 
 const ProtectedDashboardLayout = () => {
   const isAuthenticated = useAppSelector(
@@ -68,6 +69,7 @@ const ProtectedDashboardLayout = () => {
           dispatch(
             showSnackBar({ message: data.message, severity: "success" })
           );
+          dispatch(deleteReceivedFriendRequest(data.data));
         }
       );
 

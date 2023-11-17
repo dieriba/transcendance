@@ -23,9 +23,6 @@ export const SidebarSlice = createSlice({
     closeSidebar: (state) => {
       state.open = false;
     },
-    closeGroupSidebar: (state) => {
-      state.openGroupSidebar = false;
-    },
     switchSidebarTab: (
       state,
       action: PayloadAction<{ tab: typeof initialState.tab }>
@@ -35,10 +32,5 @@ export const SidebarSlice = createSlice({
   },
 });
 
-export const {
-  toggle,
-  switchSidebarTab,
-  closeSidebar,
-  closeGroupSidebar,
-} = SidebarSlice.actions;
+export const { toggle, switchSidebarTab, closeSidebar } = SidebarSlice.actions;
 export default SidebarSlice.reducer;

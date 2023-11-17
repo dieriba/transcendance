@@ -28,8 +28,6 @@ export class WsAccessTokenGuard implements CanActivate {
     const token: string =
       client.handshake.auth.token || client.handshake.headers['token'];
 
-    console.log({ token });
-
     if (!token) throw new WsUnauthorizedException(UNAUTHORIZED);
 
     try {

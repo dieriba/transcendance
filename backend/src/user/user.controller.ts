@@ -17,8 +17,6 @@ export class UserController {
   @Get('blocked')
   @ResponseMessage(OK_RESPONSE)
   async getBlockingList(@GetUser('userId') userId: string) {
-    console.log({ userId });
-
     return await this.userService.findUserById(userId, UserBlockList);
   }
 }

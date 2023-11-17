@@ -32,6 +32,7 @@ import {
   addNewFriendRequestSent,
   deleteSentFriendRequest,
   setFriendRequestSent,
+  updatePage,
 } from "../../redux/features/friends/friends.slice";
 import { RootState } from "../../redux/store";
 
@@ -47,6 +48,7 @@ const FriendRequestSentTable = () => {
   useEffect(() => {
     if (data && data.data) {
       dispatch(setFriendRequestSent(data.data));
+      dispatch(updatePage("SENT"));
       connectSocket();
       socket.on(
         FriendEvent.NEW_REQUEST_SENT,
@@ -122,40 +124,54 @@ const FriendRequestSentTable = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {friendRequest?.map(({ recipient: { id, nickname } }) => (
-                    <TableRow
-                      key={id}
-                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                    >
-                      <TableCell padding="checkbox"></TableCell>
-                      <TableCell component="th" scope="row">
-                        <Avatar />
-                      </TableCell>
-                      <TableCell align="center">{nickname}</TableCell>
-                      <TableCell align="center">
-                        <Button>Profile</Button>
-                      </TableCell>
-                      <TableCell align="center">
-                        <Stack
-                          direction="row"
-                          justifyContent="center"
-                          spacing={2}
-                        >
-                          <Tooltip
-                            onClick={() =>
-                              handleCancelRequest({ friendId: id })
-                            }
-                            placement="top"
-                            title="cancel"
+                  {friendRequest?.map(
+                    ({
+                      recipient: {
+                        id,
+                        nickname,
+                        profile: { avatar },
+                      },
+                    }) => (
+                      <TableRow
+                        key={id}
+                        sx={{
+                          "&:last-child td, &:last-child th": { border: 0 },
+                        }}
+                      >
+                        <TableCell padding="checkbox"></TableCell>
+                        <TableCell component="th" scope="row">
+                          <Avatar src={avatar ? avatar : undefined} />
+                        </TableCell>
+                        <TableCell align="center">
+                          <Typography variant="subtitle1">
+                            {nickname}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Button>Profile</Button>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Stack
+                            direction="row"
+                            justifyContent="center"
+                            spacing={2}
                           >
-                            <IconButton>
-                              <X />
-                            </IconButton>
-                          </Tooltip>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                            <Tooltip
+                              onClick={() =>
+                                handleCancelRequest({ friendId: id })
+                              }
+                              placement="top"
+                              title="cancel"
+                            >
+                              <IconButton>
+                                <X />
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>

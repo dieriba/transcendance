@@ -2,12 +2,17 @@ import Box from "@mui/material/Box";
 import { Container, Stack, Tabs, Tab, Button } from "@mui/material";
 import { UserPlus } from "phosphor-react";
 import FriendsTable from "../../components/friends/FriendsTable";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FriendRequestForm from "../../components/friends/FriendRequestForm";
 import CustomTabPanel from "../../components/table-panel/CustomTablePanel";
 import FriendRequestReceived from "../../components/friends/FriendRequestReceivedTable";
 import FriendRequestSentTable from "../../components/friends/FriendRequestSentTable";
 import BlockedUserTable from "../../components/friends/BlockedUserTable";
+import { connectSocket, socket } from "../../utils/getSocket";
+import { GeneralEvent } from "../../../../shared/socket.event";
+import { useAppDispatch } from "../../redux/hooks";
+import { setNewUserAvatarSrc, updateFriendInfo } from "../../redux/features/friends/friends.slice";
+import { UpdatedAvatarRes, UserUpdated } from "../../models/login/UserSchema";
 
 function a11yProps(index: number) {
   return {
@@ -22,6 +27,28 @@ const FriendsPage = () => {
   const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
+
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    connectSocket();
+    socket.on(
+      GeneralEvent.USER_CHANGED_USERNAME,
+      (data: { data: UserUpdated }) => {
+        dispatch(updateFriendInfo(data.data));
+      }
+    );
+
+    socket.on(
+      GeneralEvent.USER_CHANGED_AVATAR,
+      (data: { data: UpdatedAvatarRes }) => {
+        dispatch(setNewUserAvatarSrc(data.data));
+      }
+    );
+    return () => {
+      socket.off(GeneralEvent.USER_CHANGED_USERNAME);
+    };
+  }, [dispatch]);
 
   return (
     <>

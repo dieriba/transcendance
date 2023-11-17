@@ -14,3 +14,13 @@ export const BaseUserSchema = z.object({
 });
 
 export type BaseUserTypeId = z.infer<typeof BaseUserSchema>;
+
+export const UpdateUserSchema = z.object({
+  nickname: z.string().min(1),
+});
+
+export type UpdateUserType = z.infer<typeof UpdateUserSchema>;
+
+export type UserUpdated = UpdateUserType & BaseUserTypeId;
+
+export type UpdatedAvatarRes = BaseUserTypeId & { avatar: string };

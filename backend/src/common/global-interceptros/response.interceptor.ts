@@ -22,9 +22,6 @@ export class ResponseMessageInterceptor<T>
     context: ExecutionContext,
     next: CallHandler,
   ): Observable<Response<T>> {
-    const request = context.switchToHttp().getRequest();
-    console.log({ body: request.body });
-
     return next.handle().pipe(
       map((data) => ({
         message:

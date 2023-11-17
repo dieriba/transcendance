@@ -7,7 +7,10 @@ export enum GeneralEvent {
   SUCCESS = `${General}.success`,
   JOIN = `${General}.join`,
   LEAVE = `${General}.leave`,
-  NEW_PROFILE_PICTURE = `${General}.new.profile.pic`
+  NEW_PROFILE_PICTURE = `${General}.new.profile.pic`,
+  USER_CHANGED_AVATAR = `${General}.new.avatar.pic`,
+  UPDATE_USER = `${General}.update.user`,
+  USER_CHANGED_USERNAME = `${General}.changed.username`
 }
 
 const friend = "friend";

@@ -32,6 +32,7 @@ import {
   addNewFriendRequestReceived,
   deleteReceivedFriendRequest,
   setFriendRequestReceived,
+  updatePage,
 } from "../../redux/features/friends/friends.slice";
 import { FriendEvent } from "../../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../services/type";
@@ -49,9 +50,11 @@ const FriendRequestReceived = () => {
   );
 
   const dispatch = useAppDispatch();
+
   useEffect(() => {
     if (data && data.data) {
       dispatch(setFriendRequestReceived(data.data));
+      dispatch(updatePage("RECEIVED"));
       connectSocket();
       socket.on(
         FriendEvent.ADD_NEW_REQUEST,
@@ -78,17 +81,9 @@ const FriendRequestReceived = () => {
         }
       );
 
-      socket.on(
-        FriendEvent.REQUEST_ACCEPTED_FROM_RECIPIENT,
-        (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
-          dispatch(deleteReceivedFriendRequest(data.data));
-        }
-      );
-
       return () => {
         socket.off(FriendEvent.ADD_NEW_REQUEST);
         socket.off(FriendEvent.CANCEL_REQUEST);
-        socket.off(FriendEvent.REQUEST_ACCEPTED_FROM_RECIPIENT);
       };
     }
   }, [data, dispatch]);
@@ -163,68 +158,82 @@ const FriendRequestReceived = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {friendRequest?.map(({ sender: { id, nickname } }) => (
-                    <TableRow
-                      key={id}
-                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                    >
-                      <TableCell padding="checkbox"></TableCell>
-                      <TableCell component="th" scope="row">
-                        <Avatar />
-                      </TableCell>
-                      <TableCell align="center">{nickname}</TableCell>
-                      <TableCell align="center">
-                        <Button>Profile</Button>
-                      </TableCell>
-                      <TableCell align="center">
-                        <Stack
-                          direction="row"
-                          justifyContent="center"
-                          spacing={2}
-                        >
-                          <Tooltip
-                            onClick={() =>
-                              setOpen((prev) => ({
-                                ...prev,
-                                block: true,
-                                friendId: id,
-                              }))
-                            }
-                            placement="top"
-                            title="block"
+                  {friendRequest?.map(
+                    ({
+                      sender: {
+                        id,
+                        nickname,
+                        profile: { avatar },
+                      },
+                    }) => (
+                      <TableRow
+                        key={id}
+                        sx={{
+                          "&:last-child td, &:last-child th": { border: 0 },
+                        }}
+                      >
+                        <TableCell padding="checkbox"></TableCell>
+                        <TableCell component="th" scope="row">
+                          <Avatar src={avatar ? avatar : undefined} />
+                        </TableCell>
+                        <TableCell align="center">
+                          <Typography variant="subtitle1">
+                            {nickname}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Button>Profile</Button>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Stack
+                            direction="row"
+                            justifyContent="center"
+                            spacing={2}
                           >
-                            <IconButton>
-                              <Prohibit />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip
-                            onClick={() =>
-                              setOpen((prev) => ({
-                                ...prev,
-                                cancel: true,
-                                friendId: id,
-                              }))
-                            }
-                            placement="top"
-                            title="cancel"
-                          >
-                            <IconButton>
-                              <X />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip placement="top" title="accept">
-                            <IconButton
+                            <Tooltip
                               onClick={() =>
-                                acceptFriendRequest({ friendId: id })
+                                setOpen((prev) => ({
+                                  ...prev,
+                                  block: true,
+                                  friendId: id,
+                                }))
                               }
+                              placement="top"
+                              title="block"
                             >
-                              <Check />
-                            </IconButton>
-                          </Tooltip>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                              <IconButton>
+                                <Prohibit />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip
+                              onClick={() =>
+                                setOpen((prev) => ({
+                                  ...prev,
+                                  cancel: true,
+                                  friendId: id,
+                                }))
+                              }
+                              placement="top"
+                              title="cancel"
+                            >
+                              <IconButton>
+                                <X />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip placement="top" title="accept">
+                              <IconButton
+                                onClick={() =>
+                                  acceptFriendRequest({ friendId: id })
+                                }
+                              >
+                                <Check />
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>

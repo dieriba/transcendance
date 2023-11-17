@@ -64,6 +64,7 @@ import { ChatRoomNotFoundException } from 'src/chat/exception/chatroom-not-found
 import { ChatRoute } from 'src/common/custom-decorator/metadata.decorator';
 import { IsRestrictedUserGuard } from 'src/chat/guards/is-restricted-user.guard.ws';
 import { AvatarUpdateDto } from 'src/user/dto/AvatarUpdate.dto';
+import { UserInfoUpdateDto } from 'src/user/dto/UserInfo.dto';
 
 @UseGuards(WsAccessTokenGuard)
 @UseFilters(WsCatchAllFilter)
@@ -124,16 +125,59 @@ export class GatewayGateway {
     @ConnectedSocket() client: SocketWithAuth,
     @MessageBody() avatarUpdateDto: AvatarUpdateDto,
   ) {
+    console.log('entered');
+
     const { userId } = client;
     const { avatar } = avatarUpdateDto;
 
     const user = await this.userService.findUserById(userId, UserData);
 
-    if (!user) throw new UserNotFoundException();
+    if (!user) throw new WsNotFoundException('User not found');
 
-    client.broadcast.emit(GeneralEvent.NEW_PROFILE_PICTURE, {
-      id: userId,
-      avatar,
+    client.broadcast.emit(GeneralEvent.USER_CHANGED_AVATAR, {
+      data: {
+        id: userId,
+        avatar,
+      },
+    });
+
+    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+      message: 'ok',
+      data: {},
+    });
+  }
+
+  @SubscribeMessage(GeneralEvent.UPDATE_USER)
+  async updateUserInfo(
+    @ConnectedSocket() client: SocketWithAuth,
+    @MessageBody() userInfoUpdateDto: UserInfoUpdateDto,
+  ) {
+    const { userId } = client;
+
+    const user = await this.userService.findUserById(userId, UserData);
+
+    if (!user) {
+      throw new WsNotFoundException('User not found');
+    }
+
+    const { nickname } = userInfoUpdateDto;
+
+    if (nickname === user.nickname) {
+      throw new WsBadRequestException('Nickname already taken by you, btw...');
+    }
+
+    await this.prismaService.user.update({
+      where: { id: userId },
+      data: { ...userInfoUpdateDto },
+    });
+
+    client.broadcast.emit(GeneralEvent.USER_CHANGED_USERNAME, {
+      data: { id: userId, nickname },
+    });
+
+    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+      message: 'Profile updated ',
+      data: { nickname },
     });
   }
 
@@ -432,6 +476,14 @@ export class GatewayGateway {
           chatroomId,
         },
       },
+      select: {
+        role: true,
+        user: {
+          select: {
+            nickname: true,
+          },
+        },
+      },
     });
 
     if (!chatroomUser) throw new WsNotFoundException('User not found');
@@ -458,7 +510,7 @@ export class GatewayGateway {
       ChatEventGroup.GROUP_CHATROOM_DELETED,
       {
         data: { chatroomId },
-        message: `${client.nickname} deleted the chatroom`,
+        message: `${chatroomUser.user.nickname} deleted the chatroom`,
       },
     );
 
@@ -478,7 +530,7 @@ export class GatewayGateway {
     const { userId } = client;
     const { id, chatroomId } = deleteChatroomMember;
 
-    await this.isDieriba(userId, chatroomId);
+    const clientNickname = await this.isDieriba(userId, chatroomId);
 
     if (id === userId)
       throw new WsBadRequestException(
@@ -528,7 +580,7 @@ export class GatewayGateway {
 
     this.sendToSocket(client, chatroomName, ChatEventGroup.USER_KICKED, {
       data: { id, chatroomId, role: chatroomUser.role },
-      message: `${client.nickname} has kicked ${nickname}`,
+      message: `${clientNickname} has kicked ${nickname}`,
     });
 
     this.sendToSocket(this.server, id, ChatEventGroup.BEEN_KICKED, {
@@ -653,7 +705,7 @@ export class GatewayGateway {
               newAdminId: newAdmin.userId,
               newAdminPreviousRole: role,
             },
-            message: `${client.nickname} and the new admin randomly choosen is now ${newAdmin.user.nickname}`,
+            message: `${chatroomUser.user.nickname} and the new admin randomly choosen is now ${newAdmin.user.nickname}`,
           },
         );
 
@@ -1335,7 +1387,6 @@ export class GatewayGateway {
   ) {
     const { chatroomId } = joinChatroomDto;
     const { userId } = client;
-    this.logger.log(`password: [${joinChatroomDto.password}]`);
 
     const chatroom = await this.prismaService.chatroom.findFirst({
       where: {
@@ -1413,7 +1464,7 @@ export class GatewayGateway {
       chatroom.chatroomName,
       ChatEventGroup.NEW_USER_CHATROOM,
       {
-        message: `${client.nickname} has joined the group`,
+        message: `${user.nickname} has joined the group`,
         data: {
           ...user,
         },
@@ -1442,11 +1493,7 @@ export class GatewayGateway {
         id: userId,
       },
       select: {
-        blockedBy: {
-          select: {
-            id: true,
-          },
-        },
+        nickname: true,
       },
     });
 
@@ -1509,7 +1556,7 @@ export class GatewayGateway {
           messageTypes,
           user: {
             id: userId,
-            nickname: client.nickname,
+            nickname: user.nickname,
             profile: {
               avatar: res.user.profile?.avatar,
             },
@@ -1604,11 +1651,19 @@ export class GatewayGateway {
       });
   }
 
-  private async isDieriba(userId: string, chatroomId: string): Promise<void> {
-    const chatroomUser = await this.chatroomUserService.findChatroomUser(
-      chatroomId,
-      userId,
-    );
+  private async isDieriba(userId: string, chatroomId: string): Promise<string> {
+    const chatroomUser = await this.prismaService.chatroomUser.findUnique({
+      where: {
+        userId_chatroomId: {
+          chatroomId,
+          userId,
+        },
+      },
+      include: {
+        chatroom: true,
+        user: true,
+      },
+    });
 
     this.logger.log({ chatroomUser });
 
@@ -1621,6 +1676,8 @@ export class GatewayGateway {
       throw new WsUnauthorizedException(
         `You have no right to perform the requested action in the groupe named ${chatroomUser.chatroom.chatroomName}`,
       );
+
+    return chatroomUser.user.nickname;
   }
 
   /*------------------------------------------------------------------------------------------------------ */
@@ -1630,7 +1687,7 @@ export class GatewayGateway {
     @MessageBody() body: FriendsTypeNicknameDto,
   ) {
     const { nickname } = body;
-    const userId = client.userId;
+    const { userId } = client;
     const user = await this.userService.findUserById(userId, UserData);
 
     if (!user) throw new WsNotFoundException('User not found');
@@ -1642,7 +1699,7 @@ export class GatewayGateway {
 
     if (!friend) throw new WsNotFoundException('User not found');
 
-    if (friend.nickname === client.nickname)
+    if (friend.nickname === user.nickname)
       throw new WsBadRequestException("Can't send friend request to myself");
 
     const friendId = friend.id;
@@ -1706,18 +1763,18 @@ export class GatewayGateway {
     });
 
     this.sendToSocket(this.server, friendId, FriendEvent.NEW_REQUEST_RECEIVED, {
-      message: `You received a friend request from ${client.nickname}`,
+      message: `You received a friend request from ${user.nickname}`,
       data: {
         friendId: client.userId,
       },
     });
 
     this.sendToSocket(this.server, friendId, FriendEvent.ADD_NEW_REQUEST, {
-      message: '',
+      message: `You received a friend request from ${user.nickname}`,
       data: {
         createdAt: request.createdAt,
         sender: {
-          nickname: client.nickname,
+          nickname: user.nickname,
           id: client.userId,
           profile: { avatar: user.profile?.avatar },
         },
@@ -1811,7 +1868,6 @@ export class GatewayGateway {
       userId,
       friendId,
     );
-    this.logger.log({ existingFriendship });
 
     if (existingFriendship)
       throw new WsBadRequestException('You are already friends with that user');
@@ -1822,11 +1878,9 @@ export class GatewayGateway {
     if (!existingFriendRequest)
       throw new WsBadRequestException('User has not send you a friend request');
 
-    /*MAYBE CHECK IF USER HAS BLOCKED ME*/
-
     let chatroom: Partial<Chatroom>;
     const { sender, recipient } = existingFriendRequest;
-    const res = await this.prismaService.$transaction(async (tx) => {
+    await this.prismaService.$transaction(async (tx) => {
       await tx.friendRequest.delete({
         where: {
           senderId_recipientId: {
@@ -1949,7 +2003,7 @@ export class GatewayGateway {
     });
 
     this.sendToSocket(this.server, friendId, FriendEvent.NEW_REQUEST_ACCEPTED, {
-      message: `${client.nickname} accepted your friend request`,
+      message: `${recipient.nickname} accepted your friend request`,
       data: { friendId: client.userId },
     });
 
@@ -2037,7 +2091,7 @@ export class GatewayGateway {
       throw new WsBadRequestException(
         'You cannot delete user that are not your friend with',
       );
-    const res = await this.prismaService.$transaction(async (tx) => {
+    await this.prismaService.$transaction(async (tx) => {
       await tx.friends.delete({
         where: {
           userId_friendId: { userId, friendId },
@@ -2066,7 +2120,7 @@ export class GatewayGateway {
         });
       }
     });
-    this.logger.log({ res });
+
     this.sendToSocket(this.server, friendId, FriendEvent.DELETE_FRIEND, {
       message: '',
       data: { friendId: client.userId },
@@ -2076,13 +2130,14 @@ export class GatewayGateway {
       friendId,
       ChatEventPrivateRoom.CLEAR_CHATROOM,
       {
-        message: `${client.nickname} deleted you as friend`,
+        message: `${existingFriendship.nickname} deleted you as friend`,
         data: { chatroomId },
       },
     );
-    this.server
-      .to(client.userId)
-      .emit(FriendEvent.DELETE_FRIEND, { message: '', data: { friendId } });
+    this.sendToSocket(this.server, client.userId, FriendEvent.DELETE_FRIEND, {
+      message: '',
+      data: { friendId },
+    });
     this.sendToSocket(this.server, client.userId, GeneralEvent.SUCCESS, {
       message: 'Friend Deleted',
       data: {},
@@ -2109,8 +2164,6 @@ export class GatewayGateway {
       userId,
       friendId,
     );
-
-    this.logger.log({ existingFriendShip });
 
     const existingFriendRequest = await this.friendService.isRequestBetweenUser(
       userId,
@@ -2158,7 +2211,7 @@ export class GatewayGateway {
             friendId,
             ChatEventPrivateRoom.CLEAR_CHATROOM,
             {
-              message: `${client.nickname} deleted you as friend`,
+              message: `${existingFriendShip.nickname} deleted you as friend`,
               data: { chatroomId: chatroom.id },
             },
           );

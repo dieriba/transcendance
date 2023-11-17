@@ -57,8 +57,6 @@ export class LibService {
   }
 
   checkFolderFileExistence(path: string): boolean {
-    console.log({ path });
-
     if (fs.existsSync(path)) return true;
 
     return false;

@@ -1,10 +1,14 @@
-import { BaseServerResponse } from "./../../../services/type";
+import {
+  BaseServerResponse,
+  SocketServerSucessResponse,
+} from "./../../../services/type";
 import { RegisterFormType } from "../../../models/RegisterSchema";
 import { LoginFormType } from "../../../models/login/LoginSchema";
 import { ResponseLoginType } from "../../../models/login/ResponseLogin";
 import { apiSlice } from "../../api/apiSlice";
 import { GeneralEvent } from "../../../../../shared/socket.event";
 import { connectSocket, socket } from "../../../utils/getSocket";
+import { UpdateUserType } from "../../../models/login/UserSchema";
 
 export const UserApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -56,13 +60,38 @@ export const UserApiSlice = apiSlice.injectEndpoints({
         };
       },
     }),
-    notifyNewProfilePic: builder.mutation<null, string>({
+    notifyNewProfilePic: builder.mutation<null, { avatar: string }>({
       queryFn: (data) => {
         connectSocket();
         return new Promise((resolve) => {
           socket.emit(GeneralEvent.NEW_PROFILE_PICTURE, data);
 
-          resolve({ data: null });
+          socket.on(GeneralEvent.SUCCESS, (data) => {
+            resolve({ data });
+          });
+
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
+            resolve({ error });
+          });
+        });
+      },
+    }),
+    updateUser: builder.mutation<
+      SocketServerSucessResponse & { data: { nickname: string } },
+      UpdateUserType
+    >({
+      queryFn: (data) => {
+        connectSocket();
+        return new Promise((resolve) => {
+          socket.emit(GeneralEvent.UPDATE_USER, data);
+
+          socket.on(GeneralEvent.SUCCESS, (data) => {
+            resolve({ data });
+          });
+
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
+            resolve({ error });
+          });
         });
       },
     }),
@@ -76,4 +105,5 @@ export const {
   useLogoutMutation,
   useChangeAvatarMutation,
   useNotifyNewProfilePicMutation,
+  useUpdateUserMutation,
 } = UserApiSlice;

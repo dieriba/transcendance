@@ -30,6 +30,7 @@ import { SocketServerSucessResponse } from "../../services/type";
 import {
   removeBlockedUser,
   setBlockedUser,
+  updatePage,
 } from "../../redux/features/friends/friends.slice";
 import { RootState } from "../../redux/store";
 
@@ -44,6 +45,7 @@ const BlockedUserTable = () => {
   useEffect(() => {
     if (data && data.data) {
       dispatch(setBlockedUser(data.data));
+      dispatch(updatePage("BLOCKED"));
       socket.on(
         FriendEvent.UNBLOCK_FRIEND,
         (
@@ -114,9 +116,11 @@ const BlockedUserTable = () => {
                     >
                       <TableCell padding="checkbox"></TableCell>
                       <TableCell component="th" scope="row">
-                        <Avatar src={avatar} />
+                        <Avatar src={avatar ? avatar : undefined} />
                       </TableCell>
-                      <TableCell align="center">{nickname}</TableCell>
+                      <TableCell align="center">
+                        <Typography variant="subtitle1">{nickname}</Typography>
+                      </TableCell>
                       <TableCell align="center">
                         <Button>Profile</Button>
                       </TableCell>
