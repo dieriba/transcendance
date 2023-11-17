@@ -13,6 +13,7 @@ export interface IFriendType {
   blockedUser: BlockedUserType[];
   isEstablishingConnection: boolean;
   isConnected: boolean;
+  page: "FRIENDS" | "BLOCKED" | "SEND" | "RECEIVED";
 }
 
 const initialState: IFriendType = {
@@ -22,6 +23,7 @@ const initialState: IFriendType = {
   blockedUser: [],
   isEstablishingConnection: false,
   isConnected: false,
+  page: "RECEIVED",
 };
 
 export const FriendsSlice = createSlice({
@@ -37,6 +39,12 @@ export const FriendsSlice = createSlice({
     connectionEstablished: (state) => {
       state.isConnected = true;
       state.isEstablishingConnection = true;
+    },
+    updatePage: (
+      state,
+      action: PayloadAction<"FRIENDS" | "BLOCKED" | "SEND" | "RECEIVED">
+    ) => {
+      state.page = action.payload;
     },
     setFriendRequestReceived: (
       state,
@@ -91,6 +99,46 @@ export const FriendsSlice = createSlice({
         (obj) => obj.friend.id !== action.payload.friendId
       );
     },
+    setNewUserAvatarSrc: (
+      state,
+      action: PayloadAction<{ friendId: string; avatar: string }>
+    ) => {
+      const { page } = state;
+      const { friendId, avatar } = action.payload;
+      if (page === "FRIENDS") {
+        const index = state.friends.findIndex(
+          (friend) => friend.friend.id === friendId
+        );
+
+        if (index !== -1) {
+          state.friends[index].friend.profile.avatar = avatar;
+        }
+      } else if (page === "RECEIVED") {
+        const index = state.receivedFriendsRequest.findIndex(
+          (friend) => friend.sender.id === friendId
+        );
+
+        if (index !== -1) {
+          state.receivedFriendsRequest[index].sender.profile.avatar = avatar;
+        }
+      } else if (page === "SEND") {
+        const index = state.sentFriendsRequest.findIndex(
+          (friend) => friend.recipient.id === friendId
+        );
+
+        if (index !== -1) {
+          state.sentFriendsRequest[index].recipient.profile.avatar = avatar;
+        }
+      } else {
+        const index = state.blockedUser.findIndex(
+          (friend) => friend.id === friendId
+        );
+
+        if (index !== -1) {
+          state.blockedUser[index].profile.avatar = avatar;
+        }
+      }
+    },
   },
 });
 
@@ -107,7 +155,9 @@ export const {
   removeBlockedUser,
   deleteFriend,
   deleteReceivedFriendRequest,
+  setNewUserAvatarSrc,
   deleteSentFriendRequest,
+  updatePage,
 } = FriendsSlice.actions;
 
 export default FriendsSlice.reducer;
