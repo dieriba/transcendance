@@ -17,10 +17,6 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
-import {
-  BaseServerResponse,
-  SocketServerErrorResponse,
-} from "../../services/type";
 import CustomTextField from "../../components/CustomTextField/CustomTextField";
 import { useChangeAvatarMutation } from "../../redux/features/user/user.api.slice";
 import { setNewAvatarSrc } from "../../redux/features/user/user.slice";
@@ -86,9 +82,9 @@ const ProfilePage = () => {
 
       formData.append("avatar", avatar);
 
-      const { message, data } = await changeAvatar(formData).unwrap();
+      const { message, data } = await changeAvatar(avatar).unwrap();
 
-      dispatch(setNewAvatarSrc(data));
+      dispatch(setNewAvatarSrc(data.data));
       setMessage(message);
       setSeverity("success");
       setOpenSnack(true);

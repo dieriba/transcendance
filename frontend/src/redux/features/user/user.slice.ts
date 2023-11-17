@@ -46,8 +46,9 @@ export const UserSlice = createSlice({
       state.access_token = action.payload.access_token;
     },
     setNewAvatarSrc: (state, action: PayloadAction<string>) => {
-      (state.user as User).profile.avatar =
-        "http://localhost:3000/avatar/" + action.payload;
+      console.log('insde');
+      
+      (state.user as User).profile.avatar = action.payload;
     },
     logout: (state) => {
       state.user = undefined;

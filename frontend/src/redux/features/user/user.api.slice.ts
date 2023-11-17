@@ -1,8 +1,14 @@
+import { BaseServerResponse } from "./../../../services/type";
 import { RegisterFormType } from "../../../models/RegisterSchema";
 import { LoginFormType } from "../../../models/login/LoginSchema";
 import { ResponseLoginType } from "../../../models/login/ResponseLogin";
-import { BaseServerResponse } from "../../../services/type";
 import { apiSlice } from "../../api/apiSlice";
+
+const dataForm = (file:Blob) => {
+  const formData = new FormData();
+  formData.append("archivo", file); // "archivo" is the key that expects my backend for the file
+  return formData;
+}
 
 export const UserApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -41,19 +47,21 @@ export const UserApiSlice = apiSlice.injectEndpoints({
       }),
     }),
     changeAvatar: builder.mutation<
-      BaseServerResponse & { data: string },
-      FormData
+      BaseServerResponse & {
+        data: { message: string; statusCode: number; data: string };
+      },
+      Blob
     >({
-      query: (data) => ({
-        url: "/files/upload-avatar",
-        method: "POST",
-        body: data,
-        Accept: "*/*",
-        formData: true,
-        headers: {
-          contentType: undefined,
-        },
-      }),
+      query: (file) => {
+        const formData = new FormData();
+        formData.append("avatar", file);
+        console.log({ formData, file });
+        return {
+          url: "/files/upload-avatar",
+          method: "POST",
+          body: dataForm(file),
+        };
+      },
     }),
   }),
 });
