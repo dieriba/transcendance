@@ -24,6 +24,7 @@ import { UserData, UserRefreshToken } from 'src/common/types/user-info.type';
 import { LibService } from 'src/lib/lib.service';
 import { STATUS } from '@prisma/client';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
+import { ChangeUserPasswordDto } from 'src/user/dto/ChangeUserPassword.dto';
 
 @Injectable()
 export class AuthService {
@@ -106,6 +107,38 @@ export class AuthService {
         hashedRefreshToken: null,
       });
     } catch (error) {}
+  }
+
+  async changeUserPassword(
+    userId: string,
+    changeUserPasswordDto: ChangeUserPasswordDto,
+  ) {
+    const user = await this.userService.findUserById(userId, UserData);
+
+    if (!user) throw new UserNotFoundException();
+
+    const { password, currentPassword } = changeUserPasswordDto;
+
+    const userPassword = user.password;
+
+    if (!userPassword)
+      throw new CustomException(
+        'Only account created through the standard way can change their password',
+        HttpStatus.BAD_REQUEST,
+      );
+
+    const hashedCurrentPassword = await this.argon2.compare(
+      userPassword,
+      currentPassword,
+    );
+
+    if (!hashedCurrentPassword)
+      throw new CustomException(
+        'Current password not valid',
+        HttpStatus.BAD_REQUEST,
+      );
+
+    await this.userService.updateUserById(userId, { password });
   }
 
   async oauth(code: string): Promise<

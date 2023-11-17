@@ -24,3 +24,33 @@ export type UpdateUserType = z.infer<typeof UpdateUserSchema>;
 export type UserUpdated = UpdateUserType & BaseUserTypeId;
 
 export type UpdatedAvatarRes = BaseUserTypeId & { avatar: string };
+
+export const ChangePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(8),
+    password: z
+      .string()
+      .min(8, { message: "Password must be 8 or more characters" }),
+    confirmPassword: z.string(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.password !== data.confirmPassword) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["confirmPassword"],
+        message: "Passwords don't match",
+      });
+    }
+
+    if (data.currentPassword === data.password) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["password"],
+        message: "New password must be different from current password",
+      });
+    }
+
+    return z.NEVER;
+  });
+
+export type ChangePasswordType = z.infer<typeof ChangePasswordSchema>;

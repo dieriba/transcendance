@@ -8,7 +8,11 @@ import { ResponseLoginType } from "../../../models/login/ResponseLogin";
 import { apiSlice } from "../../api/apiSlice";
 import { GeneralEvent } from "../../../../../shared/socket.event";
 import { connectSocket, socket } from "../../../utils/getSocket";
-import { UpdateUserType } from "../../../models/login/UserSchema";
+import {
+  ChangePasswordType,
+  UpdateUserType,
+} from "../../../models/login/UserSchema";
+import { unknown } from "zod";
 
 export const UserApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -95,6 +99,16 @@ export const UserApiSlice = apiSlice.injectEndpoints({
         });
       },
     }),
+    changePassword: builder.mutation<
+      BaseServerResponse & { data: unknown },
+      ChangePasswordType
+    >({
+      query: (data) => ({
+        url: "/auth/change-password",
+        method: "PATCH",
+        body: data,
+      }),
+    }),
   }),
 });
 
@@ -106,4 +120,5 @@ export const {
   useChangeAvatarMutation,
   useNotifyNewProfilePicMutation,
   useUpdateUserMutation,
+  useChangePasswordMutation,
 } = UserApiSlice;

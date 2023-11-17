@@ -1,7 +1,7 @@
-const Privacy = () => {
+const Security = () => {
   return (
-    <div>Privacy</div>
+    <div>Security</div>
   )
 }
 
-export default Privacy
+export default Security

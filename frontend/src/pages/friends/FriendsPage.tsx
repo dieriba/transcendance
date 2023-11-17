@@ -11,15 +11,12 @@ import BlockedUserTable from "../../components/friends/BlockedUserTable";
 import { connectSocket, socket } from "../../utils/getSocket";
 import { GeneralEvent } from "../../../../shared/socket.event";
 import { useAppDispatch } from "../../redux/hooks";
-import { setNewUserAvatarSrc, updateFriendInfo } from "../../redux/features/friends/friends.slice";
+import {
+  setNewUserAvatarSrc,
+  updateFriendInfo,
+} from "../../redux/features/friends/friends.slice";
 import { UpdatedAvatarRes, UserUpdated } from "../../models/login/UserSchema";
-
-function a11yProps(index: number) {
-  return {
-    id: `simple-tab-${index}`,
-    "aria-controls": `simple-tabpanel-${index}`,
-  };
-}
+import { a11yProps } from "../../utils/allyProps";
 
 const FriendsPage = () => {
   const [openCreate, setOpenCreate] = useState(false);

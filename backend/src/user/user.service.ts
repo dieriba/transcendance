@@ -1,45 +1,14 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ApiUser, CreatedUser, Profile, TwoFa } from './types/user.types';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { UserData, UserInfo } from 'src/common/types/user-info.type';
+import { UserInfo } from 'src/common/types/user-info.type';
 import { ChatroomUserInfo } from 'src/common/types/chatroom-user-type';
 import { User } from '@prisma/client';
-import { ChangeUserPasswordDto } from './dto/ChangeUserPassword.dto';
-import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
-import { CustomException } from 'src/common/custom-exception/custom-exception';
-
 type optionalDataUser = Partial<User>;
 
 @Injectable()
 export class UserService {
   constructor(private readonly prismaService: PrismaService) {}
-
-  async changeUserPassword(
-    userId: string,
-    changeUserPasswordDto: ChangeUserPasswordDto,
-  ) {
-    const user = await this.findUserById(userId, UserData);
-
-    if (!user) throw new UserNotFoundException();
-
-    const { password, currentPassword } = changeUserPasswordDto;
-
-    const userPassword = user.password;
-
-    if (!userPassword)
-      throw new CustomException(
-        'Only account created through the standard way can change their password',
-        HttpStatus.BAD_REQUEST,
-      );
-
-    if (currentPassword !== userPassword)
-      throw new CustomException(
-        'Current password not valid',
-        HttpStatus.BAD_REQUEST,
-      );
-
-    await this.updateUserById(userId, { password });
-  }
 
   async createUser(user: CreatedUser, profile: Profile, select: UserInfo) {
     return await this.prismaService.user.create({

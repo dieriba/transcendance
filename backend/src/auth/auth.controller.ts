@@ -22,6 +22,7 @@ import { ResponseMessage } from 'src/common/custom-decorator/respone-message.dec
 import { JwtRefreshTokenGuard } from 'src/common/guards/refrestJwt.guard';
 import { PublicRoute } from 'src/common/custom-decorator/metadata.decorator';
 import { Request, Response } from 'express';
+import { ChangeUserPasswordDto } from 'src/user/dto/ChangeUserPassword.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -65,6 +66,15 @@ export class AuthController {
   ) {
     res.cookie('refresh', '', { sameSite: 'strict' });
     return this.authService.logout(id);
+  }
+
+  @Patch('change-password')
+  @ResponseMessage('Password updated!')
+  async changeUserPassword(
+    @GetUser('userId') userId: string,
+    @Body(HashPassword) changeUserPasswordDto: ChangeUserPasswordDto,
+  ) {
+    await this.authService.changeUserPassword(userId, changeUserPasswordDto);
   }
 
   @PublicRoute()

@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, MinLength } from 'class-validator';
 import { Match } from 'src/common/validation-decorator/match.decorator';
+import { NotMatch } from 'src/common/validation-decorator/not-match.decorator';
 
 export class ChangeUserPasswordDto {
   @IsString()
@@ -9,6 +10,9 @@ export class ChangeUserPasswordDto {
   @ApiProperty()
   @IsString()
   @MinLength(8)
+  @NotMatch('currentPassword', {
+    message: 'New password must be different from the old one',
+  })
   readonly password: string;
 
   @ApiProperty()

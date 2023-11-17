@@ -8,7 +8,7 @@ export const RegisterSchema = z
     nickname: z.string().min(3),
     password: z
       .string()
-      .min(2, { message: "Password must be 8 or more characters" }),
+      .min(8, { message: "Password must be 8 or more characters" }),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {

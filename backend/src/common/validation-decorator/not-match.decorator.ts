@@ -4,10 +4,13 @@ import {
   ValidationArguments,
 } from 'class-validator';
 
-export function Match(property: string, validationOptions?: ValidationOptions) {
+export function NotMatch(
+  property: string,
+  validationOptions?: ValidationOptions,
+) {
   return function (object: unknown, propertyName: string) {
     registerDecorator({
-      name: 'Match',
+      name: 'NotMatch',
       target: object.constructor,
       propertyName: propertyName,
       constraints: [property],
@@ -16,7 +19,7 @@ export function Match(property: string, validationOptions?: ValidationOptions) {
         validate(value: any, args: ValidationArguments) {
           const [relatedPropertyName] = args.constraints;
           const relatedValue = (args.object as any)[relatedPropertyName];
-          return value === relatedValue;
+          return value !== relatedValue;
         },
       },
     });
