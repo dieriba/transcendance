@@ -34,6 +34,7 @@ import {
   setFriends,
 } from "../../redux/features/friends/friends.slice";
 import { RootState } from "../../redux/store";
+import { deleteChatroom } from "../../redux/features/chat/chat.slice";
 
 export interface FriendProps {
   id: number;
@@ -100,12 +101,16 @@ const FriendsTable = () => {
   }, [data, dispatch]);
 
   const friends = useAppSelector((state: RootState) => state.friends.friends);
+  const chatroomId = useAppSelector(
+    (state: RootState) => state.groups.currentGroupChatroomId
+  );
   const [deleteFriendMutation] = useDeleteFriendMutation();
   const [blockUser] = useBlockFriendMutation();
 
   const handleDeleteFriend = async (data: BaseFriendType) => {
     try {
       await deleteFriendMutation(data).unwrap();
+      dispatch(deleteChatroom(chatroomId));
     } catch (error) {
       console.log(error);
     }
@@ -168,7 +173,7 @@ const FriendsTable = () => {
                         <TableCell padding="checkbox"></TableCell>
 
                         <TableCell component="th" scope="row">
-                          <Avatar src={avatar} />
+                          <Avatar src={avatar ? avatar : undefined} />
                         </TableCell>
                         <TableCell align="center">{nickname}</TableCell>
                         <TableCell align="center">

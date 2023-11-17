@@ -63,6 +63,7 @@ import { UserNotFoundException } from 'src/common/custom-exception/user-not-foun
 import { ChatRoomNotFoundException } from 'src/chat/exception/chatroom-not-found.exception';
 import { ChatRoute } from 'src/common/custom-decorator/metadata.decorator';
 import { IsRestrictedUserGuard } from 'src/chat/guards/is-restricted-user.guard.ws';
+import { AvatarUpdateDto } from 'src/user/dto/AvatarUpdate.dto';
 
 @UseGuards(WsAccessTokenGuard)
 @UseFilters(WsCatchAllFilter)
@@ -116,6 +117,24 @@ export class GatewayGateway {
         data: { friendId: client.userId },
       });
     }
+  }
+
+  @SubscribeMessage(GeneralEvent.NEW_PROFILE_PICTURE)
+  async notifyUserForNewUserProfilePic(
+    @ConnectedSocket() client: SocketWithAuth,
+    @MessageBody() avatarUpdateDto: AvatarUpdateDto,
+  ) {
+    const { userId } = client;
+    const { avatar } = avatarUpdateDto;
+
+    const user = await this.userService.findUserById(userId, UserData);
+
+    if (!user) throw new UserNotFoundException();
+
+    client.broadcast.emit(GeneralEvent.NEW_PROFILE_PICTURE, {
+      id: userId,
+      avatar,
+    });
   }
 
   @SubscribeMessage(ChatEventGroup.CREATE_GROUP_CHATROOM)
@@ -2064,9 +2083,10 @@ export class GatewayGateway {
     this.server
       .to(client.userId)
       .emit(FriendEvent.DELETE_FRIEND, { message: '', data: { friendId } });
-    this.server
-      .to(client.userId)
-      .emit(GeneralEvent.SUCCESS, { message: 'Friend Deleted!' });
+    this.sendToSocket(this.server, client.userId, GeneralEvent.SUCCESS, {
+      message: 'Friend Deleted',
+      data: {},
+    });
   }
 
   @SubscribeMessage(FriendEvent.BLOCK_FRIEND)

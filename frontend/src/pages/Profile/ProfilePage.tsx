@@ -18,7 +18,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import CustomTextField from "../../components/CustomTextField/CustomTextField";
-import { useChangeAvatarMutation } from "../../redux/features/user/user.api.slice";
+import {
+  useChangeAvatarMutation,
+  useNotifyNewProfilePicMutation,
+} from "../../redux/features/user/user.api.slice";
 import { setNewAvatarSrc } from "../../redux/features/user/user.slice";
 import {
   isErrorWithMessage,
@@ -49,7 +52,7 @@ const ProfilePage = () => {
   const [message, setMessage] = useState("");
   const [severity, setSeverity] = useState<AlertColor>("success");
   const [openSnack, setOpenSnack] = useState(false);
-
+  const [notifyNewProfilePic] = useNotifyNewProfilePicMutation();
   const handleCloseSnack = (
     _event?: React.SyntheticEvent | Event,
     reason?: string
@@ -90,6 +93,7 @@ const ProfilePage = () => {
       const { message, data } = await changeAvatar(formData).unwrap();
 
       dispatch(setNewAvatarSrc(data.data));
+      notifyNewProfilePic(data.data);
       setMessage(message);
       setSeverity("success");
       setOpenSnack(true);

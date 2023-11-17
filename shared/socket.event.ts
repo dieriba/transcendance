@@ -7,6 +7,7 @@ export enum GeneralEvent {
   SUCCESS = `${General}.success`,
   JOIN = `${General}.join`,
   LEAVE = `${General}.leave`,
+  NEW_PROFILE_PICTURE = `${General}.new.profile.pic`
 }
 
 const friend = "friend";

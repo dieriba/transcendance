@@ -59,6 +59,7 @@ export const ChatSlice = createSlice({
         if (chatroomId === state.currentChatroom?.id) {
           state.currentChatroom = undefined;
           state.currentPrivateChatroomId = undefined;
+          state.messages = [];
         }
       }
     },

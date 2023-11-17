@@ -3,6 +3,8 @@ import { RegisterFormType } from "../../../models/RegisterSchema";
 import { LoginFormType } from "../../../models/login/LoginSchema";
 import { ResponseLoginType } from "../../../models/login/ResponseLogin";
 import { apiSlice } from "../../api/apiSlice";
+import { GeneralEvent } from "../../../../../shared/socket.event";
+import { connectSocket, socket } from "../../../utils/getSocket";
 
 export const UserApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -54,6 +56,16 @@ export const UserApiSlice = apiSlice.injectEndpoints({
         };
       },
     }),
+    notifyNewProfilePic: builder.mutation<null, string>({
+      queryFn: (data) => {
+        connectSocket();
+        return new Promise((resolve) => {
+          socket.emit(GeneralEvent.NEW_PROFILE_PICTURE, data);
+
+          resolve({ data: null });
+        });
+      },
+    }),
   }),
 });
 
@@ -63,4 +75,5 @@ export const {
   useOauthQuery,
   useLogoutMutation,
   useChangeAvatarMutation,
+  useNotifyNewProfilePicMutation,
 } = UserApiSlice;
