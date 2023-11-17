@@ -1,7 +1,7 @@
-import { Menu, MenuItem, Tooltip } from "@mui/material";
+import { Tooltip } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { Avatar, Box, IconButton, Stack } from "@mui/material";
-import { Nav_Buttons, Profile_Menu } from "../../data/data";
+import { Nav_Buttons } from "../../data/data";
 import { SignOut } from "phosphor-react";
 import { useThemeContext } from "../../theme/ThemeContextProvider";
 import MaterialUISwitch from "./Switch";
@@ -31,9 +31,6 @@ const Sidebar = () => {
   const nickname = (user as User).nickname;
   const avatar = (user as User).profile.avatar as string | undefined;
 
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
   const handleNavigate = (path: string) => {
     navigate(path);
   };
@@ -121,41 +118,10 @@ const Sidebar = () => {
                 aria-haspopup="true"
                 aria-expanded={open ? "true" : undefined}
                 onClick={handleClick}
-                sx={{ cursor: "pointer" }}
+                sx={{ cursor: "pointer", width: "50px", height: "50px" }}
                 src={avatar}
               />
             </Tooltip>
-            <Menu
-              id="demo-positioned-menu"
-              aria-labelledby="avatar-menu"
-              anchorEl={anchorEl}
-              open={open}
-              onClose={handleClose}
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "right",
-              }}
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "left",
-              }}
-            >
-              {Profile_Menu.map((item, index) => (
-                <MenuItem onClick={handleClose} key={index}>
-                  <Stack
-                    sx={{
-                      width: 100,
-                    }}
-                    direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
-                  >
-                    <span>{item.title}</span>
-                    {item.icon}
-                  </Stack>
-                </MenuItem>
-              ))}
-            </Menu>
           </Stack>
         </Stack>
       </Box>

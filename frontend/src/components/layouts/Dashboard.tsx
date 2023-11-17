@@ -15,7 +15,7 @@ import {
   setOnlineUser,
 } from "../../redux/features/chat/chat.slice";
 import { RootState } from "../../redux/store";
-import { addNewFriendRequestReceived, deleteReceivedFriendRequest } from "../../redux/features/friends/friends.slice";
+import { deleteReceivedFriendRequest } from "../../redux/features/friends/friends.slice";
 
 const ProtectedDashboardLayout = () => {
   const isAuthenticated = useAppSelector(
