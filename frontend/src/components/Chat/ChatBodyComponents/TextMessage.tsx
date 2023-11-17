@@ -1,4 +1,4 @@
-import { Avatar, Box, Stack, Typography } from "@mui/material";
+import { Avatar, Box, Stack, Tooltip, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { ChatConversationBodyProps } from "../ChatConversation/ChatConversationBody";
 
@@ -7,37 +7,40 @@ interface TextMessageProps extends ChatConversationBodyProps {
   avatar: string | undefined;
 }
 
-const TextMessage = ({ incoming, content, nickname, avatar }: TextMessageProps) => {
+const TextMessage = ({
+  incoming,
+  content,
+  nickname,
+  avatar,
+}: TextMessageProps) => {
   const theme = useTheme();
- 
+
   return (
     <>
-      <Stack>
-        {nickname && (
-          <Typography alignSelf="flex-start" variant="caption">
-            {nickname}
-          </Typography>
-        )}
-        <Stack spacing={1} direction={"row"}>
-          <Avatar src={avatar} />
-          <Box
-            p={1}
-            sx={{
-              backgroundColor: incoming
-                ? theme.palette.background.default
-                : theme.palette.primary.main,
-              borderRadius: 1.5,
-              width: "max-content",
-            }}
+      <Stack mb={1} direction={incoming ? "row-reverse" : "row"} spacing={1}>
+        <Tooltip placement="top" title={nickname}>
+          <Avatar
+            sx={{ width: "30px", height: "30px", alignSelf: "flex-end" }}
+            src={avatar}
+          />
+        </Tooltip>
+        <Box
+          p={1}
+          mt={3}
+          sx={{
+            backgroundColor: theme.palette.background.default,
+            borderRadius: 1.5,
+            maxWidth: "500px",
+            overflowWrap: "break-word",
+          }}
+        >
+          <Typography
+            variant="body2"
+            color={incoming ? theme.palette.text.primary : "#fff"}
           >
-            <Typography
-              variant="body2"
-              color={incoming ? theme.palette.text.primary : "#fff"}
-            >
-              {content}
-            </Typography>
-          </Box>
-        </Stack>
+            {content}
+          </Typography>
+        </Box>
       </Stack>
     </>
   );

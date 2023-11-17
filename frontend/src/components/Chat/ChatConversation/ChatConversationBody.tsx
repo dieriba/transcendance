@@ -3,7 +3,7 @@ import TextMessage from "../ChatBodyComponents/TextMessage";
 import ImageMessage from "../ChatBodyComponents/ImageMessage";
 import ReplyMessage from "../ChatBodyComponents/ReplyMessage";
 import DocumentMessage from "../ChatBodyComponents/DocumentMessage";
-import StackChatCompo from "../ChatBodyComponents/StackChatCompo";
+import StackChatCompo from "../StackChatCompo";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { RootState } from "../../../redux/store";
 import { useGetAllChatroomMessageQuery } from "../../../redux/features/chat/chats.api.slice";
@@ -77,8 +77,6 @@ const ChatConversationBody = () => {
       </Box>
     );
   } else {
-    console.log({ messages });
-
     return (
       <Box
         width="100%"
@@ -86,12 +84,14 @@ const ChatConversationBody = () => {
         p={3}
       >
         <Stack>
-          {messages?.map(({ id, messageTypes, userId, content, user }) => {
-            const incoming = myId === userId ? false : true;
+          {messages?.map(({ id, messageTypes, content, user }) => {
+            const incoming = myId === user.id;
+
             switch (messageTypes) {
               case "IMAGE":
                 return (
                   <StackChatCompo
+                    incoming={incoming}
                     key={id}
                     children={
                       <ImageMessage
@@ -106,6 +106,7 @@ const ChatConversationBody = () => {
               case "DOCUMENT":
                 return (
                   <StackChatCompo
+                    incoming={incoming}
                     key={id}
                     children={
                       <DocumentMessage
@@ -119,12 +120,13 @@ const ChatConversationBody = () => {
               case "REPLY":
                 return (
                   <StackChatCompo
+                    incoming={incoming}
                     key={id}
                     children={
                       <ReplyMessage
                         id={id}
                         content={content}
-                        incoming={myId === id}
+                        incoming={incoming}
                         reply={content}
                       />
                     }
@@ -134,13 +136,18 @@ const ChatConversationBody = () => {
                 return (
                   <StackChatCompo
                     key={id}
+                    incoming={incoming}
                     children={
                       <TextMessage
                         nickname={user.nickname}
-                        avatar={user.profile?.avatar ? user.profile?.avatar : undefined}
+                        avatar={
+                          user.profile?.avatar
+                            ? user.profile?.avatar
+                            : undefined
+                        }
                         id={id}
                         content={content}
-                        incoming={myId === id}
+                        incoming={incoming}
                       />
                     }
                   />

@@ -1,6 +1,5 @@
 import { Box, Stack, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { ChatMessageProps } from "../../../data/data";
 import { ChatConversationBodyProps } from "../ChatConversation/ChatConversationBody";
 
 interface ReplyMessageProps extends ChatConversationBodyProps {

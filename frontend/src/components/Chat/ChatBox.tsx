@@ -70,16 +70,18 @@ const ChatBox = ({
         >
           {online ? (
             <BadgeAvatar>
-              <Avatar src={avatar} />
+              <Avatar sx={{ width: "50px", height: "50px" }} src={avatar} />
             </BadgeAvatar>
           ) : (
-            <Avatar src={avatar} />
+            <Avatar sx={{ width: "50px", height: "50px" }} src={avatar} />
           )}
           <Stack direction="row" spacing={2}>
-            <Stack width="10rem">
+            <Stack width="9rem">
               {unread > 0 ? (
                 <>
-                  <Typography variant="subtitle1">{username}</Typography>
+                  <Typography width="20px" variant="subtitle1">
+                    {username}
+                  </Typography>
                   <Typography
                     variant="caption"
                     sx={{
@@ -96,7 +98,15 @@ const ChatBox = ({
                 </>
               ) : (
                 <>
-                  <Typography variant="subtitle1">{username}</Typography>
+                  <Typography
+                    sx={{
+                      textOverflow: "ellipsis",
+                    }}
+                    width="10px"
+                    variant="subtitle1"
+                  >
+                    {username}
+                  </Typography>
                   <Typography
                     variant="caption"
                     sx={{
@@ -112,16 +122,16 @@ const ChatBox = ({
                 </>
               )}
             </Stack>
-          </Stack>
-          <Stack spacing={2} alignItems="center" pb={1.5}>
-            <Typography sx={{ fontWeight: 600 }} variant="caption">
-              {time}
-            </Typography>
-            {unread > 0 ? (
-              <Badge color="primary" badgeContent={unread}></Badge>
-            ) : (
-              <Badge color="primary"></Badge>
-            )}
+            <Stack spacing={2} alignItems="center" pr={2} pb={1.5}>
+              <Typography sx={{ fontWeight: 600 }} variant="caption">
+                {time}
+              </Typography>
+              {unread > 0 ? (
+                <Badge color="primary" badgeContent={unread}></Badge>
+              ) : (
+                <Badge color="primary"></Badge>
+              )}
+            </Stack>
           </Stack>
         </Stack>
       </Box>

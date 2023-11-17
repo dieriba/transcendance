@@ -8,7 +8,7 @@ import {
 import ImageMessage from "../ChatBodyComponents/ImageMessage";
 import ReplyMessage from "../ChatBodyComponents/ReplyMessage";
 import DocumentMessage from "../ChatBodyComponents/DocumentMessage";
-import StackChatCompo from "../ChatBodyComponents/StackChatCompo";
+import StackChatCompo from "../StackChatCompo";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { useEffect, useRef } from "react";
 
@@ -33,10 +33,10 @@ import {
   SocketServerErrorResponse,
   SocketServerSucessResponse,
 } from "../../../services/type";
-import TextMessage from "./TextMessageGroup";
 import { connectSocket, socket } from "../../../utils/getSocket";
 import { ChatEventGroup } from "../../../../../shared/socket.event";
 import { UserWithProfileFriendsType } from "../../../models/ChatContactSchema";
+import TextMessage from "../ChatBodyComponents/TextMessage";
 export interface GroupConversationBodyProps {
   id: string;
   incoming: boolean;
@@ -192,12 +192,14 @@ const GroupConversationBody = () => {
       >
         <Stack>
           {messages.map(({ id, messageTypes, user, content }) => {
-            const incoming = myId === user.id ? false : true;
+            const incoming = myId === user.id;
+
             switch (messageTypes) {
               case "IMAGE":
                 return (
                   <StackChatCompo
                     key={id}
+                    incoming={incoming}
                     children={
                       <ImageMessage
                         incoming={incoming}
@@ -211,6 +213,7 @@ const GroupConversationBody = () => {
               case "DOCUMENT":
                 return (
                   <StackChatCompo
+                    incoming={incoming}
                     key={id}
                     children={
                       <DocumentMessage
@@ -224,12 +227,13 @@ const GroupConversationBody = () => {
               case "REPLY":
                 return (
                   <StackChatCompo
+                    incoming={incoming}
                     key={id}
                     children={
                       <ReplyMessage
                         id={id}
                         content={content}
-                        incoming={myId === id}
+                        incoming={incoming}
                         reply={content}
                       />
                     }
@@ -238,13 +242,14 @@ const GroupConversationBody = () => {
               default:
                 return (
                   <StackChatCompo
+                    incoming={incoming}
                     key={id}
                     children={
                       <TextMessage
                         nickname={user.nickname}
                         id={id}
                         content={content}
-                        incoming={myId === id}
+                        incoming={incoming}
                         avatar={
                           user.profile?.avatar ? user.profile.avatar : undefined
                         }

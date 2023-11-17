@@ -24,7 +24,11 @@ const ChatConversationHeader = () => {
   );
 
   const {
-    user: { nickname, status, profile },
+    user: {
+      nickname,
+      status,
+      profile: { avatar },
+    },
   } = chatroomInfo.users[0];
   return (
     <>
@@ -56,21 +60,25 @@ const ChatConversationHeader = () => {
                     anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
                     variant="dot"
                   >
-                    <Avatar src={profile?.avatar} alt={profile?.avatar} />
+                    <Avatar
+                      sx={{ width: "50px", height: "50px" }}
+                      src={avatar ? avatar : undefined}
+                      alt={avatar ? avatar : undefined}
+                    />
                   </StyledBadge>
                 ) : (
                   <>
                     <Avatar
-                      sx={{ cursor: "pointer" }}
-                      src={profile?.avatar}
-                      alt={profile?.avatar}
+                      sx={{ cursor: "pointer", width: "50px", height: "50px" }}
+                      src={avatar ? avatar : undefined}
+                      alt={avatar ? avatar : undefined}
                     />
                   </>
                 )}
               </Box>
             </div>
 
-            <Stack>
+            <Stack justifyContent={"center"}>
               <Typography variant="subtitle2">{nickname}</Typography>
               {status === STATUS.ONLINE ? (
                 <Typography variant="subtitle2">Online</Typography>
