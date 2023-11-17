@@ -4,12 +4,6 @@ import { LoginFormType } from "../../../models/login/LoginSchema";
 import { ResponseLoginType } from "../../../models/login/ResponseLogin";
 import { apiSlice } from "../../api/apiSlice";
 
-const dataForm = (file:Blob) => {
-  const formData = new FormData();
-  formData.append("archivo", file); // "archivo" is the key that expects my backend for the file
-  return formData;
-}
-
 export const UserApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation<
@@ -50,16 +44,13 @@ export const UserApiSlice = apiSlice.injectEndpoints({
       BaseServerResponse & {
         data: { message: string; statusCode: number; data: string };
       },
-      Blob
+      FormData
     >({
-      query: (file) => {
-        const formData = new FormData();
-        formData.append("avatar", file);
-        console.log({ formData, file });
+      query: (formData) => {
         return {
           url: "/files/upload-avatar",
           method: "POST",
-          body: dataForm(file),
+          body: formData,
         };
       },
     }),

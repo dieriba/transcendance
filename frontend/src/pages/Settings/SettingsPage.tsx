@@ -1,18 +1,22 @@
-import { faker } from "@faker-js/faker";
 import {
   Stack,
   Box,
-  IconButton,
   Typography,
   Avatar,
   Divider,
+  Tooltip,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { Bell, CaretLeft, Key, Lock, PencilCircle } from "phosphor-react";
+import { Bell,  Key, Lock, PencilCircle } from "phosphor-react";
 import { ReactNode } from "react";
+import { useAppSelector } from "../../redux/hooks";
+import { RootState } from "../../redux/store";
+import { User } from "../../redux/features/user/user.slice";
 const Settings = () => {
   const theme = useTheme();
-
+  const {
+    profile: { avatar, lastname, firstname },
+  } = useAppSelector((state: RootState) => state.user.user) as User;
   interface listData {
     icon: ReactNode;
     title: string;
@@ -59,27 +63,21 @@ const Settings = () => {
           boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.25)",
         }}
       >
-        <Stack p={4} spacing={4}>
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <IconButton>
-              <CaretLeft size={24} color={"#4B4B4B"} />
-            </IconButton>
-            <Typography variant="h6">Settings</Typography>
+        <Stack p={4} alignItems="center" spacing={4}>
+          <Typography variant="h6">Settings</Typography>
+          <Stack direction="row" spacing={1}>
+            <Tooltip title={`${firstname} ${lastname}`}>
+              <Avatar
+                sx={{ width: "100px", height: "100px" }}
+                src={avatar ? avatar : undefined}
+                alt={firstname}
+              />
+            </Tooltip>
           </Stack>
-          <Stack direction="row" spacing={3}>
-            <Avatar src={faker.image.avatar()} alt={faker.person.fullName()} />
-            <Stack>
-              <Typography variant="subtitle2">
-                {faker.name.fullName()}
-              </Typography>
-              <Typography variant="subtitle2">
-                {faker.random.words()}
-              </Typography>
-            </Stack>
-          </Stack>
-          <Stack spacing={2}>
+          <Stack width="100%" spacing={2}>
             {list.map(({ icon, title, onClick }: listData, index) => (
               <Stack
+                width="100%"
                 key={index}
                 onClick={onClick}
                 sx={{

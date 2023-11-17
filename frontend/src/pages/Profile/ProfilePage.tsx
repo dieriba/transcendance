@@ -20,6 +20,10 @@ import { useEffect, useState } from "react";
 import CustomTextField from "../../components/CustomTextField/CustomTextField";
 import { useChangeAvatarMutation } from "../../redux/features/user/user.api.slice";
 import { setNewAvatarSrc } from "../../redux/features/user/user.slice";
+import {
+  isErrorWithMessage,
+  isFetchBaseQueryError,
+} from "../../services/helpers";
 const ProfilePage = () => {
   const user = useAppSelector((state) => state.user.user);
 
@@ -79,19 +83,29 @@ const ProfilePage = () => {
   const onSubmit = async ({ avatar }: UploadAvatarType) => {
     try {
       const formData = new FormData();
+      console.log({ avatar: avatar[0] });
 
-      formData.append("avatar", avatar);
+      formData.append("avatar", avatar[0]);
 
-      const { message, data } = await changeAvatar(avatar).unwrap();
+      const { message, data } = await changeAvatar(formData).unwrap();
 
       dispatch(setNewAvatarSrc(data.data));
       setMessage(message);
       setSeverity("success");
       setOpenSnack(true);
-    } catch (error) {
+    } catch (err) {
       setSeverity("error");
-      setMessage(error.data.message);
       setOpenSnack(true);
+
+      if (isErrorWithMessage(err)) {
+        setMessage(err.message);
+      } else if (isFetchBaseQueryError(err)) {
+        if (err.data && typeof err.data === "object" && "message" in err.data) {
+          setMessage(err.data.message as string);
+        } else {
+          setMessage("An error has occured, please try again later!");
+        }
+      }
     }
   };
 
@@ -120,7 +134,7 @@ const ProfilePage = () => {
                 severity={severity}
                 sx={{ width: "100%" }}
               >
-                {message}
+                <Typography variant="caption">{message}</Typography>
               </Alert>
             )}
             <Stack spacing={2} alignItems={"center"}>

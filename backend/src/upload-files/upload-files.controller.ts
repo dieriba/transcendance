@@ -51,8 +51,6 @@ export class UploadFilesController {
     )
     file: Express.Multer.File,
   ) {
-    console.log({ userId });
-
     const user = await this.prismaService.user.findFirst({
       where: { id: userId },
       include: {
