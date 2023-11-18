@@ -9,6 +9,7 @@ import {
 import { ChatRoleType } from "../../../../models/type-enum/typesEnum";
 import { useState } from "react";
 import EditGroup from "./AdminView/EditGroup";
+import AddUser from "./AdminView/AddUser";
 
 interface AdminActionProps {
   role: ChatRoleType;
@@ -21,13 +22,18 @@ const AdminAction = ({
   nickname,
   handleUnrestriction,
 }: AdminActionProps) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState<{ edit: boolean; addUser: boolean }>({
+    edit: false,
+    addUser: false,
+  });
 
   if (role === "DIERIBA") {
     return (
       <>
         <Tooltip placement="top" title="add new user">
-          <IconButton onClick={() => setOpen(true)}>
+          <IconButton
+            onClick={() => setOpen((prev) => ({ ...prev, addUser: true }))}
+          >
             <UserCirclePlus size={20} />
           </IconButton>
         </Tooltip>
@@ -42,11 +48,24 @@ const AdminAction = ({
           </IconButton>
         </Tooltip>
         <Tooltip placement="top" title="edit chatroom">
-          <IconButton onClick={() => setOpen(true)}>
+          <IconButton
+            onClick={() => setOpen((prev) => ({ ...prev, edit: true }))}
+          >
             <Eraser size={20} />
           </IconButton>
         </Tooltip>
-        {open && <EditGroup open={open} handleClose={() => setOpen(false)} />}
+        {open.edit && (
+          <EditGroup
+            open={open.edit}
+            handleClose={() => setOpen((prev) => ({ ...prev, edit: false }))}
+          />
+        )}
+        {open.addUser && (
+          <AddUser
+            open={open.addUser}
+            handleClose={() => setOpen((prev) => ({ ...prev, addUser: false }))}
+          />
+        )}
       </>
     );
   } else {

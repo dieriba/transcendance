@@ -1,6 +1,5 @@
 import { CustomException } from 'src/common/custom-exception/custom-exception';
 import { UserService } from './../user/user.service';
-import { ChatroomDataDto } from './dto/chatroom.dto';
 import {
   BadRequestException,
   HttpStatus,
@@ -10,7 +9,6 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { RESTRICTION, ROLE, TYPE } from '@prisma/client';
 import { UserData } from 'src/common/types/user-info.type';
-import { ChatroomUserBaseData } from 'src/common/types/chatroom-user-type';
 import { ChatroomUserService } from 'src/chatroom-user/chatroom-user.service';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
 
@@ -325,49 +323,5 @@ export class ChatService {
     });
 
     return restrictedUser;
-  }
-
-  async addNewUserToChatroom(userId: string, chatRoomData: ChatroomDataDto) {
-    const { users, chatroomId } = chatRoomData;
-
-    const existingUserAndNonBlocked =
-      await this.userService.getExistingUserFriend(userId, users, UserData);
-
-    const newUsers = await this.prismaService.$transaction(
-      existingUserAndNonBlocked.map((userId) =>
-        this.chatroomUserService.createNewChatroomUser(userId, chatroomId),
-      ),
-    );
-    return newUsers;
-  }
-
-  async deleteUserFromChatromm(chatroomData: ChatroomDataDto) {
-    const { users, chatroomId, userId } = chatroomData;
-
-    const creator = users.find((user) => user == userId);
-
-    if (creator)
-      throw new CustomException(
-        'Cannot delete the group owner of that room',
-        HttpStatus.BAD_REQUEST,
-      );
-
-    const deletedUsers = await this.prismaService.chatroomUser.deleteMany({
-      where: {
-        chatroomId: chatroomId,
-        userId: {
-          in: users,
-        },
-      },
-    });
-
-    return deletedUsers;
-  }
-
-  async findAllUsersChat(userId: string) {
-    return await this.userService.findUsersAndHisChatroom(
-      userId,
-      ChatroomUserBaseData,
-    );
   }
 }

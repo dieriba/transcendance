@@ -4,6 +4,7 @@ export type UserInfo = {
   email: boolean;
   password: boolean;
   createdAt: boolean;
+  status: boolean;
   updatedAt: boolean;
   hashedRefreshToken: boolean;
   twoFa: boolean;
@@ -23,6 +24,7 @@ export const UserId: UserInfo = {
   id: true,
   nickname: false,
   email: false,
+  status: true,
   password: false,
   allowForeignToDm: true,
   createdAt: false,
@@ -32,7 +34,7 @@ export const UserId: UserInfo = {
   profile: false,
   blockedUsers: false,
   blockedBy: false,
-  friends: false,
+  friends: true,
   friendRequestsReceived: false,
   friendRequestsSent: false,
   chatrooms: false,
@@ -46,6 +48,7 @@ export const UserData: UserInfo = {
   email: true,
   password: true,
   createdAt: true,
+  status: true,
   updatedAt: true,
   allowForeignToDm: true,
   hashedRefreshToken: false,
@@ -67,6 +70,7 @@ export const UserFriendRequest: UserInfo = {
   email: false,
   password: false,
   createdAt: false,
+  status: true,
   updatedAt: false,
   hashedRefreshToken: false,
   twoFa: true,
@@ -87,6 +91,7 @@ export const UserTwoFa: UserInfo = {
   nickname: true,
   email: true,
   password: false,
+  status: true,
   createdAt: true,
   updatedAt: true,
   hashedRefreshToken: false,
@@ -107,6 +112,7 @@ export const UserBlockList: UserInfo = {
   id: true,
   nickname: false,
   email: false,
+  status: true,
   password: false,
   createdAt: false,
   updatedAt: false,
@@ -131,6 +137,7 @@ export const UserChatRoom: UserInfo = {
   password: false,
   createdAt: false,
   updatedAt: false,
+  status: true,
   allowForeignToDm: true,
   hashedRefreshToken: false,
   twoFa: false,
@@ -153,6 +160,7 @@ export const UserRefreshToken: UserInfo = {
   createdAt: false,
   updatedAt: false,
   hashedRefreshToken: true,
+  status: true,
   allowForeignToDm: true,
   twoFa: false,
   profile: false,

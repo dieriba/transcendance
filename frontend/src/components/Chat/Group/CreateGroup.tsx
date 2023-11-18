@@ -118,7 +118,7 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
         <DialogI maxWidth="sm" open={open} handleClose={handleClose}>
           <DialogTitle>Create New Group</DialogTitle>
           <DialogContent>
-            <Stack p={2}>
+            <Stack spacing={2} p={2}>
               {openSnack && (
                 <Alert
                   onClose={handleCloseSnack}

@@ -9,13 +9,17 @@ import { FriendEvent, GeneralEvent } from "../../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../services/type";
 import { FriendReceivedRequestType } from "../../models/FriendRequestSchema";
 import { showSnackBar } from "../../redux/features/app/app.slice";
-import { BaseFriendType } from "../../models/FriendsSchema";
+import { BaseFriendType, FriendType } from "../../models/FriendsSchema";
 import {
   setOfflineUser,
   setOnlineUser,
 } from "../../redux/features/chat/chat.slice";
 import { RootState } from "../../redux/store";
-import { deleteReceivedFriendRequest } from "../../redux/features/friends/friends.slice";
+import {
+  addFriend,
+  deleteFriend,
+  deleteReceivedFriendRequest,
+} from "../../redux/features/friends/friends.slice";
 
 const ProtectedDashboardLayout = () => {
   const isAuthenticated = useAppSelector(
@@ -37,6 +41,28 @@ const ProtectedDashboardLayout = () => {
           dispatch(
             showSnackBar({ message: data.message, severity: "success" })
           );
+        }
+      );
+
+      socket.on(
+        FriendEvent.DELETE_FRIEND,
+        (
+          data: SocketServerSucessResponse & {
+            data: BaseFriendType;
+          }
+        ) => {
+          dispatch(deleteFriend(data.data));
+        }
+      );
+
+      socket.on(
+        FriendEvent.NEW_FRIEND,
+        (
+          data: SocketServerSucessResponse & {
+            data: FriendType;
+          }
+        ) => {
+          dispatch(addFriend(data.data));
         }
       );
 
@@ -74,6 +100,8 @@ const ProtectedDashboardLayout = () => {
       );
 
       return () => {
+        socket.off(FriendEvent.DELETE_FRIEND);
+        socket.off(FriendEvent.NEW_FRIEND);
         socket.off(GeneralEvent.USER_LOGGED_IN);
         socket.off(GeneralEvent.USER_LOGGED_OUT);
         socket.off(FriendEvent.REQUEST_ACCEPTED_FROM_RECIPIENT);

@@ -240,16 +240,18 @@ export class ChatroomDataDto {
   users: string[];
 
   @ApiProperty()
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  newUserId: string;
+
+  @ApiProperty()
   @IsString()
   chatroomId: string;
 
   @IsOptional()
   @IsString()
   nickname: string;
-
-  @IsOptional()
-  @IsString()
-  userId: string;
 }
 
 export class DeleteChatroomMemberDto {

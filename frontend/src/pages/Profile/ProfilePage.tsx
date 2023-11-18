@@ -224,7 +224,7 @@ const ProfilePage = () => {
                             ref={ref}
                             name={name}
                             type="file"
-                            accept="image.jpg,image/jpeg,image/png"
+                            accept="image/jpg,image/jpeg,image/png"
                           />
                         </Button>
                       </CustomTextField>

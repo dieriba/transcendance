@@ -205,19 +205,17 @@ export class GatewayGateway {
         `The chatroom name: ${chatroomName} is already taken`,
       );
 
-    this.logger.log({ users });
-
-    let existingUserId: string[] = [];
-
-    if (users && users.length > 0)
-      existingUserId = await this.userService.getExistingUserFriend(
-        userId,
-        users,
-        UserId,
-      );
-    this.logger.log({ existingUserId });
+    const existingUserId = await this.userService.getExistingUserFriendArr(
+      userId,
+      users,
+      UserId,
+    );
 
     existingUserId.push(userId);
+
+    existingUserId.map((id) => {
+      console.log({ id });
+    });
 
     const newChatroom = await this.prismaService.chatroom.create({
       data: {
@@ -238,20 +236,24 @@ export class GatewayGateway {
       },
     });
 
-    this.logger.log({ existingUserId });
+    const { type } = newChatroom;
 
-    const { id, type } = newChatroom;
-
-    existingUserId.map((user) => {
-      this.sendToSocket(this.server, user, ChatEventGroup.NEW_CHATROOM, {
+    existingUserId.map((id) => {
+      this.sendToSocket(this.server, id, ChatEventGroup.NEW_CHATROOM, {
         message: '',
-        data: { id, chatroomName, type, messages: [], restrictedUsers: [] },
+        data: {
+          id: newChatroom.id,
+          chatroomName,
+          type,
+          messages: [],
+          restrictedUsers: [],
+        },
       });
 
-      this.joinOrLeaveRoom(user, GeneralEvent.JOIN, chatroomName);
+      this.joinOrLeaveRoom(id, GeneralEvent.JOIN, chatroomName);
 
-      if (user === userId) {
-        this.sendToSocket(this.server, user, GeneralEvent.SUCCESS, {
+      if (id === userId) {
+        this.sendToSocket(this.server, id, GeneralEvent.SUCCESS, {
           message: 'Group created succesfully',
           data: {},
         });
@@ -369,28 +371,203 @@ export class GatewayGateway {
     }
   }
 
-  //@SubscribeMessage(CHATROOM_ADD_USER)
+  @SubscribeMessage(ChatEventGroup.ADD_USER)
   async addNewUserToChatroom(
     @MessageBody() chatRoomData: ChatroomDataDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
-    const { users, chatroomId } = chatRoomData;
-    this.logger.log({ chatroomId, users });
+    const { users, newUserId, chatroomId } = chatRoomData;
     const { userId } = client;
 
-    /*CHECK IF USER IS CHAT OWNER */
-    await this.isDieriba(userId, chatroomId);
+    const [chatroom, adminNickname] = await Promise.all([
+      this.prismaService.chatroom.findFirst({
+        where: { id: chatroomId },
+        include: {
+          messages: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+            take: 1,
+            select: {
+              id: true,
+              chatroomId: true,
+              user: {
+                select: {
+                  id: true,
+                  nickname: true,
+                  profile: {
+                    select: {
+                      avatar: true,
+                    },
+                  },
+                },
+              },
+              createdAt: true,
+              content: true,
+              messageTypes: true,
+            },
+          },
+        },
+      }),
+      this.isDieriba(userId, chatroomId),
+    ]);
+
+    if (!chatroom) throw new WsNotFoundException('Chatroom does not exist');
+
+    const { chatroomName, type, messages } = chatroom;
+
+    if (newUserId) {
+      const user = await this.prismaService.user.findFirst({
+        where: {
+          id: newUserId,
+        },
+        select: {
+          id: true,
+          nickname: true,
+          status: true,
+          profile: {
+            select: {
+              avatar: true,
+            },
+          },
+          friends: {
+            select: {
+              friendId: true,
+            },
+          },
+          groupParameter: true,
+          chatrooms: {
+            where: {
+              chatroomId,
+            },
+          },
+          blockedBy: {
+            where: {
+              id: userId,
+            },
+          },
+          blockedUsers: {
+            where: {
+              id: userId,
+            },
+          },
+        },
+      });
+
+      if (!user) throw new WsNotFoundException('User not found');
+
+      if (user.chatrooms.length > 0)
+        throw new WsBadRequestException('User already in group');
+
+      if (user.blockedBy.length > 0) {
+        throw new WsBadRequestException(
+          "You cannot add a user you have blocked, weird isn't it ?",
+        );
+      }
+
+      if (user.blockedUsers.length > 0) {
+        throw new WsBadRequestException('That user blocked you, stop that!');
+      }
+
+      const groupParameter = user.groupParameter;
+
+      if (groupParameter && !groupParameter.allowAll) {
+        if (
+          groupParameter.onlyAllowFriend &&
+          user.friends.findIndex((friend) => friend.friendId === userId) === -1
+        )
+          throw new WsBadRequestException(
+            'That user only allow friend of him to invite him in group',
+          );
+      }
+
+      await this.chatroomUserService.createNewChatroomUser(
+        newUserId,
+        chatroomId,
+      );
+
+      const { id, status, profile, friends, nickname } = user;
+
+      this.sendToSocket(client, chatroomName, ChatEventGroup.USER_ADDED, {
+        data: {
+          user: {
+            id,
+            nickname,
+            status,
+            profile,
+            friends,
+          },
+        },
+        message: `${nickname} added ${user.nickname}`,
+      });
+
+      this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+        data: {
+          user: {
+            id,
+            nickname: user.nickname,
+            status,
+            profile,
+            friends,
+          },
+        },
+        message: `${user.nickname} has been added succesfully`,
+      });
+
+      this.sendToSocket(this.server, newUserId, ChatEventGroup.NEW_CHATROOM, {
+        message: `${nickname} added you in the group named ${chatroomName}`,
+        data: {
+          id: chatroomId,
+          chatroomName,
+          type,
+          messages,
+          restrictedUsers: [],
+        },
+      });
+
+      this.joinOrLeaveRoom(newUserId, GeneralEvent.JOIN, chatroomName);
+
+      return;
+    }
 
     const existingUserAndNonBlocked =
       await this.userService.getExistingUserFriend(userId, users, UserData);
 
-    this.logger.log({ existingUserAndNonBlocked });
-    const newUsers = await this.prismaService.$transaction(
-      existingUserAndNonBlocked.map((userId) =>
-        this.chatroomUserService.createNewChatroomUser(userId, chatroomId),
-      ),
+    existingUserAndNonBlocked.map(
+      async ({ id, nickname, status, profile, friends }) => {
+        await this.chatroomUserService.createNewChatroomUser(id, chatroomId);
+        this.sendToSocket(this.server, newUserId, ChatEventGroup.NEW_CHATROOM, {
+          message: `${nickname} added you in the group named ${chatroomName}`,
+          data: {
+            id: chatroomId,
+            chatroomName,
+            type,
+            messages,
+            restrictedUsers: [],
+          },
+        });
+
+        this.joinOrLeaveRoom(id, GeneralEvent.JOIN, chatroomName);
+
+        this.sendToSocket(
+          this.server,
+          chatroomName,
+          ChatEventGroup.USER_ADDED,
+          {
+            data: {
+              user: {
+                id,
+                nickname,
+                status,
+                profile,
+                friends,
+              },
+            },
+            message: `${adminNickname} added ${nickname}`,
+          },
+        );
+      },
     );
-    //this.server.emit(CHATROOM_USER_ADDED, newUsers);
   }
 
   @SubscribeMessage(ChatEventGroup.SET_DIERIBA)
@@ -1662,8 +1839,6 @@ export class GatewayGateway {
         user: true,
       },
     });
-
-    this.logger.log({ chatroomUser });
 
     if (!chatroomUser)
       throw new WsNotFoundException(

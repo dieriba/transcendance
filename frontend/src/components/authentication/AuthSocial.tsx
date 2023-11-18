@@ -10,7 +10,7 @@ const AuthSocial = () => {
           my: 2.5,
           typography: "overline",
           color: "text.disabled",
-          "&::before, ::after": { borderTopStyle: "dashed" },
+          "&::before, ::after": { borderTopStyle: "solid" },
         }}
       >
         OR

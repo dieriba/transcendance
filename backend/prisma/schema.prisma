@@ -24,6 +24,7 @@ model User {
 
   twoFa   TwoFa?   @relation("userTwoFa")
   profile Profile? @relation("userProfile")
+  groupParameter Group? @relation("groupInvitation")
 
   blockedBy    User[] @relation("blockUser")
   blockedUsers User[] @relation("blockUser")
@@ -39,6 +40,17 @@ model User {
   messages              Message[]
   restrictedGroups      RestrictedUser[]
   allowForeignToDm      Boolean          @default(false)
+
+  
+}
+
+model Group {
+
+  id String @id @default(uuid())
+  user      User    @relation("groupInvitation", fields: [id], references: [id], onDelete: Cascade)
+
+  allowAll Boolean
+  onlyAllowFriend Boolean
 }
 
 model Friends {
@@ -65,13 +77,13 @@ model FriendRequest {
 
 model Profile {
   id String @id @default(uuid())
+  user      User    @relation("userProfile", fields: [userId], references: [id], onDelete: Cascade)
 
   avatar    String?
   firstname String? @db.VarChar(25)
   lastname  String? @db.VarChar(25)
   gender    Gender?
   age       Int?
-  user      User    @relation("userProfile", fields: [userId], references: [id], onDelete: Cascade)
   userId    String  @unique
 }
 

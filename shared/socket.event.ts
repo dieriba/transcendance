@@ -10,7 +10,7 @@ export enum GeneralEvent {
   NEW_PROFILE_PICTURE = `${General}.new.profile.pic`,
   USER_CHANGED_AVATAR = `${General}.new.avatar.pic`,
   UPDATE_USER = `${General}.update.user`,
-  USER_CHANGED_USERNAME = `${General}.changed.username`
+  USER_CHANGED_USERNAME = `${General}.changed.username`,
 }
 
 const friend = "friend";
@@ -77,6 +77,6 @@ export enum ChatEventGroup {
   USER_LEAVED = `${groupChatroom}.user.leaved`,
   DELETE_GROUP_CHATROOM = `${groupChatroom}.delete.group`,
   GROUP_CHATROOM_DELETED = `${groupChatroom}.chatroom.deleted`,
-  ADD_USER = "chatroom.add.user",
-  USER_ADDED = "chatroom.user.added",
+  ADD_USER = `${groupChatroom}.add.user`,
+  USER_ADDED = `${groupChatroom}.chatroom.user.added`,
 }

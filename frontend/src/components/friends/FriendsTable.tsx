@@ -22,15 +22,13 @@ import {
   useGetAllFriendsQuery,
 } from "../../redux/features/friends/friends.api.slice";
 import { Trash, Prohibit } from "phosphor-react";
-import { BaseFriendType, FriendType } from "../../models/FriendsSchema";
+import { BaseFriendType } from "../../models/FriendsSchema";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { useEffect } from "react";
 import { connectSocket, socket } from "../../utils/getSocket";
-import { FriendEvent, GeneralEvent } from "../../../../shared/socket.event";
+import { GeneralEvent } from "../../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../services/type";
 import {
-  addFriend,
-  deleteFriend,
   setFriends,
   setOfflineFriend,
   setOnlineFriend,
@@ -60,16 +58,6 @@ const FriendsTable = () => {
       dispatch(updatePage("FRIENDS"));
       dispatch(setFriends(data.data));
       connectSocket();
-      socket.on(
-        FriendEvent.NEW_FRIEND,
-        (
-          data: SocketServerSucessResponse & {
-            data: FriendType;
-          }
-        ) => {
-          dispatch(addFriend(data.data));
-        }
-      );
 
       socket.on(
         GeneralEvent.USER_LOGGED_IN,
@@ -85,20 +73,7 @@ const FriendsTable = () => {
         }
       );
 
-      socket.on(
-        FriendEvent.DELETE_FRIEND,
-        (
-          data: SocketServerSucessResponse & {
-            data: BaseFriendType;
-          }
-        ) => {
-          dispatch(deleteFriend(data.data));
-        }
-      );
-
       return () => {
-        socket.off(FriendEvent.NEW_FRIEND);
-        socket.off(FriendEvent.DELETE_FRIEND);
         socket.off(GeneralEvent.USER_LOGGED_IN);
         socket.off(GeneralEvent.USER_LOGGED_OUT);
       };
@@ -187,7 +162,10 @@ const FriendsTable = () => {
                               />
                             </BadgeAvatar>
                           ) : (
-                            <Avatar src={avatar ? avatar : undefined} />
+                            <Avatar
+                              sx={{ width: "50px", height: "50px" }}
+                              src={avatar ? avatar : undefined}
+                            />
                           )}
                         </TableCell>
                         <TableCell align="center">

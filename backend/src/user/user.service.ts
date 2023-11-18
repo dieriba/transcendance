@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ApiUser, CreatedUser, Profile, TwoFa } from './types/user.types';
+import { ApiUser, CreatedUser, Profile } from './types/user.types';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserInfo } from 'src/common/types/user-info.type';
 import { ChatroomUserInfo } from 'src/common/types/chatroom-user-type';
@@ -179,16 +179,41 @@ export class UserService {
     userId: string,
     usersId: string[],
     select: UserInfo,
-  ): Promise<string[]> {
+  ) {
     const foundUsers = await this.prismaService.user.findMany({
       where: {
         id: {
           in: usersId,
         },
-        AND: [{ friends: { some: { friendId: userId } } }],
+        OR: [
+          { friends: { some: { friendId: userId } } },
+          { groupParameter: { allowAll: true } },
+        ],
       },
       select,
     });
+
+    return foundUsers;
+  }
+
+  async getExistingUserFriendArr(
+    userId: string,
+    usersId: string[],
+    select: UserInfo,
+  ) {
+    const foundUsers = await this.prismaService.user.findMany({
+      where: {
+        id: {
+          in: usersId,
+        },
+        OR: [
+          { friends: { some: { friendId: userId } } },
+          { groupParameter: { allowAll: true } },
+        ],
+      },
+      select,
+    });
+
     return foundUsers.map((user) => user.id);
   }
 }

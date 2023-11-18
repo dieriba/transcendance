@@ -1,4 +1,5 @@
 import {
+  AddNewUserToGroupType,
   BaseChatroomType,
   BaseChatroomWithUserIdType,
   RestrictUserType,
@@ -203,6 +204,25 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
         });
       },
     }),
+    addUser: builder.mutation<
+      SocketServerSucessResponse & { data: unknown },
+      AddNewUserToGroupType
+    >({
+      queryFn: (data) => {
+        connectSocket();
+        return new Promise((resolve) => {
+          socket.emit(ChatEventGroup.ADD_USER, data);
+
+          socket.on(GeneralEvent.SUCCESS, (data) => {
+            resolve({ data });
+          });
+
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
+            resolve({ error });
+          });
+        });
+      },
+    }),
     leaveGroup: builder.mutation<
       SocketServerSucessResponse & { data: BaseChatroomWithUserIdType },
       BaseChatroomType
@@ -321,4 +341,5 @@ export const {
   useSetNewDieribaMutation,
   useSetNewRoleMutation,
   useDeleteGroupMutation,
+  useAddUserMutation,
 } = GroupApiSlice;
