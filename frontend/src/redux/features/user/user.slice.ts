@@ -17,6 +17,7 @@ export interface User {
 export interface UserInfo {
   user: User | undefined;
   access_token: string | undefined;
+  twoFa?: string;
 }
 
 const initialState: UserInfo = {
@@ -60,6 +61,9 @@ export const UserSlice = createSlice({
       state.user = undefined;
       state.access_token = undefined;
     },
+    setTwoFaId: (state, action: PayloadAction<string | undefined>) => {
+      state.twoFa = action.payload;
+    },
   },
 });
 
@@ -70,5 +74,6 @@ export const {
   setNewNickname,
   logout,
   updatedTwoFa,
+  setTwoFaId,
 } = UserSlice.actions;
 export default UserSlice.reducer;

@@ -19,8 +19,6 @@ export class FriendsController {
   @Get('received-friends-request')
   @HttpCode(HttpStatus.OK)
   async getAllReceivedFriendRequest(@GetUser('userId') userId: string) {
-    console.log('entered');
-
     return await this.friendService.getAllReceivedFriendsRequest(userId);
   }
 

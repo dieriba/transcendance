@@ -3,7 +3,8 @@ import { ApiUser, CreatedUser, Profile, TwoFa } from './types/user.types';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserInfo } from 'src/common/types/user-info.type';
 import { ChatroomUserInfo } from 'src/common/types/chatroom-user-type';
-import { User } from '@prisma/client';
+import { Prisma, PrismaClient, User } from '@prisma/client';
+import { DefaultArgs } from '@prisma/client/runtime/library';
 type optionalDataUser = Partial<User>;
 
 @Injectable()
@@ -117,18 +118,22 @@ export class UserService {
   }
 
   async createOrReturn42User(
+    tx: Omit<
+      PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
+      '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+    >,
     user: ApiUser,
     profile: Profile,
     select: UserInfo,
   ) {
-    const foundUser = await this.prismaService.user.findUnique({
+    const foundUser = await tx.user.findUnique({
       where: { email: user.email },
       select,
     });
 
     if (foundUser) return foundUser;
 
-    const newUser = await this.prismaService.user.create({
+    const newUser = await tx.user.create({
       data: { ...user, profile: { create: profile } },
       select,
     });

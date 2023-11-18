@@ -57,7 +57,7 @@ export type ChangePasswordType = z.infer<typeof ChangePasswordSchema>;
 
 export const OtpSchema = z.object({
   qrCode: z.string().min(1),
-  otpSecret: z.string().min(1),
+  otpTempSecret: z.string().min(1),
 });
 
 export type OtpType = z.infer<typeof OtpSchema>;

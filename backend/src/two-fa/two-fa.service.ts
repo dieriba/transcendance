@@ -6,12 +6,17 @@ import { UserNotFoundException } from 'src/common/custom-exception/user-not-foun
 import { PrismaService } from 'src/prisma/prisma.service';
 import { authenticator } from 'otplib';
 import { CustomException } from 'src/common/custom-exception/custom-exception';
+import { VerifyOtpDto } from './dto/two-fa.dto';
+import { JwtTokenService } from 'src/jwt-token/jwtToken.service';
+import { Profile } from '@prisma/client';
+import { Tokens } from 'src/jwt-token/jwt.type';
 
 @Injectable()
 export class TwoFaService {
   constructor(
     private readonly userService: UserService,
     private readonly prismaService: PrismaService,
+    private readonly jwtTokenService: JwtTokenService,
   ) {}
 
   async generateOtp(userId: string): Promise<OTP> {
@@ -19,36 +24,86 @@ export class TwoFaService {
 
     if (!user) throw new UserNotFoundException();
 
-    const otpSecret = authenticator.generateSecret();
+    const otpTempSecret = authenticator.generateSecret();
 
     const otpAuthUrl = authenticator.keyuri(
       user.email,
       process.env.TWO_FACTOR_AUTHENTICATION_APP_NAME,
-      otpSecret,
+      otpTempSecret,
     );
 
-    const otp: OTP = { otpSecret, otpAuthUrl };
+    const otp: OTP = { otpTempSecret, otpAuthUrl };
 
     if (!user.twoFa) {
       await this.prismaService.user.update({
         where: { id: userId },
         data: {
           twoFa: {
-            create: { ...otp },
+            create: { otpTempSecret },
           },
         },
       });
     } else {
       await this.prismaService.twoFa.update({
         where: { userId },
-        data: { ...otp },
+        data: { otpTempSecret },
       });
     }
     return otp;
   }
 
-  async validateOtp(userId: string, token: string) {
+  async enableTwoFa(userId: string, token: string) {
     const user = await this.userService.findUserById(userId, UserTwoFa);
+
+    if (!user) throw new UserNotFoundException();
+
+    if (user.twoFa.otpTempSecret === null)
+      throw new BadRequestException('Missing secret');
+
+    const check = authenticator.check(token, user.twoFa.otpTempSecret);
+
+    if (!check) throw new BadRequestException('Invalid token');
+
+    await this.prismaService.twoFa.update({
+      where: {
+        userId,
+      },
+      data: {
+        otpEnabled: true,
+        otpSecret: user.twoFa.otpTempSecret,
+        otpTempSecret: null,
+      },
+    });
+  }
+
+  async validateOtp({ id, token }: VerifyOtpDto): Promise<
+    {
+      user: {
+        id: string;
+        nickname: string;
+        twoFa: boolean;
+        allowForeignToDm: boolean;
+        profile: Partial<Profile>;
+      };
+    } & Tokens
+  > {
+    const user = await this.prismaService.user.findFirst({
+      where: {
+        id,
+      },
+      select: {
+        nickname: true,
+        allowForeignToDm: true,
+        profile: {
+          select: {
+            avatar: true,
+            firstname: true,
+            lastname: true,
+          },
+        },
+        twoFa: true,
+      },
+    });
 
     if (!user) throw new UserNotFoundException();
 
@@ -63,24 +118,49 @@ export class TwoFaService {
     if (!check)
       throw new CustomException('Invalid token', HttpStatus.BAD_REQUEST);
 
+    const { nickname, allowForeignToDm, profile } = user;
+
+    const tokens = await this.jwtTokenService.getTokens(id);
+
+    return {
+      user: { id, nickname, twoFa: true, profile, allowForeignToDm },
+      ...tokens,
+    };
+  }
+
+  async updateTwoFa(userId: string, token: string) {
+    const user = await this.userService.findUserById(userId, UserTwoFa);
+
+    if (!user) throw new UserNotFoundException();
+
+    if (!user.twoFa.otpEnabled)
+      throw new CustomException('Activa 2fa first!', HttpStatus.FORBIDDEN);
+
+    if (user.twoFa.otpTempSecret === null)
+      throw new BadRequestException('Missing secret');
+
+    const check = authenticator.check(token, user.twoFa.otpTempSecret);
+
+    if (!check) throw new BadRequestException('Invalid token');
+
     await this.prismaService.twoFa.update({
       where: {
         userId,
       },
       data: {
-        otpValidated: true,
+        otpSecret: user.twoFa.otpTempSecret,
+        otpTempSecret: null,
       },
     });
-    return { otp_validated: true };
   }
 
-  async enableTwoFa(userId: string, token: string) {
+  async disableTwoFa(userId: string, token: string) {
     const user = await this.userService.findUserById(userId, UserTwoFa);
 
     if (!user) throw new UserNotFoundException();
 
-    if (user.twoFa.otpSecret === null)
-      throw new BadRequestException('Missing secret');
+    if (!user.twoFa.otpEnabled)
+      throw new CustomException('2FA not enabled!', HttpStatus.FORBIDDEN);
 
     const check = authenticator.check(token, user.twoFa.otpSecret);
 
@@ -91,9 +171,9 @@ export class TwoFaService {
         userId,
       },
       data: {
-        otpEnabled: true,
+        otpEnabled: false,
+        otpSecret: null,
       },
     });
-    return { twoFa: true };
   }
 }

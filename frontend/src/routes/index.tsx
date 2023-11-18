@@ -14,6 +14,7 @@ export default function Router() {
         { path: PATH_APP.auth.login, element: <LoginPage /> },
         { path: PATH_APP.auth.register, element: <RegisterPage /> },
         { path: PATH_APP.auth.oauth, element: <OauthPage /> },
+        { path: PATH_APP.auth.twoFa, element: <TwoFaPage /> },
         { path: "*", element: <Navigate to="/404" replace /> },
       ],
     },
@@ -23,7 +24,10 @@ export default function Router() {
       children: [
         { element: <Navigate to={DEFAULT_PATH} replace />, index: true },
         { path: PATH_APP.dashboard.profile, element: <ProfilePage /> },
-        { path: PATH_APP.dashboard.notification, element: <NotificationsPage /> },
+        {
+          path: PATH_APP.dashboard.notification,
+          element: <NotificationsPage />,
+        },
         { path: PATH_APP.dashboard.friends, element: <FriendsPage /> },
         { path: PATH_APP.dashboard.games, element: <GamesPage /> },
         { path: PATH_APP.dashboard.chat, element: <ChatPage /> },
@@ -43,6 +47,7 @@ const Page404 = Loadable(() => import("../pages/error-page/Error-404"));
 const LoginPage = Loadable(() => import("../pages/auth/LoginPage"));
 const RegisterPage = Loadable(() => import("../pages/auth/Register"));
 const OauthPage = Loadable(() => import("../pages/auth/OauthPage"));
+const TwoFaPage = Loadable(() => import("../pages/auth/TwoFa/TwoFaPage"));
 
 const FriendsPage = Loadable(() => import("../pages/friends/FriendsPage"));
 const NotificationsPage = Loadable(

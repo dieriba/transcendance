@@ -13,4 +13,15 @@ export class VerifyOtpDto {
   @IsString()
   @IsNotEmpty()
   token: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  id: string;
+}
+
+export class TokenDto {
+  @IsString()
+  @IsNotEmpty()
+  token: string;
 }

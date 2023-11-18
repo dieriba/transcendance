@@ -4,11 +4,15 @@ import {
 } from "./../../../services/type";
 import { RegisterFormType } from "../../../models/RegisterSchema";
 import { LoginFormType } from "../../../models/login/LoginSchema";
-import { ResponseLoginType } from "../../../models/login/ResponseLogin";
+import {
+  ResponseLoginType,
+  ResponseTwoFaLoginType,
+} from "../../../models/login/ResponseLogin";
 import { apiSlice } from "../../api/apiSlice";
 import { GeneralEvent } from "../../../../../shared/socket.event";
 import { connectSocket, socket } from "../../../utils/getSocket";
 import {
+  BaseUserTypeId,
   ChangePasswordType,
   OtpType,
   UpdateUserType,
@@ -18,7 +22,7 @@ import {
 export const UserApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation<
-      BaseServerResponse & { data: ResponseLoginType },
+      BaseServerResponse & { data: ResponseLoginType | ResponseTwoFaLoginType },
       LoginFormType
     >({
       query: (data) => ({
@@ -44,7 +48,7 @@ export const UserApiSlice = apiSlice.injectEndpoints({
       }),
     }),
     oauth: builder.query<
-      BaseServerResponse & { data: ResponseLoginType },
+      BaseServerResponse & { data: ResponseLoginType | ResponseTwoFaLoginType },
       { code: string }
     >({
       query: (data) => ({
@@ -122,17 +126,37 @@ export const UserApiSlice = apiSlice.injectEndpoints({
     >({
       query: (data) => ({
         url: "/2fa/enable",
-        method: "POST",
+        method: "PATCH",
         body: data,
       }),
     }),
     validateOtp: builder.mutation<
-      BaseServerResponse & { data: unknown },
-      ValidateOtpType
+      BaseServerResponse & { data: ResponseLoginType },
+      ValidateOtpType & BaseUserTypeId
     >({
       query: (data) => ({
         url: "/2fa/validate",
         method: "POST",
+        body: data,
+      }),
+    }),
+    update2Fa: builder.mutation<
+      BaseServerResponse & { data: unknown },
+      ValidateOtpType
+    >({
+      query: (data) => ({
+        url: "/2fa/update",
+        method: "PATCH",
+        body: data,
+      }),
+    }),
+    disable2Fa: builder.mutation<
+      BaseServerResponse & { data: unknown },
+      ValidateOtpType
+    >({
+      query: (data) => ({
+        url: "/2fa/disable",
+        method: "PATCH",
         body: data,
       }),
     }),
@@ -150,4 +174,7 @@ export const {
   useChangePasswordMutation,
   useGetQrCodeMutation,
   useEnable2FaMutation,
+  useValidateOtpMutation,
+  useDisable2FaMutation,
+  useUpdate2FaMutation,
 } = UserApiSlice;

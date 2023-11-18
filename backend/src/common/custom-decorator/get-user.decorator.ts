@@ -8,8 +8,6 @@ export const GetUser = createParamDecorator(
     if (!key)
       return {
         id: request.userId,
-        nickname: request.nickname,
-        email: request.email,
         refresh_token: request.refresh_token,
       };
     return request[key];

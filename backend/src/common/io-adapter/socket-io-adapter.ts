@@ -49,8 +49,6 @@ const createTokenMiddleware =
         process.env.ACCESS_TOKEN_SECRET,
       );
       socket.userId = payload.sub;
-      socket.email = payload.email;
-      socket.nickname = payload.nickname;
 
       next();
     } catch (error) {

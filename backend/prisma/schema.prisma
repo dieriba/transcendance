@@ -38,7 +38,7 @@ model User {
   chatrooms             ChatroomUser[]
   messages              Message[]
   restrictedGroups      RestrictedUser[]
-  allowForeignToDm    Boolean @default(false)
+  allowForeignToDm      Boolean          @default(false)
 }
 
 model Friends {
@@ -146,14 +146,15 @@ model RestrictedUser {
 model TwoFa {
   id String @id @default(uuid())
 
-  otpSecret  String?
-  otpAuthUrl String?
+  otpSecret     String?
+  otpTempSecret String?
 
-  otpEnabled   Boolean @default(false)
-  otpValidated Boolean @default(false)
+  otpEnabled Boolean @default(false)
 
-  user   User   @relation("userTwoFa", fields: [userId], references: [id], onDelete: Cascade)
-  userId String @unique
+  question String?
+  answer   String?
+  user     User    @relation("userTwoFa", fields: [userId], references: [id], onDelete: Cascade)
+  userId   String  @unique
 }
 
 enum Gender {

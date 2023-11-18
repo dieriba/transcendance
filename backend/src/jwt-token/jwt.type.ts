@@ -5,8 +5,6 @@ export type Tokens = {
 
 export type JwtPayload = {
   sub: string;
-  email: string;
-  nickname: string;
 };
 
 export type RefreshToken = {

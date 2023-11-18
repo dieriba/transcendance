@@ -21,10 +21,11 @@ import {
   RESSOURCE_NOT_FOUND,
 } from 'src/common/constant/http-error.constant';
 import { UserData, UserRefreshToken } from 'src/common/types/user-info.type';
-import { LibService } from 'src/lib/lib.service';
 import { STATUS } from '@prisma/client';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
 import { ChangeUserPasswordDto } from 'src/user/dto/ChangeUserPassword.dto';
+import { ResponseLoginType } from './type';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class AuthService {
@@ -33,7 +34,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtTokenService: JwtTokenService,
     private readonly argon2: Argon2Service,
-    private readonly libService: LibService,
+    private readonly prismaService: PrismaService,
   ) {}
 
   private readonly logger = new Logger(AuthService.name);
@@ -63,13 +64,7 @@ export class AuthService {
 
   async login({ id, email, nickname, twoFa }: LoginUserDto): Promise<
     {
-      user: {
-        id: string;
-        nickname: string;
-        twoFa: boolean;
-        allowForeignToDm: boolean;
-        profile: Partial<Profile>;
-      };
+      user: ResponseLoginType;
     } & Tokens
   > {
     try {
@@ -77,7 +72,7 @@ export class AuthService {
         `Attempting to create new tokens for user identified by email: ${email}`,
       );
 
-      const tokens = await this.jwtTokenService.getTokens(id, email, nickname);
+      const tokens = await this.jwtTokenService.getTokens(id);
 
       const { allowForeignToDm, profile } =
         await this.userService.updateUserById(id, {
@@ -143,15 +138,10 @@ export class AuthService {
   }
 
   async oauth(code: string): Promise<
-    {
-      user: {
-        id: string;
-        nickname: string;
-        isTwoFaEnabled: boolean;
-        allowForeignToDm: boolean;
-        profile: Partial<Profile>;
-      };
-    } & Tokens
+    | ({
+        user: ResponseLoginType;
+      } & Tokens)
+    | { id: string; twoFa: boolean }
   > {
     const response = await this.httpService.axiosRef.post(
       process.env.TOKEN_URI,
@@ -181,50 +171,64 @@ export class AuthService {
 
     if (!data) throw new NotFoundException();
 
-    const existingUser = await this.userService.findUserByNickName(
-      data.login,
-      UserData,
-    );
+    const res = await this.prismaService.$transaction(async (tx) => {
+      const existingUser = await tx.user.findFirst({
+        where: {
+          nickname: data.login,
+        },
+      });
 
-    const user: ApiUser = {
-      email: data.email,
-      nickname: existingUser ? data.login : generateUsername('', 3, 16),
-    };
-    const profile: Profile = {
-      firstname: data.first_name,
-      lastname: data.last_name,
-      avatar: undefined,
-    };
+      const user: ApiUser = {
+        email: data.email,
+        nickname: existingUser ? data.login : generateUsername('', 3, 16),
+      };
 
-    try {
-      const { id, email, nickname, twoFa } =
-        await this.userService.createOrReturn42User(user, profile, UserData);
+      const profile: Profile = {
+        firstname: data.first_name,
+        lastname: data.last_name,
+        avatar: undefined,
+      };
 
-      const tokens = await this.jwtTokenService.getTokens(id, email, nickname);
+      const { id, nickname, twoFa } =
+        await this.userService.createOrReturn42User(
+          tx,
+          user,
+          profile,
+          UserData,
+        );
 
-      const { allowForeignToDm } = await this.userService.updateUserById(id, {
-        hashedRefreshToken: await this.argon2.hash(tokens.refresh_token),
+      if (twoFa?.otpEnabled) {
+        return { id, twoFa: true };
+      }
+
+      const tokens = await this.jwtTokenService.getTokens(id);
+
+      const { allowForeignToDm } = await tx.user.update({
+        where: {
+          id,
+        },
+        data: {
+          hashedRefreshToken: await this.argon2.hash(tokens.refresh_token),
+        },
       });
 
       return {
         user: {
           id,
           nickname,
-          isTwoFaEnabled: twoFa?.otpEnabled ? twoFa.otpEnabled : false,
+          twoFa: twoFa?.otpEnabled ? twoFa.otpEnabled : false,
           allowForeignToDm,
           profile,
         },
         ...tokens,
       };
-    } catch (error) {
-      console.log(error);
+    });
 
-      throw new InternalServerErrorException();
-    }
+    return res;
   }
 
   async refresh(payload: JwtPayload, refresh_token: string): Promise<Tokens> {
-    const { sub, email, nickname } = payload;
+    const { sub } = payload;
 
     const user = await this.userService.findUserById(sub, UserRefreshToken);
 
@@ -238,7 +242,7 @@ export class AuthService {
 
     if (!isMatch) throw new CustomException(FORBIDDEN, HttpStatus.FORBIDDEN);
 
-    const tokens = await this.jwtTokenService.getTokens(sub, email, nickname);
+    const tokens = await this.jwtTokenService.getTokens(sub);
 
     const hashedRefreshToken = await this.argon2.hash(tokens.refresh_token);
     await this.userService.updateUserById(sub, {

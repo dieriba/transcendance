@@ -46,6 +46,12 @@ export class AuthController {
     @Body(LoginValidation) loginUserDto: LoginUserDto,
     @Res({ passthrough: true }) res: Response,
   ) {
+    const { twoFa, id } = loginUserDto;
+
+    if (loginUserDto.twoFa) {
+      return { twoFa, id };
+    }
+
     const { refresh_token, ...data } =
       await this.authService.login(loginUserDto);
 
@@ -84,7 +90,13 @@ export class AuthController {
     @Param('code') code: string,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { refresh_token, ...data } = await this.authService.oauth(code);
+    const result = await this.authService.oauth(code);
+
+    if ('twoFa' in result) {
+      return result;
+    }
+
+    const { refresh_token, ...data } = result;
     res.cookie('refresh', refresh_token, {
       httpOnly: true,
       path: '/auth/refresh',

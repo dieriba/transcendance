@@ -21,5 +21,6 @@ export const PATH_APP = {
     login: path(ROOT_AUTH, "login"),
     register: path(ROOT_AUTH, "register"),
     oauth: path(ROOT_AUTH, "42/oauth"),
+    twoFa: path(ROOT_AUTH, "2fa"),
   },
 };

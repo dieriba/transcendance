@@ -27,7 +27,7 @@ const Security = ({ open, handleClose }: SecurityProps) => {
             onChange={handleChange}
             aria-label="basic tabs example"
           >
-            <Tab label="Activate 2fa" {...a11yProps(0)} />
+            <Tab label="2fa" {...a11yProps(0)} />
             <Tab label="Change password" {...a11yProps(1)} />
           </Tabs>
           <CustomTabPanel value={value} index={0}>

@@ -22,8 +22,15 @@ import {
   isErrorWithMessage,
 } from "../../services/helpers";
 import { useAppDispatch } from "../../redux/hooks";
-import { authenticateUser } from "../../redux/features/user/user.slice";
-import { ResponseLoginSchema } from "../../models/login/ResponseLogin";
+import {
+  authenticateUser,
+  setTwoFaId,
+} from "../../redux/features/user/user.slice";
+import {
+  ResponseLoginSchema,
+  ResponseTwoFaLoginSchema,
+  ResponseTwoFaLoginType,
+} from "../../models/login/ResponseLogin";
 import { useNavigate } from "react-router-dom";
 import { PATH_APP } from "../../routes/paths";
 import CustomAlert from "../Alert/CustomAlert";
@@ -36,7 +43,6 @@ const LoginForm = () => {
   });
 
   const { handleSubmit, control } = methods;
-
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [login, { isLoading, error, reset }] = useLoginMutation();
@@ -46,7 +52,16 @@ const LoginForm = () => {
     try {
       const result = await login(data).unwrap();
 
+      const twoFaParse = await ResponseTwoFaLoginSchema.safeParseAsync(
+        result.data
+      );
       const parse = await ResponseLoginSchema.safeParseAsync(result.data);
+
+      if (twoFaParse.success) {
+        dispatch(setTwoFaId((result.data as ResponseTwoFaLoginType).id));
+        navigate(PATH_APP.auth.twoFa);
+        return;
+      }
 
       if (!parse.success) {
         setErrMsg("An error has occured, please try again later!");
@@ -69,70 +84,73 @@ const LoginForm = () => {
       }
     }
   };
+
   const theme = useTheme();
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <Stack spacing={3}>
-        {(error || errMsg.length > 0) && (
-          <>
-            <CustomAlert
-              severity="error"
-              reset={reset}
-              setMsg={setErrMsg}
-              msg={errMsg}
-            />
-          </>
-        )}
-        <RHFTextField name="email" label="Email" control={control} />
-
-        <Controller
-          name="password"
-          control={control}
-          render={({ field: { value, onChange }, fieldState: { error } }) => (
-            <CustomTextField error={error} message={error?.message}>
-              <TextField
-                label="Password"
-                fullWidth
-                onChange={onChange}
-                value={value || ""}
-                error={!!error}
-                type={showPassword ? "text" : "password"}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowPassword((prev) => !prev)}
-                      >
-                        {showPassword ? <Eye /> : <EyeSlash />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
+    <>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Stack spacing={3}>
+          {(error || errMsg.length > 0) && (
+            <>
+              <CustomAlert
+                severity="error"
+                reset={reset}
+                setMsg={setErrMsg}
+                msg={errMsg}
               />
-            </CustomTextField>
+            </>
           )}
-        />
+          <RHFTextField name="email" label="Email" control={control} />
 
-        <Button
-          color="inherit"
-          fullWidth
-          size="large"
-          type="submit"
-          variant="contained"
-          sx={{
-            ":hover": {
-              backgroundColor: theme.palette.primary.main,
-              borderRadius: 1.5,
-              color: "white",
-            },
-          }}
-          disableElevation={true}
-        >
-          {isLoading ? <CircularProgress size={20} /> : "Login"}
-        </Button>
-      </Stack>
-    </form>
+          <Controller
+            name="password"
+            control={control}
+            render={({ field: { value, onChange }, fieldState: { error } }) => (
+              <CustomTextField error={error} message={error?.message}>
+                <TextField
+                  label="Password"
+                  fullWidth
+                  onChange={onChange}
+                  value={value || ""}
+                  error={!!error}
+                  type={showPassword ? "text" : "password"}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword((prev) => !prev)}
+                        >
+                          {showPassword ? <Eye /> : <EyeSlash />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </CustomTextField>
+            )}
+          />
+
+          <Button
+            color="inherit"
+            fullWidth
+            size="large"
+            type="submit"
+            variant="contained"
+            sx={{
+              ":hover": {
+                backgroundColor: theme.palette.primary.main,
+                borderRadius: 1.5,
+                color: "white",
+              },
+            }}
+            disableElevation={true}
+          >
+            {isLoading ? <CircularProgress size={20} /> : "Login"}
+          </Button>
+        </Stack>
+      </form>
+    </>
   );
 };
 export default LoginForm;
