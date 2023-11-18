@@ -48,6 +48,7 @@ export class AuthController {
   ) {
     const { refresh_token, ...data } =
       await this.authService.login(loginUserDto);
+
     res.cookie('refresh', refresh_token, {
       httpOnly: true,
       path: '/auth/refresh',

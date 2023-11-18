@@ -35,7 +35,7 @@ export class LoginValidation implements PipeTransform {
       ...body,
       id: user.id,
       nickname: user.nickname,
-      isTwoFaEnabled: user.twoFa?.otpEnabled ? user.twoFa?.otpEnabled : false,
+      twoFa: user.twoFa?.otpEnabled ? user.twoFa?.otpEnabled : false,
     };
   }
 }

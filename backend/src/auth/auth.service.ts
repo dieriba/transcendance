@@ -61,12 +61,12 @@ export class AuthService {
     }
   }
 
-  async login({ id, email, nickname, isTwoFaEnabled }: LoginUserDto): Promise<
+  async login({ id, email, nickname, twoFa }: LoginUserDto): Promise<
     {
       user: {
         id: string;
         nickname: string;
-        isTwoFaEnabled: boolean;
+        twoFa: boolean;
         allowForeignToDm: boolean;
         profile: Partial<Profile>;
       };
@@ -76,6 +76,7 @@ export class AuthService {
       this.logger.log(
         `Attempting to create new tokens for user identified by email: ${email}`,
       );
+
       const tokens = await this.jwtTokenService.getTokens(id, email, nickname);
 
       const { allowForeignToDm, profile } =
@@ -85,7 +86,7 @@ export class AuthService {
         });
 
       return {
-        user: { id, nickname, isTwoFaEnabled, allowForeignToDm, profile },
+        user: { id, nickname, twoFa, allowForeignToDm, profile },
         ...tokens,
       };
     } catch (error) {

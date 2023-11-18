@@ -3,7 +3,7 @@ import { z } from "zod";
 export const UserSchema = z.object({
   id: z.string().min(1),
   nickname: z.string().min(3),
-  isTwoFaEnabled: z.boolean(),
+  twoFa: z.boolean(),
   allowForeignToDm: z.boolean(),
 });
 
@@ -54,3 +54,16 @@ export const ChangePasswordSchema = z
   });
 
 export type ChangePasswordType = z.infer<typeof ChangePasswordSchema>;
+
+export const OtpSchema = z.object({
+  qrCode: z.string().min(1),
+  otpSecret: z.string().min(1),
+});
+
+export type OtpType = z.infer<typeof OtpSchema>;
+
+export const ValidateOtpSchema = z.object({
+  token: z.string().min(1),
+});
+
+export type ValidateOtpType = z.infer<typeof ValidateOtpSchema>;

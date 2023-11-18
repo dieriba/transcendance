@@ -4,6 +4,7 @@ import ChangePassword from "./ChangePassword";
 import { a11yProps } from "../../../utils/allyProps";
 import DialogI from "../../Dialog/DialogI";
 import CustomTabPanel from "../../table-panel/CustomTablePanel";
+import TwoFa from "./TwoFa";
 
 interface SecurityProps {
   open: boolean;
@@ -29,7 +30,9 @@ const Security = ({ open, handleClose }: SecurityProps) => {
             <Tab label="Activate 2fa" {...a11yProps(0)} />
             <Tab label="Change password" {...a11yProps(1)} />
           </Tabs>
-          <CustomTabPanel value={value} index={0}></CustomTabPanel>
+          <CustomTabPanel value={value} index={0}>
+            <TwoFa />
+          </CustomTabPanel>
           <CustomTabPanel value={value} index={1}>
             <ChangePassword />
           </CustomTabPanel>

@@ -6,6 +6,7 @@ export interface User {
   id: string | undefined;
   nickname: string | undefined;
   allowForeignToDm: boolean;
+  twoFa: boolean;
   profile: {
     avatar?: string | undefined | null;
     lastname: string;
@@ -22,6 +23,7 @@ const initialState: UserInfo = {
   user: {
     id: undefined,
     nickname: undefined,
+    twoFa: false,
     allowForeignToDm: false,
     profile: {
       avatar: undefined,
@@ -51,6 +53,9 @@ export const UserSlice = createSlice({
     setNewNickname: (state, action: PayloadAction<string>) => {
       if (state.user) state.user.nickname = action.payload;
     },
+    updatedTwoFa: (state, action: PayloadAction<boolean>) => {
+      (state.user as User).twoFa = action.payload;
+    },
     logout: (state) => {
       state.user = undefined;
       state.access_token = undefined;
@@ -64,5 +69,6 @@ export const {
   setNewAvatarSrc,
   setNewNickname,
   logout,
+  updatedTwoFa,
 } = UserSlice.actions;
 export default UserSlice.reducer;

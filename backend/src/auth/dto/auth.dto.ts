@@ -56,7 +56,7 @@ export class LoginUserDto {
   readonly id: string;
 
   @IsOptional()
-  isTwoFaEnabled: boolean;
+  twoFa: boolean;
 
   @IsOptional()
   readonly nickname: string;

@@ -10,9 +10,10 @@ import { GeneralEvent } from "../../../../../shared/socket.event";
 import { connectSocket, socket } from "../../../utils/getSocket";
 import {
   ChangePasswordType,
+  OtpType,
   UpdateUserType,
+  ValidateOtpType,
 } from "../../../models/login/UserSchema";
-import { unknown } from "zod";
 
 export const UserApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -109,6 +110,32 @@ export const UserApiSlice = apiSlice.injectEndpoints({
         body: data,
       }),
     }),
+    getQrCode: builder.mutation<BaseServerResponse & { data: OtpType }, void>({
+      query: () => ({
+        url: "/2fa/generate",
+        method: "POST",
+      }),
+    }),
+    enable2Fa: builder.mutation<
+      BaseServerResponse & { data: unknown },
+      ValidateOtpType
+    >({
+      query: (data) => ({
+        url: "/2fa/enable",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    validateOtp: builder.mutation<
+      BaseServerResponse & { data: unknown },
+      ValidateOtpType
+    >({
+      query: (data) => ({
+        url: "/2fa/validate",
+        method: "POST",
+        body: data,
+      }),
+    }),
   }),
 });
 
@@ -121,4 +148,6 @@ export const {
   useNotifyNewProfilePicMutation,
   useUpdateUserMutation,
   useChangePasswordMutation,
+  useGetQrCodeMutation,
+  useEnable2FaMutation,
 } = UserApiSlice;

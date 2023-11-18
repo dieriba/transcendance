@@ -47,6 +47,7 @@ const LoginForm = () => {
       const result = await login(data).unwrap();
 
       const parse = await ResponseLoginSchema.safeParseAsync(result.data);
+
       if (!parse.success) {
         setErrMsg("An error has occured, please try again later!");
       } else {

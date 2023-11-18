@@ -118,16 +118,16 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
         <DialogI maxWidth="sm" open={open} handleClose={handleClose}>
           <DialogTitle>Create New Group</DialogTitle>
           <DialogContent>
-            {openSnack && (
-              <Alert
-                onClose={handleCloseSnack}
-                severity={severity}
-                sx={{ width: "100%" }}
-              >
-                {message}
-              </Alert>
-            )}
             <Stack p={2}>
+              {openSnack && (
+                <Alert
+                  onClose={handleCloseSnack}
+                  severity={severity}
+                  sx={{ width: "100%" }}
+                >
+                  {message}
+                </Alert>
+              )}
               <form onSubmit={handleSubmit(onSubmit)}>
                 <Stack spacing={3}>
                   <RHFTextField

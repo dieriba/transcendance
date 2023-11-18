@@ -1,72 +1,99 @@
-import { LibService } from '../lib/lib.service';
-import {
-  BadRequestException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
-import * as OTPAuth from 'otpauth';
+import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
 import { OTP } from './types/two-fa.types';
 import { UserService } from 'src/user/user.service';
 import { UserData, UserTwoFa } from 'src/common/types/user-info.type';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { authenticator } from 'otplib';
+import { CustomException } from 'src/common/custom-exception/custom-exception';
 
 @Injectable()
 export class TwoFaService {
   constructor(
-    private readonly libService: LibService,
     private readonly userService: UserService,
+    private readonly prismaService: PrismaService,
   ) {}
 
-  async generateOtp(id: string): Promise<OTP> {
-    const user = await this.userService.findUserById(id, UserData);
-
-    if (!user) new UserNotFoundException();
-
-    if (!user) throw new UnauthorizedException('Activa 2fa first!');
-
-    const otpSecret = this.libService.generateRandomSecretInBase32();
-
-    const totp: OTPAuth.TOTP = this.generateNewTotpObject(otpSecret);
-
-    const otpAuthUrl = totp.toString();
-
-    const otp: OTP = { otpSecret, otpAuthUrl };
-
-    await this.userService.updateUser2fa(user.id, otp);
-
-    return otp;
-  }
-
-  async validateOtp(id: string, token: string) {
-    const user = await this.userService.findUserById(id, UserTwoFa);
+  async generateOtp(userId: string): Promise<OTP> {
+    const user = await this.userService.findUserById(userId, UserData);
 
     if (!user) throw new UserNotFoundException();
 
-    if (!user.twoFa) throw new UnauthorizedException('Activa 2fa first!');
+    const otpSecret = authenticator.generateSecret();
+
+    const otpAuthUrl = authenticator.keyuri(
+      user.email,
+      process.env.TWO_FACTOR_AUTHENTICATION_APP_NAME,
+      otpSecret,
+    );
+
+    const otp: OTP = { otpSecret, otpAuthUrl };
+
+    if (!user.twoFa) {
+      await this.prismaService.user.update({
+        where: { id: userId },
+        data: {
+          twoFa: {
+            create: { ...otp },
+          },
+        },
+      });
+    } else {
+      await this.prismaService.twoFa.update({
+        where: { userId },
+        data: { ...otp },
+      });
+    }
+    return otp;
+  }
+
+  async validateOtp(userId: string, token: string) {
+    const user = await this.userService.findUserById(userId, UserTwoFa);
+
+    if (!user) throw new UserNotFoundException();
+
+    if (!user.twoFa.otpEnabled)
+      throw new CustomException('Activa 2fa first!', HttpStatus.FORBIDDEN);
 
     if (user.twoFa.otpSecret === null)
-      throw new BadRequestException('Missing secret');
+      throw new CustomException('Missing secret', HttpStatus.BAD_REQUEST);
 
-    const totp: OTPAuth.TOTP = this.generateNewTotpObject(user.twoFa.otpSecret);
+    const check = authenticator.check(token, user.twoFa.otpSecret);
 
-    const delta = totp.validate({ token });
+    if (!check)
+      throw new CustomException('Invalid token', HttpStatus.BAD_REQUEST);
 
-    if (delta === null) throw new BadRequestException('Invalid token');
-
-    await this.userService.updateUser2fa(id, {
-      otpValidated: true,
+    await this.prismaService.twoFa.update({
+      where: {
+        userId,
+      },
+      data: {
+        otpValidated: true,
+      },
     });
     return { otp_validated: true };
   }
 
-  generateNewTotpObject(otp_secret: string): OTPAuth.TOTP {
-    return new OTPAuth.TOTP({
-      issuer: process.env.OTP_ISSUER,
-      label: process.env.OTP_LABEL,
-      algorithm: process.env.OTP_ALGORITHM,
-      digits: parseInt(process.env.OTP_DIGITS),
-      period: parseInt(process.env.OTP_PERIOD),
-      secret: otp_secret,
+  async enableTwoFa(userId: string, token: string) {
+    const user = await this.userService.findUserById(userId, UserTwoFa);
+
+    if (!user) throw new UserNotFoundException();
+
+    if (user.twoFa.otpSecret === null)
+      throw new BadRequestException('Missing secret');
+
+    const check = authenticator.check(token, user.twoFa.otpSecret);
+
+    if (!check) throw new BadRequestException('Invalid token');
+
+    await this.prismaService.twoFa.update({
+      where: {
+        userId,
+      },
+      data: {
+        otpEnabled: true,
+      },
     });
+    return { twoFa: true };
   }
 }

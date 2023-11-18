@@ -116,13 +116,6 @@ export class UserService {
     });
   }
 
-  async updateUser2fa(id: string, twofa: TwoFa) {
-    return await this.prismaService.twoFa.update({
-      where: { userId: id },
-      data: { ...twofa },
-    });
-  }
-
   async createOrReturn42User(
     user: ApiUser,
     profile: Profile,
