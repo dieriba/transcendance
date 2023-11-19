@@ -82,9 +82,15 @@ const SetNewRole = ({
   return (
     <>
       <DialogI maxWidth="sm" open={open} handleClose={handleClose}>
-        <DialogTitle>Change User Role</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} p={2}>
+        <DialogTitle sx={{ backgroundColor: theme.palette.background.paper }} >
+          Change User Role
+        </DialogTitle>
+        <DialogContent sx={{ backgroundColor: theme.palette.background.paper }}>
+          <Stack
+            sx={{ backgroundColor: theme.palette.background.paper }}
+            spacing={2}
+            p={2}
+          >
             {openSnack && (
               <Alert
                 onClose={handleCloseSnack}
@@ -112,7 +118,6 @@ const SetNewRole = ({
                     color: "white",
                   },
                 }}
-                disableElevation={true}
                 onClick={() => onSubmit()}
               >
                 {isLoading ? (

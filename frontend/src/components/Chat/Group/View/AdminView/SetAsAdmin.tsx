@@ -71,9 +71,13 @@ const SetAsAdmin = ({ id, nickname, open, handleClose }: SetAdminProps) => {
   return (
     <>
       <DialogI maxWidth="sm" open={open} handleClose={handleClose}>
-        <DialogTitle>Set New Admin</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} p={2}>
+        <DialogTitle sx={{ backgroundColor: theme.palette.background.paper }} >Set New Admin</DialogTitle>
+        <DialogContent sx={{ backgroundColor: theme.palette.background.paper }}>
+          <Stack
+            sx={{ backgroundColor: theme.palette.background.paper }}
+            spacing={2}
+            p={2}
+          >
             {openSnack && (
               <Alert
                 onClose={handleCloseSnack}
@@ -101,8 +105,7 @@ const SetAsAdmin = ({ id, nickname, open, handleClose }: SetAdminProps) => {
                     color: "white",
                   },
                 }}
-                disableElevation={true}
-                onClick={() =>
+                  onClick={() =>
                   onSubmit({
                     id,
                     chatroomId: currentChatroom.id,

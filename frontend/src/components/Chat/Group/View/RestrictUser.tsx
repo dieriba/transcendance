@@ -103,11 +103,16 @@ const RestrictUser = ({
   return (
     <>
       <DialogI maxWidth="sm" open={open} handleClose={handleClose}>
-        <DialogTitle>{`Restrict ${nickname}`}</DialogTitle>
-        <DialogContent>
+        <DialogTitle
+          sx={{ backgroundColor: theme.palette.background.paper }}
+        >{`Restrict ${nickname}`}</DialogTitle>
+        <DialogContent sx={{ backgroundColor: theme.palette.background.paper }}>
           <Stack p={2}>
             <form onSubmit={handleSubmit(onSubmit)}>
-              <Stack spacing={2}>
+              <Stack
+                sx={{ backgroundColor: theme.palette.background.paper }}
+                spacing={2}
+              >
                 {openSnack && (
                   <Alert
                     onClose={handleCloseSnack}
@@ -117,7 +122,8 @@ const RestrictUser = ({
                     {message}
                   </Alert>
                 )}
-                <Stack>
+
+                <Stack sx={{ backgroundColor: theme.palette.background.paper }}>
                   <Typography variant="caption">Restriction: </Typography>
                   <Controller
                     name="restriction"
@@ -218,7 +224,6 @@ const RestrictUser = ({
                     <>
                       <Button
                         fullWidth
-                        disableElevation
                         color="inherit"
                         variant="contained"
                         onClick={() => {
@@ -282,7 +287,6 @@ const RestrictUser = ({
                       color: "white",
                     },
                   }}
-                  disableElevation={true}
                 >
                   {`Restrict ${nickname}`}
                 </Button>

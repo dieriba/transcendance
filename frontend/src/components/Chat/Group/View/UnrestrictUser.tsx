@@ -1,7 +1,6 @@
 import {
   Stack,
   DialogContent,
-  DialogTitle,
   Alert,
   AlertColor,
   CircularProgress,
@@ -12,7 +11,7 @@ import { useEffect, useState } from "react";
 import DialogI from "../../../Dialog/DialogI";
 import { SocketServerErrorResponse } from "../../../../services/type";
 import { ChatRoleType } from "../../../../models/type-enum/typesEnum";
-
+import { useTheme } from "@mui/material/styles";
 import {
   useGetAllRestrictedUserQuery,
   useUnrestrictUserMutation,
@@ -34,7 +33,6 @@ interface UnrestrictUserProps {
 const UnRestrictUser = ({
   open,
   handleClose,
-  nickname,
   chatroomId,
 }: UnrestrictUserProps) => {
   const { data, isLoading, isError } = useGetAllRestrictedUserQuery(
@@ -43,7 +41,7 @@ const UnRestrictUser = ({
       refetchOnMountOrArgChange: true,
     }
   );
-
+  const theme = useTheme();
   const [message, setMessage] = useState("");
   const [severity, setSeverity] = useState<AlertColor>("success");
   const [openSnack, setOpenSnack] = useState(false);
@@ -97,9 +95,14 @@ const UnRestrictUser = ({
     return (
       <>
         <DialogI maxWidth="md" open={open} handleClose={handleClose}>
-          <DialogTitle>{`Restrict ${nickname}`}</DialogTitle>
-          <DialogContent>
-            <Stack width="100%" p={2}>
+          <DialogContent
+            sx={{ backgroundColor: theme.palette.background.paper }}
+          >
+            <Stack
+              sx={{ backgroundColor: theme.palette.background.paper }}
+              width="100%"
+              p={2}
+            >
               <Stack spacing={2}>
                 {openSnack && (
                   <Alert

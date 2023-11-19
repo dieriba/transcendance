@@ -80,14 +80,24 @@ const KickUser = ({
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose}>No</Button>
         <Button
+          fullWidth
           onClick={() => {
             handleOnClick({ id, chatroomId });
           }}
           disabled={isLoading}
+          variant="contained"
+          color="inherit"
         >
           Yes
+        </Button>
+        <Button
+          fullWidth
+          onClick={handleClose}
+          color="inherit"
+          variant="contained"
+        >
+          No
         </Button>
       </DialogActions>
     </DialogI>

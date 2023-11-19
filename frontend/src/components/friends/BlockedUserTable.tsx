@@ -10,7 +10,6 @@ import {
   Button,
   CircularProgress,
   IconButton,
-  Pagination,
   Stack,
   Tooltip,
   Typography,
@@ -148,11 +147,6 @@ const BlockedUserTable = () => {
                 </TableBody>
               </Table>
             </TableContainer>
-            <Pagination
-              sx={{ justifySelf: "flex-end" }}
-              count={10}
-              color="primary"
-            />
           </Stack>
         </Stack>
       </>

@@ -85,9 +85,15 @@ const EditGroup = ({ open, handleClose }: EditGroupProps) => {
   return (
     <>
       <DialogI maxWidth="sm" open={open} handleClose={handleClose}>
-        <DialogTitle>Edit Group</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} p={2}>
+        <DialogTitle sx={{ backgroundColor: theme.palette.background.paper }} >
+          Edit Group
+        </DialogTitle>
+        <DialogContent sx={{ backgroundColor: theme.palette.background.paper }}>
+          <Stack
+            sx={{ backgroundColor: theme.palette.background.paper }}
+            spacing={2}
+            p={2}
+          >
             {openSnack && (
               <Alert
                 onClose={handleCloseSnack}
@@ -172,7 +178,6 @@ const EditGroup = ({ open, handleClose }: EditGroupProps) => {
                       color: "white",
                     },
                   }}
-                  disableElevation={true}
                 >
                   {isLoading ? <CircularProgress /> : "Edit Group"}
                 </Button>
