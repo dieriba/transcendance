@@ -52,10 +52,13 @@ export const ChatSlice = createSlice({
     },
     deleteChatroom: (state, action: PayloadAction<string | undefined>) => {
       const chatroomId = action.payload;
+      console.log({ chatroomId });
+
       if (chatroomId) {
-        state.privateChatroom = state.privateChatroom.filter((chatroom) => {
-          chatroom.id !== chatroomId;
-        });
+        state.privateChatroom = state.privateChatroom.filter(
+          (chatroom) => chatroom.id !== chatroomId
+        );
+
         if (chatroomId === state.currentChatroom?.id) {
           state.currentChatroom = undefined;
           state.currentPrivateChatroomId = undefined;

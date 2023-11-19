@@ -9,20 +9,20 @@ import {
 import { CaretDown } from "phosphor-react";
 import { useTheme } from "@mui/material/styles";
 import StyledBadge from "../../Badge/StyledBadge";
-import { toggle } from "../../../redux/features/sidebar.slices";
-import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
+import { useAppSelector } from "../../../redux/hooks";
 import { RootState } from "../../../redux/store";
 import { PrivateChatroomType } from "../../../models/ChatContactSchema";
 import { STATUS } from "../../../models/type-enum/typesEnum";
+import ChatContactInfo from "../ChatContactInfo";
+import { useState } from "react";
 
 const ChatConversationHeader = () => {
   const theme = useTheme();
-  const dispatch = useAppDispatch();
 
   const chatroomInfo = useAppSelector(
     (state: RootState) => state.chat.currentChatroom as PrivateChatroomType
   );
-
+  const [open, setOpen] = useState(false);
   const {
     user: {
       nickname,
@@ -51,7 +51,7 @@ const ChatConversationHeader = () => {
           sx={{ width: "100%", height: "100%" }}
         >
           <Stack direction="row" spacing={2}>
-            <div onClick={() => dispatch(toggle())}>
+            <div onClick={() => setOpen(true)}>
               <Box>
                 {status === STATUS.ONLINE ? (
                   <StyledBadge
@@ -88,13 +88,21 @@ const ChatConversationHeader = () => {
             </Stack>
           </Stack>
           <Stack direction="row" alignItems="center" spacing={2}>
-            <IconButton onClick={() => dispatch(toggle())}>
+            <IconButton onClick={() => setOpen(true)}>
               <CaretDown />
             </IconButton>
           </Stack>
         </Stack>
       </Box>
       <Divider />
+      {open && (
+        <ChatContactInfo
+          openDialog={open}
+          handleClose={() => {
+            setOpen(false);
+          }}
+        />
+      )}
     </>
   );
 };

@@ -3,14 +3,9 @@ import ChatConversationHeader from "./ChatConversationHeader";
 import ChatConversationBody from "./ChatConversationBody";
 import ChatConversationFooter from "./ChatConversationFooter";
 import { useTheme } from "@mui/material/styles";
-import { useAppSelector } from "../../../redux/hooks";
-import { RootState } from "../../../redux/store";
-import ChatContactInfo from "../ChatContactInfo";
 
 const ChatConversation = () => {
   const theme = useTheme();
-
-  const { open } = useAppSelector((state: RootState) => state.sidebar);
 
   return (
     <>
@@ -21,7 +16,7 @@ const ChatConversation = () => {
             theme.palette.mode === "light"
               ? "#F0F4FA"
               : theme.palette.background.paper,
-          width: open ? "calc(100vw - 740px)" : "calc(100vw - 420px)",
+          width: "100%",
         }}
       >
         <Stack height="100%" maxHeight="100vh" width="auto">
@@ -30,7 +25,6 @@ const ChatConversation = () => {
           <ChatConversationFooter />
         </Stack>
       </Box>
-      {open && <ChatContactInfo />}
     </>
   );
 };
