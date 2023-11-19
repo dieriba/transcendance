@@ -40,7 +40,7 @@ interface AddUserProps {
 }
 
 const AddUser = ({ open, handleClose }: AddUserProps) => {
-  const { control, handleSubmit, watch } = useForm<AddNewUserToGroupType>({
+  const { control, handleSubmit } = useForm<AddNewUserToGroupType>({
     resolver: zodResolver(AddNewUserToGroupSchema),
   });
 
