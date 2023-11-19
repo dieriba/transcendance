@@ -127,11 +127,27 @@ const GroupConversationBody = () => {
             data: UserWithProfileFriendsType;
           }
         ) => {
+          console.log({ data });
+
+          dispatch(addNewChatroomUser(data.data));
+        }
+      );
+
+      socket.on(
+        ChatEventGroup.USER_ADDED,
+        (
+          data: SocketServerSucessResponse & {
+            data: UserWithProfileFriendsType;
+          }
+        ) => {
+          console.log({ data: data.data });
+
           dispatch(addNewChatroomUser(data.data));
         }
       );
 
       return () => {
+        socket.off(ChatEventGroup.USER_ADDED);
         socket.off(ChatEventGroup.NEW_USER_CHATROOM);
         socket.off(ChatEventGroup.USER_KICKED);
         socket.off(ChatEventGroup.USER_RESTRICTED);

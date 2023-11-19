@@ -253,6 +253,7 @@ export type PreviousAdminLeaveType = z.infer<typeof PreviousAdminLeaveSchema>;
 export const AddNewUserToGroupSchema = z.object({
   newUserId: z.string().min(1).optional(),
   users: z.array(z.string()).optional(),
+  chatroomId: z.string().optional(),
 });
 
 export type AddNewUserToGroupType = z.infer<typeof AddNewUserToGroupSchema>;

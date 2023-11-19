@@ -205,7 +205,7 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
                     control={control}
                     defaultValue={undefined}
                     render={({
-                      field: { value, onChange },
+                      field: { onChange },
                       fieldState: { error },
                     }) => (
                       <Autocomplete
@@ -225,9 +225,6 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
                             <TextField {...params} error={!!error} />
                           </CustomTextField>
                         )}
-                        onClick={() => {
-                          console.log(value);
-                        }}
                       />
                     )}
                   />

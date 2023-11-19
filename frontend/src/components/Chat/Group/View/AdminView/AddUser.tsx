@@ -10,6 +10,8 @@ import {
   Alert,
   AlertColor,
   Divider,
+  Tabs,
+  Tab,
 } from "@mui/material";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
@@ -29,6 +31,8 @@ import CustomTextField from "../../../../CustomTextField/CustomTextField";
 import DialogI from "../../../../Dialog/DialogI";
 import RHFTextField from "../../../../controlled-components/RHFTextField";
 import { RootState } from "../../../../../redux/store";
+import { a11yProps } from "../../../../../utils/allyProps";
+import CustomTabPanel from "../../../../table-panel/CustomTablePanel";
 
 interface AddUserProps {
   open: boolean;
@@ -41,6 +45,7 @@ const AddUser = ({ open, handleClose }: AddUserProps) => {
   });
 
   const [addUser, addUserMethod] = useAddUserMutation();
+  const [value, setValue] = useState(0);
 
   const [message, setMessage] = useState("");
   const [severity, setSeverity] = useState<AlertColor>("success");
@@ -57,8 +62,6 @@ const AddUser = ({ open, handleClose }: AddUserProps) => {
     setOpenSnack(false);
   };
 
-  const user = watch("newUserId");
-
   const { data, isLoading, isError } = useGetAllFriendsQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
@@ -71,11 +74,17 @@ const AddUser = ({ open, handleClose }: AddUserProps) => {
     }
   }, [data, dispatch]);
   const friends = useAppSelector((state: RootState) => state.friends.friends);
+  const chatroomId = useAppSelector(
+    (state: RootState) => state.groups.currentGroupChatroomId
+  );
+
+  const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
+    setValue(newValue);
+  };
   const onSubmit = async (data: AddNewUserToGroupType) => {
     try {
-      console.log({ data });
-
-      /* if (data.users && data.users.length > 0)
+      data.chatroomId = chatroomId;
+      if (data.users && data.users.length > 0)
         data.users = friends
           .filter((friend) => data.users?.includes(friend.friend.nickname))
           .map((friend) => friend.friend.id);
@@ -84,7 +93,7 @@ const AddUser = ({ open, handleClose }: AddUserProps) => {
 
       setSeverity("success");
       setMessage(res.message);
-      setOpenSnack(true);*/
+      setOpenSnack(true);
     } catch (error) {
       console.log({ error });
 
@@ -114,8 +123,19 @@ const AddUser = ({ open, handleClose }: AddUserProps) => {
         <DialogI maxWidth="sm" open={open} handleClose={handleClose}>
           <DialogTitle>Add new User</DialogTitle>
           <DialogContent>
+            <Tabs
+              variant="fullWidth"
+              value={value}
+              onChange={handleChange}
+              aria-label="basic tabs example"
+            >
+              <Tab label="2fa" {...a11yProps(0)} />
+              <Tab label="Change password" {...a11yProps(1)} />
+            </Tabs>
+            <CustomTabPanel value={value} index={0}></CustomTabPanel>
+            <CustomTabPanel value={value} index={1}></CustomTabPanel>
             <Stack spacing={2} p={2}>
-              {openSnack && (
+              {message?.length > 0 && openSnack && (
                 <Alert
                   onClose={handleCloseSnack}
                   severity={severity}
