@@ -1,7 +1,6 @@
 import {
   Avatar,
   Button,
-  DialogContent,
   DialogTitle,
   Divider,
   Stack,
@@ -24,6 +23,7 @@ import { BaseFriendTypeWithChatroom } from "../../services/type";
 import { PrivateChatroomType } from "../../models/ChatContactSchema";
 import { RootState } from "../../redux/store";
 import DialogI from "../Dialog/DialogI";
+import { useTheme } from "@mui/material/styles";
 
 interface ChatContactInfoProps {
   openDialog: boolean;
@@ -32,7 +32,7 @@ interface ChatContactInfoProps {
 
 const ChatContactInfo = ({ openDialog, handleClose }: ChatContactInfoProps) => {
   const dispatch = useAppDispatch();
-
+  const theme = useTheme();
   const handleDeleteFriend = async (data: BaseFriendTypeWithChatroom) => {
     try {
       const { friendId, chatroomId } = data;
@@ -71,46 +71,36 @@ const ChatContactInfo = ({ openDialog, handleClose }: ChatContactInfoProps) => {
   return (
     <>
       <DialogI open={openDialog} handleClose={handleClose}>
-        <Stack direction={"row"} width={"100%"}>
-          <DialogTitle>{"Contact Info"}</DialogTitle>
-        </Stack>
-        <DialogContent>
-          <Stack sx={{ height: "100%" }}>
-            <Divider />
+        <DialogTitle sx={{ backgroundColor: theme.palette.background.paper }}>
+          {"Contact Info"}
+        </DialogTitle>
+        <Stack
+          sx={{
+            backgroundColor: theme.palette.background.paper,
+            height: "100%",
+          }}
+        >
+          <Divider />
+          <Stack
+            sx={{
+              height: "100%",
+              position: "relative",
+              flexGrow: "1",
+              overflowY: "scroll",
+            }}
+            p={3}
+            spacing={3}
+          >
             <Stack
-              sx={{
-                height: "100%",
-                position: "relative",
-                flexGrow: "1",
-                overflowY: "scroll",
-              }}
-              p={3}
-              spacing={3}
+              alignItems="center"
+              justifyContent={"center"}
+              direction="row"
+              spacing={2}
             >
-              <Stack
-                alignItems="center"
-                justifyContent={"center"}
-                direction="row"
-                spacing={2}
-              >
-                {user.status === "ONLINE" ? (
-                  <>
-                    <Tooltip placement="top" title={user.nickname}>
-                      <BadgeAvatar>
-                        <Avatar
-                          src={
-                            user.profile?.avatar
-                              ? user.profile?.avatar
-                              : undefined
-                          }
-                          sx={{ height: 64, width: 64 }}
-                        />
-                      </BadgeAvatar>
-                    </Tooltip>
-                  </>
-                ) : (
-                  <>
-                    <Tooltip placement="top" title={user.nickname}>
+              {user.status === "ONLINE" ? (
+                <>
+                  <Tooltip placement="top" title={user.nickname}>
+                    <BadgeAvatar>
                       <Avatar
                         src={
                           user.profile?.avatar
@@ -119,81 +109,90 @@ const ChatContactInfo = ({ openDialog, handleClose }: ChatContactInfoProps) => {
                         }
                         sx={{ height: 64, width: 64 }}
                       />
-                    </Tooltip>
-                  </>
-                )}
-              </Stack>
-              <Divider />
+                    </BadgeAvatar>
+                  </Tooltip>
+                </>
+              ) : (
+                <>
+                  <Tooltip placement="top" title={user.nickname}>
+                    <Avatar
+                      src={
+                        user.profile?.avatar ? user.profile?.avatar : undefined
+                      }
+                      sx={{ height: 64, width: 64 }}
+                    />
+                  </Tooltip>
+                </>
+              )}
+            </Stack>
+            <Divider />
 
-              <Stack
-                direction="row"
-                alignItems="center"
-                justifyContent="space-between"
-              >
-                <Stack direction="row" alignItems="center" spacing={2}>
-                  <Bell size={22} />
-                  <Typography variant="subtitle2">
-                    Mute Notifications
-                  </Typography>
-                </Stack>
-                <Switch />
-              </Stack>
-              <Divider />
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+            >
               <Stack direction="row" alignItems="center" spacing={2}>
-                <Button
-                  size="small"
-                  startIcon={<Trash />}
-                  variant="outlined"
-                  fullWidth
-                  sx={{ textTransform: "capitalize" }}
-                  onClick={() =>
-                    setOpen((prev) => ({
-                      ...prev,
-                      block: true,
-                    }))
-                  }
-                >
-                  Block
-                </Button>
-
-                <Button
-                  startIcon={<Trash />}
-                  size="small"
-                  variant="outlined"
-                  fullWidth
-                  sx={{ textTransform: "capitalize" }}
-                  onClick={() =>
-                    setOpen((prev) => ({
-                      ...prev,
-                      delete: true,
-                    }))
-                  }
-                >
-                  Delete
-                </Button>
+                <Bell size={22} />
+                <Typography variant="subtitle2">Mute Notifications</Typography>
               </Stack>
+              <Switch />
+            </Stack>
+            <Divider />
+            <Stack direction="row" alignItems="center" spacing={2}>
+              <Button
+                size="small"
+                startIcon={<Trash />}
+                variant="outlined"
+                fullWidth
+                sx={{ textTransform: "capitalize" }}
+                onClick={() =>
+                  setOpen((prev) => ({
+                    ...prev,
+                    block: true,
+                  }))
+                }
+              >
+                Block
+              </Button>
+
+              <Button
+                startIcon={<Trash />}
+                size="small"
+                variant="outlined"
+                fullWidth
+                sx={{ textTransform: "capitalize" }}
+                onClick={() =>
+                  setOpen((prev) => ({
+                    ...prev,
+                    delete: true,
+                  }))
+                }
+              >
+                Delete
+              </Button>
             </Stack>
           </Stack>
+        </Stack>
 
-          <CustomDialog
-            handleOnClick={handleBlockUser}
-            open={open.block}
-            handleClose={() => setOpen((prev) => ({ ...prev, block: false }))}
-            title="Block User ?"
-            content="Do you really want to block that user ?"
-            friendId={user.id}
-            chatroomId={chatroomInfo.id}
-          />
-          <CustomDialog
-            handleOnClick={handleDeleteFriend}
-            open={open.delete}
-            handleClose={() => setOpen((prev) => ({ ...prev, delete: false }))}
-            title="Delete friend  ?"
-            content="Do you really want to delete that friend ?"
-            friendId={user.id}
-            chatroomId={chatroomInfo.id}
-          />
-        </DialogContent>
+        <CustomDialog
+          handleOnClick={handleBlockUser}
+          open={open.block}
+          handleClose={() => setOpen((prev) => ({ ...prev, block: false }))}
+          title="Block User ?"
+          content="Do you really want to block that user ?"
+          friendId={user.id}
+          chatroomId={chatroomInfo.id}
+        />
+        <CustomDialog
+          handleOnClick={handleDeleteFriend}
+          open={open.delete}
+          handleClose={() => setOpen((prev) => ({ ...prev, delete: false }))}
+          title="Delete friend  ?"
+          content="Do you really want to delete that friend ?"
+          friendId={user.id}
+          chatroomId={chatroomInfo.id}
+        />
       </DialogI>
     </>
   );

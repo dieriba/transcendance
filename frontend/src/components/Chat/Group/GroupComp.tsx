@@ -1,8 +1,6 @@
 import {
-  Box,
   Stack,
   Typography,
-  IconButton,
   Divider,
   Button,
   Switch,
@@ -13,15 +11,11 @@ import {
   AlertColor,
   Alert,
 } from "@mui/material";
-import { X, Bell, Trash } from "phosphor-react";
-import { useTheme } from "@mui/material/styles";
+import { Bell, Trash } from "phosphor-react";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import DialogI from "../../Dialog/DialogI";
 import { useState } from "react";
-import {
-  leaveChatroom,
-  toggleOpenGroupSidebar,
-} from "../../../redux/features/groups/group.slice";
+import { leaveChatroom } from "../../../redux/features/groups/group.slice";
 import View from "./View/View";
 import { SocketServerErrorResponse } from "../../../services/type";
 import { RootState } from "../../../redux/store";
@@ -30,15 +24,19 @@ import {
   useDeleteGroupMutation,
   useLeaveGroupMutation,
 } from "../../../redux/features/groups/group.api.slice";
+import { useTheme } from "@mui/material/styles";
+interface GroupCompProps {
+  openDialog: boolean;
+  handleClose: () => void;
+}
 
-const GroupComp = () => {
-  const theme = useTheme();
+const GroupComp = ({ openDialog, handleClose }: GroupCompProps) => {
   const dispatch = useAppDispatch();
   const [open, setOpen] = useState<{ leave: boolean; delete: boolean }>({
     leave: false,
     delete: false,
   });
-
+  const theme = useTheme();
   const handleCloseSnack = (
     _event?: React.SyntheticEvent | Event,
     reason?: string
@@ -109,32 +107,16 @@ const GroupComp = () => {
 
   return (
     <>
-      <Box width="320px" height="100vh">
-        <Stack sx={{ height: "100%" }}>
-          <Box
-            sx={{
-              boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.25)",
-              width: "100%",
-              backgroundColor:
-                theme.palette.mode === "light"
-                  ? "#F8FAFF"
-                  : theme.palette.background.default,
-              height: "70px",
-            }}
-          >
-            <Stack
-              sx={{ height: "100%", p: 2 }}
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-              spacing={3}
-            >
-              <Typography variant="subtitle2">Group Info</Typography>
-              <IconButton onClick={() => dispatch(toggleOpenGroupSidebar())}>
-                <X />
-              </IconButton>
-            </Stack>
-          </Box>
+      <DialogI open={openDialog} handleClose={handleClose}>
+        <DialogTitle sx={{ backgroundColor: theme.palette.background.paper }}>
+          {"Group Info"}
+        </DialogTitle>
+        <Stack
+          sx={{
+            backgroundColor: theme.palette.background.paper,
+            height: "100%",
+          }}
+        >
           <Divider />
           <Stack
             sx={{
@@ -189,64 +171,64 @@ const GroupComp = () => {
             </Stack>
           </Stack>
         </Stack>
-      </Box>
-      {open.leave && (
-        <DialogI open={open.leave} handleClose={handleCloseLeave}>
-          <DialogTitle>Leave Group?</DialogTitle>
-          <DialogContent>
-            {openSnack && (
-              <Alert
-                onClose={handleCloseSnack}
-                severity={severity}
-                sx={{ width: "100%" }}
+        {open.leave && (
+          <DialogI open={open.leave} handleClose={handleCloseLeave}>
+            <DialogTitle>Leave Group?</DialogTitle>
+            <DialogContent>
+              {openSnack && (
+                <Alert
+                  onClose={handleCloseSnack}
+                  severity={severity}
+                  sx={{ width: "100%" }}
+                >
+                  {message}
+                </Alert>
+              )}
+              <DialogContentText id="alert-dialog-slide-description">
+                {role === ROLE.DIERIBA
+                  ? "Do you really want to leave that group, Please note that upon leaving the group, your privileges will be forfeited and randomly transferred to another user if present. If no users remain in the group, it will be deleted."
+                  : "Do you really want to leave that group?"}
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseLeave}>No</Button>
+              <Button disabled={isLoading} onClick={handleOnClickLeave}>
+                Yes
+              </Button>
+            </DialogActions>
+          </DialogI>
+        )}
+        {role === ROLE.DIERIBA && open.delete && (
+          <DialogI open={open.delete} handleClose={handleCloseDelete}>
+            <DialogTitle>Delete Group?</DialogTitle>
+            <DialogContent>
+              {openSnack && (
+                <Alert
+                  onClose={handleCloseSnack}
+                  severity={severity}
+                  sx={{ width: "100%" }}
+                >
+                  {message}
+                </Alert>
+              )}
+              <DialogContentText id="alert-dialog-slide-description">
+                Please be aware that deleting your group will result in the loss
+                of all messages and the removal of all users from the group,
+                along with the deletion of the group itself.
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseLeave}>No</Button>
+              <Button
+                disabled={deleteGroupMutation.isLoading}
+                onClick={handleOnClickDelete}
               >
-                {message}
-              </Alert>
-            )}
-            <DialogContentText id="alert-dialog-slide-description">
-              {role === ROLE.DIERIBA
-                ? "Do you really want to leave that group, Please note that upon leaving the group, your privileges will be forfeited and randomly transferred to another user if present. If no users remain in the group, it will be deleted."
-                : "Do you really want to leave that group?"}
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseLeave}>No</Button>
-            <Button disabled={isLoading} onClick={handleOnClickLeave}>
-              Yes
-            </Button>
-          </DialogActions>
-        </DialogI>
-      )}
-      {role === ROLE.DIERIBA && open.delete && (
-        <DialogI open={open.delete} handleClose={handleCloseDelete}>
-          <DialogTitle>Delete Group?</DialogTitle>
-          <DialogContent>
-            {openSnack && (
-              <Alert
-                onClose={handleCloseSnack}
-                severity={severity}
-                sx={{ width: "100%" }}
-              >
-                {message}
-              </Alert>
-            )}
-            <DialogContentText id="alert-dialog-slide-description">
-              Please be aware that deleting your group will result in the loss
-              of all messages and the removal of all users from the group, along
-              with the deletion of the group itself.
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseLeave}>No</Button>
-            <Button
-              disabled={deleteGroupMutation.isLoading}
-              onClick={handleOnClickDelete}
-            >
-              Yes
-            </Button>
-          </DialogActions>
-        </DialogI>
-      )}
+                Yes
+              </Button>
+            </DialogActions>
+          </DialogI>
+        )}
+      </DialogI>
     </>
   );
 };

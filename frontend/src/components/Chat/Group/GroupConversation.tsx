@@ -3,23 +3,9 @@ import GroupConversationHeader from "./GroupConversationHeader";
 import GroupConversationBody from "./GroupConversationBody";
 import GroupConversationFooter from "./GroupConversationFooter";
 import { useTheme } from "@mui/material/styles";
-import GroupComp from "./GroupComp";
-import { RootState } from "../../../redux/store";
-import { useAppSelector } from "../../../redux/hooks";
-import { ChatroomGroupType } from "../../../models/groupChat";
-
-import { Restriction } from "../../../models/type-enum/typesEnum";
 
 const GroupConversation = () => {
   const theme = useTheme();
-  const { openGroupSidebar, currentChatroom } = useAppSelector(
-    (state: RootState) => state.groups
-  );
-
-  const toOpen =
-    (currentChatroom as ChatroomGroupType).restrictedUsers.length === 0 ||
-    (currentChatroom as ChatroomGroupType).restrictedUsers[0].restriction ===
-      Restriction.MUTED;
 
   return (
     <>
@@ -30,9 +16,7 @@ const GroupConversation = () => {
             theme.palette.mode === "light"
               ? "#F0F4FA"
               : theme.palette.background.paper,
-          width: openGroupSidebar
-            ? "calc(100vw - 740px)"
-            : "calc(100vw - 420px)",
+          width: "100%",
         }}
       >
         <Stack height="100%" maxHeight="100vh" width="auto">
@@ -41,7 +25,6 @@ const GroupConversation = () => {
           <GroupConversationFooter />
         </Stack>
       </Box>
-      {toOpen && openGroupSidebar && <GroupComp />}
     </>
   );
 };

@@ -1,10 +1,4 @@
-import {
-  Box,
-  CircularProgress,
-  Stack,
-  Typography,
-  useMediaQuery,
-} from "@mui/material";
+import { Box, CircularProgress, Stack, Typography } from "@mui/material";
 import ChatContact from "../../components/Chat/ChatContact";
 import ChatConversation from "../../components/Chat/ChatConversation/ChatConversation";
 import { useGetAllPrivateChatroomsQuery } from "../../redux/features/chat/chats.api.slice";
@@ -42,8 +36,6 @@ const Chat = () => {
   const currentPrivateChatroomId = useAppSelector(
     (state: RootState) => state.chat.currentPrivateChatroomId
   );
-  const open = useAppSelector((state: RootState) => state.sidebar.open);
-  const onlyMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
 
   const privateChatroom = useAppSelector(
     (state: RootState) => state.chat.privateChatroom
