@@ -1,4 +1,4 @@
-import { Stack, Box, Divider, Button } from "@mui/material";
+import { Stack, Box, Divider, Button, useMediaQuery } from "@mui/material";
 import { MagnifyingGlass, Plus } from "phosphor-react";
 import { Search, SearchIconWrapper, StyledInputBase } from "../../search";
 import { useTheme } from "@mui/material/styles";
@@ -17,13 +17,14 @@ const GroupContact = () => {
     (state: RootState) => state.groups.groupChatroom
   );
   const myId = useAppSelector((state: RootState) => state.user.user?.id);
+  const onlyMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
 
   return (
     <>
       <Box
         sx={{
           position: "relative",
-          width: 320,
+          width: onlyMediumScreen ? "100%" : 320,
           backgroundColor:
             theme.palette.mode === "light"
               ? "#F8FAFF"

@@ -19,7 +19,7 @@ const ChatConversation = () => {
           width: "100%",
         }}
       >
-        <Stack height="100%" maxHeight="100vh" width="auto">
+        <Stack height="100%" width="auto">
           <ChatConversationHeader />
           <ChatConversationBody />
           <ChatConversationFooter />

@@ -1,9 +1,13 @@
-import { Box, CircularProgress, Stack, Typography } from "@mui/material";
-import ChatContact from "../../components/Chat/ChatContact";
-import ChatConversation from "../../components/Chat/ChatConversation/ChatConversation";
+import {
+  Box,
+  CircularProgress,
+  Stack,
+  Typography,
+  useMediaQuery,
+} from "@mui/material";
 import { useGetAllPrivateChatroomsQuery } from "../../redux/features/chat/chats.api.slice";
 import { useTheme } from "@mui/material/styles";
-import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+import { useAppDispatch } from "../../redux/hooks";
 import {
   addNewChatroom,
   deleteChatroom,
@@ -24,7 +28,8 @@ import {
 } from "../../models/ChatContactSchema";
 import { SocketServerSucessResponse } from "../../services/type";
 import { BaseFriendType } from "../../models/FriendsSchema";
-import { RootState } from "../../redux/store";
+import DesktopChat from "./DesktopChat";
+import MobileChat from "./MobileChat";
 
 const Chat = () => {
   const theme = useTheme();
@@ -33,13 +38,9 @@ const Chat = () => {
     undefined,
     { refetchOnMountOrArgChange: true }
   );
-  const currentPrivateChatroomId = useAppSelector(
-    (state: RootState) => state.chat.currentPrivateChatroomId
-  );
 
-  const privateChatroom = useAppSelector(
-    (state: RootState) => state.chat.privateChatroom
-  );
+  const onlyMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
+
   useEffect(() => {
     if (data && data.data) {
       dispatch(setPrivateChatroom(data.data));
@@ -116,40 +117,7 @@ const Chat = () => {
       </Stack>
     );
   } else {
-    return (
-      <Stack direction="row" sx={{ width: "100%" }}>
-        <ChatContact />
-        {!currentPrivateChatroomId ? (
-          <Box
-            sx={{
-              height: "100%",
-              backgroundColor:
-                theme.palette.mode === "light"
-                  ? "#F0F4FA"
-                  : theme.palette.background.paper,
-              width: "100%",
-            }}
-          >
-            <Stack
-              width="100%"
-              alignItems="center"
-              justifyContent="center"
-              height="100%"
-            >
-              <Typography>
-                {privateChatroom.length === 0
-                  ? "No conversation started yet!"
-                  : "Select a conversation !"}
-              </Typography>
-            </Stack>
-          </Box>
-        ) : (
-          <>
-            <ChatConversation />
-          </>
-        )}
-      </Stack>
-    );
+    return onlyMediumScreen ? <MobileChat /> : <DesktopChat />;
   }
 };
 

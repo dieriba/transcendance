@@ -53,7 +53,7 @@ const ChatConversationFooter = () => {
         p={1}
       >
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Stack direction="row" spacing={3}>
+          <Stack direction="row" spacing={1}>
             <Stack width="100%">
               <ChatInput name="content" control={control} />
             </Stack>

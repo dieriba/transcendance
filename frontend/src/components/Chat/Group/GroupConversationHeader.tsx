@@ -1,20 +1,21 @@
 import { Box, Divider, IconButton, Stack, Typography } from "@mui/material";
-import { CaretDown, X } from "phosphor-react";
+import { CaretLeft } from "phosphor-react";
 import { useTheme } from "@mui/material/styles";
-import { useAppSelector } from "../../../redux/hooks";
+import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { RootState } from "../../../redux/store";
 import { ChatroomGroupType } from "../../../models/groupChat";
 import GroupIcon from "./GroupIcon";
 import { Restriction } from "../../../models/type-enum/typesEnum";
 import GroupComp from "./GroupComp";
 import { useState } from "react";
+import { setGroupChatroomId } from "../../../redux/features/groups/group.slice";
 
 const GroupConversationHeader = () => {
   const theme = useTheme();
   const currentChatroom = useAppSelector(
     (state: RootState) => state.groups.currentChatroom
   );
-
+  const dispatch = useAppDispatch();
   const toOpen =
     (currentChatroom as ChatroomGroupType).restrictedUsers.length === 0 ||
     (currentChatroom as ChatroomGroupType).restrictedUsers[0].restriction ===
@@ -45,20 +46,16 @@ const GroupConversationHeader = () => {
           sx={{ width: "100%", height: "100%" }}
         >
           <Stack direction="row" spacing={2} sx={{ cursor: "pointer" }}>
+            <IconButton onClick={() => dispatch(setGroupChatroomId(undefined))}>
+              <CaretLeft />
+            </IconButton>
             <div onClick={() => setOpen(true)}>
-              <Box>
-                <GroupIcon type={type} size={40} />
-              </Box>
+              <GroupIcon type={type} size={40} />
             </div>
 
             <Stack>
               <Typography variant="subtitle2">{chatroomName}</Typography>
             </Stack>
-          </Stack>
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <IconButton onClick={() => setOpen(true)}>
-              {open ? <X /> : <CaretDown />}
-            </IconButton>
           </Stack>
         </Stack>
       </Box>

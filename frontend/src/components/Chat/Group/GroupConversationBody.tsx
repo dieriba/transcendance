@@ -206,7 +206,7 @@ const GroupConversationBody = () => {
         sx={{ flexGrow: 1, height: "100%", overflowY: "scroll" }}
         p={3}
       >
-        <Stack>
+        <Stack height={'100vh'}>
           {messages.map(({ id, messageTypes, user, content }) => {
             const incoming = myId === user.id;
 

@@ -1,6 +1,12 @@
-import { Box, CircularProgress, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  CircularProgress,
+  Stack,
+  Typography,
+  useMediaQuery,
+} from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+import { useAppDispatch } from "../../redux/hooks";
 import { useEffect } from "react";
 import { connectSocket, socket } from "../../utils/getSocket";
 import {
@@ -27,11 +33,10 @@ import {
   RestrictedUserResponseType,
   UnrestrictType,
 } from "../../models/groupChat";
-import GroupContact from "../../components/Chat/Group/GroupContact";
-import GroupConversation from "../../components/Chat/Group/GroupConversation";
-import { RootState } from "../../redux/store";
 import { editGroupResponseType } from "../../models/EditGroupSchema";
 import { UserProfileBanLifeType } from "../../models/ChatContactSchema";
+import GroupMobileChat from "../../components/Chat/Group/GroupMobileChat";
+import GroupDesktopChat from "../../components/Chat/Group/GroupDesktopChat";
 
 const GroupChatPage = () => {
   const theme = useTheme();
@@ -39,10 +44,9 @@ const GroupChatPage = () => {
   const { data, isLoading, isError } = useGetAllGroupQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
-  const { currentGroupChatroomId, groupChatroom } = useAppSelector(
-    (state: RootState) => state.groups
-  );
-  const { open } = useAppSelector((state: RootState) => state.sidebar);
+
+  const onlyMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
+
   useEffect(() => {
     if (data && data.data) {
       dispatch(setGroupChatroom(data.data));
@@ -161,38 +165,7 @@ const GroupChatPage = () => {
       </Stack>
     );
   } else {
-    return (
-      <Stack direction="row" sx={{ width: "100%" }}>
-        <GroupContact />
-        {!currentGroupChatroomId ? (
-          <Box
-            sx={{
-              height: "100%",
-              backgroundColor:
-                theme.palette.mode === "light"
-                  ? "#F0F4FA"
-                  : theme.palette.background.paper,
-              width: open ? "calc(100vw - 740px)" : "calc(100vw - 420px)",
-            }}
-          >
-            <Stack
-              width="100%"
-              alignItems="center"
-              justifyContent="center"
-              height="100%"
-            >
-              <Typography>
-                {groupChatroom.length === 0
-                  ? "Join a chatroom or create one!"
-                  : "Select a group chat !"}
-              </Typography>
-            </Stack>
-          </Box>
-        ) : (
-          <GroupConversation />
-        )}
-      </Stack>
-    );
+    return onlyMediumScreen ? <GroupMobileChat /> : <GroupDesktopChat />;
   }
 };
 

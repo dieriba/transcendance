@@ -3,8 +3,6 @@ import { useTheme } from "@mui/material/styles";
 import { Avatar, Box, IconButton, Stack } from "@mui/material";
 import { Nav_Buttons } from "../../data/data";
 import { SignOut } from "phosphor-react";
-import { useThemeContext } from "../../theme/ThemeContextProvider";
-import MaterialUISwitch from "./Switch";
 import React from "react";
 import { matchPath, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
@@ -19,7 +17,6 @@ const Sidebar = () => {
   const { pathname } = useLocation();
   const theme = useTheme();
   const navigate = useNavigate();
-  const { toggleColorMode } = useThemeContext();
   const dispatch = useAppDispatch();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -113,7 +110,6 @@ const Sidebar = () => {
             <IconButton onClick={() => logoutUser()}>
               <SignOut />
             </IconButton>
-            <MaterialUISwitch theme={theme} onClick={toggleColorMode} />
             <Tooltip title={nickname}>
               <Avatar
                 id="avatar-menu"

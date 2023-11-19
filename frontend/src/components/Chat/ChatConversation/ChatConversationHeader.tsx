@@ -5,20 +5,22 @@ import {
   IconButton,
   Stack,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
-import { CaretDown } from "phosphor-react";
+import { CaretLeft } from "phosphor-react";
 import { useTheme } from "@mui/material/styles";
 import StyledBadge from "../../Badge/StyledBadge";
-import { useAppSelector } from "../../../redux/hooks";
+import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { RootState } from "../../../redux/store";
 import { PrivateChatroomType } from "../../../models/ChatContactSchema";
 import { STATUS } from "../../../models/type-enum/typesEnum";
 import ChatContactInfo from "../ChatContactInfo";
 import { useState } from "react";
+import { setPrivateChatroomId } from "../../../redux/features/chat/chat.slice";
 
 const ChatConversationHeader = () => {
   const theme = useTheme();
-
+  const dispatch = useAppDispatch();
   const chatroomInfo = useAppSelector(
     (state: RootState) => state.chat.currentChatroom as PrivateChatroomType
   );
@@ -30,6 +32,8 @@ const ChatConversationHeader = () => {
       profile: { avatar },
     },
   } = chatroomInfo.users[0];
+  const onlyMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
+
   return (
     <>
       <Box
@@ -52,7 +56,14 @@ const ChatConversationHeader = () => {
         >
           <Stack direction="row" spacing={2}>
             <div onClick={() => setOpen(true)}>
-              <Box>
+              <Stack spacing={1} direction={"row"}>
+                {onlyMediumScreen && (
+                  <IconButton
+                    onClick={() => dispatch(setPrivateChatroomId(undefined))}
+                  >
+                    <CaretLeft />
+                  </IconButton>
+                )}
                 {status === STATUS.ONLINE ? (
                   <StyledBadge
                     sx={{ cursor: "pointer" }}
@@ -75,7 +86,7 @@ const ChatConversationHeader = () => {
                     />
                   </>
                 )}
-              </Box>
+              </Stack>
             </div>
 
             <Stack justifyContent={"center"}>
@@ -86,11 +97,6 @@ const ChatConversationHeader = () => {
                 <Typography variant="subtitle2">Offline</Typography>
               )}
             </Stack>
-          </Stack>
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <IconButton onClick={() => setOpen(true)}>
-              <CaretDown />
-            </IconButton>
           </Stack>
         </Stack>
       </Box>

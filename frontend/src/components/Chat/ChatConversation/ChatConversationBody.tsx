@@ -46,11 +46,7 @@ const ChatConversationBody = () => {
 
   if (isLoading) {
     return (
-      <Box
-        width="100%"
-        sx={{ flexGrow: 1, height: "100%", overflowY: "scroll" }}
-        p={3}
-      >
+      <Box width="100%" sx={{ height: "100%", overflowY: "scroll" }} p={3}>
         <Stack
           p={3}
           sx={{ width: "100%" }}
@@ -78,11 +74,7 @@ const ChatConversationBody = () => {
     );
   } else {
     return (
-      <Box
-        width="100%"
-        sx={{ flexGrow: 1, height: "100%", overflowY: "scroll" }}
-        p={3}
-      >
+      <Box width="100%" sx={{ height: "100vh", overflowY: "scroll" }} p={3}>
         <Stack>
           {messages?.map(({ id, messageTypes, content, user }) => {
             const incoming = myId === user.id;

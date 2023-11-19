@@ -98,7 +98,9 @@ export const GroupSlice = createSlice({
         state.currentChatroom = state.groupChatroom?.find(
           (chatroom) => chatroom.id === action.payload
         );
+        return;
       }
+      state.currentGroupChatroomId = undefined;
     },
     addNewChatroom: (state, action: PayloadAction<ChatroomGroupType>) => {
       state.groupChatroom.unshift(action.payload);
