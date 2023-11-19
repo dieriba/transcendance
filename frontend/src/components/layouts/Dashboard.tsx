@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from "react-router-dom";
 import Sidebar from "../sidebar/Sidebar";
-import { Stack } from "@mui/material";
+import { Stack, useMediaQuery } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { PATH_APP } from "../../routes/paths";
 import { useEffect } from "react";
@@ -20,6 +20,8 @@ import {
   deleteFriend,
   deleteReceivedFriendRequest,
 } from "../../redux/features/friends/friends.slice";
+import { useTheme } from "@mui/material/styles";
+import MobileSidebar from "../sidebar/MobileSidebar";
 
 const ProtectedDashboardLayout = () => {
   const isAuthenticated = useAppSelector(
@@ -111,9 +113,13 @@ const ProtectedDashboardLayout = () => {
     }
   }, [isAuthenticated, dispatch]);
 
+  const theme = useTheme();
+  const onlyMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
+
   return isAuthenticated ? (
     <>
-      <Stack direction="row">
+      <Stack height={"100vh"} direction={onlyMediumScreen ? "column" : "row"}>
+        {onlyMediumScreen && <MobileSidebar />}
         <Sidebar />
         <Outlet />
       </Stack>

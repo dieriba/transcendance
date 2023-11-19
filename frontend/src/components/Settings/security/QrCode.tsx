@@ -1,10 +1,12 @@
 import {
   Alert,
   AlertColor,
+  Box,
   Button,
   Divider,
   Stack,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
 import { QrCode as Code } from "phosphor-react";
 import {
@@ -22,6 +24,7 @@ import { useEnable2FaMutation } from "../../../redux/features/user/user.api.slic
 import RHFTextField from "../../controlled-components/RHFTextField";
 import { useAppDispatch } from "../../../redux/hooks";
 import { updatedTwoFa } from "../../../redux/features/user/user.slice";
+import { useTheme } from "@mui/material/styles";
 interface QrCodeProps {
   qrCode: string;
   secret: string;
@@ -31,7 +34,7 @@ const QrCode = ({ qrCode, secret }: QrCodeProps) => {
   const { control, handleSubmit } = useForm<ValidateOtpType>({
     resolver: zodResolver(ValidateOtpSchema),
   });
-
+  const theme = useTheme();
   const [message, setMessage] = useState("");
   const [severity, setSeverity] = useState<AlertColor>("success");
   const [openSnack, setOpenSnack] = useState(false);
@@ -48,6 +51,8 @@ const QrCode = ({ qrCode, secret }: QrCodeProps) => {
 
     setOpenSnack(false);
   };
+
+  const onlyMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
 
   const onSubmit = async (data: ValidateOtpType) => {
     try {
@@ -91,19 +96,32 @@ const QrCode = ({ qrCode, secret }: QrCodeProps) => {
           {message}
         </Alert>
       )}
-      <Typography>You are almost there!</Typography>
-      <Stack direction={"row"} alignItems={"center"}>
+      <Typography textAlign={'center'}>You are almost there!</Typography>
+      <Stack
+        direction={onlyMediumScreen ? "column" : "row"}
+        alignItems={"center"}
+      >
         <Code size={100} />
         <Stack>
-          <Typography>
+          <Typography textAlign={'center'}>
             Please use your authentication app such as Google Authenticator to
             scan the below QR code
           </Typography>
         </Stack>
         <Divider />
       </Stack>
-      <Stack justifyContent={"space-between"} spacing={2} direction={"row"}>
-        <img src={qrCode} height="150px" width="auto" />
+      <Stack
+        justifyContent={"space-between"}
+        spacing={2}
+        direction={onlyMediumScreen ? "column" : "row"}
+      >
+        <Box alignSelf={onlyMediumScreen ? "center" : "auto"}>
+          <img
+            src={qrCode}
+            height="150px"
+            width={onlyMediumScreen ? "240px" : "auto"}
+          />
+        </Box>
         <Stack
           alignItems={"center"}
           width={"auto"}

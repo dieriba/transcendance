@@ -5,6 +5,7 @@ import {
   Avatar,
   Divider,
   Tooltip,
+  useMediaQuery,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { Bell, Key, Lock } from "phosphor-react";
@@ -15,6 +16,7 @@ import { User } from "../../redux/features/user/user.slice";
 import Security from "../../components/Settings/security/Security";
 const Settings = () => {
   const theme = useTheme();
+  const onlyMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
   const {
     profile: { avatar, lastname, firstname },
   } = useAppSelector((state: RootState) => state.user.user) as User;
@@ -52,12 +54,11 @@ const Settings = () => {
 
   return (
     <>
-      <Stack direction="row" sx={{ width: "100%" }}>
+      <Stack mt={5} sx={{ width: "100%" }}>
         <Box
           sx={{
-            overflowY: "scroll",
-            height: "100vh",
-            width: 320,
+            width: onlyMediumScreen ? "100vw" : "320px",
+            height: onlyMediumScreen ? "100%" : "auto",
             backgroundColor:
               theme.palette.mode === "light"
                 ? "#F8FAFF"
@@ -66,7 +67,6 @@ const Settings = () => {
           }}
         >
           <Stack p={4} alignItems="center" spacing={4}>
-            <Typography variant="h6">Settings</Typography>
             <Stack direction="row" spacing={1}>
               <Tooltip title={`${firstname} ${lastname}`}>
                 <Avatar

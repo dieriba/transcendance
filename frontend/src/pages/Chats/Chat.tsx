@@ -96,7 +96,7 @@ const Chat = () => {
       <Box
         sx={{
           position: "relative",
-          width: 320,
+          width: "100%",
           backgroundColor:
             theme.palette.mode === "light"
               ? "#F8FAFF"
@@ -144,7 +144,9 @@ const Chat = () => {
             </Stack>
           </Box>
         ) : (
-          <ChatConversation />
+          <>
+            <ChatConversation />
+          </>
         )}
       </Stack>
     );

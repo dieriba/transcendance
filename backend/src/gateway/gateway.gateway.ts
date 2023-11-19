@@ -416,7 +416,7 @@ export class GatewayGateway {
 
     const { chatroomName, type, messages } = chatroom;
 
-    if (newUserId) {
+    /*if (newUserId) {
       const user = await this.prismaService.user.findFirst({
         where: {
           id: newUserId,
@@ -528,15 +528,52 @@ export class GatewayGateway {
       this.joinOrLeaveRoom(newUserId, GeneralEvent.JOIN, chatroomName);
 
       return;
-    }
+    }*/
 
-    const existingUserAndNonBlocked =
-      await this.userService.getExistingUserFriend(userId, users, UserData);
+    const existingUserAndNonBlocked = await this.prismaService.user.findMany({
+      where: {
+        id: {
+          in: users,
+        },
+        OR: [
+          { friends: { some: { friendId: userId } } },
+          { groupParameter: { allowAll: true } },
+        ],
+        chatrooms: {
+          none: {
+            chatroomId,
+          },
+        },
+      },
+      select: {
+        id: true,
+        nickname: true,
+        status: true,
+        profile: {
+          select: {
+            avatar: true,
+          },
+        },
+        friends: {
+          select: {
+            friendId: true,
+          },
+        },
+      },
+    });
+
+    if (existingUserAndNonBlocked.length === 0) {
+      this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+        message: '',
+        data: {},
+      });
+      return;
+    }
 
     existingUserAndNonBlocked.map(
       async ({ id, nickname, status, profile, friends }) => {
         await this.chatroomUserService.createNewChatroomUser(id, chatroomId);
-        this.sendToSocket(this.server, newUserId, ChatEventGroup.NEW_CHATROOM, {
+        this.sendToSocket(this.server, id, ChatEventGroup.NEW_CHATROOM, {
           message: `${nickname} added you in the group named ${chatroomName}`,
           data: {
             id: chatroomId,
@@ -555,19 +592,22 @@ export class GatewayGateway {
           ChatEventGroup.USER_ADDED,
           {
             data: {
-              user: {
-                id,
-                nickname,
-                status,
-                profile,
-                friends,
-              },
+              id,
+              nickname,
+              status,
+              profile,
+              friends,
             },
             message: `${adminNickname} added ${nickname}`,
           },
         );
       },
     );
+
+    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+      message: 'User added successully!',
+      data: {},
+    });
   }
 
   @SubscribeMessage(ChatEventGroup.SET_DIERIBA)
@@ -1906,8 +1946,6 @@ export class GatewayGateway {
 
     const existingFriendRequest =
       await this.friendService.isAlreadyFriendsRequestSent(userId, friendId);
-
-    this.logger.log({ existingFriendRequest });
 
     if (existingFriendRequest) {
       if (existingFriendRequest.senderId != userId)

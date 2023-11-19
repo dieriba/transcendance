@@ -42,14 +42,17 @@ const Profile_Menu: ProfileMenuI[] = [
 const Nav_Buttons = [
   {
     path: PATH_APP.dashboard.profile,
+    name: PATH_APP.dashboard.profile.substring(1),
     icon: <User />,
   },
   {
     path: PATH_APP.dashboard.friends,
+    name: PATH_APP.dashboard.friends.substring(1),
     icon: <Users />,
   },
   {
     path: PATH_APP.dashboard.notification,
+    name: PATH_APP.dashboard.notification.substring(1),
     icon: (
       <Badge badgeContent={4} color="primary">
         <BellSimple />
@@ -58,18 +61,22 @@ const Nav_Buttons = [
   },
   {
     path: PATH_APP.dashboard.chat,
+    name: PATH_APP.dashboard.chat.substring(1),
     icon: <ChatCircleDots />,
   },
   {
     path: PATH_APP.dashboard.group,
+    name: PATH_APP.dashboard.group.substring(1),
     icon: <ChatsTeardrop />,
   },
   {
     path: PATH_APP.dashboard.games,
+    name: PATH_APP.dashboard.games.substring(1),
     icon: <GameController />,
   },
   {
     path: PATH_APP.dashboard.settings,
+    name: PATH_APP.dashboard.settings.substring(1),
     icon: <GearSix />,
   },
 ];

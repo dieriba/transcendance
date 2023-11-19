@@ -1,22 +1,23 @@
-import { Stack, Box, Divider } from "@mui/material";
+import { Stack, Box, Divider, useMediaQuery } from "@mui/material";
 import { MagnifyingGlass } from "phosphor-react";
 import { Search, SearchIconWrapper, StyledInputBase } from "../search";
 import ChatBox from "./ChatBox";
 import { useTheme } from "@mui/material/styles";
 import { useAppSelector } from "../../redux/hooks";
 import { RootState } from "../../redux/store";
-
 const ChatContact = () => {
   const theme = useTheme();
   const chats = useAppSelector(
     (state: RootState) => state.chat.privateChatroom
   );
+  const onlyMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
+
   const myId = useAppSelector((state: RootState) => state.user.user?.id);
   return (
     <Box
       sx={{
         position: "relative",
-        width: 320,
+        width: onlyMediumScreen ? "100%" : 320,
         backgroundColor:
           theme.palette.mode === "light"
             ? "#F8FAFF"
@@ -59,7 +60,9 @@ const ChatContact = () => {
                           .padStart(2, "0")}`
                       : ""
                   }
-                  avatar={user.profile?.avatar ? user.profile?.avatar : undefined}
+                  avatar={
+                    user.profile?.avatar ? user.profile?.avatar : undefined
+                  }
                   online={user.status === "ONLINE" ? true : false}
                   username={users[0].user.nickname}
                   msg={

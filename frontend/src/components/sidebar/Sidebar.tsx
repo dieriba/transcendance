@@ -1,4 +1,4 @@
-import { Tooltip } from "@mui/material";
+import { Tooltip, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { Avatar, Box, IconButton, Stack } from "@mui/material";
 import { Nav_Buttons } from "../../data/data";
@@ -27,6 +27,8 @@ const Sidebar = () => {
     setAnchorEl(event.currentTarget);
   };
   const user = useAppSelector((state: RootState) => state.user.user);
+
+  const onlyMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
 
   const nickname = (user as User).nickname;
   const avatar = (user as User).profile.avatar as string | undefined;
@@ -57,9 +59,10 @@ const Sidebar = () => {
         sx={{
           backgroundColor: theme.palette.background.paper,
           boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.25)",
-          height: "100vh",
+          height: "100%",
           width: 100,
         }}
+        display={onlyMediumScreen ? "none" : "block"}
       >
         <Stack
           sx={{
@@ -69,8 +72,8 @@ const Sidebar = () => {
             justifyContent: "space-between",
           }}
         >
-          <Stack
-            spacing={3}
+          <Stack 
+            spacing={1}
             sx={{ width: "max-content", alignItems: "center" }}
           >
             {Nav_Buttons.map((button, index) =>

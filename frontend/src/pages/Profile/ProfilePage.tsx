@@ -6,6 +6,7 @@ import {
   Button,
   Stack,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
@@ -37,9 +38,18 @@ import {
 } from "../../models/login/UserSchema";
 import { SocketServerErrorResponse } from "../../services/type";
 import RHFTextField from "../../components/controlled-components/RHFTextField";
+import { RootState } from "../../redux/store";
 const ProfilePage = () => {
-  const user = useAppSelector((state) => state.user.user);
-
+  const theme = useTheme();
+  const user = useAppSelector((state: RootState) => state.user.user);
+  const dispatch = useAppDispatch();
+  const [file, setFile] = useState<File>();
+  const [image, setImage] = useState<string | undefined>(undefined);
+  const [changeAvatar, { isLoading }] = useChangeAvatarMutation();
+  const [message, setMessage] = useState("");
+  const [severity, setSeverity] = useState<AlertColor>("success");
+  const [openSnack, setOpenSnack] = useState(false);
+  const [notifyNewProfilePic] = useNotifyNewProfilePicMutation();
   const VisuallyHiddenInput = styled("input")({
     clip: "rect(0 0 0 0)",
     clipPath: "inset(50%)",
@@ -60,14 +70,8 @@ const ProfilePage = () => {
     resolver: zodResolver(UpdateUserSchema),
   });
 
-  const dispatch = useAppDispatch();
-  const [file, setFile] = useState<File>();
-  const [image, setImage] = useState<string | undefined>(undefined);
-  const [changeAvatar, { isLoading }] = useChangeAvatarMutation();
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState<AlertColor>("success");
-  const [openSnack, setOpenSnack] = useState(false);
-  const [notifyNewProfilePic] = useNotifyNewProfilePicMutation();
+  const onlyMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
+
   const handleCloseSnack = (
     _event?: React.SyntheticEvent | Event,
     reason?: string
@@ -141,19 +145,19 @@ const ProfilePage = () => {
     }
   };
 
-  const theme = useTheme();
   return (
     <>
       <Stack direction={"row"} sx={{ width: "100%" }}>
         <Box
           sx={{
             position: "relative",
-            width: 320,
             backgroundColor:
               theme.palette.mode === "light"
                 ? "#F8FAFF"
                 : theme.palette.background.paper,
             boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.25)",
+            width: onlyMediumScreen ? "100vw" : "320px",
+            height: onlyMediumScreen ? "100vh" : "auto",
           }}
         >
           <Stack p={4} alignItems={"center"} spacing={5}>
