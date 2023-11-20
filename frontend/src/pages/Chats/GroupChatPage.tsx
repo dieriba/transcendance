@@ -48,7 +48,7 @@ const GroupChatPage = () => {
   const onlyMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
 
   useEffect(() => {
-    if (data && data.data) {
+    if (data?.data) {
       dispatch(setGroupChatroom(data.data));
       connectSocket();
       if (!socket) return;

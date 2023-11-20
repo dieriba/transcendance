@@ -25,6 +25,8 @@ import {
   UserProfileBanLifeType,
   UserWithProfileFriendsType,
 } from "../../../models/ChatContactSchema";
+import { BaseUserTypeId } from "../../../models/login/UserSchema";
+import { AlertColor } from "@mui/material";
 
 export interface GroupState {
   joinableGroup: JoinableChatroomType[];
@@ -39,6 +41,11 @@ export interface GroupState {
   restrictedUser: UserGroupType[];
   openGroupSidebar: boolean;
   myId: string | undefined;
+  blockedUser: BaseUserTypeId[];
+  blockedBy: BaseUserTypeId[];
+  message: string;
+  severity: AlertColor;
+  open: boolean;
 }
 
 const initialState: GroupState = {
@@ -54,6 +61,11 @@ const initialState: GroupState = {
   restrictedUser: [],
   openGroupSidebar: false,
   myId: undefined,
+  blockedUser: [],
+  blockedBy: [],
+  message: "",
+  severity: "success",
+  open: false,
 };
 
 export const GroupSlice = createSlice({
@@ -65,8 +77,18 @@ export const GroupSlice = createSlice({
       state.chatAdmin = [];
       state.regularUser = [];
     },
-    setGroupChatroom: (state, action: PayloadAction<ChatroomGroupType[]>) => {
-      state.groupChatroom = action.payload;
+    setGroupChatroom: (
+      state,
+      action: PayloadAction<{
+        chatrooms: ChatroomGroupType[];
+        blockedUser: BaseUserTypeId[];
+        blockedBy: BaseUserTypeId[];
+      }>
+    ) => {
+      const { chatrooms, blockedBy, blockedUser } = action.payload;
+      state.groupChatroom = chatrooms;
+      state.blockedUser = blockedUser;
+      state.blockedBy = blockedBy;
     },
     setJoinableGroup: (
       state,
@@ -87,7 +109,7 @@ export const GroupSlice = createSlice({
           state.admin = user;
         } else if (user.role === ROLE.CHAT_ADMIN) {
           state.chatAdmin.push(user);
-        } else if (user.role === ROLE.REGULAR_USER) {
+        } else {
           state.regularUser.push(user);
         }
       });
@@ -139,7 +161,7 @@ export const GroupSlice = createSlice({
       let index: number;
       let newAdmin: UserGroupType;
       const prevAdminId = (state.admin as UserGroupType).user.id;
-      if (role === "CHAT_ADMIN") {
+      if (role === ROLE.CHAT_ADMIN) {
         index = state.chatAdmin.findIndex(
           (moderator) => moderator.user.id === id
         );
@@ -180,10 +202,8 @@ export const GroupSlice = createSlice({
         const previousAdminIndex = state.chatAdmin.findIndex(
           (user) => user.user.id === newAdminId
         );
+
         if (previousAdminIndex === -1) {
-          state.currentChatroom = undefined;
-          state.currentGroupChatroomId = undefined;
-          state.messages = [];
           return;
         }
 
@@ -195,13 +215,15 @@ export const GroupSlice = createSlice({
 
         state.admin = admin;
       } else {
+        state.regularUser.map((user) => {
+          console.log({ user });
+        });
+
         const previousAdminIndex = state.regularUser.findIndex(
           (user) => user.user.id === newAdminId
         );
+
         if (previousAdminIndex === -1) {
-          state.currentChatroom = undefined;
-          state.currentGroupChatroomId = undefined;
-          state.messages = [];
           return;
         }
 
@@ -396,6 +418,18 @@ export const GroupSlice = createSlice({
           role: ROLE.REGULAR_USER,
         });
     },
+    displayMessage: (
+      state,
+      action: PayloadAction<{ message: string; chatroomId: string }>
+    ) => {
+      if (action.payload.chatroomId === state.currentGroupChatroomId) {
+        state.message = action.payload.message;
+        state.open = true;
+      }
+    },
+    clearMessage: (state) => {
+      state.open = false;
+    },
     removeUser: (state, action: PayloadAction<BaseChatroomWithUserIdType>) => {
       const { id, chatroomId, role } = action.payload;
 
@@ -516,6 +550,15 @@ export const GroupSlice = createSlice({
       action: PayloadAction<MessageGroupType>
     ) => {
       const message = action.payload;
+
+      if (
+        message.user.id !== state.myId &&
+        (state.blockedUser.findIndex((user) => user.id === message.user.id) >=
+          0 ||
+          state.blockedBy.findIndex((user) => user.id === message.user.id) >= 0)
+      )
+        return;
+
       const indexToRemove = state.groupChatroom.findIndex(
         (chatroom) => chatroom.id === message.chatroomId
       );
@@ -601,6 +644,8 @@ export const {
   addNewChatroomUser,
   leaveChatroom,
   previousAdminLeaved,
+  displayMessage,
+  clearMessage,
 } = GroupSlice.actions;
 
 export default GroupSlice.reducer;

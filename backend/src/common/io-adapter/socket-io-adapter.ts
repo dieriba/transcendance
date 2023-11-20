@@ -1,6 +1,7 @@
 import { INestApplicationContext, Logger } from '@nestjs/common';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { WsException } from '@nestjs/websockets';
+import { GeneralEvent } from '../../../../shared/socket.event';
 import { Server, ServerOptions } from 'socket.io';
 import { SocketWithAuth } from 'src/auth/type';
 import { JwtPayload } from 'src/jwt-token/jwt.type';
@@ -48,12 +49,12 @@ const createTokenMiddleware =
         token,
         process.env.ACCESS_TOKEN_SECRET,
       );
-      socket.userId = payload.sub;
+      socket.userId = payload.userId;
 
       next();
     } catch (error) {
       console.log({ error });
 
-      next(new WsException('Unauthorized'));
+      next(new WsException(GeneralEvent.TOKEN_NOT_VALID));
     }
   };

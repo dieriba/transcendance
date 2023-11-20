@@ -22,9 +22,9 @@ model User {
   updatedAt          DateTime @updatedAt
   hashedRefreshToken String?
 
-  twoFa   TwoFa?   @relation("userTwoFa")
-  profile Profile? @relation("userProfile")
-  groupParameter Group? @relation("groupInvitation")
+  twoFa          TwoFa?   @relation("userTwoFa")
+  profile        Profile? @relation("userProfile")
+  groupParameter Group?   @relation("groupInvitation")
 
   blockedBy    User[] @relation("blockUser")
   blockedUsers User[] @relation("blockUser")
@@ -40,16 +40,13 @@ model User {
   messages              Message[]
   restrictedGroups      RestrictedUser[]
   allowForeignToDm      Boolean          @default(false)
-
-  
 }
 
 model Group {
+  id   String @id @default(uuid())
+  user User   @relation("groupInvitation", fields: [id], references: [id], onDelete: Cascade)
 
-  id String @id @default(uuid())
-  user      User    @relation("groupInvitation", fields: [id], references: [id], onDelete: Cascade)
-
-  allowAll Boolean
+  allowAll        Boolean
   onlyAllowFriend Boolean
 }
 
@@ -76,8 +73,8 @@ model FriendRequest {
 }
 
 model Profile {
-  id String @id @default(uuid())
-  user      User    @relation("userProfile", fields: [userId], references: [id], onDelete: Cascade)
+  id   String @id @default(uuid())
+  user User   @relation("userProfile", fields: [userId], references: [id], onDelete: Cascade)
 
   avatar    String?
   firstname String? @db.VarChar(25)
@@ -108,6 +105,7 @@ model Chatroom {
   users           ChatroomUser[]   @relation("chatroomUsers")
   blockedUsers    User[]           @relation("blockedUsers")
   messages        Message[]
+  groupImage      String?
   restrictedUsers RestrictedUser[]
 }
 

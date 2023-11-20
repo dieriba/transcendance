@@ -4,7 +4,7 @@ export type Tokens = {
 };
 
 export type JwtPayload = {
-  sub: string;
+  userId: string;
 };
 
 export type RefreshToken = {

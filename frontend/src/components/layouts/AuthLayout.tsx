@@ -15,7 +15,7 @@ const AuthLayout = () => {
   }
 
   return access_token ? (
-    <Navigate to={PATH_APP.dashboard.games} replace />
+    <Navigate to={PATH_APP.dashboard.profile} replace />
   ) : (
     <>
       <Container

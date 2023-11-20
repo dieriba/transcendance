@@ -52,9 +52,7 @@ const KickUser = ({
       const res = await kickUser(data).unwrap();
 
       dispatch(removeUser(res.data));
-      setMessage(res.message);
-      setOpenSnack(true);
-      setSeverity("success");
+      handleClose();
     } catch (error) {
       setSeverity("error");
       setMessage((error as SocketServerErrorResponse).message);

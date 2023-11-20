@@ -39,8 +39,7 @@ export class JwtAccessTokenGuard implements CanActivate {
         process.env.ACCESS_TOKEN_SECRET,
       );
 
-      request.userId = payload.sub;
-      request.email = request.email;
+      request.userId = payload.userId;
 
       return true;
     } catch (error) {

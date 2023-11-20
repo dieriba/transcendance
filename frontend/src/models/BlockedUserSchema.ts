@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ProfileSchema } from "./ProfileFormSchema";
+import { BaseUserSchema } from "./login/UserSchema";
 
 export const BlockedUserSchema = z
   .object({
@@ -9,3 +10,5 @@ export const BlockedUserSchema = z
   .merge(ProfileSchema);
 
 export type BlockedUserType = z.infer<typeof BlockedUserSchema>;
+
+export const BlockedUserForChatroom = BaseUserSchema;

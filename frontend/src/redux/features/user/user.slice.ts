@@ -45,8 +45,8 @@ export const UserSlice = createSlice({
       state.user = user;
       state.access_token = access_token;
     },
-    newAccessToken: (state, action: PayloadAction<AccessTokenType>) => {
-      state.access_token = action.payload.access_token;
+    newAccessToken: (state, action: PayloadAction<string>) => {
+      state.access_token = action.payload;
     },
     setNewAvatarSrc: (state, action: PayloadAction<string>) => {
       (state.user as User).profile.avatar = action.payload;

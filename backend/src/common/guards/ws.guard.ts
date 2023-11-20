@@ -9,6 +9,7 @@ import { JwtTokenService } from 'src/jwt-token/jwtToken.service';
 import { SocketWithAuth } from 'src/auth/type';
 import { UNAUTHORIZED } from '../constant/http-error.constant';
 import { WsUnauthorizedException } from '../custom-exception/ws-exception';
+import { GeneralEvent } from '../../../../shared/socket.event';
 
 @Injectable()
 export class WsAccessTokenGuard implements CanActivate {
@@ -38,9 +39,11 @@ export class WsAccessTokenGuard implements CanActivate {
 
       return true;
     } catch (error) {
-      console.log(error);
+      console.log({ error });
 
-      throw new WsUnauthorizedException(UNAUTHORIZED);
+      client.emit(GeneralEvent.TOKEN_NOT_VALID);
+
+      throw new WsUnauthorizedException(GeneralEvent.TOKEN_NOT_VALID);
     }
   }
 }

@@ -23,6 +23,8 @@ import {
 import {
   addNewChatroomUser,
   addRestrictedUser,
+  clearMessage,
+  displayMessage,
   previousAdminLeaved,
   removeUser,
   setChatroomMessage,
@@ -31,12 +33,13 @@ import {
 } from "../../../redux/features/groups/group.slice";
 import {
   SocketServerErrorResponse,
-  SocketServerSucessResponse,
+  SocketServerSucessWithChatroomId,
 } from "../../../services/type";
 import { connectSocket, socket } from "../../../utils/getSocket";
 import { ChatEventGroup } from "../../../../../shared/socket.event";
 import { UserWithProfileFriendsType } from "../../../models/ChatContactSchema";
 import TextMessage from "../ChatBodyComponents/TextMessage";
+import CustomNotificationBar from "../../snackbar/customNotificationBar";
 export interface GroupConversationBodyProps {
   id: string;
   incoming: boolean;
@@ -66,8 +69,16 @@ const GroupConversationBody = () => {
       socket.on(
         ChatEventGroup.PREVIOUS_ADMIN_LEAVED,
         (
-          data: SocketServerSucessResponse & { data: PreviousAdminLeaveType }
+          data: SocketServerSucessWithChatroomId & {
+            data: PreviousAdminLeaveType;
+          }
         ) => {
+          dispatch(
+            displayMessage({
+              message: data.message,
+              chatroomId: data.chatroomId,
+            })
+          );
           dispatch(previousAdminLeaved(data.data));
         }
       );
@@ -75,8 +86,16 @@ const GroupConversationBody = () => {
       socket.on(
         ChatEventGroup.NEW_ADMIN,
         (
-          data: SocketServerSucessResponse & { data: UserNewRoleResponseType }
+          data: SocketServerSucessWithChatroomId & {
+            data: UserNewRoleResponseType;
+          }
         ) => {
+          dispatch(
+            displayMessage({
+              message: data.message,
+              chatroomId: data.chatroomId,
+            })
+          );
           dispatch(setNewAdmin(data.data));
         }
       );
@@ -84,27 +103,49 @@ const GroupConversationBody = () => {
       socket.on(
         ChatEventGroup.USER_LEAVED,
         (
-          data: SocketServerSucessResponse & {
+          data: SocketServerSucessWithChatroomId & {
             data: BaseChatroomWithUserIdType;
           }
         ) => {
+          dispatch(
+            displayMessage({
+              message: data.message,
+              chatroomId: data.chatroomId,
+            })
+          );
           dispatch(removeUser(data.data));
         }
       );
 
       socket.on(
         ChatEventGroup.USER_ROLE_CHANGED,
-        (data: { data: UserNewRoleResponseType }) => {
+        (
+          data: SocketServerSucessWithChatroomId & {
+            data: UserNewRoleResponseType;
+          }
+        ) => {
+          dispatch(
+            displayMessage({
+              message: data.message,
+              chatroomId: data.chatroomId,
+            })
+          );
           dispatch(setNewRole(data.data));
         }
       );
       socket.on(
         ChatEventGroup.USER_RESTRICTED,
         (
-          data: SocketServerSucessResponse & {
+          data: SocketServerSucessWithChatroomId & {
             data: UserGroupType;
           }
         ) => {
+          dispatch(
+            displayMessage({
+              message: data.message,
+              chatroomId: data.chatroomId,
+            })
+          );
           dispatch(addRestrictedUser(data.data));
         }
       );
@@ -112,10 +153,18 @@ const GroupConversationBody = () => {
       socket.on(
         ChatEventGroup.USER_KICKED,
         (
-          data: SocketServerSucessResponse & {
+          data: SocketServerSucessWithChatroomId & {
             data: BaseChatroomWithUserIdType;
           }
         ) => {
+          console.log({ data });
+
+          dispatch(
+            displayMessage({
+              message: data.message,
+              chatroomId: data.chatroomId,
+            })
+          );
           dispatch(removeUser(data.data));
         }
       );
@@ -123,12 +172,16 @@ const GroupConversationBody = () => {
       socket.on(
         ChatEventGroup.NEW_USER_CHATROOM,
         (
-          data: SocketServerSucessResponse & {
+          data: SocketServerSucessWithChatroomId & {
             data: UserWithProfileFriendsType;
           }
         ) => {
-          console.log({ data });
-
+          dispatch(
+            displayMessage({
+              message: data.message,
+              chatroomId: data.chatroomId,
+            })
+          );
           dispatch(addNewChatroomUser(data.data));
         }
       );
@@ -136,12 +189,16 @@ const GroupConversationBody = () => {
       socket.on(
         ChatEventGroup.USER_ADDED,
         (
-          data: SocketServerSucessResponse & {
+          data: SocketServerSucessWithChatroomId & {
             data: UserWithProfileFriendsType;
           }
         ) => {
-          console.log({ data: data.data });
-
+          dispatch(
+            displayMessage({
+              message: data.message,
+              chatroomId: data.chatroomId,
+            })
+          );
           dispatch(addNewChatroomUser(data.data));
         }
       );
@@ -158,7 +215,13 @@ const GroupConversationBody = () => {
       };
     }
   }, [data, dispatch]);
-  const messages = useAppSelector((state: RootState) => state.groups.messages);
+  const { messages, open, message } = useAppSelector(
+    (state: RootState) => state.groups
+  );
+
+  const onClose = () => {
+    dispatch(clearMessage());
+  };
 
   useEffect(() => {
     lastMessage.current?.scrollIntoView();
@@ -206,7 +269,12 @@ const GroupConversationBody = () => {
         sx={{ flexGrow: 1, height: "100%", overflowY: "scroll" }}
         p={3}
       >
-        <Stack height={'100vh'}>
+        <CustomNotificationBar
+          onClose={onClose}
+          open={open}
+          message={message}
+        />
+        <Stack height={"100%"}>
           {messages.map(({ id, messageTypes, user, content }) => {
             const incoming = myId === user.id;
 

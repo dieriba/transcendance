@@ -56,7 +56,7 @@ const MobileSidebar = () => {
     <>
       <CssBaseline />
 
-      <AppBar sx={{height:'50px'}} position="sticky">
+      <AppBar sx={{ height: "50px" }} position="sticky">
         <Box sx={{ display: { xs: "block", md: "none" } }}>
           <IconButton
             size="large"
@@ -88,7 +88,7 @@ const MobileSidebar = () => {
           >
             {Nav_Buttons.map(({ path, icon, name }, index) =>
               matchPath(path, pathname) ? (
-                <Stack direction={"row"} spacing={2}>
+                <Stack direction={"row"} key={index} spacing={2}>
                   <MenuItem
                     sx={{
                       width: "200px",
@@ -96,7 +96,6 @@ const MobileSidebar = () => {
                       justifyContent: "space-between",
                       backgroundColor: "#000000",
                     }}
-                    key={index}
                     onClick={handleCloseNavMenu}
                   >
                     <Icon sx={{ width: "50px" }}>{icon}</Icon>
@@ -104,24 +103,22 @@ const MobileSidebar = () => {
                   </MenuItem>
                 </Stack>
               ) : (
-                <>
-                  <Stack direction={"row"} spacing={2}>
-                    <MenuItem
-                      sx={{
-                        width: "200px",
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                      key={name}
-                      onClick={() => {
-                        handleNavigate(path);
-                      }}
-                    >
-                      <Icon sx={{ width: "50px" }}>{icon}</Icon>
-                      <Typography textAlign="center">{name}</Typography>
-                    </MenuItem>
-                  </Stack>
-                </>
+                <Stack key={index} direction={"row"} spacing={2}>
+                  <MenuItem
+                    sx={{
+                      width: "200px",
+                      display: "flex",
+                      justifyContent: "space-between",
+                    }}
+                    key={name}
+                    onClick={() => {
+                      handleNavigate(path);
+                    }}
+                  >
+                    <Icon sx={{ width: "50px" }}>{icon}</Icon>
+                    <Typography textAlign="center">{name}</Typography>
+                  </MenuItem>
+                </Stack>
               )
             )}
             <Stack direction={"row"} spacing={2}>

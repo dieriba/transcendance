@@ -211,6 +211,22 @@ export class ChatService {
                     friendId: true,
                   },
                 },
+                friendRequestsReceived: {
+                  select: {
+                    senderId: true,
+                  },
+                  where: {
+                    senderId: userId,
+                  },
+                },
+                friendRequestsSent: {
+                  select: {
+                    recipientId: true,
+                  },
+                  where: {
+                    recipientId: userId,
+                  },
+                },
                 restrictedGroups: {
                   where: {
                     chatroomId,
@@ -272,6 +288,14 @@ export class ChatService {
         user.restrictedGroups.length === 0 ||
         user.restrictedGroups[0].restriction === RESTRICTION.MUTED
       );
+    });
+
+    users.map((user) => {
+      console.log({
+        user,
+        friendRequestsReceived: user.user.friendRequestsReceived,
+        friendRequestsSent: user.user.friendRequestsSent,
+      });
     });
 
     return {

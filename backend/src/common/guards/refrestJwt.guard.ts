@@ -5,19 +5,19 @@ import {
   HttpStatus,
   Injectable,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { CustomException } from '../custom-exception/custom-exception';
 import { UNAUTHORIZED } from '../constant/http-error.constant';
 import { JwtPayload } from 'src/jwt-token/jwt.type';
 import { RequestWithAuthRefresh } from 'src/auth/type';
-
+import { Request } from 'express';
 @Injectable()
 export class JwtRefreshTokenGuard implements CanActivate {
   constructor(private readonly jwtTokenService: JwtTokenService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: RequestWithAuthRefresh = context.switchToHttp().getRequest();
-    const refresh_token = this.extractTokenFromHeader(request);
+    const refresh_token =
+      request.cookies['refresh'] || this.extractTokenFromHeader(request);
     if (!refresh_token)
       throw new CustomException(UNAUTHORIZED, HttpStatus.UNAUTHORIZED);
 
@@ -27,16 +27,13 @@ export class JwtRefreshTokenGuard implements CanActivate {
         process.env.REFRESH_TOKEN_SECRET,
       );
 
-      // 💡 We're assigning the payload to the request object here
-      // so that we can access it in our route handlers
-      request.userId = payload.sub;
+      request.userId = payload.userId;
       request.refresh_token = refresh_token;
       return true;
     } catch {
       throw new CustomException(UNAUTHORIZED, HttpStatus.UNAUTHORIZED);
     }
   }
-
   private extractTokenFromHeader(request: Request): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;

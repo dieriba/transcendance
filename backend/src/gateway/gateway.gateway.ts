@@ -376,7 +376,7 @@ export class GatewayGateway {
     @MessageBody() chatRoomData: ChatroomDataDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
-    const { users, newUserId, chatroomId } = chatRoomData;
+    const { users, chatroomId } = chatRoomData;
     const { userId } = client;
 
     const [chatroom, adminNickname] = await Promise.all([
@@ -498,6 +498,7 @@ export class GatewayGateway {
             friends,
           },
         },
+        chatroomId,
         message: `${nickname} added ${user.nickname}`,
       });
 
@@ -667,6 +668,7 @@ export class GatewayGateway {
 
     this.sendToSocket(client, chatroomName, ChatEventGroup.NEW_ADMIN, {
       message: `${updateNewDieriba.user.nickname} is now admin of that group!`,
+      chatroomId,
       data: { id, role: chatroomUser.role },
     });
 
@@ -795,6 +797,7 @@ export class GatewayGateway {
 
     this.sendToSocket(client, chatroomName, ChatEventGroup.USER_KICKED, {
       data: { id, chatroomId, role: chatroomUser.role },
+      chatroomId,
       message: `${clientNickname} has kicked ${nickname}`,
     });
 
@@ -913,14 +916,15 @@ export class GatewayGateway {
 
         this.sendToSocket(
           this.server,
-          newAdmin.userId,
+          chatroomName,
           ChatEventGroup.PREVIOUS_ADMIN_LEAVED,
           {
             data: {
               newAdminId: newAdmin.userId,
               newAdminPreviousRole: role,
             },
-            message: `${chatroomUser.user.nickname} and the new admin randomly choosen is now ${newAdmin.user.nickname}`,
+            chatroomId,
+            message: `${chatroomUser.user.nickname} leaved the group and the new admin randomly choosen is now ${newAdmin.user.nickname}`,
           },
         );
 
@@ -928,9 +932,8 @@ export class GatewayGateway {
           data: { chatroomId },
           message: `You left the group ${chatroomName}`,
         });
-
-        return;
       });
+      return;
     } else {
       await this.prismaService.chatroomUser.delete({
         where: {
@@ -955,6 +958,7 @@ export class GatewayGateway {
     });
 
     this.sendToSocket(client, chatroomName, ChatEventGroup.USER_LEAVED, {
+      chatroomId,
       data: { id: userId, chatroomId, role: chatroomUser.role },
       message: `${nickname} has leaved the chatroom`,
     });
@@ -1032,6 +1036,7 @@ export class GatewayGateway {
         chatroomName,
         ChatEventGroup.USER_ROLE_CHANGED,
         {
+          chatroomId,
           message: `${chatroomUser.user.nickname} is no longer a chat moderator`,
           data: { id, role: chatroomUser.role },
         },
@@ -1261,11 +1266,12 @@ export class GatewayGateway {
             ],
           },
         },
+        chatroomId,
         message: `${nickname} has been ${restriction} for ${
           duration === Number.MAX_SAFE_INTEGER
             ? 'life'
             : `${duration} ${durationUnit}`
-        }`,
+        } by ${chatroomUser.user.nickname}`,
       });
     });
   }
@@ -1430,7 +1436,23 @@ export class GatewayGateway {
   @SubscribeMessage(ChatEventGroup.REQUEST_ALL_CHATROOM)
   async getUserGroupChatroom(@ConnectedSocket() client: SocketWithAuth) {
     const { userId } = client;
-    const user = await this.userService.findUserById(userId, UserData);
+    const user = await this.prismaService.user.findFirst({
+      where: {
+        id: userId,
+      },
+      select: {
+        blockedUsers: {
+          select: {
+            id: true,
+          },
+        },
+        blockedBy: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
 
     if (!user) throw new WsNotFoundException('User not foud');
 
@@ -1451,6 +1473,15 @@ export class GatewayGateway {
         chatroomName: true,
         type: true,
         messages: {
+          where: {
+            user: {
+              blockedBy: {
+                none: {
+                  id: userId,
+                },
+              },
+            },
+          },
           orderBy: {
             createdAt: 'desc',
           },
@@ -1504,7 +1535,11 @@ export class GatewayGateway {
 
     this.sendToSocket(this.server, userId, ChatEventGroup.GET_ALL_CHATROOM, {
       message: '',
-      data: chatrooms,
+      data: {
+        chatrooms,
+        blockedUser: user.blockedUsers,
+        blockedBy: user.blockedBy,
+      },
     });
   }
 
@@ -1680,6 +1715,7 @@ export class GatewayGateway {
       ChatEventGroup.NEW_USER_CHATROOM,
       {
         message: `${user.nickname} has joined the group`,
+        chatroomId,
         data: {
           ...user,
         },

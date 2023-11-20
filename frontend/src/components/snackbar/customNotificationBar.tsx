@@ -1,21 +1,20 @@
 import { Snackbar } from "@mui/material";
 import MuiAlert, { AlertColor, AlertProps } from "@mui/material/Alert";
 import React from "react";
-import { useAppDispatch } from "../../redux/hooks";
-import { closeSnackBar } from "../../redux/features/app/app.slice";
 
 interface CustomNotificationBarProps {
   message: string;
-  severity: AlertColor;
+  severity?: AlertColor;
   open: boolean | undefined;
+  onClose: () => void;
 }
 
 const CustomNotificationBar = ({
   message,
-  severity,
+  severity = "success",
   open,
+  onClose,
 }: CustomNotificationBarProps) => {
-  const dispatch = useAppDispatch();
   const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
     props,
     ref
@@ -29,7 +28,7 @@ const CustomNotificationBar = ({
           anchorOrigin={{ vertical: "top", horizontal: "center" }}
           open={open}
           autoHideDuration={4000}
-          onClose={() => dispatch(closeSnackBar())}
+          onClose={onClose}
           sx={{ maxWidth: "500px" }}
         >
           <Alert sx={{ width: "100%" }} severity={severity}>

@@ -1,3 +1,4 @@
+import { BaseServerResponse } from "./../../services/type";
 import { z } from "zod";
 
 export const AccessTokenSchema = z.object({
@@ -5,3 +6,7 @@ export const AccessTokenSchema = z.object({
 });
 
 export type AccessTokenType = z.infer<typeof AccessTokenSchema>;
+
+export type ServerTokenResponse = BaseServerResponse & {
+  data: AccessTokenType;
+};

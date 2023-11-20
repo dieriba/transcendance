@@ -15,6 +15,8 @@ export type UserWithProfile = z.infer<typeof UserSchemaWithProfile>;
 
 export const UserWithProfileFriendsSchema = UserSchemaWithProfile.extend({
   friends: z.array(BaseFriendSchema),
+  friendRequestsSent: z.array(z.object({ senderId: z.string().min(1) })),
+  friendRequestsReceived: z.array(z.object({ recipientId: z.string().min(1) })),
 });
 
 export type UserWithProfileFriendsType = z.infer<

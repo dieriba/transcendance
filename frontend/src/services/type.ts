@@ -23,3 +23,7 @@ export type SocketServerSucessResponse = {
 export type BaseFriendTypeWithChatroom = BaseFriendType & {
   chatroomId?: string;
 };
+
+export type SocketServerSucessWithChatroomId = SocketServerSucessResponse & {
+  chatroomId: string;
+};

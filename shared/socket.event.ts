@@ -11,6 +11,7 @@ export enum GeneralEvent {
   USER_CHANGED_AVATAR = `${General}.new.avatar.pic`,
   UPDATE_USER = `${General}.update.user`,
   USER_CHANGED_USERNAME = `${General}.changed.username`,
+  TOKEN_NOT_VALID = `${General}.token.not.valid`,
 }
 
 const friend = "friend";

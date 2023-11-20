@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { VALID_UPLOADS_MIME_TYPES } from "../../../shared/constant";
 
-const MAX_FILE_SIZE = 5000000;
+export const MAX_FILE_SIZE = 5000000;
 
 export const UploadAvatarSchema = z.object({
   avatar: z

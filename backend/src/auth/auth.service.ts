@@ -228,9 +228,9 @@ export class AuthService {
   }
 
   async refresh(payload: JwtPayload, refresh_token: string): Promise<Tokens> {
-    const { sub } = payload;
+    const { userId } = payload;
 
-    const user = await this.userService.findUserById(sub, UserRefreshToken);
+    const user = await this.userService.findUserById(userId, UserRefreshToken);
 
     if (!user)
       throw new CustomException(RESSOURCE_NOT_FOUND, HttpStatus.NOT_FOUND);
@@ -242,10 +242,10 @@ export class AuthService {
 
     if (!isMatch) throw new CustomException(FORBIDDEN, HttpStatus.FORBIDDEN);
 
-    const tokens = await this.jwtTokenService.getTokens(sub);
+    const tokens = await this.jwtTokenService.getTokens(userId);
 
     const hashedRefreshToken = await this.argon2.hash(tokens.refresh_token);
-    await this.userService.updateUserById(sub, {
+    await this.userService.updateUserById(userId, {
       hashedRefreshToken,
     });
 

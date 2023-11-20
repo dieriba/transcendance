@@ -34,6 +34,7 @@ import {
   EditGroupType,
   editGroupResponseType,
 } from "../../../models/EditGroupSchema";
+import { BaseUserTypeId } from "../../../models/login/UserSchema";
 
 export const GroupApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -262,7 +263,13 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
       },
     }),
     getAllGroup: builder.query<
-      SocketServerSucessResponse & { data: ChatroomGroupType[] },
+      SocketServerSucessResponse & {
+        data: {
+          chatrooms: ChatroomGroupType[];
+          blockedUser: BaseUserTypeId[];
+          blockedBy: BaseUserTypeId[];
+        };
+      },
       void
     >({
       queryFn: (data) => {

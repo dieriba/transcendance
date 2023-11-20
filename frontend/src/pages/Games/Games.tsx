@@ -1,7 +1,7 @@
 import Canvas from "./Canvas";
 
 const Games = () => {
-  return <Canvas height={window.innerHeight} width={window.innerWidth}/>;
+  return <></>;
 };
 
 export default Games;

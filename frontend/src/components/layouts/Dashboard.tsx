@@ -46,6 +46,10 @@ const ProtectedDashboardLayout = () => {
         }
       );
 
+      socket.on(GeneralEvent.TOKEN_NOT_VALID, (data) => {
+        console.log({ data });
+      });
+
       socket.on(
         FriendEvent.DELETE_FRIEND,
         (
@@ -102,6 +106,7 @@ const ProtectedDashboardLayout = () => {
       );
 
       return () => {
+        socket.off(GeneralEvent.TOKEN_NOT_VALID);
         socket.off(FriendEvent.DELETE_FRIEND);
         socket.off(FriendEvent.NEW_FRIEND);
         socket.off(GeneralEvent.USER_LOGGED_IN);

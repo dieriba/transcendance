@@ -16,6 +16,7 @@ const GroupContact = () => {
   const groups = useAppSelector(
     (state: RootState) => state.groups.groupChatroom
   );
+
   const myId = useAppSelector((state: RootState) => state.user.user?.id);
   const onlyMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
 

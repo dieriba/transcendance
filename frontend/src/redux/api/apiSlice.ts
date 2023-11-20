@@ -9,7 +9,7 @@ import {
 import { BASE_URL } from "../../config";
 import { RootState } from "../store";
 import { logout, newAccessToken } from "../features/user/user.slice";
-import { AccessTokenType } from "../../models/login/AccessTokenSchema";
+import { ServerTokenResponse } from "../../models/login/AccessTokenSchema";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: BASE_URL,
@@ -30,12 +30,12 @@ const baseQueryWithReauth: BaseQueryFn<
 
   if (result.error && result.error.status === 401) {
     const refreshResult = await baseQuery("/auth/refresh", api, extraOptions);
+    const access_token = (refreshResult.data as ServerTokenResponse).data
+      .access_token;
     if (refreshResult.data) {
-      api.dispatch(
-        newAccessToken({
-          access_token: (refreshResult.data as AccessTokenType).access_token,
-        })
-      );
+      console.log({ access_token });
+
+      api.dispatch(newAccessToken(access_token));
 
       result = await baseQuery(args, api, extraOptions);
     } else {

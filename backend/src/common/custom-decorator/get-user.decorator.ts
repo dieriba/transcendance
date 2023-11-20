@@ -7,7 +7,7 @@ export const GetUser = createParamDecorator(
 
     if (!key)
       return {
-        id: request.userId,
+        userId: request.userId,
         refresh_token: request.refresh_token,
       };
     return request[key];
