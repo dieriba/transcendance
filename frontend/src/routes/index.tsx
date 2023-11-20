@@ -37,7 +37,10 @@ export default function Router() {
         { path: "*", element: <Navigate to="/404" replace /> },
       ],
     },
-
+    {
+      path: "/games/pong",
+      element: <GamesPage />,
+    },
     { path: "*", element: <Navigate to="/404" replace /> },
   ]);
 }

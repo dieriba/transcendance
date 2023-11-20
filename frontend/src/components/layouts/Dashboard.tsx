@@ -118,9 +118,12 @@ const ProtectedDashboardLayout = () => {
 
   return isAuthenticated ? (
     <>
-      <Stack height={"100vh"} direction={onlyMediumScreen ? "column" : "row"}>
-        {onlyMediumScreen && <MobileSidebar />}
-        <Sidebar />
+      <Stack
+        width={"100%"}
+        height={"100vh"}
+        direction={onlyMediumScreen ? "column" : "row"}
+      >
+        {onlyMediumScreen ? <MobileSidebar /> : <Sidebar />}
         <Outlet />
       </Stack>
     </>

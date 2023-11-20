@@ -1,7 +1,7 @@
-const Games = () => {
-  return (
-    <div>Games</div>
-  )
-}
+import Canvas from "./Canvas";
 
-export default Games
+const Games = () => {
+  return <Canvas height={window.innerHeight} width={window.innerWidth}/>;
+};
+
+export default Games;
