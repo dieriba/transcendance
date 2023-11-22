@@ -8,6 +8,7 @@ import { ChatroomModule } from 'src/chatroom/chatroom.module';
 import { JwtTokenModule } from 'src/jwt-token/jwtToken.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { UserModule } from 'src/user/user.module';
+import { PongService } from 'src/pong/pong.service';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { UserModule } from 'src/user/user.module';
     FriendsModule,
     JwtTokenModule,
   ],
-  providers: [GatewayService, GatewayGateway],
+  providers: [GatewayService, GatewayGateway, PongService],
   exports: [GatewayService, GatewayGateway],
 })
 export class GatewayModule {}

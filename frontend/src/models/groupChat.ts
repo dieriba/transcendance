@@ -4,7 +4,6 @@ import { UserSchemaWithProfile } from "./ChatContactSchema";
 import {
   durationUnit,
   groupTypes,
-  messageTypes,
   privilegeRoleType,
   restrictionType,
   roleType,
@@ -45,14 +44,12 @@ export const MessageGroupSchema = z.object({
     .merge(ProfileSchema),
   content: z.string().min(1),
   createdAt: z.date(),
-  messageTypes: z.string().min(1),
 });
 
 export const MessageGroupFormSchema = z.object({
   id: z.string().min(1).optional(),
   chatroomId: z.string().min(1).optional(),
   content: z.string().min(1).trim(),
-  messageTypes: z.enum(messageTypes).optional(),
 });
 
 export type MessageGroupFormType = z.infer<typeof MessageGroupFormSchema>;

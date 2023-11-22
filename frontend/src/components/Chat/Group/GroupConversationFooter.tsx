@@ -33,7 +33,6 @@ const GroupConversationFooter = () => {
       await sendMessage({
         ...data,
         chatroomId: currentGroupChatroomId,
-        messageTypes: "TEXT",
       }).unwrap();
     } catch (error) {
       console.log(error);

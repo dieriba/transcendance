@@ -14,7 +14,7 @@ import {
 } from "./../../../../../shared/socket.event";
 
 import { connectSocket, socket } from "../../../utils/getSocket";
-import { BaseChatroomType, MessageGroupType } from "../../../models/groupChat";
+import { BaseChatroomType } from "../../../models/groupChat";
 
 export const chatApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({

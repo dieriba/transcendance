@@ -32,7 +32,6 @@ const ChatConversationFooter = () => {
         ...data,
         chatroomId: chatroom?.id,
         friendId: chatroom?.users[0].user.id,
-        messageTypes: "TEXT",
       }).unwrap();
     } catch (error) {
       console.log(error);

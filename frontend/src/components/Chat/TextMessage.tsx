@@ -1,6 +1,6 @@
 import { Avatar, Box, Stack, Tooltip, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { ChatConversationBodyProps } from "../ChatConversation/ChatConversationBody";
+import { ChatConversationBodyProps } from "./ChatConversation/ChatConversationBody";
 
 interface TextMessageProps extends ChatConversationBodyProps {
   nickname?: string;

@@ -1,4 +1,3 @@
-import { Player } from "./Player";
 import { Coordinate, Dimension, Velocity } from "./types";
 
 export class Ball {
@@ -37,6 +36,10 @@ export class Ball {
 
   reverseY() {
     this.velocity.y *= -1;
+  }
+
+  get getWidth(): number {
+    return this.width;
   }
 
   public move(canvas: HTMLCanvasElement) {

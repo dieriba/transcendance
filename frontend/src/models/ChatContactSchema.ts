@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { ProfileSchema } from "./ProfileFormSchema";
-import { messageTypes } from "./type-enum/typesEnum";
 import { BaseFriendSchema } from "./FriendsSchema";
 
 export const UserSchemaWithProfile = z
@@ -36,7 +35,6 @@ export const MessageSchema = z.object({
   content: z.string(),
   createdAt: z.date(),
   user: UserSchemaWithProfile,
-  messageTypes: z.enum(messageTypes),
 });
 
 export type MessageType = z.infer<typeof MessageSchema>;
@@ -45,7 +43,6 @@ export const MessageFormSchema = z.object({
   friendId: z.string().optional(),
   chatroomId: z.string().optional(),
   content: z.string().min(1).trim(),
-  messageTypes: z.enum(messageTypes).optional(),
 });
 
 export type MessageFormType = z.infer<typeof MessageFormSchema>;

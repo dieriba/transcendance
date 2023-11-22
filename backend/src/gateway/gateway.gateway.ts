@@ -4,6 +4,7 @@ import {
   UsePipes,
   ValidationPipe,
   Logger,
+  OnModuleInit,
 } from '@nestjs/common';
 import {
   ConnectedSocket,
@@ -65,12 +66,13 @@ import { ChatRoute } from 'src/common/custom-decorator/metadata.decorator';
 import { IsRestrictedUserGuard } from 'src/chat/guards/is-restricted-user.guard.ws';
 import { AvatarUpdateDto } from 'src/user/dto/AvatarUpdate.dto';
 import { UserInfoUpdateDto } from 'src/user/dto/UserInfo.dto';
+import { PongService } from 'src/pong/pong.service';
 
 @UseGuards(WsAccessTokenGuard)
 @UseFilters(WsCatchAllFilter)
 @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 @WebSocketGateway()
-export class GatewayGateway {
+export class GatewayGateway implements OnModuleInit {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly userService: UserService,
@@ -79,9 +81,16 @@ export class GatewayGateway {
     private readonly argon2Service: Argon2Service,
     private readonly libService: LibService,
     private readonly friendService: FriendsService,
+    private readonly pongService: PongService,
   ) {}
 
   private readonly logger = new Logger(GatewayGateway.name);
+
+  onModuleInit() {
+    setInterval(() => {
+      this.server.emit('HELLO', 'test interval');
+    }, 1000);
+  }
 
   @WebSocketServer()
   server: Server;
@@ -404,7 +413,6 @@ export class GatewayGateway {
               },
               createdAt: true,
               content: true,
-              messageTypes: true,
             },
           },
         },
@@ -1395,7 +1403,6 @@ export class GatewayGateway {
         },
         createdAt: true,
         chatroomId: true,
-        messageTypes: true,
       },
     });
 
@@ -1502,7 +1509,6 @@ export class GatewayGateway {
             },
             createdAt: true,
             content: true,
-            messageTypes: true,
           },
         },
         restrictedUsers: {
@@ -1599,7 +1605,6 @@ export class GatewayGateway {
             },
             chatroomId: true,
             createdAt: true,
-            messageTypes: true,
           },
         },
       },
@@ -1668,7 +1673,6 @@ export class GatewayGateway {
             },
             createdAt: true,
             content: true,
-            messageTypes: true,
           },
         },
       },
@@ -1738,7 +1742,7 @@ export class GatewayGateway {
     @MessageBody() chatroomMessageDto: ChatroomMessageDto,
   ) {
     const { userId } = client;
-    const { chatroomId, content, messageTypes, image } = chatroomMessageDto;
+    const { chatroomId, content, image } = chatroomMessageDto;
     const user = await this.prismaService.user.findFirst({
       where: {
         id: userId,
@@ -1761,7 +1765,6 @@ export class GatewayGateway {
       data: {
         content: content,
         imageUrl: image,
-        messageTypes,
         user: {
           connect: {
             id: userId,
@@ -1778,7 +1781,6 @@ export class GatewayGateway {
         content: true,
         chatroomId: true,
         createdAt: true,
-        messageTypes: true,
         user: {
           select: {
             id: true,
@@ -1804,7 +1806,6 @@ export class GatewayGateway {
           content,
           chatroomId,
           createdAt: res.createdAt,
-          messageTypes,
           user: {
             id: userId,
             nickname: user.nickname,
@@ -1822,7 +1823,7 @@ export class GatewayGateway {
     @ConnectedSocket() client: SocketWithAuth,
     @MessageBody() message: DmMessageDto,
   ) {
-    const { friendId, content, chatroomId, messageTypes, image } = message;
+    const { friendId, content, chatroomId, image } = message;
     const { userId } = client;
 
     const user = await this.userService.findUserById(userId, UserData);
@@ -1840,7 +1841,6 @@ export class GatewayGateway {
       data: {
         content: content,
         imageUrl: image,
-        messageTypes,
         user: {
           connect: {
             id: userId,
@@ -1879,7 +1879,6 @@ export class GatewayGateway {
           chatroomId,
           userId,
           content,
-          messageTypes,
           user: res.user,
           createdAt: res.createdAt,
         },
@@ -1897,7 +1896,6 @@ export class GatewayGateway {
           content,
           user: res.user,
           createdAt: res.createdAt,
-          messageTypes,
         },
       });
   }

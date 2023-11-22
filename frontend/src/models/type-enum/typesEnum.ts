@@ -1,9 +1,6 @@
 export const groupTypes = ["PUBLIC", "PRIVATE", "PROTECTED"] as const;
 export type GroupTypes = "PUBLIC" | "PRIVATE" | "PROTECTED";
 
-export const messageTypes = ["IMAGE", "DOCUMENT", "REPLY", "TEXT"] as const;
-export type MessageTYpes = "IMAGE" | "DOCUMENT" | "REPLY" | "TEXT";
-
 export const friendsType = ["ONLINE", "OFFLINE", "PLAYING"] as const;
 export type FriendsType = "ONLINE" | "OFFLINE" | "PLAYING";
 

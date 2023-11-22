@@ -15,6 +15,7 @@ import { FriendsModule } from './friends/friends.module';
 import { ChatroomModule } from './chatroom/chatroom.module';
 import { ChatroomUserModule } from './chatroom-user/chatroom-user.module';
 import { UploadFilesModule } from './upload-files/upload-files.module';
+import { PongService } from './pong/pong.service';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { UploadFilesModule } from './upload-files/upload-files.module';
       provide: APP_INTERCEPTOR,
       useClass: ResponseMessageInterceptor,
     },
+    PongService,
   ],
 })
 export class AppModule {}

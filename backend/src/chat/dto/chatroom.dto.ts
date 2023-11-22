@@ -11,7 +11,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { MESSAGE_TYPES, RESTRICTION, ROLE, TYPE } from '@prisma/client';
+import { RESTRICTION, ROLE, TYPE } from '@prisma/client';
 import { DAYS, HOURS, MIN } from 'src/common/constant/enum.constant';
 import { isValidDuration } from '../validation-decorator/is-valid-duration.validation';
 import { ApiProperty } from '@nestjs/swagger';
@@ -62,10 +62,6 @@ export class DmMessageDto {
   content: string;
 
   @ApiProperty()
-  @IsEnum(MESSAGE_TYPES)
-  messageTypes: MESSAGE_TYPES;
-
-  @ApiProperty()
   @IsString()
   @IsOptional()
   @IsNotEmpty()
@@ -89,10 +85,6 @@ export class ChatroomMessageDto {
   @IsOptional()
   @IsNotEmpty()
   image: string;
-
-  @ApiProperty()
-  @IsEnum(MESSAGE_TYPES)
-  messageTypes: MESSAGE_TYPES;
 
   @ApiProperty()
   @IsNotEmpty()

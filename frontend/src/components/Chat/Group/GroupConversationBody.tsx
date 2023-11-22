@@ -5,9 +5,6 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import ImageMessage from "../ChatBodyComponents/ImageMessage";
-import ReplyMessage from "../ChatBodyComponents/ReplyMessage";
-import DocumentMessage from "../ChatBodyComponents/DocumentMessage";
 import StackChatCompo from "../StackChatCompo";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { useEffect, useRef } from "react";
@@ -38,7 +35,7 @@ import {
 import { connectSocket, socket } from "../../../utils/getSocket";
 import { ChatEventGroup } from "../../../../../shared/socket.event";
 import { UserWithProfileFriendsType } from "../../../models/ChatContactSchema";
-import TextMessage from "../ChatBodyComponents/TextMessage";
+import TextMessage from "../TextMessage";
 import CustomNotificationBar from "../../snackbar/customNotificationBar";
 export interface GroupConversationBodyProps {
   id: string;
@@ -275,73 +272,26 @@ const GroupConversationBody = () => {
           message={message}
         />
         <Stack height={"100%"}>
-          {messages.map(({ id, messageTypes, user, content }) => {
+          {messages.map(({ id, user, content }) => {
             const incoming = myId === user.id;
 
-            switch (messageTypes) {
-              case "IMAGE":
-                return (
-                  <StackChatCompo
-                    key={id}
+            return (
+              <StackChatCompo
+                incoming={incoming}
+                key={id}
+                children={
+                  <TextMessage
+                    nickname={user.nickname}
+                    id={id}
+                    content={content}
                     incoming={incoming}
-                    children={
-                      <ImageMessage
-                        incoming={incoming}
-                        id={id}
-                        content={content}
-                        image={content}
-                      />
+                    avatar={
+                      user.profile?.avatar ? user.profile.avatar : undefined
                     }
                   />
-                );
-              case "DOCUMENT":
-                return (
-                  <StackChatCompo
-                    incoming={incoming}
-                    key={id}
-                    children={
-                      <DocumentMessage
-                        incoming={incoming}
-                        id={id}
-                        content={content}
-                      />
-                    }
-                  />
-                );
-              case "REPLY":
-                return (
-                  <StackChatCompo
-                    incoming={incoming}
-                    key={id}
-                    children={
-                      <ReplyMessage
-                        id={id}
-                        content={content}
-                        incoming={incoming}
-                        reply={content}
-                      />
-                    }
-                  />
-                );
-              default:
-                return (
-                  <StackChatCompo
-                    incoming={incoming}
-                    key={id}
-                    children={
-                      <TextMessage
-                        nickname={user.nickname}
-                        id={id}
-                        content={content}
-                        incoming={incoming}
-                        avatar={
-                          user.profile?.avatar ? user.profile.avatar : undefined
-                        }
-                      />
-                    }
-                  />
-                );
-            }
+                }
+              />
+            );
           })}
           <div ref={lastMessage}></div>
         </Stack>

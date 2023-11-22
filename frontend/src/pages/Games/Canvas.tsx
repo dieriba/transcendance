@@ -48,12 +48,15 @@ const Canvas = ({ ...props }: CanvasProps) => {
 
     const checkCollisionWithPlayer = (player: Player): boolean => {
       if (
-        ball.position.x + player.getPostion.x &&
-        ball.position.x < player.getPostion.x + player.getDimension.width &&
-        ball.position.y < player.getPostion.y + ball.dimension.height &&
-        ball.position.y + ball.dimension.height === player.getPostion.y
+        ball.position.x - ball.getWidth <= player.getPostion.x &&
+        ball.position.x >= player.getPostion.x - player.getDimension.width
       ) {
-        return true;
+        if (
+          ball.position.y <= player.getPostion.y + player.getDimension.height &&
+          ball.position.y + ball.dimension.height >= player.getPostion.y
+        ) {
+          return true;
+        }
       }
       return false;
     };
