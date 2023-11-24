@@ -19,6 +19,7 @@ import {
   FriendEvent,
   GeneralEvent,
   ChatEventGroup,
+  PongEvent,
 } from '../../../shared/socket.event';
 import { Server } from 'socket.io';
 import { Argon2Service } from 'src/argon2/argon2.service';
@@ -88,8 +89,8 @@ export class GatewayGateway implements OnModuleInit {
 
   onModuleInit() {
     setInterval(() => {
-      this.server.emit('HELLO', 'test interval');
-    }, 1000);
+      this.pongService.gameUpdate();
+    }, 1000 / 30);
   }
 
   @WebSocketServer()
@@ -127,6 +128,8 @@ export class GatewayGateway implements OnModuleInit {
         data: { friendId: client.userId },
       });
     }
+    const allRooms = this.server.of('/').adapter.rooms;
+    console.log({ allRooms });
   }
 
   @SubscribeMessage(GeneralEvent.NEW_PROFILE_PICTURE)
@@ -2548,6 +2551,53 @@ export class GatewayGateway implements OnModuleInit {
       .to(client.userId)
       .emit(GeneralEvent.SUCCESS, { message: 'User unblocked!' });
   }
+
+  /*------------------------------------------------------------------------------------------------------ */
+  @SubscribeMessage(PongEvent.JOIN_QUEUE)
+  async joinQueue(@ConnectedSocket() client: SocketWithAuth) {
+    const { userId } = client;
+
+    const user = await this.userService.findUserById(userId, UserData);
+
+    if (!user) throw new WsNotFoundException('User not found');
+
+    const inAGame = this.pongService.checkIfUserIsAlreadyInAGame(userId);
+
+    if (inAGame) {
+      throw new WsBadRequestException(
+        'You are already in a room, please leave it before rejoining the queue',
+      );
+    }
+
+    if (this.pongService.checkIfMatchupIsPossible(this.server, client)) {
+      console.log('matchupppp');
+
+      return;
+    }
+
+    const gameId = this.pongService.createGameRoom(userId, client);
+
+    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+      message: 'Please wait for an opponent...',
+      data: { gameId },
+    });
+  }
+
+  @SubscribeMessage(PongEvent.LEAVE_QUEUE)
+  async leaveQueue(@ConnectedSocket() client: SocketWithAuth) {
+    const { userId } = client;
+
+    const user = await this.userService.findUserById(userId, UserData);
+
+    if (!user) throw new WsNotFoundException('User not found');
+
+    this.pongService.leaveRoom(userId);
+
+    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS);
+  }
+  /*------------------------------------------------------------------------------------------------------ */
+
+  /*------------------------------------------------------------------------------------------------------ */
 
   private sendToSocket(
     instance: SocketWithAuth | Server,

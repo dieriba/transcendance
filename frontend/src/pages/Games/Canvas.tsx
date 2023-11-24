@@ -1,5 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import React from "react";
+import { Box } from "@mui/material";
+import {
+  GAME_BOARD_HEIGHT,
+  GAME_BOARD_WIDTH,
+  RESIZE_FACTOR,
+} from "../../../../shared/constant";
 import { Ball } from "./Ball";
 import { Player } from "./Player";
 
@@ -9,7 +15,43 @@ interface CanvasProps
     HTMLCanvasElement
   > {}
 
-const Canvas = ({ ...props }: CanvasProps) => {
+const Canvas = () => {
+  const [canvasDimensions, setCanvasDimensions] = useState({
+    width: Number(window.innerWidth / RESIZE_FACTOR),
+    height: Number(window.innerHeight / RESIZE_FACTOR),
+  });
+
+  const getResponsiveSize = () => {
+    const windowRatio = window.innerWidth / window.innerHeight;
+    const gameRatio = GAME_BOARD_WIDTH / GAME_BOARD_HEIGHT;
+
+    let newWidth, newHeight;
+
+    if (windowRatio > gameRatio) {
+      newHeight = window.innerHeight / RESIZE_FACTOR;
+      newWidth = newHeight * gameRatio;
+    } else {
+      newWidth = window.innerWidth / RESIZE_FACTOR;
+      newHeight = newWidth / gameRatio;
+    }
+    return { width: newWidth, height: newHeight };
+  };
+
+  useEffect(() => {
+    const updateDimensions = () => {
+      const newSize = getResponsiveSize();
+      setCanvasDimensions(newSize);
+    };
+
+    updateDimensions();
+    window.addEventListener("resize", updateDimensions);
+    return () => {
+      window.removeEventListener("resize", updateDimensions);
+    };
+  }, []);
+
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
   useEffect(() => {
     const canvas = canvasRef.current;
 
@@ -20,55 +62,39 @@ const Canvas = ({ ...props }: CanvasProps) => {
     if (!context) return;
 
     context.fillStyle = "black";
-
+    context.canvas.style.imageRendering = "auto";
     let animationId: number;
 
     const ball = new Ball(
       { x: canvas.width / 2, y: canvas.height / 2 },
-      { height: 10, width: 10 },
-      { x: 5, y: 5 },
-      10
+      { x: 3, y: 2 },
+      2
     );
 
     const Player1 = new Player(
       canvas,
       context,
-      { x: 0, y: canvas.height / 2 },
-      { x: 10, y: 10 },
-      { width: 20, height: 150 }
+      { x: canvas.width / 2, y: canvas.height - 20 },
+      { x: 4, y: 4 },
+      { width: 50, height: 5 }
     );
 
     const Player2 = new Player(
       canvas,
       context,
-      { x: canvas.width - 20, y: 30 },
-      { x: 10, y: 10 },
-      { width: 20, height: 160 }
+      { x: canvas.width / 2, y: 0 },
+      { x: 4, y: 4 },
+      { width: 50, height: 5 }
     );
-
-    const checkCollisionWithPlayer = (player: Player): boolean => {
-      if (
-        ball.position.x - ball.getWidth <= player.getPostion.x &&
-        ball.position.x >= player.getPostion.x - player.getDimension.width
-      ) {
-        if (
-          ball.position.y <= player.getPostion.y + player.getDimension.height &&
-          ball.position.y + ball.dimension.height >= player.getPostion.y
-        ) {
-          return true;
-        }
-      }
-      return false;
-    };
 
     const gameLoop = () => {
       context.clearRect(0, 0, canvas.width, canvas.height);
       ball.draw(context);
       ball.move(canvas);
-      if (checkCollisionWithPlayer(Player1)) {
-        ball.reverseY();
-      }
+      ball.checkCollisionWithPlayer(Player1);
       Player1.draw();
+      Player1.movePaddle();
+      Player2.draw();
       animationId = window.requestAnimationFrame(gameLoop);
     };
 
@@ -77,11 +103,23 @@ const Canvas = ({ ...props }: CanvasProps) => {
     return () => {
       window.cancelAnimationFrame(animationId);
     };
-  }, []);
+  }, [canvasRef, canvasDimensions.width, canvasDimensions.height]);
 
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  return <canvas style={{ overflow: "hidden" }} {...props} ref={canvasRef} />;
+  return (
+    <Box
+      height={"100vh"}
+      alignItems={"center"}
+      display={"flex"}
+      justifyContent={"center"}
+      width={"100%"}
+    >
+      <canvas
+        width={canvasDimensions.width}
+        height={canvasDimensions.height}
+        ref={canvasRef}
+      />
+    </Box>
+  );
 };
 
 export default Canvas;

@@ -32,6 +32,8 @@ model User {
   game                   GameHistory[]    @relation("gameHistoryUsers2")
   winner                 GameHistory[]    @relation("gameWinner")
   loser                  GameHistory[]    @relation("gameLoser")
+  victory                Int              @default(0)
+  losses                 Int              @default(0)
   receivedNotifications  Notifications[]  @relation("userNotification")
   blockedChatroomUser    Chatroom[]       @relation("blockedUsers")
   chatrooms              ChatroomUser[]

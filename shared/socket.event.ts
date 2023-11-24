@@ -81,3 +81,11 @@ export enum ChatEventGroup {
   ADD_USER = `${groupChatroom}.add.user`,
   USER_ADDED = `${groupChatroom}.chatroom.user.added`,
 }
+
+const pong = "pong";
+
+export enum PongEvent {
+  JOIN_QUEUE = `${pong}.join.queue`,
+  LEAVE_QUEUE = `${pong}.leave.queue`,
+  GO_WAITING_ROOM = `${pong}.go.waiting.room`,
+}

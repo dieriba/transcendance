@@ -1,3 +1,4 @@
+import { GAME_BOARD_WIDTH } from "./constant";
 import { Player } from "./Player";
 import { Coordinate, Velocity } from "./types";
 
@@ -46,13 +47,13 @@ export class Ball {
     }
   };
 
-  public move(canvas: HTMLCanvasElement) {
+  public move() {
     this.position.x += this.velocity.x;
     this.position.y += this.velocity.y;
 
     if (
       this.position.x - this.radius <= 0 ||
-      this.position.x > canvas.width - this.width
+      this.position.x > GAME_BOARD_WIDTH - this.width
     ) {
       this.reverseX();
     }

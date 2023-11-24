@@ -12,6 +12,7 @@ import { FriendsSlice } from "./features/friends/friends.slice";
 import { GroupSlice } from "./features/groups/group.slice";
 import AppSlice from "./features/app/app.slice";
 import { UserSlice } from "./features/user/user.slice";
+import PongSlice from "./features/pong/pong.slice";
 
 const persistConfig = {
   keyPrefix: "redux-",
@@ -26,6 +27,7 @@ const reducers = combineReducers({
   chat: ChatSlice.reducer,
   friends: FriendsSlice.reducer,
   groups: GroupSlice.reducer,
+  pong: PongSlice.reducer,
   [apiSlice.reducerPath]: apiSlice.reducer,
 });
 

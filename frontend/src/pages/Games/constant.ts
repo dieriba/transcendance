@@ -1,0 +1,1 @@
+export const RESIZE_FACTOR = 1.3;

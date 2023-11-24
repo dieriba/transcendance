@@ -1,3 +1,4 @@
+import { GAME_BOARD_WIDTH } from "./constant";
 import { Coordinate, Dimension, Velocity } from "./types";
 
 export enum KeyboardOptions {
@@ -11,8 +12,7 @@ export const Map = {
 };
 
 export class Player {
-  private canvas: HTMLCanvasElement;
-  private context: CanvasRenderingContext2D;
+  //private context: CanvasRenderingContext2D;
   private moveLeft: boolean;
   private moveRight: boolean;
   private position: Coordinate;
@@ -21,21 +21,17 @@ export class Player {
   private score: number;
 
   constructor(
-    canvas: HTMLCanvasElement,
-    context: CanvasRenderingContext2D,
+    // context: CanvasRenderingContext2D,
+    dimension: Dimension,
     postion: Coordinate,
-    velocity: Velocity,
-    dimension: Dimension
+    velocity: Velocity
   ) {
     this.position = postion;
     this.dimension = dimension;
     this.velocity = velocity;
     this.moveLeft = false;
     this.moveRight = false;
-    this.canvas = canvas;
-    this.context = context;
-    document.addEventListener("keydown", this.handleKeyDown);
-    document.addEventListener("keyup", this.handleKeyUp);
+    //  this.context = context;
     this.score = 0;
   }
 
@@ -84,7 +80,7 @@ export class Player {
     this.score++;
   }
 
-  public draw() {
+  /* public draw() {
     this.context.fillStyle = "white";
     this.context.fillRect(
       this.position.x,
@@ -93,7 +89,7 @@ export class Player {
       this.dimension.height
     );
   }
-
+*/
   get isMovingLeft(): boolean {
     return this.moveLeft;
   }
@@ -106,7 +102,7 @@ export class Player {
     if (
       (this.isMovingLeft && this.position.x > 0) ||
       (this.isMovingRight &&
-        this.position.x < this.canvas.width - this.dimension.width)
+        this.position.x < GAME_BOARD_WIDTH - this.dimension.width)
     ) {
       if (this.moveLeft) this.position.x -= this.velocity.x;
       if (this.moveRight) this.position.x += this.velocity.x;
