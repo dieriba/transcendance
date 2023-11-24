@@ -7,10 +7,16 @@ import { PongEvent } from '../../../shared/socket.event';
 @Injectable()
 export class PongService {
   private readonly games: Game[] = [];
+  private readonly queue: Map<string, string>[] = [];
+
+  checkIfUserIsQueing(id: string): boolean {
+    const res = this.queue.find((map) => map.has(id) === true);
+
+    return res ? true : false;
+  }
 
   checkIfUserIsAlreadyInAGame(id: string): Game | undefined {
     const game = this.games.find((game) => game.getPlayers.includes(id));
-    console.log({ gameLength: this.games.length, game: this.games[0] });
 
     return game;
   }
@@ -35,6 +41,12 @@ export class PongService {
     if (index === -1) return;
 
     this.games.splice(index, 1);
+  }
+
+  leaveQueue(userId: string) {
+    const found = this.queue.findIndex((map) => map.has(userId));
+
+    if (found === -1) return;
   }
 
   leaveRoom(userId: string) {
