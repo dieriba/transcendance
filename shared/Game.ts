@@ -6,11 +6,12 @@ export class Game {
   private gameStarted: boolean;
   private gameId: string;
   private players: string[] = [];
+  private socketsId: string[] = [];
   private player: Player;
   private opponentPlayer: Player;
   private ball: Ball;
 
-  constructor(playerId: string, gameId: string) {
+  constructor(gameId: string, playerId: string, socketId: string) {
     this.gameId = gameId;
     this.player = new Player(
       {
@@ -46,6 +47,7 @@ export class Game {
       defaultBall.radius
     );
     this.players.push(playerId);
+    this.socketsId.push(socketId);
   }
 
   public update() {
@@ -82,8 +84,24 @@ export class Game {
     return this.players;
   }
 
-  set oponnentPlayer(userId: string) {
+  get getSocketIds(): string[] {
+    return this.socketsId;
+  }
+
+  set setOponnentPlayer(userId: string) {
     this.players.push(userId);
+  }
+
+  set setNewSocketId(socketId: string) {
+    this.socketsId.push(socketId);
+  }
+
+  public setNewsocketIdAt(socketId: string, index: 0 | 1) {
+    if (this.socketsId.length === 1 && index === 1) {
+      this.socketsId.push(socketId);
+      return;
+    }
+    this.socketsId[0] = socketId;
   }
 
   removeUser(userId: string) {

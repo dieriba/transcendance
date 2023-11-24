@@ -5,7 +5,11 @@ import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { PATH_APP } from "../../routes/paths";
 import { useEffect } from "react";
 import { connectSocket, socket } from "../../utils/getSocket";
-import { FriendEvent, GeneralEvent } from "../../../../shared/socket.event";
+import {
+  FriendEvent,
+  GeneralEvent,
+  PongEvent,
+} from "../../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../services/type";
 import { FriendReceivedRequestType } from "../../models/FriendRequestSchema";
 import { showSnackBar } from "../../redux/features/app/app.slice";
@@ -22,6 +26,7 @@ import {
 } from "../../redux/features/friends/friends.slice";
 import { useTheme } from "@mui/material/styles";
 import MobileSidebar from "../sidebar/MobileSidebar";
+import { setInQueue } from "../../redux/features/pong/pong.slice";
 
 const ProtectedDashboardLayout = () => {
   const isAuthenticated = useAppSelector(
@@ -105,15 +110,22 @@ const ProtectedDashboardLayout = () => {
         }
       );
 
+      socket.on(PongEvent.REFRESHING_AND_LEAVE_QUEUE, () => {
+        console.log("catched");
+
+        dispatch(setInQueue(false));
+      });
+
       return () => {
         socket.off(GeneralEvent.TOKEN_NOT_VALID);
-        socket.off(FriendEvent.DELETE_FRIEND);
-        socket.off(FriendEvent.NEW_FRIEND);
         socket.off(GeneralEvent.USER_LOGGED_IN);
         socket.off(GeneralEvent.USER_LOGGED_OUT);
+        socket.off(FriendEvent.DELETE_FRIEND);
+        socket.off(FriendEvent.NEW_FRIEND);
         socket.off(FriendEvent.REQUEST_ACCEPTED_FROM_RECIPIENT);
         socket.off(FriendEvent.NEW_REQUEST_RECEIVED);
         socket.off(FriendEvent.NEW_REQUEST_ACCEPTED);
+        socket.off(PongEvent.REFRESHING_AND_LEAVE_QUEUE);
       };
     }
   }, [isAuthenticated, dispatch]);

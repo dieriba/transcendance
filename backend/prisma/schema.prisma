@@ -30,10 +30,11 @@ model User {
   friendUserFriends      Friends[]        @relation("friendUsers")
   gameHistory            GameHistory[]    @relation("gameHistoryUsers1")
   game                   GameHistory[]    @relation("gameHistoryUsers2")
-  winner                 GameHistory[]    @relation("gameWinner")
-  loser                  GameHistory[]    @relation("gameLoser")
-  victory                Int              @default(0)
-  losses                 Int              @default(0)
+  winnedGame             GameHistory[]    @relation("gameWinner")
+  loosedGame             GameHistory[]    @relation("gameLoser")
+  pongVictory            Int              @default(0)
+  pongLosses             Int              @default(0)
+  pong                   Pong?            @relation("pong")
   receivedNotifications  Notifications[]  @relation("userNotification")
   blockedChatroomUser    Chatroom[]       @relation("blockedUsers")
   chatrooms              ChatroomUser[]
@@ -56,6 +57,12 @@ model GameHistory {
   matchResult GAME_RESULT
 
   @@unique([user1Id, user2Id, matchDate])
+}
+
+model Pong {
+  id     String @id @default(uuid())
+  userId String @unique @default(uuid())
+  user   User   @relation("pong", fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Group {
@@ -89,15 +96,15 @@ model FriendRequest {
 }
 
 model Profile {
-  id   String @id @default(uuid())
-  user User   @relation("userProfile", fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation("userProfile", fields: [userId], references: [id], onDelete: Cascade)
 
   avatar    String?
   firstname String? @db.VarChar(25)
   lastname  String? @db.VarChar(25)
   gender    Gender?
   age       Int?
-  userId    String  @unique
 }
 
 model Notifications {

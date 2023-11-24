@@ -88,4 +88,5 @@ export enum PongEvent {
   JOIN_QUEUE = `${pong}.join.queue`,
   LEAVE_QUEUE = `${pong}.leave.queue`,
   GO_WAITING_ROOM = `${pong}.go.waiting.room`,
+  REFRESHING_AND_LEAVE_QUEUE = `${pong}.refresh.leave.queue`,
 }

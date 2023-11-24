@@ -15,17 +15,16 @@ import {
 import { SocketServerErrorResponse } from "../../services/type";
 import { connectSocket, socket } from "../../utils/getSocket";
 import { PongEvent } from "../../../../shared/socket.event";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+import { RootState } from "../../redux/store";
+import { setInQueue } from "../../redux/features/pong/pong.slice";
 
 const Games = () => {
-  const [status, setStatus] = useState<{
-    inQueue: boolean;
-    waitingRoom: boolean;
-    gameId: string | undefined;
-  }>({
-    waitingRoom: false,
-    inQueue: false,
-    gameId: undefined,
-  });
+  const { inQueue, waitingReady } = useAppSelector(
+    (state: RootState) => state.pong
+  );
+
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     connectSocket();
@@ -34,11 +33,8 @@ const Games = () => {
     });
     return () => {
       socket.off(PongEvent.GO_WAITING_ROOM);
-      console.log(status.gameId);
-
-      if (status.gameId) socket.emit(PongEvent.LEAVE_QUEUE);
     };
-  }, [status.gameId]);
+  }, []);
 
   const [message, setMessage] = useState("");
   const [severity, setSeverity] = useState<AlertColor>("success");
@@ -63,11 +59,7 @@ const Games = () => {
       const res = await joinQueue().unwrap();
       console.log({ gameId: res.data.gameId });
 
-      setStatus((prev) => ({
-        ...prev,
-        inQueue: true,
-        gameId: res.data.gameId,
-      }));
+      dispatch(setInQueue(true));
     } catch (error) {
       console.log({ error });
 
@@ -80,7 +72,7 @@ const Games = () => {
   const handleLeaveQueue = async () => {
     try {
       await leaveQueue().unwrap();
-      setStatus((prev) => ({ ...prev, inQueue: false, gameId: undefined }));
+      dispatch(setInQueue(false));
     } catch (error) {
       console.log({ error });
 
@@ -90,7 +82,7 @@ const Games = () => {
     }
   };
 
-  if (!status.inQueue) {
+  if (!inQueue) {
     return (
       <Stack
         height={"100vh"}
@@ -122,7 +114,7 @@ const Games = () => {
         </Stack>
       </Stack>
     );
-  } else if (status.inQueue && !status.waitingRoom) {
+  } else if (inQueue && !waitingReady) {
     return (
       <Stack
         alignItems={"center"}

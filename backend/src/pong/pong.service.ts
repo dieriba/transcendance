@@ -8,18 +8,18 @@ import { PongEvent } from '../../../shared/socket.event';
 export class PongService {
   private readonly games: Game[] = [];
 
-  checkIfUserIsAlreadyInAGame(id: string): boolean {
+  checkIfUserIsAlreadyInAGame(id: string): Game | undefined {
     const game = this.games.find((game) => game.getPlayers.includes(id));
     console.log({ gameLength: this.games.length, game: this.games[0] });
 
-    return game ? true : false;
+    return game;
   }
 
   createGameRoom(userId: string, socket: SocketWithAuth): string {
     const gameId = 'pong_' + userId;
     console.log('new room');
 
-    const game = new Game(userId, gameId);
+    const game = new Game(gameId, userId, socket.id);
 
     const len = this.games.push(game);
     console.log({ newLen: len, len: this.games.length, game: this.games[0] });
@@ -37,7 +37,7 @@ export class PongService {
     this.games.splice(index, 1);
   }
 
-  leaveRoom(userId: string): string {
+  leaveRoom(userId: string) {
     const index = this.games.findIndex((game) =>
       game.getPlayers.includes(userId),
     );
@@ -67,12 +67,23 @@ export class PongService {
 
     const { userId } = client;
     const { getGameId } = this.games[index];
-    this.games[index].oponnentPlayer = userId;
+    this.games[index].setOponnentPlayer = userId;
+    this.games[index].setNewSocketId = client.id;
     client.join(getGameId);
     server
       .to(getGameId)
-      .emit(PongEvent.GO_WAITING_ROOM, { data: this.games[index] });
+      .emit(PongEvent.GO_WAITING_ROOM, { data: { game: this.games[index] } });
 
     return true;
+  }
+
+  updateGameByUserId(game: Game, userId: string) {
+    const index = this.games.findIndex((game) =>
+      game.getPlayers.includes(userId),
+    );
+
+    if (index >= 0) {
+      this.games[index] = game;
+    }
   }
 }

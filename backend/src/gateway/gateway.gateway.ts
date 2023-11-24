@@ -128,8 +128,17 @@ export class GatewayGateway implements OnModuleInit {
         data: { friendId: client.userId },
       });
     }
+
+    const { id, userId } = client;
+
+    const game = this.pongService.checkIfUserIsAlreadyInAGame(userId);
+
     const allRooms = this.server.of('/').adapter.rooms;
-    console.log({ allRooms });
+    console.log({ allRooms, game, id });
+    if (game?.getSocketIds.includes(id)) {
+      this.pongService.leaveRoom(userId);
+      console.log('gameeeeeeeeeeee');
+    }
   }
 
   @SubscribeMessage(GeneralEvent.NEW_PROFILE_PICTURE)
@@ -2557,10 +2566,15 @@ export class GatewayGateway implements OnModuleInit {
   async joinQueue(@ConnectedSocket() client: SocketWithAuth) {
     const { userId } = client;
 
-    const user = await this.userService.findUserById(userId, UserData);
+    const user = await this.prismaService.user.findFirst({
+      where: { id: userId },
+      select: {
+        pongVictory: true,
+        pongLosses: true,
+      },
+    });
 
     if (!user) throw new WsNotFoundException('User not found');
-
     const inAGame = this.pongService.checkIfUserIsAlreadyInAGame(userId);
 
     if (inAGame) {
@@ -2570,7 +2584,7 @@ export class GatewayGateway implements OnModuleInit {
     }
 
     if (this.pongService.checkIfMatchupIsPossible(this.server, client)) {
-      console.log('matchupppp');
+      const { pongLosses, pongVictory } = user;
 
       return;
     }
@@ -2585,14 +2599,20 @@ export class GatewayGateway implements OnModuleInit {
 
   @SubscribeMessage(PongEvent.LEAVE_QUEUE)
   async leaveQueue(@ConnectedSocket() client: SocketWithAuth) {
-    const { userId } = client;
+    const { id, userId } = client;
 
     const user = await this.userService.findUserById(userId, UserData);
 
     if (!user) throw new WsNotFoundException('User not found');
 
-    this.pongService.leaveRoom(userId);
+    const game = this.pongService.checkIfUserIsAlreadyInAGame(userId);
 
+    const allRooms = this.server.of('/').adapter.rooms;
+    console.log({ allRooms, game, id });
+    if (game?.getSocketIds.includes(id)) {
+      this.pongService.leaveRoom(userId);
+      console.log('gameeeeeeeeeeee');
+    }
     this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS);
   }
   /*------------------------------------------------------------------------------------------------------ */
