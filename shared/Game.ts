@@ -96,6 +96,10 @@ export class Game {
     this.socketsId.push(socketId);
   }
 
+  set setGameStarted(started: boolean) {
+    this.gameStarted = started;
+  }
+
   public setNewsocketIdAt(socketId: string, index: 0 | 1) {
     if (this.socketsId.length === 1 && index === 1) {
       this.socketsId.push(socketId);

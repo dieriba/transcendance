@@ -126,10 +126,29 @@ export class GatewayGateway {
 
     const { id, userId } = client;
 
-    const game = this.pongService.checkIfUserIsAlreadyInAGame(userId);
+    const game = this.pongService.checkIfUserIsAlreadyInARoom(userId);
 
     const allRooms = this.server.of('/').adapter.rooms;
     console.log({ allRooms, game, id });
+
+    if (game?.hasStarted) {
+      this.sendToSocket(
+        this.server,
+        game.getGameId,
+        PongEvent.USER_NO_MORE_IN_GAME,
+        {
+          message:
+            'Redirecting you to game page as your adversary leaved the game',
+          data: {},
+        },
+      );
+      this.pongService.deleteGameRoomByGameId(game.getGameId);
+      if (allRooms.has(game.getGameId)) {
+        allRooms.delete(game.getGameId);
+      }
+      return;
+    }
+
     if (game?.getSocketIds.includes(id)) {
       this.pongService.leaveRoom(userId);
       console.log('gameeeeeeeeeeee');
@@ -2568,32 +2587,26 @@ export class GatewayGateway {
 
     const user = await this.prismaService.user.findFirst({
       where: { id: userId },
-      select: {
-        pongVictory: true,
-        pongLosses: true,
-      },
     });
 
     if (!user) throw new WsNotFoundException('User not found');
-    const inAGame = this.pongService.checkIfUserIsAlreadyInAGame(userId);
+    const inARoom = this.pongService.checkIfUserIsAlreadyInARoom(userId);
 
-    if (inAGame) {
+    if (inARoom) {
       throw new WsBadRequestException(
         'You are already in a room, please leave it before rejoining the queue',
       );
     }
 
     if (this.pongService.checkIfMatchupIsPossible(this.server, client)) {
-      const { pongLosses, pongVictory } = user;
-
       return;
     }
 
-    const gameId = this.pongService.createGameRoom(userId, client);
+    this.pongService.createGameRoom(userId, client);
 
     this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
       message: 'Please wait for an opponent...',
-      data: { gameId },
+      data: {},
     });
   }
 
@@ -2605,7 +2618,7 @@ export class GatewayGateway {
 
     if (!user) throw new WsNotFoundException('User not found');
 
-    const game = this.pongService.checkIfUserIsAlreadyInAGame(userId);
+    const game = this.pongService.checkIfUserIsAlreadyInARoom(userId);
 
     const allRooms = this.server.of('/').adapter.rooms;
     console.log({ allRooms, game, id });

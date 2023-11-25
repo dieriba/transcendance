@@ -15,7 +15,7 @@ export class PongService {
     return res ? true : false;
   }
 
-  checkIfUserIsAlreadyInAGame(id: string): Game | undefined {
+  checkIfUserIsAlreadyInARoom(id: string): Game | undefined {
     const game = this.games.find((game) => game.getPlayers.includes(id));
 
     return game;
@@ -84,7 +84,9 @@ export class PongService {
     client.join(getGameId);
     server
       .to(getGameId)
-      .emit(PongEvent.GO_WAITING_ROOM, { data: { game: this.games[index] } });
+      .emit(PongEvent.LETS_PLAY, { data: { game: this.games[index] } });
+
+    this.games[index].setGameStarted = true;
 
     return true;
   }

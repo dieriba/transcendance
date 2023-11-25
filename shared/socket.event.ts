@@ -87,6 +87,8 @@ const pong = "pong";
 export enum PongEvent {
   JOIN_QUEUE = `${pong}.join.queue`,
   LEAVE_QUEUE = `${pong}.leave.queue`,
-  GO_WAITING_ROOM = `${pong}.go.waiting.room`,
+  LETS_PLAY = `${pong}.lets.play`,
   REFRESHING_AND_LEAVE_QUEUE = `${pong}.refresh.leave.queue`,
+  UPDATE_GAME = `${pong}.update.game`,
+  USER_NO_MORE_IN_GAME = `${pong}.user.no.more.in.game`
 }

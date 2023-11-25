@@ -30,6 +30,7 @@ export default function Router() {
         },
         { path: PATH_APP.dashboard.friends, element: <FriendsPage /> },
         { path: PATH_APP.dashboard.games, element: <GamesPage /> },
+        { path: PATH_APP.dashboard.pong, element: <PongPage /> },
         { path: PATH_APP.dashboard.chat, element: <ChatPage /> },
         { path: PATH_APP.dashboard.group, element: <GroupChatPage /> },
         { path: PATH_APP.dashboard.settings, element: <SettingsPage /> },
@@ -61,3 +62,4 @@ const ChatPage = Loadable(() => import("../pages/Chats/Chat"));
 const GroupChatPage = Loadable(() => import("../pages/Chats/GroupChatPage"));
 const SettingsPage = Loadable(() => import("../pages/Settings/SettingsPage"));
 const GamesPage = Loadable(() => import("../pages/Games/Games"));
+const PongPage = Loadable(() => import("../pages/Games/Pong"));

@@ -16,6 +16,7 @@ export const PATH_APP = {
     games: path(ROOT_DASHBOARD, "games"),
     security: path(ROOT_DASHBOARD, "security"),
     settings: path(ROOT_DASHBOARD, "settings"),
+    pong: path(ROOT_DASHBOARD, "pong"),
   },
   auth: {
     login: path(ROOT_AUTH, "login"),

@@ -1,14 +1,12 @@
 import {
   Alert,
   AlertColor,
-  Box,
   Button,
   CircularProgress,
   Stack,
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import Canvas from "./Canvas";
 import {
   useJoinQueueMutation,
   useLeaveQueueMutation,
@@ -16,36 +14,22 @@ import {
 import { SocketServerErrorResponse } from "../../services/type";
 import { connectSocket, socket } from "../../utils/getSocket";
 import { PongEvent } from "../../../../shared/socket.event";
-import { useAppDispatch, useAppSelector } from "../../redux/hooks";
-import { RootState } from "../../redux/store";
-import { setInQueue } from "../../redux/features/pong/pong.slice";
-import { useWindowSize } from "usehooks-ts";
-import usePageSize from "../../services/custom-hooks/usePageSize";
-import { ASPECT_RATIO, GAME_MARGIN } from "./constant";
+import { useNavigate } from "react-router-dom";
+import { PATH_APP } from "../../routes/paths";
 
 const Games = () => {
-  const { inQueue, waitingReady } = useAppSelector(
-    (state: RootState) => state.pong
-  );
-
-  const { width, height } = usePageSize();
-  const gameWidth = Math.min(
-    width - 2 * GAME_MARGIN,
-    (height - 2 * GAME_MARGIN) * ASPECT_RATIO
-  );
-  const gameHeight = gameWidth / ASPECT_RATIO;
-
-  const dispatch = useAppDispatch();
+  const [inQueue, setInQueue] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     connectSocket();
-    socket.on(PongEvent.GO_WAITING_ROOM, (data) => {
-      console.log(data);
+    socket.on(PongEvent.LETS_PLAY, () => {
+      navigate(PATH_APP.dashboard.pong);
     });
     return () => {
-      socket.off(PongEvent.GO_WAITING_ROOM);
+      socket.off(PongEvent.LETS_PLAY);
     };
-  }, []);
+  }, [navigate]);
 
   const [message, setMessage] = useState("");
   const [severity, setSeverity] = useState<AlertColor>("success");
@@ -70,7 +54,7 @@ const Games = () => {
       const res = await joinQueue().unwrap();
       console.log({ gameId: res.data.gameId });
 
-      dispatch(setInQueue(true));
+      setInQueue(true);
     } catch (error) {
       console.log({ error });
 
@@ -83,7 +67,7 @@ const Games = () => {
   const handleLeaveQueue = async () => {
     try {
       await leaveQueue().unwrap();
-      dispatch(setInQueue(false));
+      setInQueue(false);
     } catch (error) {
       console.log({ error });
 
@@ -125,39 +109,26 @@ const Games = () => {
         </Stack>
       </Stack>
     );
-  } else if (inQueue && !waitingReady) {
-    return (
-      <Stack
-        alignItems={"center"}
-        justifyContent={"center"}
-        height={"100vh"}
-        width={"100%"}
-        spacing={5}
-      >
-        <CircularProgress size={100} />
-        <Typography>Please wait</Typography>
-        <Button
-          disabled={leaveQueueAction.isLoading}
-          variant="contained"
-          color="inherit"
-          onClick={handleLeaveQueue}
-        >
-          Leave Queue
-        </Button>
-      </Stack>
-    );
   }
-
   return (
-    <Box
-      width={"100%"}
+    <Stack
       alignItems={"center"}
-      height={"100%"}
-      display={"flex"}
       justifyContent={"center"}
+      height={"100vh"}
+      width={"100%"}
+      spacing={5}
     >
-      <Canvas height={gameHeight} width={gameWidth} />
-    </Box>
+      <CircularProgress size={100} />
+      <Typography>Please wait</Typography>
+      <Button
+        disabled={leaveQueueAction.isLoading}
+        variant="contained"
+        color="inherit"
+        onClick={handleLeaveQueue}
+      >
+        Leave Queue
+      </Button>
+    </Stack>
   );
 };
 
