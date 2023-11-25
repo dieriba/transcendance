@@ -1,1 +1,4 @@
-export const RESIZE_FACTOR = 1.3;
+export const ASPECT_RATIO = 286/175;
+export const SIDEBAR_WIDTH = 100;
+export const NAVBAR_HEIGHT = 52;
+export const GAME_MARGIN = 15;

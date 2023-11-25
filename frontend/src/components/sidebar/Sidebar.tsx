@@ -12,6 +12,7 @@ import { useLogoutMutation } from "../../redux/features/user/user.api.slice";
 import { RootState } from "../../redux/store";
 import { useLocation } from "react-router-dom";
 import { User } from "../../redux/features/user/user.slice";
+import { SIDEBAR_WIDTH } from "../../pages/Games/constant";
 
 const Sidebar = () => {
   const { pathname } = useLocation();
@@ -57,7 +58,7 @@ const Sidebar = () => {
           backgroundColor: theme.palette.background.paper,
           boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.25)",
           height: "100%",
-          width: 100,
+          width: SIDEBAR_WIDTH,
         }}
         display={onlyMediumScreen ? "none" : "block"}
       >

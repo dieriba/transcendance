@@ -56,7 +56,7 @@ const MobileSidebar = () => {
     <>
       <CssBaseline />
 
-      <AppBar sx={{ height: "50px" }} position="sticky">
+      <AppBar position="sticky">
         <Box sx={{ display: { xs: "block", md: "none" } }}>
           <IconButton
             size="large"

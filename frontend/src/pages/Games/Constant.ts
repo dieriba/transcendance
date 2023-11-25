@@ -21,3 +21,5 @@ export const PADDLE_SPEED = 5;
 
 export const BALL_SPEED = 5;
 export const BALL_RADIUS = 20;
+
+export const ASPECT_RATIO = 286/175;

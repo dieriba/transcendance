@@ -87,10 +87,10 @@ export class Player {
   public draw() {
     this.context.fillStyle = "white";
     this.context.fillRect(
-      this.position.x,
-      this.position.y,
-      this.dimension.width,
-      this.dimension.height
+      (this.position.x - (this.dimension.width / 2)) * this.canvas.width,
+      (this.position.y - (this.dimension.height / 2)) * this.canvas.height,
+      this.dimension.width * this.canvas.width,
+      this.dimension.height * this.canvas.height
     );
   }
 

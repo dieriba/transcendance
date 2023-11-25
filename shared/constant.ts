@@ -49,3 +49,4 @@ export const defaultOpponentPlayer = {
   yPosition: 0,
   speed: 4,
 };
+
