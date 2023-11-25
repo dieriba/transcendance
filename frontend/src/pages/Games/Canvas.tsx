@@ -7,19 +7,18 @@ import {
   RESIZE_FACTOR,
 } from "../../../../shared/constant";
 import { Ball } from "./Ball";
-import { Player,  } from "./Player";
+import { Player } from "./Player";
 
 interface CanvasProps
   extends React.DetailedHTMLProps<
     React.CanvasHTMLAttributes<HTMLCanvasElement>,
     HTMLCanvasElement
   > {
-    width:number;
-    height:number;
-  }
+  width: number;
+  height: number;
+}
 
-const Canvas = ({width,height}:CanvasProps) => {
-  
+const Canvas = ({ width, height }: CanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -33,9 +32,8 @@ const Canvas = ({width,height}:CanvasProps) => {
 
     canvas.width = width;
     canvas.height = height;
-    canvas.style.width = `${width}px`
-    canvas.style.height = `${height}px`
-
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
 
     context.fillStyle = "black";
     let animationId: number;
@@ -46,16 +44,28 @@ const Canvas = ({width,height}:CanvasProps) => {
       7
     );
 
-    const Player1 = new Player(canvas,context,{x:0.015, y:0.5}, {x:2,y:2},{height:0.16,width:0.015}); 
+    const Player1 = new Player(
+      canvas,
+      context,
+      { x: 0.015, y: 0.5 },
+      { x: 2, y: 2 },
+      { height: 0.16, width: 0.015 }
+    );
 
-    const Player2 = new Player(canvas,context,{x:1 - Player1.getPostion.x, y:0.5}, {x:2,y:2},{height:0.16,width:0.015}); 
+    const Player2 = new Player(
+      canvas,
+      context,
+      { x: 1 - Player1.getPostion.x, y: 0.5 },
+      { x: 2, y: 2 },
+      { height: 0.16, width: 0.015 }
+    );
 
     const gameLoop = () => {
       context.clearRect(0, 0, canvas.width, canvas.height);
       ball.draw(context);
       ball.move(canvas);
-      Player1.draw()
-      Player2.draw()
+      Player1.draw();
+      Player2.draw();
       animationId = window.requestAnimationFrame(gameLoop);
     };
 
@@ -64,16 +74,15 @@ const Canvas = ({width,height}:CanvasProps) => {
     return () => {
       window.cancelAnimationFrame(animationId);
     };
-  }, [canvasRef]);
+  }, [canvasRef, height, width]);
 
   return (
-    
-      <canvas
-        style={{width, background:"red", height}}
-        ref={canvasRef}
-        width={width}
-        height={height}
-      />
+    <canvas
+      style={{ width, height }}
+      ref={canvasRef}
+      width={width}
+      height={height}
+    />
   );
 };
 

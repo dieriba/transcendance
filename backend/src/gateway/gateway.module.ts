@@ -9,9 +9,11 @@ import { JwtTokenModule } from 'src/jwt-token/jwtToken.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { UserModule } from 'src/user/user.module';
 import { PongService } from 'src/pong/pong.service';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     PrismaModule,
     UserModule,
     ChatroomModule,

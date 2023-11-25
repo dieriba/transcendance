@@ -68,12 +68,13 @@ import { IsRestrictedUserGuard } from 'src/chat/guards/is-restricted-user.guard.
 import { AvatarUpdateDto } from 'src/user/dto/AvatarUpdate.dto';
 import { UserInfoUpdateDto } from 'src/user/dto/UserInfo.dto';
 import { PongService } from 'src/pong/pong.service';
+import { Interval } from '@nestjs/schedule';
 
 @UseGuards(WsAccessTokenGuard)
 @UseFilters(WsCatchAllFilter)
 @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 @WebSocketGateway()
-export class GatewayGateway implements OnModuleInit {
+export class GatewayGateway {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly userService: UserService,
@@ -86,12 +87,6 @@ export class GatewayGateway implements OnModuleInit {
   ) {}
 
   private readonly logger = new Logger(GatewayGateway.name);
-
-  onModuleInit() {
-    setInterval(() => {
-      this.pongService.gameUpdate();
-    }, 1000 / 30);
-  }
 
   @WebSocketServer()
   server: Server;
@@ -2562,6 +2557,11 @@ export class GatewayGateway implements OnModuleInit {
   }
 
   /*------------------------------------------------------------------------------------------------------ */
+  @Interval(1000 / 30)
+  updateGame() {
+    this.pongService.gameUpdate();
+  }
+
   @SubscribeMessage(PongEvent.JOIN_QUEUE)
   async joinQueue(@ConnectedSocket() client: SocketWithAuth) {
     const { userId } = client;
@@ -2611,7 +2611,6 @@ export class GatewayGateway implements OnModuleInit {
     console.log({ allRooms, game, id });
     if (game?.getSocketIds.includes(id)) {
       this.pongService.leaveRoom(userId);
-      console.log('gameeeeeeeeeeee');
     }
     this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS);
   }

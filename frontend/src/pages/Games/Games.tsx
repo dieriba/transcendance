@@ -19,17 +19,16 @@ import { PongEvent } from "../../../../shared/socket.event";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { RootState } from "../../redux/store";
 import { setInQueue } from "../../redux/features/pong/pong.slice";
-import {useWindowSize} from "usehooks-ts"
+import { useWindowSize } from "usehooks-ts";
 import usePageSize from "../../services/custom-hooks/usePageSize";
 import { ASPECT_RATIO, GAME_MARGIN } from "./constant";
-
 
 const Games = () => {
   const { inQueue, waitingReady } = useAppSelector(
     (state: RootState) => state.pong
   );
 
-  const {width,height} = usePageSize();
+  const { width, height } = usePageSize();
   const gameWidth = Math.min(
     width - 2 * GAME_MARGIN,
     (height - 2 * GAME_MARGIN) * ASPECT_RATIO
@@ -94,14 +93,72 @@ const Games = () => {
     }
   };
 
-  
+  if (!inQueue) {
+    return (
+      <Stack
+        height={"100vh"}
+        width={"100%"}
+        alignItems={"center"}
+        justifyContent={"center"}
+      >
+        <Stack width={"300px"} spacing={1}>
+          {openSnack && (
+            <Alert
+              onClose={handleCloseSnack}
+              severity={severity}
+              sx={{ width: "100%" }}
+            >
+              {message}
+            </Alert>
+          )}
+          <Button
+            disabled={isLoading}
+            onClick={handleJoinQueue}
+            variant="contained"
+            color="inherit"
+          >
+            Join Queue
+          </Button>
+          <Button variant="contained" color="inherit">
+            Spectate a game
+          </Button>
+        </Stack>
+      </Stack>
+    );
+  } else if (inQueue && !waitingReady) {
+    return (
+      <Stack
+        alignItems={"center"}
+        justifyContent={"center"}
+        height={"100vh"}
+        width={"100%"}
+        spacing={5}
+      >
+        <CircularProgress size={100} />
+        <Typography>Please wait</Typography>
+        <Button
+          disabled={leaveQueueAction.isLoading}
+          variant="contained"
+          color="inherit"
+          onClick={handleLeaveQueue}
+        >
+          Leave Queue
+        </Button>
+      </Stack>
+    );
+  }
 
-  
-
-  return (<Box width={"100%"} alignItems={"center"} height={"100%"} display={"flex"} justifyContent={"center"}>
-    <Canvas width={gameWidth} height={gameHeight} />
-  </Box>)
-  ;
+  return (
+    <Box
+      width={"100%"}
+      alignItems={"center"}
+      height={"100%"}
+      display={"flex"}
+      justifyContent={"center"}
+    >
+      <Canvas height={gameHeight} width={gameWidth} />
+    </Box>
+  );
 };
 
 export default Games;
