@@ -83,12 +83,17 @@ export enum ChatEventGroup {
 }
 
 const pong = "pong";
-
+export const PONG_ROOM_PREFIX = "pong_";
 export enum PongEvent {
   JOIN_QUEUE = `${pong}.join.queue`,
   LEAVE_QUEUE = `${pong}.leave.queue`,
   LETS_PLAY = `${pong}.lets.play`,
   REFRESHING_AND_LEAVE_QUEUE = `${pong}.refresh.leave.queue`,
   UPDATE_GAME = `${pong}.update.game`,
-  USER_NO_MORE_IN_GAME = `${pong}.user.no.more.in.game`
+  USER_NO_MORE_IN_GAME = `${pong}.user.no.more.in.game`,
+  SEND_GAME_INVITATION = `${pong}.send.game.invitation`,
+  RECEIVE_GAME_INVITATION = `${pong}.receive.game.invitation`,
+  ACCEPT_GAME_INVITATION = `${pong}.accept.game.invitation`,
+  DECLINE_GAME_INVITATION = `${pong}.decline.game.invitation`,
+  USER_DECLINED_INVITATION = `${pong}.user.declined.invitation`,
 }

@@ -1,6 +1,56 @@
 import { Ball } from "./Ball";
-import { defaultBall, defaultOpponentPlayer, defaultPlayer } from "./constant";
+import {
+  defaultBall,
+  defaultOpponentPlayer,
+  defaultPlayer,
+  GAME_INVITATION_TIME_LIMIT,
+} from "./constant";
 import { Player } from "./Player";
+
+export class GameInvitation {
+  private readonly id: string;
+  private readonly invitedUserId: string;
+  private readonly date: Date;
+  private readonly gameId: string;
+  private readonly socketId: string;
+
+  constructor(
+    id: string,
+    invitedUserId: string,
+    gameId: string,
+    socketId: string
+  ) {
+    this.id = id;
+    this.invitedUserId = invitedUserId;
+    this.gameId = gameId;
+    this.date = new Date();
+    this.socketId = socketId;
+  }
+
+  get getInvitedUser() {
+    return this.invitedUserId;
+  }
+
+  get getSenderId() {
+    return this.id;
+  }
+
+  get getGameId() {
+    return this.gameId;
+  }
+
+  get getSocketId() {
+    return this.socketId;
+  }
+
+  hasNotExpired(): number {
+    const now = new Date();
+    const seconds = (now.getTime() - this.date.getTime()) / 1000;
+    if (seconds >= GAME_INVITATION_TIME_LIMIT) return 0;
+
+    return GAME_INVITATION_TIME_LIMIT - seconds;
+  }
+}
 
 export class Game {
   private gameStarted: boolean;

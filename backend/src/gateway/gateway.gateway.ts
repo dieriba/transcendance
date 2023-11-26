@@ -4,7 +4,6 @@ import {
   UsePipes,
   ValidationPipe,
   Logger,
-  OnModuleInit,
 } from '@nestjs/common';
 import {
   ConnectedSocket,
@@ -20,6 +19,7 @@ import {
   GeneralEvent,
   ChatEventGroup,
   PongEvent,
+  PONG_ROOM_PREFIX,
 } from '../../../shared/socket.event';
 import { Server } from 'socket.io';
 import { Argon2Service } from 'src/argon2/argon2.service';
@@ -66,9 +66,10 @@ import { ChatRoomNotFoundException } from 'src/chat/exception/chatroom-not-found
 import { ChatRoute } from 'src/common/custom-decorator/metadata.decorator';
 import { IsRestrictedUserGuard } from 'src/chat/guards/is-restricted-user.guard.ws';
 import { AvatarUpdateDto } from 'src/user/dto/AvatarUpdate.dto';
-import { UserInfoUpdateDto } from 'src/user/dto/UserInfo.dto';
+import { UserIdDto, UserInfoUpdateDto } from 'src/user/dto/UserInfo.dto';
 import { PongService } from 'src/pong/pong.service';
 import { Interval } from '@nestjs/schedule';
+import { GAME_INVITATION_TIME_LIMIT } from '@shared/constant';
 
 @UseGuards(WsAccessTokenGuard)
 @UseFilters(WsCatchAllFilter)
@@ -129,7 +130,7 @@ export class GatewayGateway {
     const game = this.pongService.checkIfUserIsAlreadyInARoom(userId);
 
     const allRooms = this.server.of('/').adapter.rooms;
-    console.log({ allRooms, game, id });
+    console.log({ allRooms });
 
     if (game?.hasStarted) {
       this.sendToSocket(
@@ -143,15 +144,12 @@ export class GatewayGateway {
         },
       );
       this.pongService.deleteGameRoomByGameId(game.getGameId);
-      if (allRooms.has(game.getGameId)) {
-        allRooms.delete(game.getGameId);
-      }
+      allRooms.delete(game.getGameId);
       return;
     }
 
     if (game?.getSocketIds.includes(id)) {
       this.pongService.leaveRoom(userId);
-      console.log('gameeeeeeeeeeee');
     }
   }
 
@@ -247,10 +245,6 @@ export class GatewayGateway {
     );
 
     existingUserId.push(userId);
-
-    existingUserId.map((id) => {
-      console.log({ id });
-    });
 
     const newChatroom = await this.prismaService.chatroom.create({
       data: {
@@ -770,7 +764,7 @@ export class GatewayGateway {
       message: 'chatroom deleted',
     });
 
-    this.deleteRoom(chatroomName);
+    this.deleteSocketRoom(chatroomName);
   }
 
   @SubscribeMessage(ChatEventGroup.KICK_USER)
@@ -923,7 +917,7 @@ export class GatewayGateway {
           client.broadcast.emit(ChatEventGroup.DELETE_JOINABLE_GROUP, {
             data: { chatroomId },
           });
-          this.deleteRoom(chatroomName);
+          this.deleteSocketRoom(chatroomName);
           return;
         }
         const { role } = await tx.chatroomUser.update({
@@ -2598,7 +2592,14 @@ export class GatewayGateway {
       );
     }
 
-    if (this.pongService.checkIfMatchupIsPossible(this.server, client)) {
+    if (this.pongService.hasActiveInvitation(userId))
+      throw new WsUnauthorizedException(
+        'You must undo invitation before joining queue',
+      );
+
+    const room = this.pongService.checkIfMatchupIsPossible(userId, client.id);
+    if (room) {
+      this.pongService.joinGame(this.server, client, room);
       return;
     }
 
@@ -2620,12 +2621,177 @@ export class GatewayGateway {
 
     const game = this.pongService.checkIfUserIsAlreadyInARoom(userId);
 
-    const allRooms = this.server.of('/').adapter.rooms;
-    console.log({ allRooms, game, id });
     if (game?.getSocketIds.includes(id)) {
       this.pongService.leaveRoom(userId);
     }
     this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS);
+  }
+
+  @SubscribeMessage(PongEvent.SEND_GAME_INVITATION)
+  async sendGameInvtation(
+    @ConnectedSocket() client: SocketWithAuth,
+    @MessageBody() { id }: UserIdDto,
+  ) {
+    const { userId } = client;
+
+    if (userId === id)
+      throw new WsUnauthorizedException(
+        'You cannot send an invitation to yourself!',
+      );
+
+    const [me, user] = await Promise.all([
+      this.userService.findUserById(userId, UserData),
+      this.userService.findUserById(id, UserData),
+    ]);
+
+    if (!me || !user) throw new WsNotFoundException('User not found');
+
+    const myGame = this.pongService.checkIfUserIsAlreadyInARoom(userId);
+
+    if (myGame) {
+      if (!myGame.hasStarted) {
+        throw new WsBadRequestException(
+          "You can't invite a user while still in queue, please unqueue first",
+        );
+      }
+
+      if (myGame.hasStarted) {
+        throw new WsBadRequestException(
+          "You can't invite a user while playing a game",
+        );
+      }
+    }
+    const gameUser = this.pongService.checkIfUserIsAlreadyInARoom(id);
+
+    if (gameUser) {
+      if (!gameUser.hasStarted) {
+        throw new WsBadRequestException(
+          'User must leave queue before to receive game invitation',
+        );
+      }
+
+      if (gameUser.hasStarted) {
+        throw new WsBadRequestException('User is already in a game');
+      }
+    }
+
+    const gameInvit = this.pongService.addNewGameInvitation(
+      PONG_ROOM_PREFIX + userId,
+      client.id,
+      userId,
+      id,
+    );
+
+    if (gameInvit) {
+      throw new WsUnauthorizedException(
+        `You already sent an invitation to another player, you must wait ${gameInvit} seconds before sending a new one, or cancel the previous one`,
+      );
+    }
+
+    const response = this.pongService.isUserInvitable(id);
+
+    if (response) throw new WsUnauthorizedException(response);
+
+    this.sendToSocket(this.server, id, PongEvent.RECEIVE_GAME_INVITATION, {
+      message: `${user.nickname} invited you to a pong game`,
+      data: {},
+    });
+  }
+
+  @SubscribeMessage(PongEvent.ACCEPT_GAME_INVITATION)
+  async acceptGameInvitation(
+    @ConnectedSocket() client: SocketWithAuth,
+    @ConnectedSocket() { id }: UserIdDto,
+  ) {
+    const { userId } = client;
+
+    const [me, user] = await Promise.all([
+      this.userService.findUserById(userId, UserData),
+      this.userService.findUserById(id, UserData),
+    ]);
+
+    if (!me || !user) throw new WsNotFoundException('User not found');
+
+    const myGame = this.pongService.checkIfUserIsAlreadyInARoom(userId);
+
+    if (myGame) {
+      if (!myGame.hasStarted) {
+        throw new WsBadRequestException(
+          "You can't accept an invitation while still in queue, please unqueue first",
+        );
+      }
+
+      if (myGame.hasStarted) {
+        throw new WsBadRequestException(
+          "You can't accept an invitation while playing a game",
+        );
+      }
+    }
+
+    const gameUser = this.pongService.checkIfUserIsAlreadyInARoom(id);
+
+    if (gameUser) {
+      if (!gameUser.hasStarted) {
+        throw new WsBadRequestException('The user is currently in queue, ');
+      }
+
+      if (gameUser.hasStarted) {
+        throw new WsBadRequestException('User is already in a game');
+      }
+    }
+
+    const invitation = this.pongService.getInvitation(id, userId);
+
+    if (!invitation) {
+      throw new WsBadRequestException(
+        'That user did not send you any invitation',
+      );
+    }
+
+    if (!invitation.hasNotExpired())
+      throw new WsUnauthorizedException(
+        `User invitaion has expired, invitation last at most ${GAME_INVITATION_TIME_LIMIT}`,
+      );
+
+    const gameId: string = invitation.getGameId;
+    const senderSocket = this.getSocket(invitation.getSocketId);
+    if (!senderSocket) {
+      throw new WsUnknownException('User is not online');
+    }
+
+    this.pongService.addNewGameRoom({
+      gameId,
+      id,
+      userId,
+      socketId: invitation.getSocketId,
+      otherSocketId: client.id,
+    });
+
+    senderSocket.join(gameId);
+    this.pongService.joinGame(this.server, client, gameId);
+  }
+
+  @SubscribeMessage(PongEvent.DECLINE_GAME_INVITATION)
+  async declineGameInvitation(
+    @ConnectedSocket() client: SocketWithAuth,
+    @MessageBody() { id }: UserIdDto,
+  ) {
+    const { userId } = client;
+
+    const [me, user] = await Promise.all([
+      this.userService.findUserById(userId, UserData),
+      this.userService.findUserById(id, UserData),
+    ]);
+
+    if (!me || !user) throw new WsNotFoundException('User not found');
+    const gameId = this.pongService.deleteInvitation(id, userId);
+    if (gameId) {
+      this.deleteSocketRoom(gameId);
+      this.sendToSocket(this.server, id, PongEvent.USER_DECLINED_INVITATION, {
+        message: `${me.nickname} has declined your invitation`,
+        data: {},
+      });
+    }
   }
   /*------------------------------------------------------------------------------------------------------ */
 
@@ -2640,9 +2806,16 @@ export class GatewayGateway {
     instance.to(room).emit(emit, object);
   }
 
-  private deleteRoom(room: string) {
-    if (this.server.of('/').adapter.rooms.get(room))
-      this.server.of('/').adapter.rooms.delete(room);
+  private deleteSocketRoom(room: string) {
+    this.server.of('/').adapter.rooms.delete(room);
+  }
+
+  private getAllSockeIdsByKey(key: string) {
+    return this.server.of('/').adapter.rooms.get(key);
+  }
+
+  private getSocket(socketId: string) {
+    return this.server.sockets.sockets.get(socketId);
   }
 
   private joinOrLeaveRoom(
@@ -2650,17 +2823,17 @@ export class GatewayGateway {
     action: GeneralEvent.JOIN | GeneralEvent.LEAVE,
     room: string,
   ) {
-    const socketIds = this.server.of('/').adapter.rooms.get(userId);
+    const socketIds = this.getAllSockeIdsByKey(userId);
     if (socketIds) {
       if (action === GeneralEvent.LEAVE) {
-        socketIds.forEach((socket) => {
+        socketIds.forEach((socketId) => {
           this.logger.log(`Leaving room ${room}`);
-          this.server.sockets.sockets.get(socket)?.leave(room);
+          this.getSocket(socketId).leave(room);
         });
         return;
       }
-      socketIds.forEach((socket) => {
-        this.server.sockets.sockets.get(socket)?.join(room);
+      socketIds.forEach((socketId) => {
+        this.getSocket(socketId).join(room);
       });
     }
   }

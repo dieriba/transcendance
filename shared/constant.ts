@@ -50,3 +50,4 @@ export const defaultOpponentPlayer = {
   speed: 4,
 };
 
+export const GAME_INVITATION_TIME_LIMIT = 10;

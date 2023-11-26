@@ -117,7 +117,6 @@ export class AuthController {
       user,
       user.refresh_token,
     );
-    console.log({ refresh_token });
 
     res.cookie('refresh', refresh_token, {
       httpOnly: true,
