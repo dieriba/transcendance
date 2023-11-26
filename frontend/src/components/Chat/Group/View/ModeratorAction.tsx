@@ -16,6 +16,7 @@ interface ModeratorActionProps {
   me: boolean;
   id: string;
   handleKickUser: (data: { id: string; nickname: string }) => void;
+  handleGameInvitation: (data: { id: string; nickname: string }) => void;
   handleUnrestriction: ({ nickname }: { nickname: string }) => void;
   handleRestriction: (data: { id: string; nickname: string }) => void;
   handleNewAdmin: (data: { id: string; nickname: string }) => void;
@@ -36,12 +37,13 @@ const ModeratorAction = ({
   handleNewAdmin,
   handleRestriction,
   handleUnrestriction,
+  handleGameInvitation,
 }: ModeratorActionProps) => {
   if (role === "DIERIBA") {
     return (
       <>
         <Tooltip placement="top" title={`play with ${nickname}`}>
-          <IconButton>
+          <IconButton onClick={() => handleGameInvitation({ id, nickname })}>
             <GameController size={20} />
           </IconButton>
         </Tooltip>
@@ -81,7 +83,7 @@ const ModeratorAction = ({
       <>
         {!me ? (
           <Tooltip placement="top" title={`play with ${nickname}`}>
-            <IconButton>
+            <IconButton onClick={() => handleGameInvitation({ id, nickname })}>
               <GameController size={20} />
             </IconButton>
           </Tooltip>

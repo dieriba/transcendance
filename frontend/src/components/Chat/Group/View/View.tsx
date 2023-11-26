@@ -29,6 +29,7 @@ import { SocketServerSucessResponse } from "../../../../services/type";
 import UnRestrictUser from "./UnrestrictUser";
 import { BaseFriendType } from "../../../../models/FriendsSchema";
 import KickUser from "./KickUser";
+import GameInvitation from "./GameInvitation";
 
 const View = () => {
   const { admin, currentGroupChatroomId, chatAdmin, regularUser, role } =
@@ -87,12 +88,14 @@ const View = () => {
     restriction: boolean;
     unrestriction: boolean;
     kick: boolean;
+    gameInvitation: boolean;
   }>({
     admin: false,
     role: false,
     restriction: false,
     unrestriction: false,
     kick: false,
+    gameInvitation: false,
   });
 
   const handleNewAdmin = ({
@@ -148,6 +151,11 @@ const View = () => {
     setOpen((prev) => ({ ...prev, kick: true }));
   };
 
+  const handleGameInvitation = (data: { id: string; nickname: string }) => {
+    setUserData((prev) => ({ ...prev, ...data }));
+    setOpen((prev) => ({ ...prev, gameInvitation: true }));
+  };
+
   if (isLoading) {
     return (
       <Box width="320px">
@@ -188,9 +196,11 @@ const View = () => {
             online={admin?.user.status === STATUS.ONLINE}
           >
             <AdminAction
+              handleGameInvitation={handleGameInvitation}
               handleUnrestriction={handleUnrestriction}
               nickname={admin?.user.nickname as string}
               role={role as ChatRoleType}
+              id={admin?.user.id as string}
             />
           </UserInfo>
 
@@ -213,6 +223,7 @@ const View = () => {
                       avatar={profile?.avatar ? profile.avatar : undefined}
                     >
                       <ModeratorAction
+                        handleGameInvitation={handleGameInvitation}
                         handleKickUser={handleKickUser}
                         handleUnrestriction={handleUnrestriction}
                         handleRestriction={handleRestriction}
@@ -260,6 +271,7 @@ const View = () => {
                         handleRestriction={handleRestriction}
                         handleChangeRole={handleChangeRole}
                         handleNewAdmin={handleNewAdmin}
+                        handleGameInvitation={handleGameInvitation}
                         role={role as ChatRoleType}
                         id={id}
                         nickname={nickname}
@@ -329,6 +341,14 @@ const View = () => {
             open={open.kick}
             chatroomId={currentGroupChatroomId as string}
             handleClose={() => setOpen((prev) => ({ ...prev, kick: false }))}
+            id={userData.id}
+            nickname={userData.nickname}
+          />
+        )}
+        {open.gameInvitation && (
+          <GameInvitation
+            open={open.gameInvitation}
+            handleClose={() => setOpen((prev) => ({ ...prev, gameInvitation: false }))}
             id={userData.id}
             nickname={userData.nickname}
           />

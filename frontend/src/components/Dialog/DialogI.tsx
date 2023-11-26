@@ -32,7 +32,6 @@ const DialogI = ({
   sx,
   maxWidth,
 }: DialogIProps) => {
-
   return (
     <Dialog
       open={open}

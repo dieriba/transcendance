@@ -5,18 +5,25 @@ import Router from "./routes";
 import { useAppDispatch, useAppSelector } from "./redux/hooks";
 import { RootState } from "./redux/store";
 import CustomNotificationBar from "./components/snackbar/customNotificationBar";
-import { closeSnackBar } from "./redux/features/app/app.slice";
+import {
+  closeGameInvitation,
+  closeSnackBar,
+} from "./redux/features/app/app.slice";
+import ReceivedGameInvitation from "./components/Chat/Group/View/ReceivedGameInvitation";
 
 const App = () => {
   const { theme } = useThemeContext();
-  const { open, severity, message } = useAppSelector(
-    (state: RootState) => state.app
-  );
+  const { open, severity, message, openGameInvitation, senderId } =
+    useAppSelector((state: RootState) => state.app);
 
   const dispatch = useAppDispatch();
 
   const onClose = () => {
     dispatch(closeSnackBar());
+  };
+
+  const onCloseGameInvitation = () => {
+    dispatch(closeGameInvitation());
   };
 
   return (
@@ -28,6 +35,12 @@ const App = () => {
         severity={severity}
         message={message}
         onClose={onClose}
+      />
+      <ReceivedGameInvitation
+        open={openGameInvitation}
+        onClose={onCloseGameInvitation}
+        message={message}
+        id={senderId}
       />
     </ThemeProvider>
   );

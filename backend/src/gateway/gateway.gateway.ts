@@ -2648,6 +2648,8 @@ export class GatewayGateway {
 
     const myGame = this.pongService.checkIfUserIsAlreadyInARoom(userId);
 
+    if (!this.getAllSockeIdsByKey(user.id))
+      throw new WsUnknownException('User is not online');
     if (myGame) {
       if (!myGame.hasStarted) {
         throw new WsBadRequestException(
@@ -2675,6 +2677,10 @@ export class GatewayGateway {
       }
     }
 
+    const response = this.pongService.isUserInvitable(id);
+
+    if (response) throw new WsUnauthorizedException(response);
+
     const gameInvit = this.pongService.addNewGameInvitation(
       PONG_ROOM_PREFIX + userId,
       client.id,
@@ -2688,20 +2694,21 @@ export class GatewayGateway {
       );
     }
 
-    const response = this.pongService.isUserInvitable(id);
-
-    if (response) throw new WsUnauthorizedException(response);
+    client.emit(GeneralEvent.SUCCESS, {
+      message: `Game invitation succesfully sent to ${user.nickname}`,
+    });
+    console.log({ userId });
 
     this.sendToSocket(this.server, id, PongEvent.RECEIVE_GAME_INVITATION, {
-      message: `${user.nickname} invited you to a pong game`,
-      data: {},
+      message: `${me.nickname} invited you to a pong game`,
+      data: { id: userId },
     });
   }
 
   @SubscribeMessage(PongEvent.ACCEPT_GAME_INVITATION)
   async acceptGameInvitation(
     @ConnectedSocket() client: SocketWithAuth,
-    @ConnectedSocket() { id }: UserIdDto,
+    @MessageBody() { id }: UserIdDto,
   ) {
     const { userId } = client;
 
@@ -2756,7 +2763,7 @@ export class GatewayGateway {
     const gameId: string = invitation.getGameId;
     const senderSocket = this.getSocket(invitation.getSocketId);
     if (!senderSocket) {
-      throw new WsUnknownException('User is not online');
+      throw new WsUnknownException(`${user.nickname} is currently not online`);
     }
 
     this.pongService.addNewGameRoom({
@@ -2767,7 +2774,10 @@ export class GatewayGateway {
       otherSocketId: client.id,
     });
 
+    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS);
+
     senderSocket.join(gameId);
+
     this.pongService.joinGame(this.server, client, gameId);
   }
 
@@ -2784,14 +2794,17 @@ export class GatewayGateway {
     ]);
 
     if (!me || !user) throw new WsNotFoundException('User not found');
-    const gameId = this.pongService.deleteInvitation(id, userId);
+    const gameId = this.pongService.deleteInvitation(id);
+
     if (gameId) {
-      this.deleteSocketRoom(gameId);
       this.sendToSocket(this.server, id, PongEvent.USER_DECLINED_INVITATION, {
-        message: `${me.nickname} has declined your invitation`,
+        message: `${me.nickname} has declined your game invitation`,
         data: {},
+        severity: 'info',
       });
     }
+
+    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS);
   }
   /*------------------------------------------------------------------------------------------------------ */
 

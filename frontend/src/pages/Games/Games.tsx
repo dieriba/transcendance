@@ -6,30 +6,15 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   useJoinQueueMutation,
   useLeaveQueueMutation,
 } from "../../redux/features/pong/pong.api.slice";
 import { SocketServerErrorResponse } from "../../services/type";
-import { connectSocket, socket } from "../../utils/getSocket";
-import { PongEvent } from "../../../../shared/socket.event";
-import { useNavigate } from "react-router-dom";
-import { PATH_APP } from "../../routes/paths";
 
 const Games = () => {
   const [inQueue, setInQueue] = useState(false);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    connectSocket();
-    socket.on(PongEvent.LETS_PLAY, () => {
-      navigate(PATH_APP.dashboard.pong);
-    });
-    return () => {
-      socket.off(PongEvent.LETS_PLAY);
-    };
-  }, [navigate]);
 
   const [message, setMessage] = useState("");
   const [severity, setSeverity] = useState<AlertColor>("success");

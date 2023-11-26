@@ -15,6 +15,7 @@ interface UserActionProps {
   me: boolean;
   id: string;
   handleKickUser: (data: { id: string; nickname: string }) => void;
+  handleGameInvitation: (data: { id: string; nickname: string }) => void;
   handleNewAdmin: (data: { id: string; nickname: string }) => void;
   handleRestriction: (data: { id: string; nickname: string }) => void;
   handleChangeRole: (data: {
@@ -33,12 +34,13 @@ const UserAction = ({
   handleNewAdmin,
   handleRestriction,
   handleKickUser,
+  handleGameInvitation,
 }: UserActionProps) => {
   if (role === "DIERIBA") {
     return (
       <>
         <Tooltip placement="top" title={`play with ${nickname}`}>
-          <IconButton>
+          <IconButton onClick={() => handleGameInvitation({ id, nickname })}>
             <GameController size={20} />
           </IconButton>
         </Tooltip>
@@ -81,7 +83,7 @@ const UserAction = ({
     return (
       <>
         <Tooltip placement="top" title={`play with ${nickname}`}>
-          <IconButton>
+          <IconButton onClick={() => handleGameInvitation({ id, nickname })}>
             <GameController size={20} />
           </IconButton>
         </Tooltip>
@@ -108,7 +110,7 @@ const UserAction = ({
           </Tooltip>
         )}
         <Tooltip placement="top" title={`${nickname} details`}>
-          <IconButton>
+          <IconButton onClick={() => handleGameInvitation({ id, nickname })}>
             <Notebook size={20} />
           </IconButton>
         </Tooltip>

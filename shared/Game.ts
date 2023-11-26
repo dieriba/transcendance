@@ -10,20 +10,19 @@ import { Player } from "./Player";
 export class GameInvitation {
   private readonly id: string;
   private readonly invitedUserId: string;
-  private readonly date: Date;
+  private readonly date: Date = new Date();
   private readonly gameId: string;
   private readonly socketId: string;
 
   constructor(
+    gameId: string,
     id: string,
     invitedUserId: string,
-    gameId: string,
     socketId: string
   ) {
     this.id = id;
     this.invitedUserId = invitedUserId;
     this.gameId = gameId;
-    this.date = new Date();
     this.socketId = socketId;
   }
 
@@ -45,7 +44,11 @@ export class GameInvitation {
 
   hasNotExpired(): number {
     const now = new Date();
-    const seconds = (now.getTime() - this.date.getTime()) / 1000;
+
+    const seconds = Math.round(
+      Math.abs(this.date.getTime() - now.getTime()) / 1000
+    );
+
     if (seconds >= GAME_INVITATION_TIME_LIMIT) return 0;
 
     return GAME_INVITATION_TIME_LIMIT - seconds;

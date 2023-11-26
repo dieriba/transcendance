@@ -14,13 +14,17 @@ import AddUser from "./AdminView/AddUser";
 interface AdminActionProps {
   role: ChatRoleType;
   nickname: string;
+  id: string;
   handleUnrestriction: (data: { nickname: string }) => void;
+  handleGameInvitation: (data: { id: string; nickname: string }) => void;
 }
 
 const AdminAction = ({
   role,
   nickname,
+  id,
   handleUnrestriction,
+  handleGameInvitation,
 }: AdminActionProps) => {
   const [open, setOpen] = useState<{ edit: boolean; addUser: boolean }>({
     edit: false,
@@ -72,7 +76,7 @@ const AdminAction = ({
     return (
       <>
         <Tooltip placement="top" title={`play with ${nickname}`}>
-          <IconButton>
+          <IconButton onClick={() => handleGameInvitation({ id, nickname })}>
             <GameController size={20} />
           </IconButton>
         </Tooltip>

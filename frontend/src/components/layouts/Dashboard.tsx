@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import Sidebar from "../sidebar/Sidebar";
 import { Stack, useMediaQuery } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
@@ -12,7 +12,10 @@ import {
 } from "../../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../services/type";
 import { FriendReceivedRequestType } from "../../models/FriendRequestSchema";
-import { showSnackBar } from "../../redux/features/app/app.slice";
+import {
+  setGameInvitation,
+  showSnackBar,
+} from "../../redux/features/app/app.slice";
 import { BaseFriendType, FriendType } from "../../models/FriendsSchema";
 import {
   setOfflineUser,
@@ -26,14 +29,14 @@ import {
 } from "../../redux/features/friends/friends.slice";
 import { useTheme } from "@mui/material/styles";
 import MobileSidebar from "../sidebar/MobileSidebar";
-import { setInQueue } from "../../redux/features/pong/pong.slice";
+import { BaseUserType } from "../../models/login/UserSchema";
 
 const ProtectedDashboardLayout = () => {
   const isAuthenticated = useAppSelector(
     (state: RootState) => state.user.access_token
   );
   const dispatch = useAppDispatch();
-
+  const navigate = useNavigate();
   useEffect(() => {
     if (isAuthenticated) {
       connectSocket();
@@ -50,10 +53,6 @@ const ProtectedDashboardLayout = () => {
           );
         }
       );
-
-      socket.on(GeneralEvent.TOKEN_NOT_VALID, (data) => {
-        console.log({ data });
-      });
 
       socket.on(
         FriendEvent.DELETE_FRIEND,
@@ -110,14 +109,27 @@ const ProtectedDashboardLayout = () => {
         }
       );
 
-      socket.on(PongEvent.REFRESHING_AND_LEAVE_QUEUE, () => {
-        console.log("catched");
+      socket.on(
+        PongEvent.RECEIVE_GAME_INVITATION,
+        (data: SocketServerSucessResponse & { data: BaseUserType }) => {
+          dispatch(
+            setGameInvitation({ message: data.message, id: data.data.id })
+          );
+        }
+      );
 
-        dispatch(setInQueue(false));
+      socket.on(PongEvent.LETS_PLAY, () => {
+        navigate(PATH_APP.dashboard.pong);
       });
 
+      socket.on(
+        PongEvent.USER_DECLINED_INVITATION,
+        (data: SocketServerSucessResponse) => {
+          dispatch(showSnackBar(data));
+        }
+      );
+
       return () => {
-        socket.off(GeneralEvent.TOKEN_NOT_VALID);
         socket.off(GeneralEvent.USER_LOGGED_IN);
         socket.off(GeneralEvent.USER_LOGGED_OUT);
         socket.off(FriendEvent.DELETE_FRIEND);
@@ -125,10 +137,11 @@ const ProtectedDashboardLayout = () => {
         socket.off(FriendEvent.REQUEST_ACCEPTED_FROM_RECIPIENT);
         socket.off(FriendEvent.NEW_REQUEST_RECEIVED);
         socket.off(FriendEvent.NEW_REQUEST_ACCEPTED);
-        socket.off(PongEvent.REFRESHING_AND_LEAVE_QUEUE);
+        socket.off(PongEvent.LETS_PLAY);
+        socket.off(PongEvent.RECEIVE_GAME_INVITATION);
       };
     }
-  }, [isAuthenticated, dispatch]);
+  }, [navigate, isAuthenticated, dispatch]);
 
   const theme = useTheme();
   const onlyMediumScreen = useMediaQuery(theme.breakpoints.down("md"));

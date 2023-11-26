@@ -47,9 +47,9 @@ export class PongService {
     return invitation?.hasNotExpired() > 0 ? true : false;
   }
 
-  deleteInvitation(id: string, userId: string): string {
-    const gameId = this.gameInvitation.get(userId)?.getGameId;
-    this.gameInvitation.delete(userId);
+  deleteInvitation(id: string): string {
+    const gameId = this.gameInvitation.get(id)?.getGameId;
+    this.gameInvitation.delete(id);
     return gameId;
   }
 
@@ -96,8 +96,6 @@ export class PongService {
     this.games.push(game);
 
     socket.join(gameId);
-
-    console.log({ game });
 
     return gameId;
   }
@@ -154,6 +152,7 @@ export class PongService {
 
   joinGame(server: Server, client: SocketWithAuth, room: string) {
     client.join(room);
+
     server.to(room).emit(PongEvent.LETS_PLAY);
   }
 

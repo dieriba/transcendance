@@ -51,3 +51,4 @@ export const defaultOpponentPlayer = {
 };
 
 export const GAME_INVITATION_TIME_LIMIT = 10;
+export const GAME_INVITATION_TIME_LIMIT_SNACKBAR = GAME_INVITATION_TIME_LIMIT * 1000;

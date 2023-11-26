@@ -1,3 +1,4 @@
+import { AlertColor } from "@mui/material";
 import { BaseFriendType } from "../models/FriendsSchema";
 
 export type ServerError = {
@@ -11,14 +12,16 @@ export type BaseServerResponse = {
   statusCode: number;
 };
 
-export type SocketServerErrorResponse = {
+export type BaseSocketServerResponse = {
   message: string;
+  severity?: AlertColor;
+};
+
+export type SocketServerErrorResponse = BaseSocketServerResponse & {
   type: string;
 };
 
-export type SocketServerSucessResponse = {
-  message: string;
-};
+export type SocketServerSucessResponse = BaseSocketServerResponse;
 
 export type BaseFriendTypeWithChatroom = BaseFriendType & {
   chatroomId?: string;
