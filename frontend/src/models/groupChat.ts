@@ -69,7 +69,7 @@ export const JoinableChatroomSchema = BaseChatroomSchema;
 export type JoinableChatroomType = z.infer<typeof JoinableChatroomSchema>;
 
 export const GroupInvitation = z.object({
-  groupInvitation: z.array(z.object({ chatroom: BaseChatroomSchema })),
+  chatroom: BaseChatroomSchema,
 });
 
 export type GroupInvitation = z.infer<typeof GroupInvitation>;
@@ -145,6 +145,20 @@ export const UserGroupSchema = z.object({
   }),
   role: z.enum(roleType),
 });
+
+export const InvitedUserSchema = z.object({
+  invitedUser: z.array(
+    z.object({
+      user: z.object({
+        id: z.string().min(1),
+        nickname: z.string().min(1),
+        profile: z.object({ avatar: z.string().min(1) }),
+      }),
+    })
+  ),
+});
+
+export type InvitedUserType = z.infer<typeof InvitedUserSchema>;
 
 export type UserGroupType = z.infer<typeof UserGroupSchema>;
 

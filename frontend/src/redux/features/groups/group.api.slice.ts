@@ -4,6 +4,7 @@ import {
   BaseChatroomWithUserIdType,
   GroupInvitation,
   InviteUserToGroupType,
+  InvitedUserType,
   RestrictUserType,
   SetNewRoleType,
   UserGroupType,
@@ -321,6 +322,25 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
         });
       },
     }),
+    declineGroupInvitation: builder.mutation<
+      SocketServerSucessResponse & { data: unknown },
+      BaseChatroomTypeId
+    >({
+      queryFn: (data) => {
+        connectSocket();
+        return new Promise((resolve) => {
+          socket.emit(ChatEventGroup.DECLINE_GROUP_INVITATION, data);
+
+          socket.on(GeneralEvent.SUCCESS, (data) => {
+            resolve({ data });
+          });
+
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
+            resolve({ error });
+          });
+        });
+      },
+    }),
     getAllGroup: builder.query<
       SocketServerSucessResponse & {
         data: {
@@ -370,9 +390,17 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
       void
     >({ query: () => ({ url: "chat/get-all-joinable-chatroom" }) }),
     getAllGroupInvitation: builder.query<
-      BaseServerResponse & { data: GroupInvitation },
+      BaseServerResponse & { data: GroupInvitation[] },
       void
     >({ query: () => ({ url: "chat/get-all-group-invitation" }) }),
+    getAllInvitedUser: builder.query<
+      BaseServerResponse & { data: InvitedUserType },
+      string
+    >({
+      query: (chatroomId) => ({
+        url: `chat/get-all-invited-users?chatroomId=${chatroomId}`,
+      }),
+    }),
     getAllGroupUser: builder.query<
       BaseServerResponse & { data: GroupMembertype },
       string
@@ -416,4 +444,6 @@ export const {
   useGetAllGroupInvitationQuery,
   useAcceptGroupInvitaionMutation,
   useCancelGroupInvitationMutation,
+  useGetAllInvitedUserQuery,
+  useDeclineGroupInvitationMutation,
 } = GroupApiSlice;

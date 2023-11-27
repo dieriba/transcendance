@@ -24,6 +24,7 @@ import {
   addJoinableGroup,
   deleteJoinableGroup,
   setJoinableGroup,
+  deleteGroupInvitation,
 } from "../../../redux/features/groups/group.slice";
 import { connectSocket, socket } from "../../../utils/getSocket";
 import { ChatEventGroup } from "../../../../../shared/socket.event";
@@ -94,6 +95,7 @@ const JoinGroup = ({ open, handleClose }: JoinGroupProps) => {
     try {
       const res = await joinGroup({ chatroomId, password }).unwrap();
       dispatch(deleteJoinableGroup(chatroomId));
+      dispatch(deleteGroupInvitation(chatroomId));
       dispatch(addNewChatroom({ ...res.data, restrictedUsers: [] }));
       setSeverity("success");
       setMessage(res.message);

@@ -3,6 +3,7 @@ import {
   BaseChatroomTypeId,
   BaseChatroomWithUserIdType,
   GroupInvitation,
+  InvitedUserType,
   PreviousAdminLeaveType,
 } from "./../../../models/groupChat";
 import { editGroupResponseType } from "../../../models/EditGroupSchema";
@@ -31,7 +32,8 @@ import { BaseUserTypeId } from "../../../models/login/UserSchema";
 import { AlertColor } from "@mui/material";
 
 export interface GroupState {
-  groupInvitation: GroupInvitation | undefined;
+  invitedUser: InvitedUserType | undefined;
+  groupInvitation: GroupInvitation[];
   joinableGroup: JoinableChatroomType[];
   groupChatroom: ChatroomGroupType[];
   currentGroupChatroomId: string | undefined;
@@ -69,7 +71,8 @@ const initialState: GroupState = {
   message: "",
   severity: "success",
   open: false,
-  groupInvitation: undefined,
+  groupInvitation: [],
+  invitedUser: undefined,
 };
 
 export const GroupSlice = createSlice({
@@ -100,8 +103,11 @@ export const GroupSlice = createSlice({
     ) => {
       state.joinableGroup = action.payload;
     },
-    setGroupInvitation: (state, action: PayloadAction<GroupInvitation>) => {
+    setGroupInvitation: (state, action: PayloadAction<GroupInvitation[]>) => {
       state.groupInvitation = action.payload;
+    },
+    setInvitedUser: (state, action: PayloadAction<InvitedUserType>) => {
+      state.invitedUser = action.payload;
     },
     setGroupMembersAndRole: (state, action: PayloadAction<GroupMembertype>) => {
       const { users, role } = action.payload;
@@ -519,19 +525,16 @@ export const GroupSlice = createSlice({
       state,
       action: PayloadAction<{ chatroom: BaseChatroomType }>
     ) => {
-      if (!state.groupInvitation)
-        state.groupInvitation = { groupInvitation: [] };
-
       const { id } = action.payload.chatroom;
-      const index = state.groupInvitation.groupInvitation.findIndex(
+      const index = state.groupInvitation.findIndex(
         (data) => data.chatroom.id === id
       );
 
       if (index === -1) {
-        state.groupInvitation.groupInvitation.push(action.payload);
+        state.groupInvitation.push(action.payload);
         return;
       }
-      state.groupInvitation.groupInvitation[index] = action.payload;
+      state.groupInvitation[index] = action.payload;
     },
     setChatroomMessage: (state, action: PayloadAction<MessageGroupType[]>) => {
       state.messages = action.payload;
@@ -552,13 +555,18 @@ export const GroupSlice = createSlice({
         (chatroom) => chatroom.id !== chatroomId
       );
     },
+    deleteInvitedUser: (state, action: PayloadAction<string>) => {
+      const id = action.payload;
+      if (state.invitedUser)
+        state.invitedUser.invitedUser = state.invitedUser?.invitedUser.filter(
+          (data) => data.user.id !== id
+        );
+    },
     deleteGroupInvitation: (state, action: PayloadAction<string>) => {
       const chatroomId = action.payload;
-      if (state.groupInvitation)
-        state.groupInvitation.groupInvitation =
-          state.groupInvitation.groupInvitation.filter(
-            (data) => data.chatroom.id !== chatroomId
-          );
+      state.groupInvitation = state.groupInvitation.filter(
+        (data) => data.chatroom.id !== chatroomId
+      );
     },
     deleteGroupMembers: (
       state,
@@ -682,6 +690,8 @@ export const {
   setGroupInvitation,
   addGroupInvitation,
   deleteGroupInvitation,
+  setInvitedUser,
+  deleteInvitedUser,
 } = GroupSlice.actions;
 
 export default GroupSlice.reducer;

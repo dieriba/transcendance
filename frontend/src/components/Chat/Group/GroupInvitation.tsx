@@ -17,6 +17,7 @@ import {
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import {
   useAcceptGroupInvitaionMutation,
+  useDeclineGroupInvitationMutation,
   useGetAllGroupInvitationQuery,
 } from "../../../redux/features/groups/group.api.slice";
 import {
@@ -33,7 +34,7 @@ import {
 } from "../../../models/groupChat";
 import { RootState } from "../../../redux/store";
 import GroupIcon from "./GroupIcon";
-import { Plus } from "phosphor-react";
+import { Plus, X } from "phosphor-react";
 
 interface GroupInvitationProps {
   open: boolean;
@@ -46,6 +47,8 @@ const GroupInvitation = ({ open, handleClose }: GroupInvitationProps) => {
   const [openSnack, setOpenSnack] = useState(false);
   const [acceptGroupInvitation, acceptGroupInvitationAction] =
     useAcceptGroupInvitaionMutation();
+  const [declineGroupInvitation, declineGroupInvitationAction] =
+    useDeclineGroupInvitationMutation();
   const handleCloseSnack = (
     _event?: React.SyntheticEvent | Event,
     reason?: string
@@ -72,7 +75,7 @@ const GroupInvitation = ({ open, handleClose }: GroupInvitationProps) => {
       dispatch(setGroupInvitation(data.data));
 
       socket.on(
-        ChatEventGroup.RECEIVE_USER_INVITATION,
+        ChatEventGroup.RECEIVED_GROUP_INVITATION,
         (data: { data: ChatroomGroupType }) => {
           dispatch(addGroupInvitation({ chatroom: data.data }));
         }
@@ -86,7 +89,7 @@ const GroupInvitation = ({ open, handleClose }: GroupInvitationProps) => {
       );
 
       return () => {
-        socket.off(ChatEventGroup.RECEIVE_USER_INVITATION);
+        socket.off(ChatEventGroup.RECEIVED_GROUP_INVITATION);
         socket.off(ChatEventGroup.DELETE_USER_INVITATION);
       };
     }
@@ -109,8 +112,26 @@ const GroupInvitation = ({ open, handleClose }: GroupInvitationProps) => {
       setOpenSnack(true);
     }
   };
-  const groups = useAppSelector(
-    (state: RootState) => state.groups.joinableGroup
+
+  const handleCancelGroupInvitation = async (chatroomId: string) => {
+    try {
+      const res = await declineGroupInvitation({
+        chatroomId,
+      }).unwrap();
+      dispatch(deleteGroupInvitation(chatroomId));
+      setSeverity("success");
+      setMessage(res.message);
+      setOpenSnack(true);
+    } catch (error) {
+      console.log({ error });
+
+      setSeverity("error");
+      setMessage((error as SocketServerErrorResponse).message);
+      setOpenSnack(true);
+    }
+  };
+  const groupInvitation = useAppSelector(
+    (state: RootState) => state.groups.groupInvitation
   );
 
   if (isLoading) {
@@ -126,6 +147,10 @@ const GroupInvitation = ({ open, handleClose }: GroupInvitationProps) => {
       </Stack>
     );
   } else {
+    const disabled =
+      acceptGroupInvitationAction.isLoading ||
+      declineGroupInvitationAction.isLoading;
+
     return (
       <>
         <DialogI maxWidth="sm" open={open} handleClose={handleClose}>
@@ -141,33 +166,50 @@ const GroupInvitation = ({ open, handleClose }: GroupInvitationProps) => {
               </Alert>
             )}
             <Stack p={2}>
-              {groups.length === 0 ? (
+              {groupInvitation.length === 0 ? (
                 <Stack alignItems="center" justifyContent="center">
                   <Typography>No Group Invitation</Typography>
                 </Stack>
               ) : (
-                groups.map(({ id, chatroomName, type }, index) => {
-                  return (
-                    <Stack
-                      key={index}
-                      direction="row"
-                      justifyContent="space-between"
-                      alignItems="center"
-                    >
-                      <GroupIcon size={30} type={type} />
-                      <Typography>{chatroomName}</Typography>
-                      <>
-                        <Button
-                          onClick={() => handleOnclick(id)}
-                          startIcon={<Plus />}
-                          disabled={acceptGroupInvitationAction.isLoading}
+                groupInvitation.map(
+                  ({ chatroom: { id, chatroomName, type } }, index) => {
+                    return (
+                      <Stack
+                        key={index}
+                        direction="row"
+                        justifyContent="space-between"
+                        alignItems="center"
+                      >
+                        <GroupIcon size={30} type={type} />
+                        <Typography>{chatroomName}</Typography>
+                        <Stack
+                          direction={"row"}
+                          alignContent={"center"}
+                          spacing={2}
                         >
-                          Join
-                        </Button>
-                      </>
-                    </Stack>
-                  );
-                })
+                          <Button
+                            onClick={() => handleOnclick(id)}
+                            startIcon={<Plus />}
+                            disabled={disabled}
+                            color="inherit"
+                            variant="contained"
+                          >
+                            Join
+                          </Button>
+                          <Button
+                            onClick={() => handleCancelGroupInvitation(id)}
+                            startIcon={<X />}
+                            disabled={disabled}
+                            variant="contained"
+                            color="error"
+                          >
+                            Decline
+                          </Button>
+                        </Stack>
+                      </Stack>
+                    );
+                  }
+                )
               )}
             </Stack>
           </DialogContent>
