@@ -68,7 +68,9 @@ const SetNewRole = ({
         role,
       }).unwrap();
 
-      dispatch(setNewRole(response.data));
+      dispatch(
+        setNewRole({ data: response.data, chatroomId: currentChatroom.id })
+      );
       handleClose();
     } catch (error) {
       console.log({ error });
@@ -82,7 +84,7 @@ const SetNewRole = ({
   return (
     <>
       <DialogI maxWidth="sm" open={open} handleClose={handleClose}>
-        <DialogTitle sx={{ backgroundColor: theme.palette.background.paper }} >
+        <DialogTitle sx={{ backgroundColor: theme.palette.background.paper }}>
           Change User Role
         </DialogTitle>
         <DialogContent sx={{ backgroundColor: theme.palette.background.paper }}>

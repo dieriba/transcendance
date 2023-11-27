@@ -76,7 +76,7 @@ const GroupConversationBody = () => {
               chatroomId: data.chatroomId,
             })
           );
-          dispatch(previousAdminLeaved(data.data));
+          dispatch(previousAdminLeaved({ data: data.data, chatroomId: data.chatroomId }));
         }
       );
 
@@ -93,7 +93,7 @@ const GroupConversationBody = () => {
               chatroomId: data.chatroomId,
             })
           );
-          dispatch(setNewAdmin(data.data));
+          dispatch(setNewAdmin({ data: data.data, chatroomId: data.chatroomId }));
         }
       );
 
@@ -110,7 +110,7 @@ const GroupConversationBody = () => {
               chatroomId: data.chatroomId,
             })
           );
-          dispatch(removeUser(data.data));
+          dispatch(removeUser({ data: data.data, chatroomId: data.chatroomId }));
         }
       );
 
@@ -127,7 +127,7 @@ const GroupConversationBody = () => {
               chatroomId: data.chatroomId,
             })
           );
-          dispatch(setNewRole(data.data));
+          dispatch(setNewRole({ data: data.data, chatroomId: data.chatroomId }));
         }
       );
       socket.on(
@@ -143,7 +143,7 @@ const GroupConversationBody = () => {
               chatroomId: data.chatroomId,
             })
           );
-          dispatch(addRestrictedUser(data.data));
+          dispatch(addRestrictedUser({ data: data.data, chatroomId: data.chatroomId }));
         }
       );
 
@@ -162,7 +162,9 @@ const GroupConversationBody = () => {
               chatroomId: data.chatroomId,
             })
           );
-          dispatch(removeUser(data.data));
+          dispatch(
+            removeUser({ data: data.data, chatroomId: data.chatroomId })
+          );
         }
       );
 
@@ -179,7 +181,9 @@ const GroupConversationBody = () => {
               chatroomId: data.chatroomId,
             })
           );
-          dispatch(addNewChatroomUser(data.data));
+          dispatch(
+            addNewChatroomUser({ data: data.data, chatroomId: data.chatroomId })
+          );
         }
       );
 
@@ -196,7 +200,9 @@ const GroupConversationBody = () => {
               chatroomId: data.chatroomId,
             })
           );
-          dispatch(addNewChatroomUser(data.data));
+          dispatch(
+            addNewChatroomUser({ data: data.data, chatroomId: data.chatroomId })
+          );
         }
       );
 

@@ -173,6 +173,11 @@ export class ChatService {
             ],
           },
         },
+        invitedUser: {
+          none: {
+            userId,
+          },
+        },
       },
       select: {
         id: true,
@@ -207,6 +212,41 @@ export class ChatService {
     if (!user) throw new UserNotFoundException();
 
     return user.groupInvitation;
+  }
+
+  async getAllInvitedUser(userId: string, chatroomId: string) {
+    if (!chatroomId)
+      throw new CustomException('Bad request', HttpStatus.BAD_REQUEST);
+
+    const user = await this.prismaService.user.findFirst({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) throw new UserNotFoundException();
+
+    const chatroom = await this.prismaService.chatroom.findFirst({
+      where: { id: chatroomId },
+      select: {
+        invitedUser: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                nickname: true,
+                profile: { select: { avatar: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!chatroom)
+      throw new CustomException('Chatroom not found', HttpStatus.NOT_FOUND);
+
+    return chatroom.invitedUser;
   }
 
   async getAllUserChatroom(userId: string, chatroomId: string) {

@@ -81,9 +81,11 @@ export enum ChatEventGroup {
   ADD_FRIEND_USER = `${groupChatroom}.add.user`,
   USER_ADDED = `${groupChatroom}.chatroom.user.added`,
   ADD_INVITE_USER = `${groupChatroom}.invite.user`,
-  RECEIVE_USER_INVITATION = `${groupChatroom}.receive.user.invitation`,
+  RECEIVED_GROUP_INVITATION = `${groupChatroom}.received.group.invitation`,
   DELETE_USER_INVITATION = `${groupChatroom}.delete.user.invitation`,
   CANCEL_USER_INVITATION = `${groupChatroom}.cancel.user.invitation`,
+  DECLINE_GROUP_INVITATION = `${groupChatroom}.decline.group.invitation`,
+  USER_DECLINED_INVITATION = `${groupChatroom}.user.declined.invitation`,
 }
 
 const pong = "pong";

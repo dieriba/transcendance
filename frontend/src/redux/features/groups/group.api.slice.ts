@@ -347,14 +347,15 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
           chatrooms: ChatroomGroupType[];
           blockedUser: BaseUserTypeId[];
           blockedBy: BaseUserTypeId[];
+          numbersOfGroupInvitation: number;
         };
       },
       void
     >({
-      queryFn: (data) => {
+      queryFn: () => {
         connectSocket();
         return new Promise((resolve) => {
-          socket.emit(ChatEventGroup.REQUEST_ALL_CHATROOM, data);
+          socket.emit(ChatEventGroup.REQUEST_ALL_CHATROOM);
 
           socket.on(ChatEventGroup.GET_ALL_CHATROOM, (data) => {
             resolve({ data });
@@ -394,7 +395,7 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
       void
     >({ query: () => ({ url: "chat/get-all-group-invitation" }) }),
     getAllInvitedUser: builder.query<
-      BaseServerResponse & { data: InvitedUserType },
+      BaseServerResponse & { data: InvitedUserType[] },
       string
     >({
       query: (chatroomId) => ({

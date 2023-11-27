@@ -57,7 +57,9 @@ const SetAsAdmin = ({ id, nickname, open, handleClose }: SetAdminProps) => {
     try {
       const response = await setDieriba(data).unwrap();
 
-      dispatch(setNewAdmin(response.data));
+      dispatch(
+        setNewAdmin({ data: response.data, chatroomId: data.chatroomId })
+      );
       handleClose();
     } catch (error) {
       console.log({ error });
@@ -71,7 +73,9 @@ const SetAsAdmin = ({ id, nickname, open, handleClose }: SetAdminProps) => {
   return (
     <>
       <DialogI maxWidth="sm" open={open} handleClose={handleClose}>
-        <DialogTitle sx={{ backgroundColor: theme.palette.background.paper }} >Set New Admin</DialogTitle>
+        <DialogTitle sx={{ backgroundColor: theme.palette.background.paper }}>
+          Set New Admin
+        </DialogTitle>
         <DialogContent sx={{ backgroundColor: theme.palette.background.paper }}>
           <Stack
             sx={{ backgroundColor: theme.palette.background.paper }}
@@ -105,7 +109,7 @@ const SetAsAdmin = ({ id, nickname, open, handleClose }: SetAdminProps) => {
                     color: "white",
                   },
                 }}
-                  onClick={() =>
+                onClick={() =>
                   onSubmit({
                     id,
                     chatroomId: currentChatroom.id,

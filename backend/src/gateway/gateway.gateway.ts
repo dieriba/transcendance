@@ -4,6 +4,7 @@ import {
   UsePipes,
   ValidationPipe,
   Logger,
+  HttpStatus,
 } from '@nestjs/common';
 import {
   ConnectedSocket,
@@ -71,6 +72,7 @@ import { UserIdDto, UserInfoUpdateDto } from 'src/user/dto/UserInfo.dto';
 import { PongService } from 'src/pong/pong.service';
 import { Interval } from '@nestjs/schedule';
 import { GAME_INVITATION_TIME_LIMIT } from '@shared/constant';
+import { CustomException } from 'src/common/custom-exception/custom-exception';
 
 @UseGuards(WsAccessTokenGuard)
 @UseFilters(WsCatchAllFilter)
@@ -442,7 +444,7 @@ export class GatewayGateway {
 
     if (!chatroom) throw new WsNotFoundException('Chatroom does not exist');
 
-    const { chatroomName, type, messages } = chatroom;
+    const { chatroomName, type } = chatroom;
 
     const user = await this.prismaService.user.findFirst({
       where: {
@@ -537,79 +539,148 @@ export class GatewayGateway {
       );
     }
 
-    const { status, profile, friends, id } = user;
+    const { id } = user;
 
-    if (chatroom.type !== TYPE.PRIVATE) {
-      await this.chatroomUserService.createNewChatroomUser(id, chatroomId);
-    } else {
-      await this.prismaService.chatroom.update({
-        where: { id: chatroomId },
-        data: {
-          invitedUser: {
-            create: {
-              userId: id,
+    await this.prismaService.chatroom.update({
+      where: { id: chatroomId },
+      data: {
+        invitedUser: {
+          create: {
+            userId: id,
+          },
+        },
+      },
+    });
+
+    this.sendToSocket(
+      this.server,
+      id,
+      ChatEventGroup.RECEIVED_GROUP_INVITATION,
+      {
+        data: { id: chatroomId, chatroomName, type },
+        message: `${adminNickname} invited you to join the group: ${chatroomName}`,
+        severity: 'info',
+      },
+    );
+
+    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+      data: {},
+      message: `${nickname} succesfully invited`,
+    });
+
+    return;
+  }
+
+  @SubscribeMessage(ChatEventGroup.DECLINE_GROUP_INVITATION)
+  async declineGroupInvitation(
+    @ConnectedSocket() client: SocketWithAuth,
+    @MessageBody() chatroomIdDto: ChatroomIdDto,
+  ) {
+    const { chatroomId } = chatroomIdDto;
+    const { userId } = client;
+    const user = await this.prismaService.user.findFirst({
+      where: { id: userId },
+      select: {
+        nickname: true,
+        groupInvitation: {
+          where: {
+            chatroomId,
+          },
+        },
+      },
+    });
+
+    if (!user) throw new WsNotFoundException('User not found');
+
+    if (user.groupInvitation.length === 0) {
+      throw new WsBadRequestException(
+        'You did not receive invitation from that group',
+      );
+    }
+
+    const chatroom = await this.prismaService.chatroom.update({
+      where: { id: chatroomId },
+      data: {
+        invitedUser: {
+          delete: {
+            userId_chatroomId: {
+              userId,
+              chatroomId,
             },
           },
         },
-      });
-
-      this.sendToSocket(
-        this.server,
-        id,
-        ChatEventGroup.RECEIVE_USER_INVITATION,
-        {
-          data: { id: chatroomId, chatroomName, type },
-          message: `${adminNickname} invited you to join ${chatroomName}`,
-        },
-      );
-
-      this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
-        data: {},
-        message: `${nickname} succesfully invited`,
-      });
-
-      return;
-    }
-
-    this.sendToSocket(client, chatroomName, ChatEventGroup.USER_ADDED, {
-      data: {
-        user: {
-          id,
-          nickname,
-          status,
-          profile,
-          friends,
-        },
       },
-      chatroomId,
-      message: `${nickname} added ${user.nickname}`,
     });
 
     this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+      data: { chatroomId },
+      message: 'Invitation successfully declined',
+    });
+
+    this.sendToSocket(
+      this.server,
+      chatroom.chatroomName,
+      ChatEventGroup.USER_DECLINED_INVITATION,
+      {
+        data: { id: userId },
+        message: `${user.nickname} declined group invitation`,
+      },
+    );
+  }
+
+  @SubscribeMessage(ChatEventGroup.CANCEL_USER_INVITATION)
+  async cancelGroupInviation(
+    @ConnectedSocket() client: SocketWithAuth,
+    @MessageBody() chatroomIdWithUserIdDto: ChatroomIdWithUserIdDto,
+  ) {
+    const { chatroomId, id } = chatroomIdWithUserIdDto;
+    const { userId } = client;
+    const [, user] = await Promise.all([
+      this.isDieriba(userId, chatroomId),
+      this.prismaService.user.findFirst({
+        where: { id },
+        select: {
+          nickname: true,
+          groupInvitation: {
+            where: {
+              chatroomId,
+            },
+          },
+        },
+      }),
+    ]);
+
+    if (!user) throw new WsNotFoundException('User not found');
+
+    if (user.groupInvitation.length === 0) {
+      throw new WsBadRequestException(
+        `${user.nickname} is not from that group`,
+      );
+    }
+
+    await this.prismaService.chatroom.update({
+      where: { id: chatroomId },
       data: {
-        user: {
-          id,
-          nickname: user.nickname,
-          status,
-          profile,
-          friends,
+        invitedUser: {
+          delete: {
+            userId_chatroomId: {
+              userId: id,
+              chatroomId,
+            },
+          },
         },
       },
-      message: `${user.nickname} has been added succesfully`,
     });
 
-    this.sendToSocket(this.server, id, ChatEventGroup.NEW_CHATROOM, {
-      message: `${nickname} added you in the group named ${chatroomName}`,
-      data: {
-        id: chatroomId,
-        chatroomName,
-        type,
-        messages,
-        restrictedUsers: [],
-      },
+    this.sendToSocket(this.server, id, ChatEventGroup.DELETE_USER_INVITATION, {
+      data: { chatroomId },
+      message: '',
     });
 
-    this.joinOrLeaveRoom(id, GeneralEvent.JOIN, chatroomName);
+    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+      data: { id },
+      message: `User invitation for ${user.nickname} has been canceled!`,
+    });
   }
 
   @SubscribeMessage(ChatEventGroup.ADD_FRIEND_USER)
@@ -1566,7 +1637,7 @@ export class GatewayGateway {
     }
 
     this.sendToSocket(client, chatroomName, ChatEventGroup.USER_UNRESTRICTED, {
-      data: { user: { ...user, banLife: restrictedUser.banLife } },
+      data: { user: { ...user, banLife: restrictedUser.banLife, chatroomId } },
       message: '',
     });
 
@@ -1592,6 +1663,11 @@ export class GatewayGateway {
         blockedBy: {
           select: {
             id: true,
+          },
+        },
+        _count: {
+          select: {
+            groupInvitation: true,
           },
         },
       },
@@ -1681,6 +1757,7 @@ export class GatewayGateway {
         chatrooms,
         blockedUser: user.blockedUsers,
         blockedBy: user.blockedBy,
+        numberOfGroupInvitation: user._count.groupInvitation,
       },
     });
   }
@@ -1834,40 +1911,48 @@ export class GatewayGateway {
 
     const { password, ...data } = chatroom;
 
-    if (chatroom.type === TYPE.PRIVATE && chatroom.invitedUser.length === 0) {
-      throw new WsUnauthorizedException(
-        "You can't join that private chatroom, you need to be invited first",
-      );
-    } else if (chatroom.type === TYPE.PROTECTED) {
-      const match = await this.argon2Service.compare(
-        password,
-        joinChatroomDto.password,
-      );
-
-      if (!match)
+    if (chatroom.invitedUser.length === 0) {
+      if (chatroom.type === TYPE.PRIVATE) {
         throw new WsUnauthorizedException(
-          "Wrong password, you can't acces that chatroom",
+          "You can't join that private chatroom, you need to be invited first",
         );
+      } else if (chatroom.type === TYPE.PROTECTED) {
+        if (!joinChatroomDto.password)
+          throw new CustomException(
+            'Password is needed for protected room',
+            HttpStatus.BAD_REQUEST,
+          );
+
+        const match = await this.argon2Service.compare(
+          password,
+          joinChatroomDto.password,
+        );
+
+        if (!match)
+          throw new WsUnauthorizedException(
+            "Wrong password, you can't acces that chatroom",
+          );
+      }
     }
     let userInfo = await this.chatroomUserService.createNewChatroomUser(
       userId,
       chatroomId,
     );
 
-    if (chatroom.type === TYPE.PRIVATE) {
+    if (chatroom.invitedUser.length) {
       await this.prismaService.$transaction(async (tx) => {
         userInfo = await this.chatroomUserService.createNewChatroomUserTx(
           tx,
           userId,
           chatroomId,
         );
-        tx.chatroom.update({
+        await tx.chatroom.update({
           where: {
             id: chatroomId,
           },
           data: {
             invitedUser: {
-              disconnect: {
+              delete: {
                 userId_chatroomId: {
                   userId,
                   chatroomId,
@@ -2933,6 +3018,7 @@ export class GatewayGateway {
 
     this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS);
   }
+
   /*------------------------------------------------------------------------------------------------------ */
 
   /*------------------------------------------------------------------------------------------------------ */

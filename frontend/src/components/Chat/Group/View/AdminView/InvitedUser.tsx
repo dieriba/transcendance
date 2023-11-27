@@ -12,7 +12,10 @@ import { useTheme } from "@mui/material/styles";
 import { useEffect, useState } from "react";
 import { RootState } from "../../../../../redux/store";
 import { useAppDispatch, useAppSelector } from "../../../../../redux/hooks";
-import { SocketServerErrorResponse } from "../../../../../services/type";
+import {
+  SocketServerErrorResponse,
+  SocketServerSucessResponse,
+} from "../../../../../services/type";
 import {
   useCancelGroupInvitationMutation,
   useGetAllInvitedUserQuery,
@@ -21,8 +24,10 @@ import {
   deleteInvitedUser,
   setInvitedUser,
 } from "../../../../../redux/features/groups/group.slice";
-import { InvitedUserType } from "../../../../../models/groupChat";
 import { X } from "phosphor-react";
+import { connectSocket, socket } from "../../../../../utils/getSocket";
+import { ChatEventGroup } from "../../../../../../../shared/socket.event";
+import { BaseUserTypeId } from "../../../../../models/login/UserSchema";
 
 const InvitedUser = () => {
   const { currentGroupChatroomId, invitedUser } = useAppSelector(
@@ -51,6 +56,18 @@ const InvitedUser = () => {
   useEffect(() => {
     if (data?.data) {
       dispatch(setInvitedUser(data.data));
+
+      connectSocket();
+      socket.on(
+        ChatEventGroup.USER_DECLINED_INVITATION,
+        (data: SocketServerSucessResponse & { data: BaseUserTypeId }) => {
+          dispatch(deleteInvitedUser(data.data.id));
+        }
+      );
+
+      return () => {
+        socket.off(ChatEventGroup.USER_DECLINED_INVITATION);
+      };
     }
   }, [data, dispatch]);
 
@@ -97,7 +114,7 @@ const InvitedUser = () => {
                 {message}
               </Alert>
             )}
-            {(invitedUser as InvitedUserType).invitedUser.length === 0 ? (
+            {invitedUser.length === 0 ? (
               <Stack
                 width="100%"
                 p={3}
@@ -107,29 +124,27 @@ const InvitedUser = () => {
                 <Typography variant="body2">No Invited User</Typography>
               </Stack>
             ) : (
-              (invitedUser as InvitedUserType).invitedUser.map(
-                (user, index) => (
-                  <Stack
-                    key={index}
-                    width="100%"
-                    alignItems="center"
-                    p={3}
-                    direction="row"
-                    justifyContent="space-between"
-                  >
-                    <Avatar src="" />
-                    <Typography>{user.user.nickname}</Typography>
-                    <Tooltip title="Cancel group invitation">
-                      <IconButton
-                        onClick={() => handleSubmit(user.user.id)}
-                        disabled={cancelGroupInvitationAction.isLoading}
-                      >
-                        <X />
-                      </IconButton>
-                    </Tooltip>
-                  </Stack>
-                )
-              )
+              invitedUser.map((user, index) => (
+                <Stack
+                  key={index}
+                  width="100%"
+                  alignItems="center"
+                  p={3}
+                  direction="row"
+                  justifyContent="space-between"
+                >
+                  <Avatar src="" />
+                  <Typography>{user.user.nickname}</Typography>
+                  <Tooltip title="Cancel group invitation">
+                    <IconButton
+                      onClick={() => handleSubmit(user.user.id)}
+                      disabled={cancelGroupInvitationAction.isLoading}
+                    >
+                      <X />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+              ))
             )}
           </Stack>
         </Stack>

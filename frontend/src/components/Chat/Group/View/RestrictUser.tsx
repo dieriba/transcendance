@@ -89,7 +89,9 @@ const RestrictUser = ({
       data.chatroomId = chatroomId;
       const res = await restrictUser(data).unwrap();
 
-      dispatch(addRestrictedUser(res.data));
+      dispatch(
+        addRestrictedUser({ data: res.data, chatroomId: data.chatroomId })
+      );
       setMessage(res.message);
       setOpenSnack(true);
       setSeverity("success");

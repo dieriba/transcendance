@@ -147,15 +147,11 @@ export const UserGroupSchema = z.object({
 });
 
 export const InvitedUserSchema = z.object({
-  invitedUser: z.array(
-    z.object({
-      user: z.object({
-        id: z.string().min(1),
-        nickname: z.string().min(1),
-        profile: z.object({ avatar: z.string().min(1) }),
-      }),
-    })
-  ),
+  user: z.object({
+    id: z.string().min(1),
+    nickname: z.string().min(1),
+    profile: z.object({ avatar: z.string().min(1) }),
+  }),
 });
 
 export type InvitedUserType = z.infer<typeof InvitedUserSchema>;

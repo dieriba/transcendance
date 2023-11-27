@@ -1,10 +1,4 @@
-import {
-  Stack,
-  Box,
-  Divider,
-  Button,
-  useMediaQuery,
-} from "@mui/material";
+import { Stack, Box, Divider, Button, useMediaQuery } from "@mui/material";
 import { MagnifyingGlass, Plus } from "phosphor-react";
 import { Search, SearchIconWrapper, StyledInputBase } from "../../search";
 import { useTheme } from "@mui/material/styles";
@@ -27,8 +21,8 @@ const GroupContact = () => {
     join: false,
     invitation: false,
   });
-  const groups = useAppSelector(
-    (state: RootState) => state.groups.groupChatroom
+  const { groupChatroom, numbersOfGroupInvitation } = useAppSelector(
+    (state: RootState) => state.groups
   );
 
   const myId = useAppSelector((state: RootState) => state.user.user?.id);
@@ -57,7 +51,12 @@ const GroupContact = () => {
             </Search>
           </Stack>
           <Divider />
-          <Stack spacing={1} alignItems="center" justifyContent="space-between" p={1}>
+          <Stack
+            spacing={1}
+            alignItems="center"
+            justifyContent="space-between"
+            p={1}
+          >
             <Button
               onClick={() => setOpen((prev) => ({ ...prev, create: true }))}
               fullWidth
@@ -77,9 +76,11 @@ const GroupContact = () => {
             >
               Join group
             </Button>
-            <Stack spacing={1} width={'100%'} direction={'row'}>
+            <Stack spacing={1} width={"100%"} direction={"row"}>
               <Button
-                onClick={() => setOpen((prev) => ({ ...prev, invitation: true }))}
+                onClick={() =>
+                  setOpen((prev) => ({ ...prev, invitation: true }))
+                }
                 fullWidth
                 variant="contained"
                 color="inherit"
@@ -87,7 +88,7 @@ const GroupContact = () => {
                 Group Invitation
               </Button>
               <Button disabled color="inherit" variant="contained">
-                5
+                {numbersOfGroupInvitation}
               </Button>
             </Stack>
           </Stack>
@@ -97,7 +98,7 @@ const GroupContact = () => {
             spacing={1}
           >
             <Stack p={2}>
-              {groups.map(
+              {groupChatroom.map(
                 (
                   { id, chatroomName, type, messages, restrictedUsers },
                   index

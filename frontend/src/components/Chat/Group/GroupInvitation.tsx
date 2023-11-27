@@ -23,15 +23,11 @@ import {
 import {
   addNewChatroom,
   setGroupInvitation,
-  addGroupInvitation,
   deleteGroupInvitation,
 } from "../../../redux/features/groups/group.slice";
 import { connectSocket, socket } from "../../../utils/getSocket";
 import { ChatEventGroup } from "../../../../../shared/socket.event";
-import {
-  BaseChatroomTypeId,
-  ChatroomGroupType,
-} from "../../../models/groupChat";
+import { BaseChatroomTypeId } from "../../../models/groupChat";
 import { RootState } from "../../../redux/store";
 import GroupIcon from "./GroupIcon";
 import { Plus, X } from "phosphor-react";
@@ -75,13 +71,6 @@ const GroupInvitation = ({ open, handleClose }: GroupInvitationProps) => {
       dispatch(setGroupInvitation(data.data));
 
       socket.on(
-        ChatEventGroup.RECEIVED_GROUP_INVITATION,
-        (data: { data: ChatroomGroupType }) => {
-          dispatch(addGroupInvitation({ chatroom: data.data }));
-        }
-      );
-
-      socket.on(
         ChatEventGroup.DELETE_USER_INVITATION,
         (data: SocketServerSucessResponse & { data: BaseChatroomTypeId }) => {
           dispatch(deleteGroupInvitation(data.data.chatroomId));
@@ -89,7 +78,6 @@ const GroupInvitation = ({ open, handleClose }: GroupInvitationProps) => {
       );
 
       return () => {
-        socket.off(ChatEventGroup.RECEIVED_GROUP_INVITATION);
         socket.off(ChatEventGroup.DELETE_USER_INVITATION);
       };
     }
@@ -113,7 +101,7 @@ const GroupInvitation = ({ open, handleClose }: GroupInvitationProps) => {
     }
   };
 
-  const handleCancelGroupInvitation = async (chatroomId: string) => {
+  const handleDeclineGroupInvitation = async (chatroomId: string) => {
     try {
       const res = await declineGroupInvitation({
         chatroomId,
@@ -197,7 +185,7 @@ const GroupInvitation = ({ open, handleClose }: GroupInvitationProps) => {
                             Join
                           </Button>
                           <Button
-                            onClick={() => handleCancelGroupInvitation(id)}
+                            onClick={() => handleDeclineGroupInvitation(id)}
                             startIcon={<X />}
                             disabled={disabled}
                             variant="contained"

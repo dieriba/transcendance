@@ -6,6 +6,7 @@ import { PATH_APP } from "../../routes/paths";
 import { useEffect } from "react";
 import { connectSocket, socket } from "../../utils/getSocket";
 import {
+  ChatEventGroup,
   FriendEvent,
   GeneralEvent,
   PongEvent,
@@ -31,6 +32,8 @@ import {
 import { useTheme } from "@mui/material/styles";
 import MobileSidebar from "../sidebar/MobileSidebar";
 import { BaseUserType } from "../../models/login/UserSchema";
+import { ChatroomGroupType } from "../../models/groupChat";
+import { addGroupInvitation } from "../../redux/features/groups/group.slice";
 
 const ProtectedDashboardLayout = () => {
   const isAuthenticated = useAppSelector(
@@ -51,6 +54,16 @@ const ProtectedDashboardLayout = () => {
         ) => {
           dispatch(
             showSnackBar({ message: data.message, severity: "success" })
+          );
+        }
+      );
+
+      socket.on(
+        ChatEventGroup.RECEIVED_GROUP_INVITATION,
+        (data: SocketServerSucessResponse & { data: ChatroomGroupType }) => {
+          dispatch(addGroupInvitation({ chatroom: data.data }));
+          dispatch(
+            showSnackBar({ message: data.message, severity: data.severity })
           );
         }
       );
@@ -133,6 +146,7 @@ const ProtectedDashboardLayout = () => {
       );
 
       return () => {
+        socket.off(ChatEventGroup.RECEIVED_GROUP_INVITATION);
         socket.off(GeneralEvent.USER_LOGGED_IN);
         socket.off(GeneralEvent.USER_LOGGED_OUT);
         socket.off(FriendEvent.DELETE_FRIEND);

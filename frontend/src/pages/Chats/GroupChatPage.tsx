@@ -13,7 +13,10 @@ import {
   ChatEventPrivateRoom,
   ChatEventGroup,
 } from "../../../../shared/socket.event";
-import { SocketServerSucessResponse } from "../../services/type";
+import {
+  SocketServerSucessResponse,
+  SocketServerSucessWithChatroomId,
+} from "../../services/type";
 import { useGetAllGroupQuery } from "../../redux/features/groups/group.api.slice";
 import {
   addNewChatroom,
@@ -83,11 +86,16 @@ const GroupChatPage = () => {
       socket.on(
         ChatEventGroup.USER_UNRESTRICTED,
         (
-          data: SocketServerSucessResponse & {
+          data: SocketServerSucessWithChatroomId & {
             data: { user: UserProfileBanLifeType };
           }
         ) => {
-          dispatch(unrestrictUser(data.data.user));
+          dispatch(
+            unrestrictUser({
+              data: data.data.user,
+              chatroomId: data.chatroomId,
+            })
+          );
         }
       );
 

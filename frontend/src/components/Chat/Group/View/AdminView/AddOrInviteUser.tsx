@@ -49,7 +49,7 @@ const AddOrInvite = ({ open, handleClose }: AddOrInviteProps) => {
               <CustomTabPanel value={value} index={1}>
                 <InviteUser />
               </CustomTabPanel>
-              <CustomTabPanel value={value} index={1}>
+              <CustomTabPanel value={value} index={2}>
                 <InvitedUser />
               </CustomTabPanel>
             </>
