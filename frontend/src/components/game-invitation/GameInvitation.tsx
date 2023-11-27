@@ -9,11 +9,11 @@ import {
   Alert,
   Stack,
 } from "@mui/material";
-import DialogI from "../../../Dialog/DialogI";
+import DialogI from "../Dialog/DialogI";
 import { useState } from "react";
-import { SocketServerErrorResponse } from "../../../../services/type";
-import { BaseUserTypeId } from "../../../../models/login/UserSchema";
-import { useSendGameInvitationMutation } from "../../../../redux/features/pong/pong.api.slice";
+import { SocketServerErrorResponse } from "../../services/type";
+import { BaseUserTypeId } from "../../models/login/UserSchema";
+import { useSendGameInvitationMutation } from "../../redux/features/pong/pong.api.slice";
 
 interface GameInvitationProps extends DialogProps {
   id: string;

@@ -24,8 +24,13 @@ export class UserService {
           id: true,
           status: true,
           nickname: true,
-          pongVictory: true,
-          pongLosses: true,
+          pong: {
+            select: {
+              victory: true,
+              losses: true,
+              rating: true,
+            },
+          },
           blockedBy: {
             where: {
               id: userId,
@@ -42,6 +47,7 @@ export class UserService {
         `${user.nickname} blocked thus you can't get his profile`,
         HttpStatus.FORBIDDEN,
       );
+    return user;
   }
 
   async createUser(user: CreatedUser, profile: Profile, select: UserInfo) {

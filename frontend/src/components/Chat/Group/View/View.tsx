@@ -29,7 +29,7 @@ import { SocketServerSucessResponse } from "../../../../services/type";
 import UnRestrictUser from "./UnrestrictUser";
 import { BaseFriendType } from "../../../../models/FriendsSchema";
 import KickUser from "./KickUser";
-import GameInvitation from "./GameInvitation";
+import GameInvitation from "../../../game-invitation/GameInvitation";
 import { ChatroomGroupType } from "../../../../models/groupChat";
 
 const View = () => {

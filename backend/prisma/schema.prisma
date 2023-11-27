@@ -11,48 +11,41 @@ datasource db {
 }
 
 model User {
-  id                     String           @id @default(uuid())
-  nickname               String           @unique @db.VarChar(16)
-  email                  String           @unique
+  id                     String          @id @default(uuid())
+  nickname               String          @unique @db.VarChar(16)
+  email                  String          @unique
   password               String?
-  status                 STATUS           @default(OFFLINE)
-  createdAt              DateTime         @default(now())
-  updatedAt              DateTime         @updatedAt
+  status                 STATUS          @default(OFFLINE)
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
   hashedRefreshToken     String?
-  twoFa                  TwoFa?           @relation("userTwoFa")
-  profile                Profile?         @relation("userProfile")
-  groupParameter         Group?           @relation("groupInvitation")
-  blockedBy              User[]           @relation("blockUser")
-  blockedUsers           User[]           @relation("blockUser")
-  friendRequestsReceived FriendRequest[]  @relation("recipient")
-  friendRequestsSent     FriendRequest[]  @relation("sender")
-  friends                Friends[]        @relation("users")
-  friendUserFriends      Friends[]        @relation("friendUsers")
-  gameHistory            GameHistory[]    @relation("gameHistoryUsers1")
-  game                   GameHistory[]    @relation("gameHistoryUsers2")
-  winnedGame             GameHistory[]    @relation("gameWinner")
-  loosedGame             GameHistory[]    @relation("gameLoser")
-  pongVictory            Int              @default(0)
-  pongLosses             Int              @default(0)
-  receivedNotifications  Notifications[]  @relation("userNotification")
-  blockedChatroomUser    Chatroom[]       @relation("blockedUsers")
-  chatrooms              ChatroomUser[]
-  messages               Message[]
-  restrictedGroups       RestrictedUser[]
-  groupInvitation        InvitedUser[]
-  allowForeignToDm       Boolean          @default(false)
+  twoFa                  TwoFa?          @relation("userTwoFa")
+  profile                Profile?        @relation("userProfile")
+  groupParameter         Group?          @relation("groupInvitation")
+  blockedBy              User[]          @relation("blockUser")
+  blockedUsers           User[]          @relation("blockUser")
+  friendRequestsReceived FriendRequest[] @relation("recipient")
+  friendRequestsSent     FriendRequest[] @relation("sender")
+  friends                Friends[]       @relation("users")
+  friendUserFriends      Friends[]       @relation("friendUsers")
+
+  receivedNotifications Notifications[]  @relation("userNotification")
+  blockedChatroomUser   Chatroom[]       @relation("blockedUsers")
+  pong                  Pong?            @relation("pong")
+  chatrooms             ChatroomUser[]
+  messages              Message[]
+  restrictedGroups      RestrictedUser[]
+  groupInvitation       InvitedUser[]
+  allowForeignToDm      Boolean          @default(false)
 }
 
 model GameHistory {
   id          String      @id @default(uuid())
-  user1       User        @relation("gameHistoryUsers1", fields: [user1Id], references: [id])
+  user1       Pong        @relation("gameHistoryUsers1", fields: [user1Id], references: [userId])
   user1Id     String
-  user2       User        @relation("gameHistoryUsers2", fields: [user2Id], references: [id])
+  user2       Pong        @relation("gameHistoryUsers2", fields: [user2Id], references: [userId])
   user2Id     String
-  winner      User?       @relation("gameWinner", fields: [winnerId], references: [id])
-  winnerId    String?
-  loser       User?       @relation("gameLoser", fields: [loserId], references: [id])
-  loserId     String?
+  winnerId    String
   matchDate   DateTime    @default(now())
   matchResult GAME_RESULT
 
@@ -65,6 +58,16 @@ model Group {
 
   allowAll        Boolean
   onlyAllowFriend Boolean
+}
+
+model Pong {
+  user        User          @relation("pong", fields: [userId], references: [id], onDelete: Cascade)
+  userId      String        @unique @default(uuid())
+  victory     Int           @default(0)
+  losses      Int           @default(0)
+  rating      Int           @default(0)
+  gameHistory GameHistory[] @relation("gameHistoryUsers1")
+  game        GameHistory[] @relation("gameHistoryUsers2")
 }
 
 model Friends {
@@ -143,9 +146,9 @@ model ChatroomUser {
   chatroomId  String
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
-  penFriend   String?
   role        ROLE?            @default(REGULAR_USER)
   userIBanned RestrictedUser[]
+  penFriend   String?
 
   @@unique([userId, chatroomId])
 }

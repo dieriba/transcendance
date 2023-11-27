@@ -165,8 +165,7 @@ const FriendsTable = () => {
                       nickname,
                       status,
                       profile: { avatar, lastname, firstname },
-                      pongLosses,
-                      pongVictory,
+                      pong,
                     },
                   }) => (
                     <TableRow
@@ -204,10 +203,9 @@ const FriendsTable = () => {
                               friend: {
                                 id,
                                 nickname,
-                                pongLosses,
                                 status,
-                                pongVictory,
                                 profile: { avatar, firstname, lastname },
+                                pong
                               },
                             });
                           }}
