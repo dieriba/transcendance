@@ -25,8 +25,8 @@ export default function Router() {
         { element: <Navigate to={DEFAULT_PATH} replace />, index: true },
         { path: PATH_APP.dashboard.profile, element: <ProfilePage /> },
         {
-          path: PATH_APP.dashboard.notification,
-          element: <NotificationsPage />,
+          path: PATH_APP.dashboard.leaderboard,
+          element: <LeaderboardPage />,
         },
         { path: PATH_APP.dashboard.friends, element: <FriendsPage /> },
         { path: PATH_APP.dashboard.games, element: <GamesPage /> },
@@ -54,8 +54,8 @@ const OauthPage = Loadable(() => import("../pages/auth/OauthPage"));
 const TwoFaPage = Loadable(() => import("../pages/auth/TwoFa/TwoFaPage"));
 
 const FriendsPage = Loadable(() => import("../pages/friends/FriendsPage"));
-const NotificationsPage = Loadable(
-  () => import("../pages/notifications/NotificationsPage")
+const LeaderboardPage = Loadable(
+  () => import("../pages/leaderboard/Leaderboard")
 );
 const ProfilePage = Loadable(() => import("../pages/Profile/ProfilePage"));
 const ChatPage = Loadable(() => import("../pages/Chats/Chat"));

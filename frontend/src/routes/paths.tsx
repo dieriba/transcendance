@@ -9,7 +9,7 @@ export const PATH_APP = {
   root: ROOT_DASHBOARD,
   dashboard: {
     profile: path(ROOT_DASHBOARD, "profile"),
-    notification: path(ROOT_DASHBOARD, "notification"),
+    leaderboard: path(ROOT_DASHBOARD, "leaderboard"),
     friends: path(ROOT_DASHBOARD, "friends"),
     chat: path(ROOT_DASHBOARD, "chats"),
     group: path(ROOT_DASHBOARD, "groups"),

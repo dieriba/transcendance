@@ -1,19 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-refresh/only-export-components */
 import {
-  BellSimple,
   ChatCircleDots,
   ChatsTeardrop,
   GameController,
   Gear,
   GearSix,
+  Keyboard,
   SignOut,
   User,
   Users,
 } from "phosphor-react";
 import { PATH_APP } from "../routes/paths";
 import { JSXElementConstructor, ReactElement } from "react";
-import { Badge } from "@mui/material";
 
 export type ProfileMenuI = {
   title: string;
@@ -41,6 +40,11 @@ const Profile_Menu: ProfileMenuI[] = [
 
 const Nav_Buttons = [
   {
+    path: PATH_APP.dashboard.leaderboard,
+    name: PATH_APP.dashboard.leaderboard.substring(1),
+    icon: <Keyboard />,
+  },
+  {
     path: PATH_APP.dashboard.profile,
     name: PATH_APP.dashboard.profile.substring(1),
     icon: <User />,
@@ -49,15 +53,6 @@ const Nav_Buttons = [
     path: PATH_APP.dashboard.friends,
     name: PATH_APP.dashboard.friends.substring(1),
     icon: <Users />,
-  },
-  {
-    path: PATH_APP.dashboard.notification,
-    name: PATH_APP.dashboard.notification.substring(1),
-    icon: (
-      <Badge badgeContent={4} color="primary">
-        <BellSimple />
-      </Badge>
-    ),
   },
   {
     path: PATH_APP.dashboard.chat,
