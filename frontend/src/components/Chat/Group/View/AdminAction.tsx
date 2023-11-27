@@ -6,15 +6,19 @@ import {
   UserCirclePlus,
   UserGear,
 } from "phosphor-react";
-import { ChatRoleType } from "../../../../models/type-enum/typesEnum";
+import {
+  ChatRoleType,
+  GroupTypes,
+} from "../../../../models/type-enum/typesEnum";
 import { useState } from "react";
 import EditGroup from "./AdminView/EditGroup";
-import AddUser from "./AdminView/AddUser";
+import AddUser from "./AdminView/AddOrInviteUser";
 
 interface AdminActionProps {
   role: ChatRoleType;
   nickname: string;
   id: string;
+  type: GroupTypes;
   handleUnrestriction: (data: { nickname: string }) => void;
   handleGameInvitation: (data: { id: string; nickname: string }) => void;
 }
@@ -23,6 +27,7 @@ const AdminAction = ({
   role,
   nickname,
   id,
+  type,
   handleUnrestriction,
   handleGameInvitation,
 }: AdminActionProps) => {
@@ -34,7 +39,10 @@ const AdminAction = ({
   if (role === "DIERIBA") {
     return (
       <>
-        <Tooltip placement="top" title="add new user">
+        <Tooltip
+          placement="top"
+          title={type !== "PRIVATE" ? "add or invite user" : "invite user"}
+        >
           <IconButton
             onClick={() => setOpen((prev) => ({ ...prev, addUser: true }))}
           >

@@ -43,6 +43,8 @@ const Sidebar = () => {
       // eslint-disable-next-line no-self-assign
       window.location = window.location;
     } catch (error) {
+      console.log({ error });
+
       dispatch(apiSlice.util.resetApiState());
       dispatch({ type: LOGOUT });
       // eslint-disable-next-line no-self-assign
@@ -70,7 +72,7 @@ const Sidebar = () => {
             justifyContent: "space-between",
           }}
         >
-          <Stack 
+          <Stack
             spacing={1}
             sx={{ width: "max-content", alignItems: "center" }}
           >

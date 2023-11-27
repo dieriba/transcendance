@@ -18,6 +18,8 @@ export const FriendSchema = z.object({
       id: z.string().min(1),
       nickname: z.string().min(1),
       status: z.enum(friendsType),
+      pongLosses: z.number(),
+      pongVictory: z.number(),
     })
     .merge(ProfileSchema),
 });

@@ -1,15 +1,48 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { ApiUser, CreatedUser, Profile } from './types/user.types';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { UserInfo } from 'src/common/types/user-info.type';
+import { UserData, UserInfo } from 'src/common/types/user-info.type';
 import { ChatroomUserInfo } from 'src/common/types/chatroom-user-type';
 import { Prisma, PrismaClient, User } from '@prisma/client';
 import { DefaultArgs } from '@prisma/client/runtime/library';
+import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
+import { CustomException } from 'src/common/custom-exception/custom-exception';
 type optionalDataUser = Partial<User>;
 
 @Injectable()
 export class UserService {
   constructor(private readonly prismaService: PrismaService) {}
+
+  async getUserInfo(userId: string, id: string) {
+    const [me, user] = await Promise.all([
+      this.findUserById(userId, UserData),
+      this.prismaService.user.findFirst({
+        where: {
+          id,
+        },
+        select: {
+          id: true,
+          status: true,
+          nickname: true,
+          pongVictory: true,
+          pongLosses: true,
+          blockedBy: {
+            where: {
+              id: userId,
+            },
+          },
+        },
+      }),
+    ]);
+
+    if (!me || !user) throw new UserNotFoundException();
+
+    if (user.blockedBy.length > 0)
+      throw new CustomException(
+        `${user.nickname} blocked thus you can't get his profile`,
+        HttpStatus.FORBIDDEN,
+      );
+  }
 
   async createUser(user: CreatedUser, profile: Profile, select: UserInfo) {
     return await this.prismaService.user.create({

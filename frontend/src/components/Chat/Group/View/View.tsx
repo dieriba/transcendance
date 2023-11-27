@@ -30,12 +30,19 @@ import UnRestrictUser from "./UnrestrictUser";
 import { BaseFriendType } from "../../../../models/FriendsSchema";
 import KickUser from "./KickUser";
 import GameInvitation from "./GameInvitation";
+import { ChatroomGroupType } from "../../../../models/groupChat";
 
 const View = () => {
-  const { admin, currentGroupChatroomId, chatAdmin, regularUser, role } =
-    useAppSelector((state: RootState) => state.groups);
+  const {
+    admin,
+    currentGroupChatroomId,
+    chatAdmin,
+    regularUser,
+    role,
+    currentChatroom,
+  } = useAppSelector((state: RootState) => state.groups);
   const { user } = useAppSelector((state: RootState) => state.user);
-
+  const { type } = currentChatroom as ChatroomGroupType;
   const { data, isLoading, isError } = useGetAllGroupUserQuery(
     currentGroupChatroomId as string,
     { refetchOnMountOrArgChange: true }
@@ -196,6 +203,7 @@ const View = () => {
             online={admin?.user.status === STATUS.ONLINE}
           >
             <AdminAction
+              type={type}
               handleGameInvitation={handleGameInvitation}
               handleUnrestriction={handleUnrestriction}
               nickname={admin?.user.nickname as string}
@@ -348,7 +356,9 @@ const View = () => {
         {open.gameInvitation && (
           <GameInvitation
             open={open.gameInvitation}
-            handleClose={() => setOpen((prev) => ({ ...prev, gameInvitation: false }))}
+            handleClose={() =>
+              setOpen((prev) => ({ ...prev, gameInvitation: false }))
+            }
             id={userData.id}
             nickname={userData.nickname}
           />

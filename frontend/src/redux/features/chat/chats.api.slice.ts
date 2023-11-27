@@ -14,7 +14,7 @@ import {
 } from "./../../../../../shared/socket.event";
 
 import { connectSocket, socket } from "../../../utils/getSocket";
-import { BaseChatroomType } from "../../../models/groupChat";
+import { BaseChatroomTypeId } from "../../../models/groupChat";
 
 export const chatApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -41,7 +41,7 @@ export const chatApiSlice = apiSlice.injectEndpoints({
     }),
     getAllChatroomMessage: builder.query<
       BaseServerResponse & { data: MessageType[] },
-      BaseChatroomType
+      BaseChatroomTypeId
     >({
       query: ({ chatroomId }) => ({
         url: `chat/get-all-chatroom-message?chatroomId=${chatroomId}`,

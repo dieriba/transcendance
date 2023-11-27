@@ -138,6 +138,14 @@ export class ChatService {
   }
 
   async getJoinableChatroom(userId: string) {
+    const user = await this.prismaService.user.findFirst({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) throw new UserNotFoundException();
+
     const joinableChatroom = await this.prismaService.chatroom.findMany({
       where: {
         type: {
@@ -176,8 +184,41 @@ export class ChatService {
     return joinableChatroom;
   }
 
+  async getAllGroupInvitation(userId: string) {
+    const user = await this.prismaService.user.findFirst({
+      where: {
+        id: userId,
+      },
+      select: {
+        groupInvitation: {
+          select: {
+            chatroom: {
+              select: {
+                chatroomName: true,
+                id: true,
+                type: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) throw new UserNotFoundException();
+
+    return user.groupInvitation;
+  }
+
   async getAllUserChatroom(userId: string, chatroomId: string) {
     if (!chatroomId) throw new BadRequestException('Bad Request');
+
+    const user = await this.prismaService.user.findFirst({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) throw new UserNotFoundException();
 
     const chatroom = await this.prismaService.chatroom.findFirst({
       where: {
@@ -303,6 +344,13 @@ export class ChatService {
   }
 
   async getAllRestrictedUser(userId: string, chatroomId: string) {
+    const user = await this.prismaService.user.findFirst({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) throw new UserNotFoundException();
     const restrictedUser = await this.prismaService.restrictedUser.findMany({
       where: {
         chatroomId,

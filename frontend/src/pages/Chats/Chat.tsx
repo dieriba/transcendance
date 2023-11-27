@@ -10,7 +10,6 @@ import { useTheme } from "@mui/material/styles";
 import { useAppDispatch } from "../../redux/hooks";
 import {
   addNewChatroom,
-  deleteChatroom,
   setOfflineUser,
   setOnlineUser,
   setPrivateChatroom,
@@ -72,15 +71,6 @@ const Chat = () => {
         ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE,
         (data: SocketServerSucessResponse & { data: MessageType }) => {
           dispatch(updatePrivateChatroomList(data.data));
-        }
-      );
-
-      socket.on(
-        ChatEventPrivateRoom.CLEAR_CHATROOM,
-        (
-          data: SocketServerSucessResponse & { data: { chatroomId: string } }
-        ) => {
-          dispatch(deleteChatroom(data.data.chatroomId));
         }
       );
     }

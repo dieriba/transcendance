@@ -34,12 +34,12 @@ model User {
   loosedGame             GameHistory[]    @relation("gameLoser")
   pongVictory            Int              @default(0)
   pongLosses             Int              @default(0)
-  pong                   Pong?            @relation("pong")
   receivedNotifications  Notifications[]  @relation("userNotification")
   blockedChatroomUser    Chatroom[]       @relation("blockedUsers")
   chatrooms              ChatroomUser[]
   messages               Message[]
   restrictedGroups       RestrictedUser[]
+  groupInvitation        InvitedUser[]
   allowForeignToDm       Boolean          @default(false)
 }
 
@@ -57,12 +57,6 @@ model GameHistory {
   matchResult GAME_RESULT
 
   @@unique([user1Id, user2Id, matchDate])
-}
-
-model Pong {
-  id     String @id @default(uuid())
-  userId String @unique @default(uuid())
-  user   User   @relation("pong", fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Group {
@@ -103,8 +97,6 @@ model Profile {
   avatar    String?
   firstname String? @db.VarChar(25)
   lastname  String? @db.VarChar(25)
-  gender    Gender?
-  age       Int?
 }
 
 model Notifications {
@@ -123,7 +115,7 @@ model Chatroom {
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   numberOfUser    Int              @default(0)
-  invitedUser     String[]
+  invitedUser     InvitedUser[]    @relation("invitedUsers")
   active          Boolean          @default(true)
   users           ChatroomUser[]   @relation("chatroomUsers")
   blockedUsers    User[]           @relation("blockedUsers")
@@ -154,6 +146,17 @@ model ChatroomUser {
   penFriend   String?
   role        ROLE?            @default(REGULAR_USER)
   userIBanned RestrictedUser[]
+
+  @@unique([userId, chatroomId])
+}
+
+model InvitedUser {
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
+  chatroom   Chatroom @relation("invitedUsers", fields: [chatroomId], references: [id], onDelete: Cascade)
+  chatroomId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@unique([userId, chatroomId])
 }

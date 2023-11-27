@@ -50,16 +50,15 @@ export const ChatSlice = createSlice({
     setChatroomMessage: (state, action: PayloadAction<MessageType[]>) => {
       state.messages = action.payload;
     },
-    deleteChatroom: (state, action: PayloadAction<string | undefined>) => {
-      const chatroomId = action.payload;
-      console.log({ chatroomId });
+    deleteChatroomById: (state, action: PayloadAction<string | undefined>) => {
+      const friendId = action.payload;
 
-      if (chatroomId) {
+      if (friendId) {
         state.privateChatroom = state.privateChatroom.filter(
-          (chatroom) => chatroom.id !== chatroomId
+          (chatroom) => chatroom.users[0].user.id !== friendId
         );
 
-        if (chatroomId === state.currentChatroom?.id) {
+        if (state.currentChatroom?.users[0].user.id === friendId) {
           state.currentChatroom = undefined;
           state.currentPrivateChatroomId = undefined;
           state.messages = [];
@@ -112,11 +111,11 @@ export const {
   setPrivateChatroom,
   setPrivateChatroomId,
   updatePrivateChatroomList,
-  deleteChatroom,
   setOfflineUser,
   setOnlineUser,
   addNewChatroom,
   setChatroomMessage,
+  deleteChatroomById,
 } = ChatSlice.actions;
 
 export default ChatSlice.reducer;

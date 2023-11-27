@@ -18,6 +18,7 @@ import {
 } from "../../redux/features/app/app.slice";
 import { BaseFriendType, FriendType } from "../../models/FriendsSchema";
 import {
+  deleteChatroomById,
   setOfflineUser,
   setOnlineUser,
 } from "../../redux/features/chat/chat.slice";
@@ -62,6 +63,8 @@ const ProtectedDashboardLayout = () => {
           }
         ) => {
           dispatch(deleteFriend(data.data));
+          dispatch(deleteChatroomById(data.data.friendId));
+          dispatch(showSnackBar({ message: data.message }));
         }
       );
 

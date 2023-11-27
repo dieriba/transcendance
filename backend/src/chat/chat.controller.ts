@@ -24,6 +24,11 @@ export class ChatController {
     return await this.chatService.getJoinableChatroom(userId);
   }
 
+  @Get('get-all-group-invitation')
+  async getAllGroupInvitation(@GetUser('userId') userId: string) {
+    return await this.chatService.getAllGroupInvitation(userId);
+  }
+
   @HttpCode(HttpStatus.OK)
   @UseGuards(IsRestrictedUserGuardHttp)
   @Get('get-all-user-chatroom')

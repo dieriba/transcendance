@@ -1,4 +1,10 @@
-import { Stack, Box, Divider, Button, useMediaQuery } from "@mui/material";
+import {
+  Stack,
+  Box,
+  Divider,
+  Button,
+  useMediaQuery,
+} from "@mui/material";
 import { MagnifyingGlass, Plus } from "phosphor-react";
 import { Search, SearchIconWrapper, StyledInputBase } from "../../search";
 import { useTheme } from "@mui/material/styles";
@@ -8,11 +14,19 @@ import { useAppSelector } from "../../../redux/hooks";
 import GroupBox from "../GroupBox";
 import { RootState } from "../../../redux/store";
 import JoinGroup from "./JoinGroup";
+import GroupInvitation from "./GroupInvitation";
 
 const GroupContact = () => {
   const theme = useTheme();
-  const [openCreate, setOpenCreate] = useState(false);
-  const [openJoin, setOpenJoin] = useState(false);
+  const [open, setOpen] = useState<{
+    create: boolean;
+    join: boolean;
+    invitation: boolean;
+  }>({
+    create: false,
+    join: false,
+    invitation: false,
+  });
   const groups = useAppSelector(
     (state: RootState) => state.groups.groupChatroom
   );
@@ -43,22 +57,39 @@ const GroupContact = () => {
             </Search>
           </Stack>
           <Divider />
-          <Stack alignItems="center" justifyContent="space-between" p={1}>
+          <Stack spacing={1} alignItems="center" justifyContent="space-between" p={1}>
             <Button
-              onClick={() => setOpenCreate(true)}
+              onClick={() => setOpen((prev) => ({ ...prev, create: true }))}
               fullWidth
               endIcon={<Plus />}
+              variant="contained"
+              color="inherit"
             >
               Create New Group
             </Button>
             <Divider />
             <Button
-              onClick={() => setOpenJoin(true)}
+              onClick={() => setOpen((prev) => ({ ...prev, join: true }))}
               fullWidth
               endIcon={<Plus />}
+              variant="contained"
+              color="inherit"
             >
               Join group
             </Button>
+            <Stack spacing={1} width={'100%'} direction={'row'}>
+              <Button
+                onClick={() => setOpen((prev) => ({ ...prev, invitation: true }))}
+                fullWidth
+                variant="contained"
+                color="inherit"
+              >
+                Group Invitation
+              </Button>
+              <Button disabled color="inherit" variant="contained">
+                5
+              </Button>
+            </Stack>
           </Stack>
           <Divider />
           <Stack
@@ -113,14 +144,25 @@ const GroupContact = () => {
           </Stack>
         </Stack>
       </Box>
-      {openCreate && (
+      {open.create && (
         <CreateGroup
-          open={openCreate}
-          handleClose={() => setOpenCreate(false)}
+          open={open.create}
+          handleClose={() => setOpen((prev) => ({ ...prev, create: false }))}
         />
       )}
-      {openJoin && (
-        <JoinGroup open={openJoin} handleClose={() => setOpenJoin(false)} />
+      {open.join && (
+        <JoinGroup
+          open={open.join}
+          handleClose={() => setOpen((prev) => ({ ...prev, join: false }))}
+        />
+      )}
+      {open.invitation && (
+        <GroupInvitation
+          open={open.invitation}
+          handleClose={() =>
+            setOpen((prev) => ({ ...prev, invitation: false }))
+          }
+        />
       )}
     </>
   );

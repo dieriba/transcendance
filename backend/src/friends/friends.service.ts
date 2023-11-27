@@ -103,12 +103,10 @@ export class FriendsService {
             friend: {
               select: {
                 nickname: true,
+                pongLosses: true,
+                pongVictory: true,
                 id: true,
-                profile: {
-                  select: {
-                    avatar: true,
-                  },
-                },
+                profile: true,
                 status: true,
               },
             },

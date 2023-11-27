@@ -27,7 +27,7 @@ import {
   updateGroupChatroomListAndMessage,
 } from "../../redux/features/groups/group.slice";
 import {
-  BaseChatroomType,
+  BaseChatroomTypeId,
   ChatroomGroupType,
   MessageGroupType,
   RestrictedUserResponseType,
@@ -116,14 +116,14 @@ const GroupChatPage = () => {
 
       socket.on(
         ChatEventGroup.BEEN_KICKED,
-        (data: SocketServerSucessResponse & { data: BaseChatroomType }) => {
+        (data: SocketServerSucessResponse & { data: BaseChatroomTypeId }) => {
           dispatch(leaveChatroom(data.data));
         }
       );
 
       socket.on(
         ChatEventGroup.GROUP_CHATROOM_DELETED,
-        (data: SocketServerSucessResponse & { data: BaseChatroomType }) => {
+        (data: SocketServerSucessResponse & { data: BaseChatroomTypeId }) => {
           dispatch(leaveChatroom(data.data));
         }
       );

@@ -1,6 +1,6 @@
 import { GetUser } from 'src/common/custom-decorator/get-user.decorator';
 import { UserService } from './user.service';
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { UserBlockList, UserData } from 'src/common/types/user-info.type';
 import { ResponseMessage } from 'src/common/custom-decorator/respone-message.decorator';
 import { OK_RESPONSE } from 'src/common/constant/response.constant';
@@ -9,8 +9,16 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
   @Get('me')
   @ResponseMessage(OK_RESPONSE)
-  async getUserInfo(@GetUser('userId') userId: string) {
+  async getMyInfo(@GetUser('userId') userId: string) {
     return await this.userService.findUserById(userId, UserData);
+  }
+
+  @Get(':id')
+  async getUserInfo(
+    @GetUser('userId') userId: string,
+    @Param('id') id: string,
+  ) {
+    return await this.userService.getUserInfo(userId, id);
   }
 
   @Get('blocked')

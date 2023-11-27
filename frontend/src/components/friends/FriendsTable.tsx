@@ -14,19 +14,21 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import FriendSearch from "./FriendSearch";
 import {
   useBlockFriendMutation,
   useDeleteFriendMutation,
   useGetAllFriendsQuery,
 } from "../../redux/features/friends/friends.api.slice";
 import { Trash, Prohibit } from "phosphor-react";
-import { BaseFriendType } from "../../models/FriendsSchema";
+import { BaseFriendType, FriendType } from "../../models/FriendsSchema";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { connectSocket, socket } from "../../utils/getSocket";
 import { GeneralEvent } from "../../../../shared/socket.event";
-import { SocketServerSucessResponse } from "../../services/type";
+import {
+  BaseFriendTypeWithChatroom,
+  SocketServerSucessResponse,
+} from "../../services/type";
 import {
   setFriends,
   setOfflineFriend,
@@ -34,8 +36,9 @@ import {
   updatePage,
 } from "../../redux/features/friends/friends.slice";
 import { RootState } from "../../redux/store";
-import { deleteChatroom } from "../../redux/features/chat/chat.slice";
 import BadgeAvatar from "../Badge/BadgeAvatar";
+import UserProfile from "../Profile/UserProfile";
+import CustomDialog from "../Dialog/CustomDialog";
 
 export interface FriendProps {
   id: number;
@@ -50,7 +53,49 @@ const FriendsTable = () => {
     refetchOnMountOrArgChange: true,
   });
 
+  const [deleteFriend] = useDeleteFriendMutation();
+  const [blockUser] = useBlockFriendMutation();
+
+  const [info, setInfo] = useState<{
+    open: boolean;
+    block: boolean;
+    delete: boolean;
+    id?: string;
+  }>({ open: false, block: false, delete: false });
+
   const dispatch = useAppDispatch();
+
+  const [user, setUser] = useState<FriendType | undefined>(undefined);
+
+  const handleSetUser = (data: FriendType) => {
+    setUser(data);
+    setInfo((prev) => ({ ...prev, open: true }));
+  };
+
+  const handleDeleteFriend = async (data: BaseFriendTypeWithChatroom) => {
+    try {
+      const { friendId } = data;
+
+      await deleteFriend({ friendId }).unwrap();
+      setInfo((prev) => ({ ...prev, open: false }));
+    } catch (error) {
+      setInfo((prev) => ({ ...prev, open: false }));
+      console.log(error);
+    }
+  };
+
+  const handleBlockUser = async (data: BaseFriendTypeWithChatroom) => {
+    try {
+      const { friendId } = data;
+
+      await blockUser({ friendId }).unwrap();
+
+      setInfo((prev) => ({ ...prev, open: false }));
+    } catch (error) {
+      console.log(error);
+      setInfo((prev) => ({ ...prev, open: false }));
+    }
+  };
 
   useEffect(() => {
     if (data && data.data) {
@@ -80,28 +125,7 @@ const FriendsTable = () => {
   }, [data, dispatch]);
 
   const friends = useAppSelector((state: RootState) => state.friends.friends);
-  const chatroomId = useAppSelector(
-    (state: RootState) => state.groups.currentGroupChatroomId
-  );
-  const [deleteFriendMutation] = useDeleteFriendMutation();
-  const [blockUser] = useBlockFriendMutation();
 
-  const handleDeleteFriend = async (data: BaseFriendType) => {
-    try {
-      await deleteFriendMutation(data).unwrap();
-      dispatch(deleteChatroom(chatroomId));
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const handleBlock = async (data: BaseFriendType) => {
-    try {
-      await blockUser(data).unwrap();
-    } catch (error) {
-      console.log(error);
-    }
-  };
   if (isLoading) {
     return (
       <Stack alignItems="center" height="100%" pt={25} justifyContent="center">
@@ -115,104 +139,154 @@ const FriendsTable = () => {
       </Stack>
     );
   } else {
+    const nickname = user?.friend.nickname;
     return (
       <>
-        <Stack spacing={2}>
-          <FriendSearch placeholder="Search Friend" />
-          <Stack spacing={3} alignItems="center">
-            <TableContainer
-              sx={{ height: "500px", overflow: "scroll" }}
-              component={Paper}
-            >
-              <Table sx={{ minWidth: 650 }} aria-label="simple table">
-                <TableHead>
-                  <TableRow>
-                    <TableCell padding="checkbox"></TableCell>
-                    <TableCell>Avatar</TableCell>
-                    <TableCell align="center">Nickname</TableCell>
-                    <TableCell align="center">Profile</TableCell>
-                    <TableCell align="center">Action</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {friends.map(
-                    ({
-                      friend: {
-                        id,
-                        nickname,
-                        status,
-                        profile: { avatar },
-                      },
-                    }) => (
-                      <TableRow
-                        key={id}
-                        sx={{
-                          "&:last-child td, &:last-child th": { border: 0 },
-                        }}
-                      >
-                        <TableCell padding="checkbox"></TableCell>
+        <Stack spacing={3} alignItems="center">
+          <TableContainer
+            sx={{ height: "500px", overflow: "scroll" }}
+            component={Paper}
+          >
+            <Table sx={{ minWidth: 650 }} aria-label="simple table">
+              <TableHead>
+                <TableRow>
+                  <TableCell padding="checkbox"></TableCell>
+                  <TableCell>Avatar</TableCell>
+                  <TableCell align="center">Nickname</TableCell>
+                  <TableCell align="center">Profile</TableCell>
+                  <TableCell align="center">Action</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {friends.map(
+                  ({
+                    friend: {
+                      id,
+                      nickname,
+                      status,
+                      profile: { avatar, lastname, firstname },
+                      pongLosses,
+                      pongVictory,
+                    },
+                  }) => (
+                    <TableRow
+                      key={id}
+                      sx={{
+                        "&:last-child td, &:last-child th": { border: 0 },
+                      }}
+                    >
+                      <TableCell padding="checkbox"></TableCell>
 
-                        <TableCell component="th" scope="row">
-                          {status === "ONLINE" ? (
-                            <BadgeAvatar>
-                              <Avatar
-                                sx={{ width: "50px", height: "50px" }}
-                                src={avatar ? avatar : undefined}
-                              />
-                            </BadgeAvatar>
-                          ) : (
+                      <TableCell component="th" scope="row">
+                        {status === "ONLINE" ? (
+                          <BadgeAvatar>
                             <Avatar
                               sx={{ width: "50px", height: "50px" }}
                               src={avatar ? avatar : undefined}
                             />
-                          )}
-                        </TableCell>
-                        <TableCell align="center">
-                          <Typography variant="subtitle1">
-                            {nickname}
-                          </Typography>
-                        </TableCell>
-                        <TableCell align="center">
-                          <Button>Profile</Button>
-                        </TableCell>
-                        <TableCell align="center">
-                          <Stack
-                            direction="row"
-                            justifyContent="center"
-                            spacing={2}
+                          </BadgeAvatar>
+                        ) : (
+                          <Avatar
+                            sx={{ width: "50px", height: "50px" }}
+                            src={avatar ? avatar : undefined}
+                          />
+                        )}
+                      </TableCell>
+                      <TableCell align="center">
+                        <Typography variant="subtitle1">{nickname}</Typography>
+                      </TableCell>
+                      <TableCell align="center">
+                        <Button
+                          variant="contained"
+                          color="inherit"
+                          onClick={() => {
+                            handleSetUser({
+                              friend: {
+                                id,
+                                nickname,
+                                pongLosses,
+                                status,
+                                pongVictory,
+                                profile: { avatar, firstname, lastname },
+                              },
+                            });
+                          }}
+                        >
+                          Profile
+                        </Button>
+                      </TableCell>
+                      <TableCell align="center">
+                        <Stack
+                          direction="row"
+                          justifyContent="center"
+                          spacing={2}
+                        >
+                          <Tooltip
+                            onClick={() => {
+                              setInfo((prev) => ({
+                                ...prev,
+                                delete: true,
+                                id,
+                              }));
+                            }}
+                            placement="top"
+                            title="delete"
                           >
-                            <Tooltip
-                              onClick={() => {
-                                handleDeleteFriend({ friendId: id });
-                              }}
-                              placement="top"
-                              title="delete"
-                            >
-                              <IconButton>
-                                <Trash />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip
-                              onClick={() => {
-                                handleBlock({ friendId: id });
-                              }}
-                              placement="top"
-                              title="Block"
-                            >
-                              <IconButton>
-                                <Prohibit />
-                              </IconButton>
-                            </Tooltip>
-                          </Stack>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Stack>
+                            <IconButton>
+                              <Trash />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip
+                            onClick={() => {
+                              setInfo((prev) => ({
+                                ...prev,
+                                block: true,
+                                id,
+                              }));
+                            }}
+                            placement="top"
+                            title="Block"
+                          >
+                            <IconButton>
+                              <Prohibit />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  )
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </Stack>
+        {info.open && (
+          <UserProfile
+            user={user as FriendType}
+            open={info.open}
+            handleClose={() => setInfo((prev) => ({ ...prev, open: false }))}
+          />
+        )}
+        {info.block && (
+          <CustomDialog
+            handleOnClick={handleBlockUser}
+            open={info.block}
+            handleClose={() => setInfo((prev) => ({ ...prev, block: false }))}
+            title={`Block ${nickname} ?`}
+            content={`Do you really want to block ${nickname} ?`}
+            friendId={info.id as string}
+          />
+        )}
+        {info.delete && (
+          <CustomDialog
+            handleOnClick={handleDeleteFriend}
+            open={info.delete}
+            handleClose={() => setInfo((prev) => ({ ...prev, delete: false }))}
+            title={`Delete ${nickname}`}
+            content={`Do you really want to delete ${nickname} ?`}
+            friendId={info.id as string}
+          />
+        )}
       </>
     );
   }

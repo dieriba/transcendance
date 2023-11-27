@@ -16,14 +16,14 @@ import {
 } from "../../../services/type";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import {
-  useGetAllJoinableGroupQuery,
-  useJoinGroupMutation,
+  useAcceptGroupInvitaionMutation,
+  useGetAllGroupInvitationQuery,
 } from "../../../redux/features/groups/group.api.slice";
 import {
   addNewChatroom,
-  addJoinableGroup,
-  deleteJoinableGroup,
-  setJoinableGroup,
+  setGroupInvitation,
+  addGroupInvitation,
+  deleteGroupInvitation,
 } from "../../../redux/features/groups/group.slice";
 import { connectSocket, socket } from "../../../utils/getSocket";
 import { ChatEventGroup } from "../../../../../shared/socket.event";
@@ -34,20 +34,18 @@ import {
 import { RootState } from "../../../redux/store";
 import GroupIcon from "./GroupIcon";
 import { Plus } from "phosphor-react";
-import ProtectedGroupForm from "./ProtectedGroupForm";
 
-interface JoinGroupProps {
+interface GroupInvitationProps {
   open: boolean;
   handleClose: () => void;
 }
 
-const JoinGroup = ({ open, handleClose }: JoinGroupProps) => {
+const GroupInvitation = ({ open, handleClose }: GroupInvitationProps) => {
   const [message, setMessage] = useState("");
   const [severity, setSeverity] = useState<AlertColor>("success");
   const [openSnack, setOpenSnack] = useState(false);
-  const [joinGroup, joinGroupAction] = useJoinGroupMutation();
-  const [openForm, setOpenForm] = useState(false);
-  const [chatroomId, setChatroomId] = useState("");
+  const [acceptGroupInvitation, acceptGroupInvitationAction] =
+    useAcceptGroupInvitaionMutation();
   const handleCloseSnack = (
     _event?: React.SyntheticEvent | Event,
     reason?: string
@@ -59,41 +57,46 @@ const JoinGroup = ({ open, handleClose }: JoinGroupProps) => {
     setOpenSnack(false);
   };
 
-  const { data, isLoading, isError } = useGetAllJoinableGroupQuery(undefined, {
-    refetchOnMountOrArgChange: true,
-  });
+  const { data, isLoading, isError } = useGetAllGroupInvitationQuery(
+    undefined,
+    {
+      refetchOnMountOrArgChange: true,
+    }
+  );
 
   const dispatch = useAppDispatch();
 
   useEffect(() => {
     if (data && data.data) {
       connectSocket();
-      dispatch(setJoinableGroup(data.data));
+      dispatch(setGroupInvitation(data.data));
 
       socket.on(
-        ChatEventGroup.NEW_AVAILABLE_CHATROOM,
+        ChatEventGroup.RECEIVE_USER_INVITATION,
         (data: { data: ChatroomGroupType }) => {
-          dispatch(addJoinableGroup(data.data));
+          dispatch(addGroupInvitation({ chatroom: data.data }));
         }
       );
 
       socket.on(
-        ChatEventGroup.DELETE_JOINABLE_GROUP,
+        ChatEventGroup.DELETE_USER_INVITATION,
         (data: SocketServerSucessResponse & { data: BaseChatroomTypeId }) => {
-          dispatch(deleteJoinableGroup(data.data.chatroomId));
+          dispatch(deleteGroupInvitation(data.data.chatroomId));
         }
       );
 
       return () => {
-        socket.off(ChatEventGroup.NEW_AVAILABLE_CHATROOM);
-        socket.off(ChatEventGroup.DELETE_JOINABLE_GROUP);
+        socket.off(ChatEventGroup.RECEIVE_USER_INVITATION);
+        socket.off(ChatEventGroup.DELETE_USER_INVITATION);
       };
     }
   }, [data, dispatch]);
-  const handleOnclick = async (chatroomId: string, password?: string) => {
+  const handleOnclick = async (chatroomId: string) => {
     try {
-      const res = await joinGroup({ chatroomId, password }).unwrap();
-      dispatch(deleteJoinableGroup(chatroomId));
+      const res = await acceptGroupInvitation({
+        chatroomId,
+      }).unwrap();
+      dispatch(deleteGroupInvitation(chatroomId));
       dispatch(addNewChatroom({ ...res.data, restrictedUsers: [] }));
       setSeverity("success");
       setMessage(res.message);
@@ -126,7 +129,7 @@ const JoinGroup = ({ open, handleClose }: JoinGroupProps) => {
     return (
       <>
         <DialogI maxWidth="sm" open={open} handleClose={handleClose}>
-          <DialogTitle>Join group</DialogTitle>
+          <DialogTitle>Group Invitation</DialogTitle>
           <DialogContent>
             {openSnack && (
               <Alert
@@ -140,7 +143,7 @@ const JoinGroup = ({ open, handleClose }: JoinGroupProps) => {
             <Stack p={2}>
               {groups.length === 0 ? (
                 <Stack alignItems="center" justifyContent="center">
-                  <Typography>No group available</Typography>
+                  <Typography>No Group Invitation</Typography>
                 </Stack>
               ) : (
                 groups.map(({ id, chatroomName, type }, index) => {
@@ -153,30 +156,15 @@ const JoinGroup = ({ open, handleClose }: JoinGroupProps) => {
                     >
                       <GroupIcon size={30} type={type} />
                       <Typography>{chatroomName}</Typography>
-                      {type === "PROTECTED" ? (
-                        <>
-                          <Button
-                            onClick={() => {
-                              setChatroomId(id);
-                              setOpenForm(true);
-                            }}
-                            startIcon={<Plus />}
-                            disabled={joinGroupAction.isLoading}
-                          >
-                            Join
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <Button
-                            onClick={() => handleOnclick(id)}
-                            startIcon={<Plus />}
-                            disabled={joinGroupAction.isLoading}
-                          >
-                            Join
-                          </Button>
-                        </>
-                      )}
+                      <>
+                        <Button
+                          onClick={() => handleOnclick(id)}
+                          startIcon={<Plus />}
+                          disabled={acceptGroupInvitationAction.isLoading}
+                        >
+                          Join
+                        </Button>
+                      </>
                     </Stack>
                   );
                 })
@@ -184,16 +172,9 @@ const JoinGroup = ({ open, handleClose }: JoinGroupProps) => {
             </Stack>
           </DialogContent>
         </DialogI>
-        {openForm && (
-          <ProtectedGroupForm
-            open={openForm}
-            handleClose={() => setOpenForm(false)}
-            chatroomId={chatroomId}
-          />
-        )}
       </>
     );
   }
 };
 
-export default JoinGroup;
+export default GroupInvitation;

@@ -21,13 +21,21 @@ import {
 } from "../../../shared/restriction.constant";
 import { BaseFriendSchema } from "./FriendsSchema";
 
-export const BaseChatroomSchema = z.object({
+export const BaseChatroomIdSchema = z.object({
   chatroomId: z.string().min(1),
+});
+
+export type BaseChatroomTypeId = z.infer<typeof BaseChatroomIdSchema>;
+
+export const BaseChatroomSchema = z.object({
+  id: z.string().min(1),
+  chatroomName: z.string().min(1),
+  type: z.enum(groupTypes),
 });
 
 export type BaseChatroomType = z.infer<typeof BaseChatroomSchema>;
 
-export const BaseChatroomWithUserIdSchema = BaseChatroomSchema.extend({
+export const BaseChatroomWithUserIdSchema = BaseChatroomIdSchema.extend({
   id: z.string().min(1),
   role: z.enum(roleType).optional(),
 });
@@ -56,13 +64,15 @@ export type MessageGroupFormType = z.infer<typeof MessageGroupFormSchema>;
 
 export type MessageGroupType = z.infer<typeof MessageGroupSchema>;
 
-export const JoinableChatroomSchema = z.object({
-  id: z.string().min(1),
-  chatroomName: z.string().min(1),
-  type: z.enum(groupTypes),
-});
+export const JoinableChatroomSchema = BaseChatroomSchema;
 
 export type JoinableChatroomType = z.infer<typeof JoinableChatroomSchema>;
+
+export const GroupInvitation = z.object({
+  groupInvitation: z.array(z.object({ chatroom: BaseChatroomSchema })),
+});
+
+export type GroupInvitation = z.infer<typeof GroupInvitation>;
 
 export const RestrictedUserInGroupSchema = z.object({
   restriction: z.enum(restrictionType),
@@ -79,7 +89,7 @@ export const RestrictedUserInGroupSchema = z.object({
 
 export type RestrictedUserInGroupType = z.infer<typeof RestrictedGroupSchema>;
 
-export const RestrictedUserResponseSchema = BaseChatroomSchema.merge(
+export const RestrictedUserResponseSchema = BaseChatroomIdSchema.merge(
   RestrictedUserInGroupSchema
 );
 
@@ -129,7 +139,9 @@ export const UserGroupSchema = z.object({
     restrictedGroups: z.array(RestrictedGroupSchema),
     friends: z.array(BaseFriendSchema),
     friendRequestsSent: z.array(z.object({ senderId: z.string().min(1) })),
-    friendRequestsReceived: z.array(z.object({ recipientId: z.string().min(1) })),
+    friendRequestsReceived: z.array(
+      z.object({ recipientId: z.string().min(1) })
+    ),
   }),
   role: z.enum(roleType),
 });
@@ -250,9 +262,15 @@ export const PreviousAdminLeaveSchema = z.object({
 export type PreviousAdminLeaveType = z.infer<typeof PreviousAdminLeaveSchema>;
 
 export const AddNewUserToGroupSchema = z.object({
-  newUserId: z.string().min(1).optional(),
-  users: z.array(z.string()).optional(),
+  users: z.array(z.string()).min(1),
   chatroomId: z.string().optional(),
 });
 
 export type AddNewUserToGroupType = z.infer<typeof AddNewUserToGroupSchema>;
+
+export const InviteUserToGroupSchema = z.object({
+  nickname: z.string().min(1),
+  chatroomId: z.string().optional(),
+});
+
+export type InviteUserToGroupType = z.infer<typeof InviteUserToGroupSchema>;

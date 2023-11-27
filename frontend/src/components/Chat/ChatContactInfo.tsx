@@ -9,7 +9,7 @@ import {
   Typography,
 } from "@mui/material";
 import { Bell, Trash } from "phosphor-react";
-import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+import { useAppSelector } from "../../redux/hooks";
 import { useState } from "react";
 
 import CustomDialog from "../Dialog/CustomDialog";
@@ -18,7 +18,6 @@ import {
   useBlockFriendMutation,
 } from "../../redux/features/friends/friends.api.slice";
 import BadgeAvatar from "../Badge/BadgeAvatar";
-import { deleteChatroom } from "../../redux/features/chat/chat.slice";
 import { BaseFriendTypeWithChatroom } from "../../services/type";
 import { PrivateChatroomType } from "../../models/ChatContactSchema";
 import { RootState } from "../../redux/store";
@@ -31,14 +30,12 @@ interface ChatContactInfoProps {
 }
 
 const ChatContactInfo = ({ openDialog, handleClose }: ChatContactInfoProps) => {
-  const dispatch = useAppDispatch();
   const theme = useTheme();
   const handleDeleteFriend = async (data: BaseFriendTypeWithChatroom) => {
     try {
-      const { friendId, chatroomId } = data;
+      const { friendId } = data;
 
       await deleteFriend({ friendId }).unwrap();
-      chatroomId && dispatch(deleteChatroom(chatroomId));
     } catch (error) {
       console.log(error);
     }
@@ -46,11 +43,9 @@ const ChatContactInfo = ({ openDialog, handleClose }: ChatContactInfoProps) => {
 
   const handleBlockUser = async (data: BaseFriendTypeWithChatroom) => {
     try {
-      const { friendId, chatroomId } = data;
+      const { friendId } = data;
 
       await blockUser({ friendId }).unwrap();
-
-      dispatch(deleteChatroom(chatroomId as string));
     } catch (error) {
       console.log(error);
     }
@@ -182,7 +177,6 @@ const ChatContactInfo = ({ openDialog, handleClose }: ChatContactInfoProps) => {
           title="Block User ?"
           content="Do you really want to block that user ?"
           friendId={user.id}
-          chatroomId={chatroomInfo.id}
         />
         <CustomDialog
           handleOnClick={handleDeleteFriend}
@@ -191,7 +185,6 @@ const ChatContactInfo = ({ openDialog, handleClose }: ChatContactInfoProps) => {
           title="Delete friend  ?"
           content="Do you really want to delete that friend ?"
           friendId={user.id}
-          chatroomId={chatroomInfo.id}
         />
       </DialogI>
     </>

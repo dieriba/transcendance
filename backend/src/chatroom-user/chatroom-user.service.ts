@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaClient, Prisma } from '@prisma/client';
+import { DefaultArgs } from '@prisma/client/runtime/library';
 import { ChatroomUserInfo } from 'src/common/types/chatroom-user-type';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -70,8 +72,8 @@ export class ChatroomUserService {
     return chatroomUser.map((user) => user.userId);
   }
 
-  createNewChatroomUser(userId: string, chatroomId: string) {
-    const user = this.prismaService.chatroomUser.upsert({
+  async createNewChatroomUser(userId: string, chatroomId: string) {
+    const user = await this.prismaService.chatroomUser.upsert({
       where: {
         userId_chatroomId: {
           userId,
@@ -103,7 +105,49 @@ export class ChatroomUserService {
         },
       },
     });
+    return user;
+  }
 
+  async createNewChatroomUserTx(
+    tx: Omit<
+      PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
+      '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+    >,
+    userId: string,
+    chatroomId: string,
+  ) {
+    const user = await tx.chatroomUser.upsert({
+      where: {
+        userId_chatroomId: {
+          userId,
+          chatroomId,
+        },
+      },
+      update: {},
+      create: {
+        userId,
+        chatroomId,
+      },
+      select: {
+        user: {
+          select: {
+            id: true,
+            nickname: true,
+            status: true,
+            profile: {
+              select: {
+                avatar: true,
+              },
+            },
+            friends: {
+              select: {
+                friendId: true,
+              },
+            },
+          },
+        },
+      },
+    });
     return user;
   }
 

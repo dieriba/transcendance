@@ -19,7 +19,6 @@ export type DurationUnitType = "MIN" | "HOURS" | "DAYS";
 export const statusTypes = ["ONLINE", "OFFLINE", "PLAYING"] as const;
 export type StatusType = "ONLINE" | "OFFLINE" | "PLAYING";
 
-
 export enum GroupTypeEnum {
   PUBLIC = "PUBLIC",
   PROTECTED = "PROTECTED",

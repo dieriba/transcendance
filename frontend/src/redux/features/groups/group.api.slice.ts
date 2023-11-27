@@ -1,7 +1,9 @@
 import {
   AddNewUserToGroupType,
-  BaseChatroomType,
+  BaseChatroomTypeId,
   BaseChatroomWithUserIdType,
+  GroupInvitation,
+  InviteUserToGroupType,
   RestrictUserType,
   SetNewRoleType,
   UserGroupType,
@@ -94,6 +96,25 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
     joinGroup: builder.mutation<
       SocketServerSucessResponse & { data: ChatroomGroupType },
       { chatroomId: string } & Partial<JoinProtectedGroupFormType>
+    >({
+      queryFn: (data) => {
+        connectSocket();
+        return new Promise((resolve) => {
+          socket.emit(ChatEventGroup.JOIN_CHATROOM, data);
+
+          socket.on(GeneralEvent.SUCCESS, (data) => {
+            resolve({ data });
+          });
+
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
+            resolve({ error });
+          });
+        });
+      },
+    }),
+    acceptGroupInvitaion: builder.mutation<
+      SocketServerSucessResponse & { data: ChatroomGroupType },
+      { chatroomId: string }
     >({
       queryFn: (data) => {
         connectSocket();
@@ -212,7 +233,26 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
       queryFn: (data) => {
         connectSocket();
         return new Promise((resolve) => {
-          socket.emit(ChatEventGroup.ADD_USER, data);
+          socket.emit(ChatEventGroup.ADD_FRIEND_USER, data);
+
+          socket.on(GeneralEvent.SUCCESS, (data) => {
+            resolve({ data });
+          });
+
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
+            resolve({ error });
+          });
+        });
+      },
+    }),
+    inviteUser: builder.mutation<
+      SocketServerSucessResponse & { data: unknown },
+      InviteUserToGroupType
+    >({
+      queryFn: (data) => {
+        connectSocket();
+        return new Promise((resolve) => {
+          socket.emit(ChatEventGroup.ADD_INVITE_USER, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
             resolve({ data });
@@ -226,7 +266,7 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
     }),
     leaveGroup: builder.mutation<
       SocketServerSucessResponse & { data: BaseChatroomWithUserIdType },
-      BaseChatroomType
+      BaseChatroomTypeId
     >({
       queryFn: (data) => {
         connectSocket();
@@ -244,13 +284,32 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
       },
     }),
     deleteGroup: builder.mutation<
-      SocketServerSucessResponse & { data: BaseChatroomType },
-      BaseChatroomType
+      SocketServerSucessResponse & { data: BaseChatroomTypeId },
+      BaseChatroomTypeId
     >({
       queryFn: (data) => {
         connectSocket();
         return new Promise((resolve) => {
           socket.emit(ChatEventGroup.DELETE_GROUP_CHATROOM, data);
+
+          socket.on(GeneralEvent.SUCCESS, (data) => {
+            resolve({ data });
+          });
+
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
+            resolve({ error });
+          });
+        });
+      },
+    }),
+    cancelGroupInvitation: builder.mutation<
+      SocketServerSucessResponse & { data: unknown },
+      BaseChatroomWithUserIdType
+    >({
+      queryFn: (data) => {
+        connectSocket();
+        return new Promise((resolve) => {
+          socket.emit(ChatEventGroup.CANCEL_USER_INVITATION, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
             resolve({ data });
@@ -310,6 +369,10 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
       BaseServerResponse & { data: JoinableChatroomType[] },
       void
     >({ query: () => ({ url: "chat/get-all-joinable-chatroom" }) }),
+    getAllGroupInvitation: builder.query<
+      BaseServerResponse & { data: GroupInvitation },
+      void
+    >({ query: () => ({ url: "chat/get-all-group-invitation" }) }),
     getAllGroupUser: builder.query<
       BaseServerResponse & { data: GroupMembertype },
       string
@@ -349,4 +412,8 @@ export const {
   useSetNewRoleMutation,
   useDeleteGroupMutation,
   useAddUserMutation,
+  useInviteUserMutation,
+  useGetAllGroupInvitationQuery,
+  useAcceptGroupInvitaionMutation,
+  useCancelGroupInvitationMutation,
 } = GroupApiSlice;

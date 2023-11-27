@@ -232,25 +232,27 @@ export class ChatroomDataDto {
   users: string[];
 
   @ApiProperty()
-  @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  newUserId: string;
-
-  @ApiProperty()
   @IsString()
   chatroomId: string;
-
-  @IsOptional()
-  @IsString()
-  nickname: string;
 }
 
-export class DeleteChatroomMemberDto {
+export class ChatroomIdWithUserIdDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
   id: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  chatroomId: string;
+}
+
+export class ChatroomIdWithUserNicknameDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  nickname: string;
 
   @ApiProperty()
   @IsString()
