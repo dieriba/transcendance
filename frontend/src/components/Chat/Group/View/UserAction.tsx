@@ -8,21 +8,15 @@ import {
   ArrowUp,
 } from "phosphor-react";
 import { ChatRoleType, ROLE } from "../../../../models/type-enum/typesEnum";
+import { UserData, Open } from "./View";
 
 interface UserActionProps {
   role: ChatRoleType;
   nickname: string;
   me: boolean;
   id: string;
-  handleKickUser: (data: { id: string; nickname: string }) => void;
-  handleGameInvitation: (data: { id: string; nickname: string }) => void;
-  handleNewAdmin: (data: { id: string; nickname: string }) => void;
-  handleRestriction: (data: { id: string; nickname: string }) => void;
-  handleChangeRole: (data: {
-    id: string;
-    nickname: string;
-    role: ChatRoleType;
-  }) => void;
+  handleAction: (userData: Partial<UserData>, open: Partial<Open>) => void;
+  userRole: ChatRoleType;
 }
 
 const UserAction = ({
@@ -30,21 +24,28 @@ const UserAction = ({
   nickname,
   id,
   me,
-  handleChangeRole,
-  handleNewAdmin,
-  handleRestriction,
-  handleKickUser,
-  handleGameInvitation,
+  handleAction,
+  userRole,
 }: UserActionProps) => {
   if (role === "DIERIBA") {
     return (
       <>
         <Tooltip placement="top" title={`play with ${nickname}`}>
-          <IconButton onClick={() => handleGameInvitation({ id, nickname })}>
+          <IconButton
+            onClick={() =>
+              handleAction({ id, nickname }, { gameInvitation: true })
+            }
+          >
             <GameController size={20} />
           </IconButton>
         </Tooltip>
-        <Tooltip placement="top" title={`${nickname} details`}>
+        <Tooltip
+          onClick={() =>
+            handleAction({ id, role: userRole }, { details: true })
+          }
+          placement="top"
+          title={`${nickname} details`}
+        >
           <IconButton>
             <Notebook size={20} />
           </IconButton>
@@ -52,7 +53,7 @@ const UserAction = ({
         <Tooltip placement="top" title={`set ${nickname} as chat admin`}>
           <IconButton
             onClick={() => {
-              handleNewAdmin({ id, nickname });
+              handleAction({ id, nickname }, { admin: true });
             }}
           >
             <CrownSimple size={20} />
@@ -61,19 +62,28 @@ const UserAction = ({
         <Tooltip placement="top" title={`set ${nickname} as moderator`}>
           <IconButton
             onClick={() =>
-              handleChangeRole({ id, nickname, role: ROLE.CHAT_ADMIN })
+              handleAction(
+                { id, nickname, role: ROLE.CHAT_ADMIN },
+                { role: true }
+              )
             }
           >
             <ArrowUp size={20} />
           </IconButton>
         </Tooltip>
         <Tooltip placement="top" title={`restrict ${nickname}`}>
-          <IconButton onClick={() => handleRestriction({ id, nickname })}>
+          <IconButton
+            onClick={() =>
+              handleAction({ id, nickname }, { restriction: true })
+            }
+          >
             <UserMinus size={20} />
           </IconButton>
         </Tooltip>
         <Tooltip placement="top" title={`kick ${nickname}`}>
-          <IconButton onClick={() => handleKickUser({ id, nickname })}>
+          <IconButton
+            onClick={() => handleAction({ id, nickname }, { kick: true })}
+          >
             <X size={18} />
           </IconButton>
         </Tooltip>
@@ -83,17 +93,29 @@ const UserAction = ({
     return (
       <>
         <Tooltip placement="top" title={`play with ${nickname}`}>
-          <IconButton onClick={() => handleGameInvitation({ id, nickname })}>
+          <IconButton
+            onClick={() =>
+              handleAction({ id, nickname }, { gameInvitation: true })
+            }
+          >
             <GameController size={20} />
           </IconButton>
         </Tooltip>
         <Tooltip placement="top" title={`${nickname} details`}>
-          <IconButton>
+          <IconButton
+            onClick={() =>
+              handleAction({ id, role: userRole }, { details: true })
+            }
+          >
             <Notebook size={20} />
           </IconButton>
         </Tooltip>
         <Tooltip placement="top" title={`restrict ${nickname}`}>
-          <IconButton onClick={() => handleRestriction({ id, nickname })}>
+          <IconButton
+            onClick={() =>
+              handleAction({ id, nickname }, { restriction: true })
+            }
+          >
             <UserMinus size={20} />
           </IconButton>
         </Tooltip>
@@ -110,7 +132,11 @@ const UserAction = ({
           </Tooltip>
         )}
         <Tooltip placement="top" title={`${nickname} details`}>
-          <IconButton onClick={() => handleGameInvitation({ id, nickname })}>
+          <IconButton
+            onClick={() =>
+              handleAction({ id, role: userRole }, { details: true })
+            }
+          >
             <Notebook size={20} />
           </IconButton>
         </Tooltip>

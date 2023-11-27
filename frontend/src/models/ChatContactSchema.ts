@@ -1,14 +1,15 @@
 import { z } from "zod";
 import { ProfileSchema } from "./ProfileFormSchema";
 import { BaseFriendSchema } from "./FriendsSchema";
+import { PongSchema } from "./PongSchema";
 
-export const UserSchemaWithProfile = z
-  .object({
-    id: z.string(),
-    nickname: z.string(),
-    status: z.enum(["OFFLINE", "ONLINE", "PLAYING"]),
-  })
-  .merge(ProfileSchema);
+export const UserSchemaWithProfile = z.object({
+  id: z.string(),
+  nickname: z.string(),
+  status: z.enum(["OFFLINE", "ONLINE", "PLAYING"]),
+  pong: PongSchema.nullable(),
+  profile: ProfileSchema,
+});
 
 export type UserWithProfile = z.infer<typeof UserSchemaWithProfile>;
 

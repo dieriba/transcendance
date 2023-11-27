@@ -51,7 +51,7 @@ const KickUser = ({
       data.chatroomId = chatroomId;
       const res = await kickUser(data).unwrap();
 
-      dispatch(removeUser(res.data));
+      dispatch(removeUser({ data: res.data, chatroomId }));
       handleClose();
     } catch (error) {
       setSeverity("error");

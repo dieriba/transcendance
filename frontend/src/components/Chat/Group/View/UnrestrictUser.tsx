@@ -72,7 +72,7 @@ const UnRestrictUser = ({
   const handleSubmit = async (id: string) => {
     try {
       const res = await UnrestrictUser({ id, chatroomId }).unwrap();
-      dispatch(unrestrictUser(res.data));
+      dispatch(unrestrictUser({ data: res.data, chatroomId }));
       setMessage(res.message);
       setOpenSnack(true);
       setSeverity("success");

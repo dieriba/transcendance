@@ -47,9 +47,11 @@ export type BaseChatroomWithUserIdType = z.infer<
 export const MessageGroupSchema = z.object({
   id: z.string().min(1),
   chatroomId: z.string().min(1),
-  user: z
-    .object({ id: z.string().min(1), nickname: z.string().min(1) })
-    .merge(ProfileSchema),
+  user: z.object({
+    id: z.string().min(1),
+    nickname: z.string().min(1),
+    profile: ProfileSchema,
+  }),
   content: z.string().min(1),
   createdAt: z.date(),
 });

@@ -280,6 +280,15 @@ export class ChatService {
                 profile: {
                   select: {
                     avatar: true,
+                    lastname: true,
+                    firstname: true,
+                  },
+                },
+                pong: {
+                  select: {
+                    victory: true,
+                    losses: true,
+                    rating: true,
                   },
                 },
                 friends: {
@@ -367,14 +376,6 @@ export class ChatService {
         user.restrictedGroups.length === 0 ||
         user.restrictedGroups[0].restriction === RESTRICTION.MUTED
       );
-    });
-
-    users.map((user) => {
-      console.log({
-        user,
-        friendRequestsReceived: user.user.friendRequestsReceived,
-        friendRequestsSent: user.user.friendRequestsSent,
-      });
     });
 
     return {

@@ -4,7 +4,7 @@ import { AccessTokenSchema } from "./AccessTokenSchema";
 import { ProfileSchema } from "../ProfileFormSchema";
 
 export const ResponseLoginSchema = AccessTokenSchema.extend({
-  user: UserSchema.merge(ProfileSchema),
+  user: UserSchema.extend({ profile: ProfileSchema }),
 });
 
 export type ResponseLoginType = z.infer<typeof ResponseLoginSchema>;

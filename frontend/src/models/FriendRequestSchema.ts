@@ -8,12 +8,11 @@ export const FriendRequestSchema = z.object({
 export type FriendRequestType = z.infer<typeof FriendRequestSchema>;
 
 export const FriendReceivedRequestSchema = z.object({
-  sender: z
-    .object({
-      id: z.string().min(1),
-      nickname: z.string().min(1),
-    })
-    .merge(ProfileSchema),
+  sender: z.object({
+    id: z.string().min(1),
+    nickname: z.string().min(1),
+    profile: ProfileSchema,
+  }),
 });
 
 export type FriendReceivedRequestType = z.infer<
@@ -21,12 +20,11 @@ export type FriendReceivedRequestType = z.infer<
 >;
 
 export const FriendSentRequestSchema = z.object({
-  recipient: z
-    .object({
-      id: z.string().min(1),
-      nickname: z.string().min(1),
-    })
-    .merge(ProfileSchema),
+  recipient: z.object({
+    id: z.string().min(1),
+    nickname: z.string().min(1),
+    profile: ProfileSchema,
+  }),
 });
 
 export type FriendSentRequestType = z.infer<typeof FriendSentRequestSchema>;

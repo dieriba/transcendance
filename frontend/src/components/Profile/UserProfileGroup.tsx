@@ -5,18 +5,22 @@ import PlayingAvatar from "../Badge/PlayingAvatar";
 import GameInvitation from "../game-invitation/GameInvitation";
 import { useState } from "react";
 import { UserWithProfile } from "../../models/ChatContactSchema";
+import { useAppSelector } from "../../redux/hooks";
+import { RootState } from "../../redux/store";
 
-interface UserProfileProps extends DialogProps {
-  user: UserWithProfile;
+interface UserProfileGroupProps extends DialogProps {
   open: boolean;
   handleClose: () => void;
 }
 
-const UserProfile = ({
-  user: { profile, id, nickname, pong, status },
-  handleClose,
-  open,
-}: UserProfileProps) => {
+const UserProfileGroup = ({ handleClose, open }: UserProfileGroupProps) => {
+  const { myId, currentUser } = useAppSelector(
+    (state: RootState) => state.groups
+  );
+
+  const { profile, pong, id, nickname, status } =
+    currentUser as UserWithProfile;
+
   const [openGameInvitation, setOpenGameInvitation] = useState(false);
   const src = profile?.avatar ?? undefined;
   let rating: number = 0;
@@ -66,15 +70,17 @@ const UserProfile = ({
           <TextField fullWidth label="Pong Rating" disabled value={rating} />
           <TextField fullWidth label="Pong Victory" disabled value={victory} />
           <TextField fullWidth label="Pong losses" disabled value={losses} />
-          <Button
-            onClick={() => setOpenGameInvitation(true)}
-            fullWidth
-            variant="contained"
-            color="inherit"
-          >{`Play with ${nickname}`}</Button>
+          {myId !== id && (
+            <Button
+              onClick={() => setOpenGameInvitation(true)}
+              fullWidth
+              variant="contained"
+              color="inherit"
+            >{`Play with ${nickname}`}</Button>
+          )}
         </Stack>
       </DialogI>
-      {openGameInvitation && (
+      {myId !== id && openGameInvitation && (
         <GameInvitation
           id={id}
           nickname={nickname}
@@ -86,4 +92,4 @@ const UserProfile = ({
   );
 };
 
-export default UserProfile;
+export default UserProfileGroup;

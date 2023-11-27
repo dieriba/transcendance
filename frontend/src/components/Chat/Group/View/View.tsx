@@ -9,13 +9,14 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { useGetAllGroupUserQuery } from "../../../../redux/features/groups/group.api.slice";
 import {
+  setCurrentUser,
   setGroupMembersAndRole,
   setOfflineUser,
   setOnlineUser,
 } from "../../../../redux/features/groups/group.slice";
 import { useAppSelector, useAppDispatch } from "../../../../redux/hooks";
 import { RootState } from "../../../../redux/store";
-import { ChatRoleType, STATUS } from "../../../../models/type-enum/typesEnum";
+import { ChatRoleType, ROLE, STATUS } from "../../../../models/type-enum/typesEnum";
 import UserInfo from "./UserInfo";
 import AdminAction from "./AdminAction";
 import ModeratorAction from "./ModeratorAction";
@@ -31,6 +32,23 @@ import { BaseFriendType } from "../../../../models/FriendsSchema";
 import KickUser from "./KickUser";
 import GameInvitation from "../../../game-invitation/GameInvitation";
 import { ChatroomGroupType } from "../../../../models/groupChat";
+import UserProfileGroup from "../../../Profile/UserProfileGroup";
+
+export type UserData = {
+  id: string;
+  nickname: string;
+  role: ChatRoleType;
+  chatroomId: string;
+};
+export type Open = {
+  admin: boolean;
+  role: boolean;
+  restriction: boolean;
+  unrestriction: boolean;
+  kick: boolean;
+  gameInvitation: boolean;
+  details: boolean;
+};
 
 const View = () => {
   const {
@@ -77,90 +95,35 @@ const View = () => {
     }
   }, [data, dispatch]);
 
-  const [userData, setUserData] = useState<{
-    id: string;
-    nickname: string;
-    role: ChatRoleType;
-    chatroomId: string;
-  }>({
+  const [userData, setUserData] = useState<UserData>({
     id: "",
     nickname: "",
     chatroomId: currentGroupChatroomId as string,
     role: role as ChatRoleType,
   });
 
-  const [open, setOpen] = useState<{
-    admin: boolean;
-    role: boolean;
-    restriction: boolean;
-    unrestriction: boolean;
-    kick: boolean;
-    gameInvitation: boolean;
-  }>({
+  const [open, setOpen] = useState<Open>({
     admin: false,
     role: false,
     restriction: false,
     unrestriction: false,
     kick: false,
     gameInvitation: false,
+    details: false,
   });
 
-  const handleNewAdmin = ({
-    id,
-    nickname,
-  }: {
-    id: string;
-    nickname: string;
-  }) => {
-    setUserData((prev) => ({ ...prev, id, nickname }));
-    setOpen((prev) => {
-      return { ...prev, admin: true };
-    });
-  };
-
-  const handleChangeRole = ({
-    id,
-    nickname,
-    role,
-  }: {
-    id: string;
-    nickname: string;
-    role: ChatRoleType;
-  }) => {
-    setUserData((prev) => ({ ...prev, id, nickname, role }));
-    setOpen((prev) => {
-      return { ...prev, role: true };
-    });
-  };
-
-  const handleRestriction = ({
-    id,
-    nickname,
-  }: {
-    id: string;
-    nickname: string;
-  }) => {
-    setUserData((prev) => ({ ...prev, id, nickname }));
-    setOpen((prev) => {
-      return { ...prev, restriction: true };
-    });
-  };
-
-  const handleUnrestriction = ({ nickname }: { nickname: string }) => {
-    setUserData((prev) => ({ ...prev, nickname }));
-    setOpen((prev) => {
-      return { ...prev, unrestriction: true };
-    });
-  };
-
-  const handleKickUser = (data: { id: string; nickname: string }) => {
-    setUserData((prev) => ({ ...prev, ...data }));
-    setOpen((prev) => ({ ...prev, kick: true }));
-  };
-
-  const handleGameInvitation = (data: { id: string; nickname: string }) => {
-    setUserData((prev) => ({ ...prev, ...data }));
-    setOpen((prev) => ({ ...prev, gameInvitation: true }));
+  const handleAction = (userData: Partial<UserData>, open: Partial<Open>) => {
+    setOpen((prev) => ({ ...prev, ...open }));
+    if (!open.details) {
+      setUserData((prev) => ({ ...prev, ...userData }));
+      return;
+    }
+    dispatch(
+      setCurrentUser({
+        id: userData.id as string,
+        role: userData.role as ChatRoleType,
+      })
+    );
   };
 
   if (isLoading) {
@@ -204,10 +167,10 @@ const View = () => {
           >
             <AdminAction
               type={type}
-              handleGameInvitation={handleGameInvitation}
-              handleUnrestriction={handleUnrestriction}
+              handleAction={handleAction}
               nickname={admin?.user.nickname as string}
               role={role as ChatRoleType}
+              userRole={ROLE.DIERIBA}
               id={admin?.user.id as string}
             />
           </UserInfo>
@@ -231,13 +194,9 @@ const View = () => {
                       avatar={profile?.avatar ? profile.avatar : undefined}
                     >
                       <ModeratorAction
-                        handleGameInvitation={handleGameInvitation}
-                        handleKickUser={handleKickUser}
-                        handleUnrestriction={handleUnrestriction}
-                        handleRestriction={handleRestriction}
-                        handleChangeRole={handleChangeRole}
-                        handleNewAdmin={handleNewAdmin}
+                        handleAction={handleAction}
                         role={role as ChatRoleType}
+                        userRole={ROLE.CHAT_ADMIN}
                         id={id}
                         nickname={nickname}
                         me={nickname === user?.nickname}
@@ -275,12 +234,9 @@ const View = () => {
                       }
                     >
                       <UserAction
-                        handleKickUser={handleKickUser}
-                        handleRestriction={handleRestriction}
-                        handleChangeRole={handleChangeRole}
-                        handleNewAdmin={handleNewAdmin}
-                        handleGameInvitation={handleGameInvitation}
+                        handleAction={handleAction}
                         role={role as ChatRoleType}
+                        userRole={ROLE.REGULAR_USER}
                         id={id}
                         nickname={nickname}
                         me={nickname === user?.nickname}
@@ -361,6 +317,12 @@ const View = () => {
             }
             id={userData.id}
             nickname={userData.nickname}
+          />
+        )}
+        {open.details && (
+          <UserProfileGroup
+            open={open.details}
+            handleClose={() => setOpen((prev) => ({ ...prev, details: false }))}
           />
         )}
       </>

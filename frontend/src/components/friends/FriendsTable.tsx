@@ -20,7 +20,7 @@ import {
   useGetAllFriendsQuery,
 } from "../../redux/features/friends/friends.api.slice";
 import { Trash, Prohibit } from "phosphor-react";
-import { BaseFriendType, FriendType } from "../../models/FriendsSchema";
+import { BaseFriendType } from "../../models/FriendsSchema";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { useEffect, useState } from "react";
 import { connectSocket, socket } from "../../utils/getSocket";
@@ -39,6 +39,7 @@ import { RootState } from "../../redux/store";
 import BadgeAvatar from "../Badge/BadgeAvatar";
 import UserProfile from "../Profile/UserProfile";
 import CustomDialog from "../Dialog/CustomDialog";
+import { UserWithProfile } from "../../models/ChatContactSchema";
 
 export interface FriendProps {
   id: number;
@@ -65,9 +66,9 @@ const FriendsTable = () => {
 
   const dispatch = useAppDispatch();
 
-  const [user, setUser] = useState<FriendType | undefined>(undefined);
+  const [user, setUser] = useState<UserWithProfile | undefined>(undefined);
 
-  const handleSetUser = (data: FriendType) => {
+  const handleSetUser = (data: UserWithProfile) => {
     setUser(data);
     setInfo((prev) => ({ ...prev, open: true }));
   };
@@ -139,7 +140,7 @@ const FriendsTable = () => {
       </Stack>
     );
   } else {
-    const nickname = user?.friend.nickname;
+    const nickname = user?.nickname;
     return (
       <>
         <Stack spacing={3} alignItems="center">
@@ -200,13 +201,11 @@ const FriendsTable = () => {
                           color="inherit"
                           onClick={() => {
                             handleSetUser({
-                              friend: {
-                                id,
-                                nickname,
-                                status,
-                                profile: { avatar, firstname, lastname },
-                                pong
-                              },
+                              id,
+                              nickname,
+                              status,
+                              profile: { avatar, firstname, lastname },
+                              pong,
                             });
                           }}
                         >
@@ -260,7 +259,7 @@ const FriendsTable = () => {
         </Stack>
         {info.open && (
           <UserProfile
-            user={user as FriendType}
+            user={user as UserWithProfile}
             open={info.open}
             handleClose={() => setInfo((prev) => ({ ...prev, open: false }))}
           />

@@ -13,14 +13,15 @@ import {
 import { useState } from "react";
 import EditGroup from "./AdminView/EditGroup";
 import AddUser from "./AdminView/AddOrInviteUser";
+import { UserData, Open } from "./View";
 
 interface AdminActionProps {
   role: ChatRoleType;
   nickname: string;
   id: string;
   type: GroupTypes;
-  handleUnrestriction: (data: { nickname: string }) => void;
-  handleGameInvitation: (data: { id: string; nickname: string }) => void;
+  handleAction: (userData: Partial<UserData>, open: Partial<Open>) => void;
+  userRole: ChatRoleType;
 }
 
 const AdminAction = ({
@@ -28,8 +29,8 @@ const AdminAction = ({
   nickname,
   id,
   type,
-  handleUnrestriction,
-  handleGameInvitation,
+  handleAction,
+  userRole,
 }: AdminActionProps) => {
   const [open, setOpen] = useState<{ edit: boolean; addUser: boolean }>({
     edit: false,
@@ -50,12 +51,18 @@ const AdminAction = ({
           </IconButton>
         </Tooltip>
         <Tooltip placement="top" title="unrestrict user">
-          <IconButton onClick={() => handleUnrestriction({ nickname })}>
+          <IconButton
+            onClick={() => handleAction({ nickname }, { restriction: true })}
+          >
             <UserGear size={20} />
           </IconButton>
         </Tooltip>
         <Tooltip placement="top" title={`${nickname} details`}>
-          <IconButton>
+          <IconButton
+            onClick={() =>
+              handleAction({ id, role: userRole }, { details: true })
+            }
+          >
             <Notebook size={20} />
           </IconButton>
         </Tooltip>
@@ -84,11 +91,21 @@ const AdminAction = ({
     return (
       <>
         <Tooltip placement="top" title={`play with ${nickname}`}>
-          <IconButton onClick={() => handleGameInvitation({ id, nickname })}>
+          <IconButton
+            onClick={() =>
+              handleAction({ id, nickname }, { gameInvitation: true })
+            }
+          >
             <GameController size={20} />
           </IconButton>
         </Tooltip>
-        <Tooltip placement="top" title={`${nickname} details`}>
+        <Tooltip
+          onClick={() =>
+            handleAction({ id, role: userRole }, { details: true })
+          }
+          placement="top"
+          title={`${nickname} details`}
+        >
           <IconButton>
             <Notebook size={20} />
           </IconButton>

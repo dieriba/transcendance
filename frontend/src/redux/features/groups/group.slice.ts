@@ -26,6 +26,7 @@ import {
 import { BaseFriendType } from "../../../models/FriendsSchema";
 import {
   UserProfileBanLifeType,
+  UserWithProfile,
   UserWithProfileFriendsType,
 } from "../../../models/ChatContactSchema";
 import { BaseUserTypeId } from "../../../models/login/UserSchema";
@@ -52,6 +53,7 @@ export interface GroupState {
   severity: AlertColor;
   open: boolean;
   numbersOfGroupInvitation: number;
+  currentUser: UserWithProfile | undefined;
 }
 
 const initialState: GroupState = {
@@ -75,6 +77,7 @@ const initialState: GroupState = {
   groupInvitation: [],
   invitedUser: [],
   numbersOfGroupInvitation: 0,
+  currentUser: undefined,
 };
 
 export const GroupSlice = createSlice({
@@ -111,6 +114,56 @@ export const GroupSlice = createSlice({
     },
     setInvitedUser: (state, action: PayloadAction<InvitedUserType[]>) => {
       state.invitedUser = action.payload;
+    },
+    setCurrentUser: (
+      state,
+      action: PayloadAction<{ id: string; role: ChatRoleType }>
+    ) => {
+      const { id, role } = action.payload;
+      if (role === "DIERIBA") {
+        const { user } = state.admin as UserGroupType;
+        const { id, profile, pong, status, nickname } = user;
+        state.currentUser = {
+          id,
+          profile,
+          pong,
+          status,
+          nickname,
+        };
+        return;
+      }
+
+      if (role === "CHAT_ADMIN") {
+        const user = state.chatAdmin.find((user) => user.user.id === id);
+
+        const {
+          user: { id, pong, profile, status, nickname },
+        } = user as UserGroupType;
+
+        state.currentUser = {
+          id,
+          profile,
+          pong,
+          status,
+          nickname,
+        };
+
+        return;
+      }
+
+      const user = state.regularUser.find((user) => user.user.id === id);
+
+      const {
+        user: { pong, profile, status, nickname },
+      } = user as UserGroupType;
+
+      state.currentUser = {
+        id: (user as UserGroupType).user.id,
+        profile,
+        pong,
+        status,
+        nickname,
+      };
     },
     setGroupMembersAndRole: (state, action: PayloadAction<GroupMembertype>) => {
       const { users, role } = action.payload;
@@ -731,6 +784,7 @@ export const {
   deleteGroupInvitation,
   setInvitedUser,
   deleteInvitedUser,
+  setCurrentUser,
 } = GroupSlice.actions;
 
 export default GroupSlice.reducer;

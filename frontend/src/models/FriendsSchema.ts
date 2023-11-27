@@ -14,14 +14,13 @@ export const FriendsChatSchema = BaseFriendSchema.extend({
 });
 
 export const FriendSchema = z.object({
-  friend: z
-    .object({
-      id: z.string().min(1),
-      nickname: z.string().min(1),
-      status: z.enum(friendsType),
-      pong: PongSchema.nullable(),
-    })
-    .merge(ProfileSchema),
+  friend: z.object({
+    id: z.string().min(1),
+    nickname: z.string().min(1),
+    status: z.enum(friendsType),
+    pong: PongSchema.nullable(),
+    profile: ProfileSchema,
+  }),
 });
 
 export type FriendType = z.infer<typeof FriendSchema>;
