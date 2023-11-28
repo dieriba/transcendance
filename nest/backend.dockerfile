@@ -1,4 +1,4 @@
-FROM node:20-alpine3.18 As development
+FROM node:20-alpine3.18
 
 WORKDIR /app
 
@@ -6,17 +6,17 @@ COPY --chown=node:node ./backend/package*.json ./
 
 COPY ./backend/prisma .
 
-COPY ./tools/backend.sh /tools/backend.sh
-
 RUN npm ci
 
-COPY --chown=node:node . /app/
+COPY --chown=node:node ./backend .
 
-RUN chmod 700 /tools/backend.sh 
+COPY ./tools/backend.sh ./backend.sh
+
+RUN chmod 755 ./backend.sh && \
+    chown node:node ./backend.sh
 
 USER node
 
 EXPOSE 3000
 
-ENTRYPOINT [ "run", "start:dev" ]
-CMD [ "npm" ]
+ENTRYPOINT [ "./backend.sh"  ]

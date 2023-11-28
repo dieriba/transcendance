@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 export DATABASE_URL="postgresql://dieri:dieri@postgres:5432/transcendance"
 
@@ -13,3 +13,5 @@ npx prisma migrate dev --name init
 if [ $? -ne 0 ]; then
   handle_error
 fi
+
+npm run start:dev

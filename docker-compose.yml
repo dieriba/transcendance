@@ -31,8 +31,8 @@ services:
     restart: unless-stopped
     image: nest:v1
     volumes:
-      - ./backend:/app
-      - /app/node_modules
+        - ./nest/backend:/app
+        - /app/node_modules
     ports:
       - 3000:3000
       - 9000:9000
@@ -50,7 +50,7 @@ services:
       restart: unless-stopped
       image: react:v1
       volumes:
-        - ./frontend:/app
+        - ./react/frontend:/app
         - /app/node_modules
       ports:
         - 5173:5173
