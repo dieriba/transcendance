@@ -13,7 +13,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { ROLE, TYPE, Chatroom, RESTRICTION } from '@prisma/client';
+import { ROLE, TYPE, Chatroom, RESTRICTION, STATUS } from '@prisma/client';
 import {
   ChatEventPrivateRoom,
   FriendEvent,
@@ -71,7 +71,10 @@ import { AvatarUpdateDto } from 'src/user/dto/AvatarUpdate.dto';
 import { UserIdDto, UserInfoUpdateDto } from 'src/user/dto/UserInfo.dto';
 import { PongService } from 'src/pong/pong.service';
 import { Interval } from '@nestjs/schedule';
-import { GAME_INVITATION_TIME_LIMIT } from '@shared/constant';
+import {
+  FRAME_RATE,
+  GAME_INVITATION_TIME_LIMIT,
+} from '../../../shared/constant';
 import { CustomException } from 'src/common/custom-exception/custom-exception';
 
 @UseGuards(WsAccessTokenGuard)
@@ -112,7 +115,7 @@ export class GatewayGateway {
     });
   }
 
-  handleDisconnect(client: SocketWithAuth) {
+  async handleDisconnect(client: SocketWithAuth) {
     const { sockets } = this.server.sockets;
 
     this.logger.log(`WS client with id: ${client.id} disconnected!`);
@@ -122,7 +125,9 @@ export class GatewayGateway {
 
     if (!rooms) {
       console.log('LOGGED OUT');
-
+      await this.userService.updateUserById(client.userId, {
+        status: STATUS.OFFLINE,
+      });
       client.broadcast.emit(GeneralEvent.USER_LOGGED_OUT, {
         data: { friendId: client.userId },
       });
@@ -141,6 +146,7 @@ export class GatewayGateway {
         game.getGameId,
         PongEvent.USER_NO_MORE_IN_GAME,
         {
+          severity: 'info',
           message:
             'Redirecting you to game page as your adversary leaved the game',
           data: {},
@@ -195,6 +201,14 @@ export class GatewayGateway {
     }
 
     const { nickname } = userInfoUpdateDto;
+
+    const isNicknameTaken = await this.userService.findUserByNickName(
+      nickname,
+      UserData,
+    );
+
+    if (isNicknameTaken)
+      throw new WsBadRequestException('Nickname is already taken');
 
     if (nickname === user.nickname) {
       throw new WsBadRequestException('Nickname already taken by you, btw...');
@@ -2782,9 +2796,9 @@ export class GatewayGateway {
   }
 
   /*------------------------------------------------------------------------------------------------------ */
-  @Interval(1000 / 30)
-  updateGame() {
-    this.pongService.gameUpdate();
+  @Interval(FRAME_RATE)
+  async updateGame() {
+    this.pongService.gameUpdate(this.server);
   }
 
   @SubscribeMessage(PongEvent.JOIN_QUEUE)

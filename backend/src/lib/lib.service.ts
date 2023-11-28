@@ -66,6 +66,11 @@ export class LibService {
     fs.unlink(path, () => {});
   }
 
+  getSecondsSinceBegginingOfDate(date: Date): number {
+    const now = new Date();
+    return Math.round(Math.abs(date.getTime() - now.getTime()) / 1000);
+  }
+
   createFile(directory: string, file: Express.Multer.File): string | undefined {
     if (!file) return undefined;
 

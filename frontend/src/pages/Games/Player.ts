@@ -1,4 +1,4 @@
-import { Coordinate, Dimension, Velocity } from "./types";
+import { Coordinate, Dimension } from "./types";
 
 export enum KeyboardOptions {
   ARROW_UP = "ArrowUp",
@@ -13,29 +13,19 @@ export const Map = {
 export class Player {
   private canvas: HTMLCanvasElement;
   private context: CanvasRenderingContext2D;
-  private moveLeft: boolean;
-  private moveRight: boolean;
   private position: Coordinate;
   private dimension: Dimension;
-  private velocity: Velocity;
   private score: number;
 
   constructor(
     canvas: HTMLCanvasElement,
     context: CanvasRenderingContext2D,
-    postion: Coordinate,
-    velocity: Velocity,
     dimension: Dimension
   ) {
-    this.position = postion;
+    this.position = { x: 0, y: 0 };
     this.dimension = dimension;
-    this.velocity = velocity;
-    this.moveLeft = false;
-    this.moveRight = false;
     this.canvas = canvas;
     this.context = context;
-    document.addEventListener("keydown", this.handleKeyDown);
-    document.addEventListener("keyup", this.handleKeyUp);
     this.score = 0;
   }
 
@@ -84,44 +74,14 @@ export class Player {
     this.score++;
   }
 
-  public draw() {
+  public draw(position: Coordinate) {
     this.context.fillStyle = "white";
+    this.position = position;
     this.context.fillRect(
-      (this.position.x - (this.dimension.width / 2)) * this.canvas.width,
-      (this.position.y - (this.dimension.height / 2)) * this.canvas.height,
+      (this.position.x - this.dimension.width / 2) * this.canvas.width,
+      (this.position.y - this.dimension.height / 2) * this.canvas.height,
       this.dimension.width * this.canvas.width,
       this.dimension.height * this.canvas.height
     );
   }
-
-  get isMovingLeft(): boolean {
-    return this.moveLeft;
-  }
-
-  get isMovingRight(): boolean {
-    return this.moveRight;
-  }
-
-  public movePaddle(): void {
-    if (
-      (this.isMovingLeft && this.position.x > 0) ||
-      (this.isMovingRight &&
-        this.position.x < this.canvas.width - this.dimension.width)
-    ) {
-      if (this.moveLeft) this.position.x -= this.velocity.x;
-      if (this.moveRight) this.position.x += this.velocity.x;
-    }
-  }
-
-  private handleKeyUp = (e: KeyboardEvent): void => {
-    if (e.code === "ArrowLeft" || e.key === "ArrowLeft") this.moveLeft = false;
-    if (e.code === "ArrowRight" || e.key === "ArrowRight")
-      this.moveRight = false;
-  };
-
-  private handleKeyDown = (e: KeyboardEvent): void => {
-    if (e.code === "ArrowLeft" || e.key === "ArrowLeft") this.moveLeft = true;
-    if (e.code === "ArrowRight" || e.key === "ArrowRight")
-      this.moveRight = true;
-  };
 }

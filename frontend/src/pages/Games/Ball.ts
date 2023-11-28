@@ -46,9 +46,8 @@ export class Ball {
     }
   };
 
-  public move(canvas: HTMLCanvasElement) {
-    this.position.x += this.velocity.x;
-    this.position.y += this.velocity.y;
+  public move(position: Coordinate, canvas: HTMLCanvasElement) {
+    this.position = position;
 
     if (
       this.position.x - this.radius <= 0 ||

@@ -1,19 +1,20 @@
-import { GAME_BOARD_WIDTH } from "./constant";
+import { BALL_HIGH, BALL_LOW, GAME_BOARD_WIDTH } from "./constant";
 import { Player } from "./Player";
 import { Coordinate, Velocity } from "./types";
 
 export class Ball {
-  radius: number;
-  position: Coordinate;
-  velocity: Velocity;
-
+  private radius: number;
+  private position: Coordinate;
+  private velocity: Velocity;
   private width: number;
+  private lastFrameTime: number;
 
   constructor(postion: Coordinate, velocity: Velocity, radius: number) {
     this.position = postion;
     this.velocity = velocity;
     this.radius = radius;
     this.width = radius * 2;
+    this.lastFrameTime = performance.now();
   }
 
   public draw(context: CanvasRenderingContext2D) {
@@ -37,6 +38,18 @@ export class Ball {
     return this.width;
   }
 
+  get getPosition(): Coordinate {
+    return this.position;
+  }
+
+  get getVelocity(): Velocity {
+    return this.velocity;
+  }
+
+  set setLastFrameTime(lastFrameTime: number) {
+    this.lastFrameTime = lastFrameTime;
+  }
+
   public checkCollisionWithPlayer = (player: Player) => {
     if (
       this.position.x + this.width > player.getPostion.x &&
@@ -47,15 +60,10 @@ export class Ball {
     }
   };
 
-  public move() {
+  public updatePosition() {
     this.position.x += this.velocity.x;
     this.position.y += this.velocity.y;
 
-    if (
-      this.position.x - this.radius <= 0 ||
-      this.position.x > GAME_BOARD_WIDTH - this.width
-    ) {
-      this.reverseX();
-    }
+    if (this.position.y + this.radius >= 1) this.reverseY();
   }
 }

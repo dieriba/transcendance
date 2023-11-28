@@ -8,11 +8,19 @@ import { GAME_MARGIN, ASPECT_RATIO } from "./constant";
 import { useNavigate } from "react-router-dom";
 import { PATH_APP } from "../../routes/paths";
 import { Box } from "@mui/material";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+import { showSnackBar } from "../../redux/features/app/app.slice";
+import { SocketServerSucessResponse } from "../../services/type";
+import { UpdatedGameData } from "../../../../shared/types";
+import { RootState } from "../../redux/store";
 
 const Pong = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
+  const dispatch = useAppDispatch();
   const { width, height } = usePageSize();
+  const myId = useAppSelector(
+    (state: RootState) => state.user.user?.id
+  ) as string;
   const navigate = useNavigate();
   const gameWidth = Math.min(
     width - 2 * GAME_MARGIN,
@@ -31,20 +39,12 @@ const Pong = () => {
 
     connectSocket();
 
-    socket.on(PongEvent.UPDATE_GAME, (data) => {});
-
-    socket.on(PongEvent.USER_NO_MORE_IN_GAME, (data) => {
-      console.log(data);
-      navigate(PATH_APP.dashboard.games, { replace: true });
-    });
-
     canvas.width = gameWidth;
     canvas.height = gameHeight;
     canvas.style.width = `${gameWidth}px`;
     canvas.style.height = `${gameHeight}px`;
 
     context.fillStyle = "black";
-    let animationId: number;
 
     const ball = new Ball(
       { x: canvas.width / 2, y: canvas.height / 2 },
@@ -52,39 +52,35 @@ const Pong = () => {
       7
     );
 
-    const Player1 = new Player(
-      canvas,
-      context,
-      { x: 0.015, y: 0.5 },
-      { x: 2, y: 2 },
-      { height: 0.16, width: 0.015 }
-    );
+    const Player1 = new Player(canvas, context, { height: 0.16, width: 0.015 });
 
-    const Player2 = new Player(
-      canvas,
-      context,
-      { x: 1 - Player1.getPostion.x, y: 0.5 },
-      { x: 2, y: 2 },
-      { height: 0.16, width: 0.015 }
-    );
+    const Player2 = new Player(canvas, context, { height: 0.16, width: 0.015 });
 
-    const gameLoop = () => {
+    socket.on(PongEvent.UPDATE_GAME, (data: UpdatedGameData) => {
+      console.log({ data });
+      const { player1, player2 } = data;
       context.clearRect(0, 0, canvas.width, canvas.height);
       ball.draw(context);
-      ball.move(canvas);
-      Player1.draw();
-      Player2.draw();
-      animationId = window.requestAnimationFrame(gameLoop);
-    };
+      ball.move(data.ball, canvas);
+      Player1.draw(player1);
+      Player2.draw(player2);
+    });
 
-    gameLoop();
+    socket.on(
+      PongEvent.USER_NO_MORE_IN_GAME,
+      (data: SocketServerSucessResponse & { data: unknown }) => {
+        navigate(PATH_APP.dashboard.games, { replace: true });
+        dispatch(
+          showSnackBar({ message: data.message, severity: data.severity })
+        );
+      }
+    );
 
     return () => {
-      window.cancelAnimationFrame(animationId);
       socket.off(PongEvent.UPDATE_GAME);
       socket.off(PongEvent.USER_NO_MORE_IN_GAME);
     };
-  }, [navigate, canvasRef, height, width, gameHeight, gameWidth]);
+  }, [navigate, canvasRef, height, width, gameHeight, gameWidth, dispatch]);
 
   return (
     <Box

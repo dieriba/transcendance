@@ -6,6 +6,7 @@ import {
   GAME_INVITATION_TIME_LIMIT,
 } from "./constant";
 import { Player } from "./Player";
+import { UpdatedGameData } from "./types";
 
 export class GameInvitation {
   private readonly id: string;
@@ -62,6 +63,8 @@ export class Game {
   private socketsId: string[] = [];
   private player: Player;
   private opponentPlayer: Player;
+  private startedTime: Date;
+  private endTime: Date;
   private ball: Ball;
 
   constructor(gameId: string, playerId: string, socketId: string) {
@@ -75,7 +78,8 @@ export class Game {
       {
         x: defaultPlayer.speed,
         y: defaultPlayer.speed,
-      }
+      },
+      playerId
     );
     this.opponentPlayer = new Player(
       {
@@ -104,9 +108,20 @@ export class Game {
   }
 
   public update() {
-    this.ball.move();
+    this.ball.updatePosition();
     this.ball.checkCollisionWithPlayer(this.player);
     this.ball.checkCollisionWithPlayer(this.opponentPlayer);
+  }
+
+  public getUpdatedData(): UpdatedGameData {
+    return {
+      player1: { ...this.getPlayer.getPostion, id: this.getPlayer.getPlayerId },
+      player2: {
+        ...this.getOppenent.getPostion,
+        id: this.getOppenent.getPlayerId,
+      },
+      ball: this.ball.getPosition,
+    };
   }
 
   get hasStarted(): boolean {
@@ -141,8 +156,13 @@ export class Game {
     return this.socketsId;
   }
 
+  get getStartedTime(): Date {
+    return this.startedTime;
+  }
+
   set setOponnentPlayer(userId: string) {
     this.players.push(userId);
+    this.opponentPlayer.setId = userId;
   }
 
   set setNewSocketId(socketId: string) {
@@ -151,6 +171,7 @@ export class Game {
 
   set setGameStarted(started: boolean) {
     this.gameStarted = started;
+    this.startedTime = new Date();
   }
 
   public setNewsocketIdAt(socketId: string, index: 0 | 1) {

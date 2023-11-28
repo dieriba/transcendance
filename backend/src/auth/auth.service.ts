@@ -99,7 +99,6 @@ export class AuthService {
 
     try {
       await this.userService.clearHashedToken(id, {
-        status: STATUS.OFFLINE,
         hashedRefreshToken: null,
       });
     } catch (error) {}
@@ -143,6 +142,22 @@ export class AuthService {
       } & Tokens)
     | { id: string; twoFa: boolean }
   > {
+    console.log({
+      client_secret: process.env.CLIENT_SECRET,
+      client_id: process.env.CLIENT_ID,
+      grant_type: process.env.GRANT_TYPE,
+      redirect_uri: process.env.REDIRECT_URI,
+      code: code,
+    });
+
+    const formData = new FormData();
+
+    formData.append('client_secret', process.env.CLIENT_SECRET);
+    formData.append('client_id', process.env.CLIENT_ID);
+    formData.append('grant_type', process.env.GRANT_TYPE);
+    formData.append('redirect_uri', process.env.REDIRECT_URI);
+    formData.append('code', process.env.code);
+
     const response = await this.httpService.axiosRef.post(
       process.env.TOKEN_URI,
       {
@@ -153,10 +168,14 @@ export class AuthService {
         code: code,
       },
       {
+        headers: {
+          'Content-Type': 'application/json',
+        },
         validateStatus: () => true,
       },
     );
 
+    console.log({ code, response });
     if (response?.status == HttpStatusCode.Unauthorized) {
       throw new UnauthorizedException(
         'Account do not have enough authorization',

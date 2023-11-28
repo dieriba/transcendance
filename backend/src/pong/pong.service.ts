@@ -142,17 +142,19 @@ export class PongService {
     }
   }
 
-  gameUpdate() {
+  gameUpdate(server: Server) {
     this.games.forEach((game) => {
       if (game.hasStarted) {
         game.update();
+        server
+          .to(game.getGameId)
+          .emit(PongEvent.UPDATE_GAME, game.getUpdatedData());
       }
     });
   }
 
   joinGame(server: Server, client: SocketWithAuth, room: string) {
     client.join(room);
-
     server.to(room).emit(PongEvent.LETS_PLAY);
   }
 

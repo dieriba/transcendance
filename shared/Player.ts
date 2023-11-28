@@ -12,7 +12,7 @@ export const Map = {
 };
 
 export class Player {
-  //private context: CanvasRenderingContext2D;
+  private id: string;
   private moveLeft: boolean;
   private moveRight: boolean;
   private position: Coordinate;
@@ -21,17 +21,17 @@ export class Player {
   private score: number;
 
   constructor(
-    // context: CanvasRenderingContext2D,
     dimension: Dimension,
     postion: Coordinate,
-    velocity: Velocity
+    velocity: Velocity,
+    id?: string
   ) {
+    this.id = id;
     this.position = postion;
     this.dimension = dimension;
     this.velocity = velocity;
     this.moveLeft = false;
     this.moveRight = false;
-    //  this.context = context;
     this.score = 0;
   }
 
@@ -53,12 +53,20 @@ export class Player {
     return this.dimension;
   }
 
+  get getPlayerId(): string {
+    return this.id;
+  }
+
   set setYPosition(y: number) {
     this.position.y = y;
   }
 
   set setXPosition(x: number) {
     this.position.x = x;
+  }
+
+  set setId(id: string) {
+    this.id = id;
   }
 
   public getHalfWidth(): number {
