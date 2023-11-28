@@ -1,0 +1,3 @@
+frontend.dockerfile
+.dockerignore
+node_modules

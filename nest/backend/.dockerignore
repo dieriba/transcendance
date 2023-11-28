@@ -1,0 +1,4 @@
+backend.dockerfile
+.dockerignore
+node_modules
+dist

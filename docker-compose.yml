@@ -1,0 +1,62 @@
+version: "3.1"
+
+services:
+  postgres:
+    image: postgres:16.0
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: transcendance
+      POSTGRES_USER: dieri
+      POSTGRES_PASSWORD: dieri
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./database:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - transcendance
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "dieri", "-d", "transcendance", "-h", "localhost", "-p", "5432"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  backend:
+    container_name: nest-container
+    build:
+      context: "./nest"
+      dockerfile: backend.dockerfile
+    env_file:
+      .env
+    restart: unless-stopped
+    image: nest:v1
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    ports:
+      - 3000:3000
+      - 9000:9000
+    networks:
+      - transcendance
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+      container_name: react-container
+      build:
+        context: "./react"
+        dockerfile: frontend.dockerfile
+      restart: unless-stopped
+      image: react:v1
+      volumes:
+        - ./frontend:/app
+        - /app/node_modules
+      ports:
+        - 5173:5173
+      depends_on:
+        - backend
+
+networks:
+    transcendance:
+      driver: bridge
