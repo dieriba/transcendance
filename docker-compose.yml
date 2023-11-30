@@ -31,7 +31,7 @@ services:
     restart: unless-stopped
     image: nest:v1
     volumes:
-        - ./nest/backend:/app
+        - ./nest/backend:/app:rw
         - /app/node_modules
         - ./shared:/app/shared
     ports:
