@@ -26,7 +26,7 @@ async function bootstrap() {
     new PrismaExceptionFilter(httpAdapterHost),
   );
   app.enableCors({
-    origin: ['*', `http://${process.env.REACT_DOCKER_ADRESS}:${clientPort}`],
+    origin: ['*', `http://localhost:${clientPort}`],
     credentials: true,
   });
 
