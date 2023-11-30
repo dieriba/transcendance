@@ -2,11 +2,11 @@ FROM node:20-alpine3.18
 
 WORKDIR /app
 
-COPY --chown=node:node ./frontend/package*.json .
+COPY ./frontend/package*.json .
 
-RUN npm ci
+RUN npm install
 
-COPY --chown=node:node ./frontend .
+COPY ./frontend .
 
 EXPOSE 5173
 

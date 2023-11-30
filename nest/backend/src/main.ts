@@ -26,14 +26,10 @@ async function bootstrap() {
     new PrismaExceptionFilter(httpAdapterHost),
   );
   app.enableCors({
-    origin: [
-      `http://localhost:${clientPort}`,
-      new RegExp(`/^http:\/\/192\.168\.1\.([1-9]|[1-9]\d):${clientPort}$/`),
-      ,
-      ,
-    ],
+    origin: ['*', `http://${process.env.REACT_DOCKER_ADRESS}:${clientPort}`],
     credentials: true,
   });
+
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
   app.use(cookieParser());
   await app.listen(process.env.BACKEND_PORT || 8100);

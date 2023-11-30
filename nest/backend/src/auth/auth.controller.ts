@@ -34,6 +34,8 @@ export class AuthController {
     @Body(CheckEmailNicknameValidity, HashPassword)
     registerUserDto: RegisterUserDto,
   ) {
+    console.log('entered');
+
     return await this.authService.signup(registerUserDto);
   }
 

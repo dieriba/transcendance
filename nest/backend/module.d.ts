@@ -26,5 +26,6 @@ declare namespace NodeJS {
     AVATAR_UPLOAD_PATH: string;
     BACKEND_DOMAIN_AVATAR: string;
     TWO_FACTOR_AUTHENTICATION_APP_NAME: string;
+    REACT_DOCKER_ADRESS: string;
   }
 }
