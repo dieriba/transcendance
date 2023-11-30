@@ -4,13 +4,13 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: "http://localhost:5173",
-  define: {
-    "process.env": process.env,
-    global: {},
-    
+  server: {
+    host: true,
+    port: 5173,
+    watch: {
+      usePolling: true,
+    },
   },
 });

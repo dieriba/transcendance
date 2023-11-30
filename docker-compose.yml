@@ -33,6 +33,7 @@ services:
     volumes:
         - ./nest/backend:/app
         - /app/node_modules
+        - ./shared:/app/shared
     ports:
       - 3000:3000
       - 9000:9000
@@ -52,6 +53,7 @@ services:
       volumes:
         - ./react/frontend:/app
         - /app/node_modules
+        - ./shared:/app/shared
       ports:
         - 5173:5173
       depends_on:
