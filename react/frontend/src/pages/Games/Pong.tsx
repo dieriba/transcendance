@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { Ball } from "./Ball";
 import { Player } from "./Player";
 import { connectSocket, socket } from "../../utils/getSocket";
-import { PongEvent } from "../../../../shared/socket.event";
+import { PongEvent } from "../../../shared/socket.event";
 import usePageSize from "../../services/custom-hooks/usePageSize";
 import { GAME_MARGIN, ASPECT_RATIO } from "./constant";
 import { useNavigate } from "react-router-dom";
@@ -11,7 +11,7 @@ import { Box } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { showSnackBar } from "../../redux/features/app/app.slice";
 import { SocketServerSucessResponse } from "../../services/type";
-import { UpdatedGameData } from "../../../../shared/types";
+import { UpdatedGameData } from "../../../shared/types";
 import { RootState } from "../../redux/store";
 
 const Pong = () => {

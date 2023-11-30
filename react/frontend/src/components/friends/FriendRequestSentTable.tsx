@@ -21,7 +21,7 @@ import { X } from "phosphor-react";
 import { BaseFriendType } from "../../models/FriendsSchema";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { useEffect, useState } from "react";
-import { FriendEvent } from "../../../../shared/socket.event";
+import { FriendEvent } from "../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../services/type";
 import { connectSocket, socket } from "../../utils/getSocket";
 import { FriendSentRequestType } from "../../models/FriendRequestSchema";

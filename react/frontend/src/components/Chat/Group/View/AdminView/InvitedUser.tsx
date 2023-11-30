@@ -26,7 +26,7 @@ import {
 } from "../../../../../redux/features/groups/group.slice";
 import { X } from "phosphor-react";
 import { connectSocket, socket } from "../../../../../utils/getSocket";
-import { ChatEventGroup } from "../../../../../../../shared/socket.event";
+import { ChatEventGroup } from "../../../../../../shared/socket.event";
 import { BaseUserTypeId } from "../../../../../models/login/UserSchema";
 
 const InvitedUser = () => {

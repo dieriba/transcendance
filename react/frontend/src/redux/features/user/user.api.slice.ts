@@ -9,7 +9,7 @@ import {
   ResponseTwoFaLoginType,
 } from "../../../models/login/ResponseLogin";
 import { apiSlice } from "../../api/apiSlice";
-import { GeneralEvent } from "../../../../../shared/socket.event";
+import { GeneralEvent } from "../../../../shared/socket.event";
 import { connectSocket, socket } from "../../../utils/getSocket";
 import {
   BaseUserTypeId,

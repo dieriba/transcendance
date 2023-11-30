@@ -5,7 +5,7 @@ import { extname } from 'path';
 import { INTERNAL_SERVER_ERROR } from 'src/common/constant/http-error.constant';
 import { CustomException } from 'src/common/custom-exception/custom-exception';
 import * as fs from 'fs';
-import { MAX_DATE } from '../../../shared/constant';
+import { MAX_DATE } from '../../shared/constant';
 @Injectable()
 export class LibService {
   /*Generate secret for opt*/

@@ -9,7 +9,7 @@ import { JwtTokenService } from 'src/jwt-token/jwtToken.service';
 import { SocketWithAuth } from 'src/auth/type';
 import { UNAUTHORIZED } from '../constant/http-error.constant';
 import { WsUnauthorizedException } from '../custom-exception/ws-exception';
-import { GeneralEvent } from '../../../../shared/socket.event';
+import { GeneralEvent } from '../../../shared/socket.event';
 
 @Injectable()
 export class WsAccessTokenGuard implements CanActivate {

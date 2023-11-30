@@ -21,7 +21,7 @@ import {
   ChatEventGroup,
   PongEvent,
   PONG_ROOM_PREFIX,
-} from '../../../shared/socket.event';
+} from '../../shared/socket.event';
 import { Server } from 'socket.io';
 import { Argon2Service } from 'src/argon2/argon2.service';
 import { SocketWithAuth } from 'src/auth/type';
@@ -71,10 +71,7 @@ import { AvatarUpdateDto } from 'src/user/dto/AvatarUpdate.dto';
 import { UserIdDto, UserInfoUpdateDto } from 'src/user/dto/UserInfo.dto';
 import { PongService } from 'src/pong/pong.service';
 import { Interval } from '@nestjs/schedule';
-import {
-  FRAME_RATE,
-  GAME_INVITATION_TIME_LIMIT,
-} from '../../../shared/constant';
+import { FRAME_RATE, GAME_INVITATION_TIME_LIMIT } from '../../shared/constant';
 import { CustomException } from 'src/common/custom-exception/custom-exception';
 
 @UseGuards(WsAccessTokenGuard)

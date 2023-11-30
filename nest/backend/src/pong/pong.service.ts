@@ -1,9 +1,9 @@
 import { Server } from 'socket.io';
 import { Injectable } from '@nestjs/common';
-import { Game, GameInvitation } from '../../../shared/Game';
+import { Game, GameInvitation } from '../../shared/Game';
 import { SocketWithAuth } from 'src/auth/type';
-import { PONG_ROOM_PREFIX, PongEvent } from '../../../shared/socket.event';
-import { GAME_INVITATION_TIME_LIMIT } from '@shared/constant';
+import { PONG_ROOM_PREFIX, PongEvent } from '../../shared/socket.event';
+import { GAME_INVITATION_TIME_LIMIT } from '../../shared/constant';
 
 @Injectable()
 export class PongService {

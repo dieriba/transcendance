@@ -15,7 +15,7 @@ import {
   MUTE_MAX_DAYS,
   MUTE_MAX_HOURS,
   MUTE_MAX_MIN,
-} from '../../../../shared/restriction.constant';
+} from '../../../shared/restriction.constant';
 
 @ValidatorConstraint({ name: 'isValidRestriction', async: false })
 export class isValidDurationConstraint implements ValidatorConstraintInterface {

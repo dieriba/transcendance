@@ -37,7 +37,7 @@ import {
   MUTE_MAX_DAYS,
   MUTE_MAX_HOURS,
   MUTE_MAX_MIN,
-} from "../../../../../../shared/restriction.constant";
+} from "../../../../../shared/restriction.constant";
 import { useRestrictUserMutation } from "../../../../redux/features/groups/group.api.slice";
 import { useAppDispatch } from "../../../../redux/hooks";
 import { addRestrictedUser } from "../../../../redux/features/groups/group.slice";

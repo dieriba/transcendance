@@ -25,7 +25,7 @@ import SetNewRole from "./AdminView/SetNewRole";
 import UserAction from "./UserAction";
 import RestrictUser from "./RestrictUser";
 import { connectSocket, socket } from "../../../../utils/getSocket";
-import { GeneralEvent } from "../../../../../../shared/socket.event";
+import { GeneralEvent } from "../../../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../../../services/type";
 import UnRestrictUser from "./UnrestrictUser";
 import { BaseFriendType } from "../../../../models/FriendsSchema";

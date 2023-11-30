@@ -22,7 +22,7 @@ import { apiSlice } from "../../api/apiSlice";
 import {
   ChatEventGroup,
   GeneralEvent,
-} from "./../../../../../shared/socket.event";
+} from "../../../../shared/socket.event";
 
 import { connectSocket, socket } from "../../../utils/getSocket";
 import { CreateGroupFormType } from "../../../models/CreateGroupSchema";

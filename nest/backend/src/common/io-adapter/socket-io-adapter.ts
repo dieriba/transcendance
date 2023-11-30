@@ -1,7 +1,7 @@
 import { INestApplicationContext, Logger } from '@nestjs/common';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { WsException } from '@nestjs/websockets';
-import { GeneralEvent } from '../../../../shared/socket.event';
+import { GeneralEvent } from '../../../shared/socket.event';
 import { Server, ServerOptions } from 'socket.io';
 import { SocketWithAuth } from 'src/auth/type';
 import { JwtPayload } from 'src/jwt-token/jwt.type';

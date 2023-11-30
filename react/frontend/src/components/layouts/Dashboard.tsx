@@ -10,7 +10,7 @@ import {
   FriendEvent,
   GeneralEvent,
   PongEvent,
-} from "../../../../shared/socket.event";
+} from "../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../services/type";
 import { FriendReceivedRequestType } from "../../models/FriendRequestSchema";
 import {

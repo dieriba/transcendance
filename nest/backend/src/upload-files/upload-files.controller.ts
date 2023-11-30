@@ -17,7 +17,7 @@ import {
 } from './validator/file.validator';
 import { LibService } from 'src/lib/lib.service';
 import { Response } from 'express';
-import { VALID_UPLOADS_MIME_TYPES } from '../../../shared/constant';
+import { VALID_UPLOADS_MIME_TYPES } from '../../shared/constant';
 import { ResponseMessage } from 'src/common/custom-decorator/respone-message.decorator';
 import { CustomException } from 'src/common/custom-exception/custom-exception';
 import { PrismaService } from 'src/prisma/prisma.service';

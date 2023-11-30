@@ -27,7 +27,7 @@ import {
   deleteGroupInvitation,
 } from "../../../redux/features/groups/group.slice";
 import { connectSocket, socket } from "../../../utils/getSocket";
-import { ChatEventGroup } from "../../../../../shared/socket.event";
+import { ChatEventGroup } from "../../../../shared/socket.event";
 import {
   BaseChatroomTypeId,
   ChatroomGroupType,

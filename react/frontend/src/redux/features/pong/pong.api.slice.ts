@@ -1,4 +1,4 @@
-import { GeneralEvent, PongEvent } from "../../../../../shared/socket.event";
+import { GeneralEvent, PongEvent } from "../../../../shared/socket.event";
 import { BaseUserTypeId } from "../../../models/login/UserSchema";
 import { SocketServerSucessResponse } from "../../../services/type";
 import { connectSocket, socket } from "../../../utils/getSocket";

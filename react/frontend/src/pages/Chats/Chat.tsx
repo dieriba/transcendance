@@ -20,7 +20,7 @@ import { connectSocket, socket } from "../../utils/getSocket";
 import {
   GeneralEvent,
   ChatEventPrivateRoom,
-} from "../../../../shared/socket.event";
+} from "../../../shared/socket.event";
 import {
   PrivateChatroomType,
   MessageType,

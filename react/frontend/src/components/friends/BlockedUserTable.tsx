@@ -22,7 +22,7 @@ import { BaseFriendType } from "../../models/FriendsSchema";
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { socket } from "../../utils/getSocket";
-import { FriendEvent } from "../../../../shared/socket.event";
+import { FriendEvent } from "../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../services/type";
 import {
   removeBlockedUser,

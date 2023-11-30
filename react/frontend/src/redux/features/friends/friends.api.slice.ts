@@ -1,7 +1,7 @@
 import {
   FriendEvent,
   GeneralEvent,
-} from "./../../../../../shared/socket.event";
+} from "../../../../shared/socket.event";
 import {
   FriendReceivedRequestType,
   FriendRequestType,

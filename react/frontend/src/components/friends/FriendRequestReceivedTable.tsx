@@ -31,7 +31,7 @@ import {
   setFriendRequestReceived,
   updatePage,
 } from "../../redux/features/friends/friends.slice";
-import { FriendEvent } from "../../../../shared/socket.event";
+import { FriendEvent } from "../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../services/type";
 import { connectSocket, socket } from "../../utils/getSocket";
 import { FriendReceivedRequestType } from "../../models/FriendRequestSchema";

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { VALID_UPLOADS_MIME_TYPES } from "../../../shared/constant";
+import { VALID_UPLOADS_MIME_TYPES } from "../../shared/constant";
 
 export const MAX_FILE_SIZE = 5000000;
 

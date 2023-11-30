@@ -12,7 +12,7 @@ import { connectSocket, socket } from "../../utils/getSocket";
 import {
   ChatEventPrivateRoom,
   ChatEventGroup,
-} from "../../../../shared/socket.event";
+} from "../../../shared/socket.event";
 import {
   SocketServerSucessResponse,
   SocketServerSucessWithChatroomId,

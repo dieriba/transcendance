@@ -1,5 +1,5 @@
 import { Snackbar, Alert, Stack, Typography, Button } from "@mui/material";
-import { GAME_INVITATION_TIME_LIMIT_SNACKBAR } from "../../../../../../shared/constant";
+import { GAME_INVITATION_TIME_LIMIT_SNACKBAR } from "../../../../../shared/constant";
 import { BaseUserTypeId } from "../../../../models/login/UserSchema";
 import {
   useAcceptGameInvitationMutation,

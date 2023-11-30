@@ -24,7 +24,7 @@ import { BaseFriendType } from "../../models/FriendsSchema";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { useEffect, useState } from "react";
 import { connectSocket, socket } from "../../utils/getSocket";
-import { GeneralEvent } from "../../../../shared/socket.event";
+import { GeneralEvent } from "../../../shared/socket.event";
 import {
   BaseFriendTypeWithChatroom,
   SocketServerSucessResponse,

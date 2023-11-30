@@ -9,7 +9,7 @@ import FriendRequestReceived from "../../components/friends/FriendRequestReceive
 import FriendRequestSentTable from "../../components/friends/FriendRequestSentTable";
 import BlockedUserTable from "../../components/friends/BlockedUserTable";
 import { connectSocket, socket } from "../../utils/getSocket";
-import { GeneralEvent } from "../../../../shared/socket.event";
+import { GeneralEvent } from "../../../shared/socket.event";
 import { useAppDispatch } from "../../redux/hooks";
 import {
   setNewUserAvatarSrc,

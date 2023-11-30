@@ -245,10 +245,8 @@ export class UserService {
         id: {
           in: usersId,
         },
-        OR: [
-          { friends: { some: { friendId: userId } } },
-          { groupParameter: { allowAll: true } },
-        ],
+        friends: { some: { friendId: userId } },
+        groupParameter: { allowAll: true },
       },
       select,
     });

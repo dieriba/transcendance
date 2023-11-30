@@ -33,7 +33,7 @@ import {
   SocketServerSucessWithChatroomId,
 } from "../../../services/type";
 import { connectSocket, socket } from "../../../utils/getSocket";
-import { ChatEventGroup } from "../../../../../shared/socket.event";
+import { ChatEventGroup } from "../../../../shared/socket.event";
 import { UserWithProfileFriendsType } from "../../../models/ChatContactSchema";
 import TextMessage from "../TextMessage";
 import CustomNotificationBar from "../../snackbar/customNotificationBar";

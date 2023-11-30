@@ -11,7 +11,7 @@ import { apiSlice } from "../../api/apiSlice";
 import {
   ChatEventPrivateRoom,
   GeneralEvent,
-} from "./../../../../../shared/socket.event";
+} from "../../../../shared/socket.event";
 
 import { connectSocket, socket } from "../../../utils/getSocket";
 import { BaseChatroomTypeId } from "../../../models/groupChat";
