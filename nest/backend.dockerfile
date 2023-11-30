@@ -14,6 +14,8 @@ COPY ./tools/backend.sh /backend.sh
 
 RUN chmod +x /backend.sh
 
+USER node:node
+
 EXPOSE 3000
 
 ENTRYPOINT [ "/backend.sh"  ]
