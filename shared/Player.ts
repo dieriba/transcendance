@@ -25,7 +25,7 @@ export class Player {
     velocity: Velocity,
     id?: string
   ) {
-    this.id = id;
+    this.id = id as string;
     this.position = postion;
     this.dimension = dimension;
     this.velocity = velocity;
@@ -87,16 +87,6 @@ export class Player {
     this.score++;
   }
 
-  /* public draw() {
-    this.context.fillStyle = "white";
-    this.context.fillRect(
-      this.position.x,
-      this.position.y,
-      this.dimension.width,
-      this.dimension.height
-    );
-  }
-*/
   get isMovingLeft(): boolean {
     return this.moveLeft;
   }
@@ -104,20 +94,4 @@ export class Player {
   get isMovingRight(): boolean {
     return this.moveRight;
   }
-
-  public movePaddle(): void {
-  
-  }
-
-  private handleKeyUp = (e: KeyboardEvent): void => {
-    if (e.code === "ArrowLeft" || e.key === "ArrowLeft") this.moveLeft = false;
-    if (e.code === "ArrowRight" || e.key === "ArrowRight")
-      this.moveRight = false;
-  };
-
-  private handleKeyDown = (e: KeyboardEvent): void => {
-    if (e.code === "ArrowLeft" || e.key === "ArrowLeft") this.moveLeft = true;
-    if (e.code === "ArrowRight" || e.key === "ArrowRight")
-      this.moveRight = true;
-  };
 }

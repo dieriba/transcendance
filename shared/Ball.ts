@@ -1,9 +1,4 @@
-import {
-  BALL_HALF_HEIGHT,
-  BALL_HIGH,
-  BALL_LOW,
-  BALL_HALF_WIDTH,
-} from "./constant";
+import { BALL_HALF_HEIGHT, BALL_HALF_WIDTH } from "./constant";
 import { Player } from "./Player";
 import { Coordinate, Velocity } from "./types";
 
@@ -12,14 +7,12 @@ export class Ball {
   private position: Coordinate;
   private velocity: Velocity;
   private width: number;
-  private lastFrameTime: number;
 
   constructor(postion: Coordinate, velocity: Velocity, radius: number) {
     this.position = postion;
     this.velocity = velocity;
     this.radius = radius;
     this.width = radius * 2;
-    this.lastFrameTime = performance.now();
   }
 
   public draw(context: CanvasRenderingContext2D) {
@@ -49,10 +42,6 @@ export class Ball {
 
   get getVelocity(): Velocity {
     return this.velocity;
-  }
-
-  set setLastFrameTime(lastFrameTime: number) {
-    this.lastFrameTime = lastFrameTime;
   }
 
   public checkCollisionWithPlayer = (player: Player) => {

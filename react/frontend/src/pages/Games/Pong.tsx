@@ -4,7 +4,7 @@ import { Player } from "./Player";
 import { connectSocket, socket } from "../../utils/getSocket";
 import { PongEvent } from "../../../shared/socket.event";
 import usePageSize from "../../services/custom-hooks/usePageSize";
-import { GAME_MARGIN, ASPECT_RATIO } from "./constant";
+import { GAME_MARGIN, ASPECT_RATIO } from "../../../shared/constant";
 import { useNavigate } from "react-router-dom";
 import { PATH_APP } from "../../routes/paths";
 import { Box } from "@mui/material";
@@ -46,9 +46,7 @@ const Pong = () => {
 
     context.fillStyle = "black";
 
-    const ball = new Ball(
-      { x: canvas.width / 2, y: canvas.height / 2 },
-    );
+    const ball = new Ball();
 
     const Player1 = new Player(canvas, context, { height: 0.16, width: 0.015 });
 

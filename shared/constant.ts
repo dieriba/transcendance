@@ -60,3 +60,4 @@ export const LINE_MARGIN = 0.01;
 export const LINE_WIDTH = PADDLE_WIDTH;
 export const BALL_LOW = BALL_HALF_HEIGHT / 2 + 2 * LINE_MARGIN + LINE_WIDTH;
 export const BALL_HIGH = 1 - BALL_LOW;
+export const GAME_MARGIN = 15;

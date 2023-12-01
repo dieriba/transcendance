@@ -12,7 +12,7 @@ import { useLogoutMutation } from "../../redux/features/user/user.api.slice";
 import { RootState } from "../../redux/store";
 import { useLocation } from "react-router-dom";
 import { User } from "../../redux/features/user/user.slice";
-import { SIDEBAR_WIDTH } from "../../pages/Games/constant";
+import { SIDEBAR_WIDTH } from "../../utils/constant";
 
 const Sidebar = () => {
   const { pathname } = useLocation();
