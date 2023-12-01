@@ -109,8 +109,8 @@ export class Game {
 
   public update() {
     this.ball.updatePosition();
-    this.ball.checkCollisionWithPlayer(this.player);
-    this.ball.checkCollisionWithPlayer(this.opponentPlayer);
+   // this.ball.checkCollisionWithPlayer(this.player);
+    //this.ball.checkCollisionWithPlayer(this.opponentPlayer);
   }
 
   public getUpdatedData(): UpdatedGameData {

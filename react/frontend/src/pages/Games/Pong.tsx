@@ -48,8 +48,6 @@ const Pong = () => {
 
     const ball = new Ball(
       { x: canvas.width / 2, y: canvas.height / 2 },
-      { x: 1, y: 2 },
-      7
     );
 
     const Player1 = new Player(canvas, context, { height: 0.16, width: 0.015 });
@@ -59,9 +57,10 @@ const Pong = () => {
     socket.on(PongEvent.UPDATE_GAME, (data: UpdatedGameData) => {
       console.log({ data });
       const { player1, player2 } = data;
-      context.clearRect(0, 0, canvas.width, canvas.height);
-      ball.draw(context);
-      ball.move(data.ball, canvas);
+      //context.clearRect(0, 0, canvas.width, canvas.height);
+      context.fillStyle = "red";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      ball.draw(canvas, context, data.ball);
       Player1.draw(player1);
       Player2.draw(player2);
     });

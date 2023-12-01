@@ -1,4 +1,9 @@
-import { BALL_HIGH, BALL_LOW, GAME_BOARD_WIDTH } from "./constant";
+import {
+  BALL_HALF_HEIGHT,
+  BALL_HIGH,
+  BALL_LOW,
+  BALL_HALF_WIDTH,
+} from "./constant";
 import { Player } from "./Player";
 import { Coordinate, Velocity } from "./types";
 
@@ -64,6 +69,23 @@ export class Ball {
     this.position.x += this.velocity.x;
     this.position.y += this.velocity.y;
 
-    if (this.position.y + this.radius >= 1) this.reverseY();
+    if (this.position.y + BALL_HALF_HEIGHT >= 1) {
+      this.position.y = 1 - BALL_HALF_HEIGHT;
+      this.reverseY();
+    }
+
+    if (this.position.y - BALL_HALF_HEIGHT < 0) {
+      this.position.y = BALL_HALF_HEIGHT;
+      this.reverseY();
+    }
+
+    if (this.position.x + BALL_HALF_WIDTH >= 1) {
+      this.position.x = 1 - BALL_HALF_WIDTH;
+      this.reverseX();
+    }
+    if (this.position.x - BALL_HALF_WIDTH <= 0) {
+      this.position.x = BALL_HALF_WIDTH;
+      this.reverseX();
+    }
   }
 }

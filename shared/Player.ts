@@ -1,4 +1,3 @@
-import { GAME_BOARD_WIDTH } from "./constant";
 import { Coordinate, Dimension, Velocity } from "./types";
 
 export enum KeyboardOptions {
@@ -107,14 +106,7 @@ export class Player {
   }
 
   public movePaddle(): void {
-    if (
-      (this.isMovingLeft && this.position.x > 0) ||
-      (this.isMovingRight &&
-        this.position.x < GAME_BOARD_WIDTH - this.dimension.width)
-    ) {
-      if (this.moveLeft) this.position.x -= this.velocity.x;
-      if (this.moveRight) this.position.x += this.velocity.x;
-    }
+  
   }
 
   private handleKeyUp = (e: KeyboardEvent): void => {

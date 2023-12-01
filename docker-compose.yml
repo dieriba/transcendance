@@ -20,6 +20,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+    init: true
 
   backend:
     container_name: nest-container
@@ -42,24 +43,27 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    init: true
 
   frontend:
-      container_name: react-container
-      build:
-        context: "./react"
-        dockerfile: frontend.dockerfile
-      restart: unless-stopped
-      image: react:v1
-      volumes:
-        - ./react/frontend:/app
-        - /app/node_modules
-        - ./shared:/app/shared
-      ports:
-        - 5173:5173
-      networks:
-      - transcendance
-      depends_on:
-        - backend
+    container_name: react-container
+    build:
+      context: "./react"
+      dockerfile: frontend.dockerfile
+    restart: unless-stopped
+    image: react:v1
+    volumes:
+      - ./react/frontend:/app
+      - /app/node_modules
+      - ./shared:/app/shared
+    ports:
+      - 5173:5173
+    networks:
+    - transcendance
+    depends_on:
+      - backend
+    init: true
+
 
 networks:
   transcendance:
