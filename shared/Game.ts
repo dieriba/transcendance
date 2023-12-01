@@ -1,12 +1,13 @@
-import { Ball } from "./Ball";
+import { Ball } from './Ball';
 import {
   defaultBall,
   defaultOpponentPlayer,
   defaultPlayer,
   GAME_INVITATION_TIME_LIMIT,
-} from "./constant";
-import { Player } from "./Player";
-import { UpdatedGameData } from "./types";
+  keyPressedType,
+} from './constant';
+import { Player } from './Player';
+import { UpdatedGameData } from './types';
 
 export class GameInvitation {
   private readonly id: string;
@@ -19,7 +20,7 @@ export class GameInvitation {
     gameId: string,
     id: string,
     invitedUserId: string,
-    socketId: string
+    socketId: string,
   ) {
     this.id = id;
     this.invitedUserId = invitedUserId;
@@ -47,7 +48,7 @@ export class GameInvitation {
     const now = new Date();
 
     const seconds = Math.round(
-      Math.abs(this.date.getTime() - now.getTime()) / 1000
+      Math.abs(this.date.getTime() - now.getTime()) / 1000,
     );
 
     if (seconds >= GAME_INVITATION_TIME_LIMIT) return 0;
@@ -57,7 +58,9 @@ export class GameInvitation {
 }
 
 export class Game {
+  private direction: keyPressedType;
   private gameStarted: boolean;
+  private activate: boolean;
   private gameId: string;
   private players: string[] = [];
   private socketsId: string[] = [];
@@ -79,7 +82,7 @@ export class Game {
         x: defaultPlayer.speed,
         y: defaultPlayer.speed,
       },
-      playerId
+      playerId,
     );
     this.opponentPlayer = new Player(
       {
@@ -93,7 +96,7 @@ export class Game {
       {
         x: defaultOpponentPlayer.speed,
         y: defaultOpponentPlayer.speed,
-      }
+      },
     );
     this.ball = new Ball(
       {
@@ -101,7 +104,7 @@ export class Game {
         y: defaultBall.yPosition,
       },
       { x: defaultBall.speed, y: defaultBall.speed },
-      defaultBall.radius
+      defaultBall.radius,
     );
     this.players.push(playerId);
     this.socketsId.push(socketId);
@@ -109,7 +112,9 @@ export class Game {
 
   public update() {
     this.ball.updatePosition();
-   // this.ball.checkCollisionWithPlayer(this.player);
+    this.player.updatePosition();
+    this.opponentPlayer.updatePosition();
+    // this.ball.checkCollisionWithPlayer(this.player);
     //this.ball.checkCollisionWithPlayer(this.opponentPlayer);
   }
 
@@ -126,6 +131,10 @@ export class Game {
 
   get hasStarted(): boolean {
     return this.gameStarted;
+  }
+
+  get getActivate(): boolean {
+    return this.activate;
   }
 
   get numberOfUser(): number {
@@ -174,12 +183,32 @@ export class Game {
     this.startedTime = new Date();
   }
 
+  set setActivate(activate: boolean) {
+    this.activate = activate;
+  }
+
   public setNewsocketIdAt(socketId: string, index: 0 | 1) {
     if (this.socketsId.length === 1 && index === 1) {
       this.socketsId.push(socketId);
       return;
     }
     this.socketsId[0] = socketId;
+  }
+
+  public updatePlayerPosition(userId: string, direction: keyPressedType) {
+    if (this.player.getPlayerId === userId) {
+      this.player.setMove(direction);
+      return;
+    }
+    this.opponentPlayer.setMove(direction);
+  }
+
+  public stopUpdatePlayerPosition(userId: string, direction: keyPressedType) {
+    if (this.player.getPlayerId === userId) {
+      this.player.clearMovePosition(direction);
+      return;
+    }
+    this.opponentPlayer.clearMovePosition(direction);
   }
 
   removeUser(userId: string) {

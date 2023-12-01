@@ -1,8 +1,16 @@
 import { Coordinate, Dimension, Velocity } from "./types";
+import {
+  ArrowDown,
+  ArrowUp,
+  PADDLE_MAX_Y_POS,
+  PADDLE_MIN_Y_POS,
+  keyPressedType,
+} from "./constant";
+import { clamp } from "./utils";
 
 export enum KeyboardOptions {
-  ARROW_UP = "ArrowUp",
-  ARROW_DOWN = "ArrowDown",
+  ARROW_UP = ArrowUp,
+  ARROW_DOWN = ArrowDown,
 }
 
 export const Map = {
@@ -12,12 +20,12 @@ export const Map = {
 
 export class Player {
   private id: string;
-  private moveLeft: boolean;
-  private moveRight: boolean;
   private position: Coordinate;
   private dimension: Dimension;
   private velocity: Velocity;
   private score: number;
+  private moveUp: boolean;
+  private moveDown: boolean;
 
   constructor(
     dimension: Dimension,
@@ -29,19 +37,17 @@ export class Player {
     this.position = postion;
     this.dimension = dimension;
     this.velocity = velocity;
-    this.moveLeft = false;
-    this.moveRight = false;
     this.score = 0;
   }
 
-  public move(canvas: HTMLCanvasElement) {
-    if (this.position.y <= 0) {
-      this.position.y = 0;
-    }
-
-    if (this.position.y + this.dimension.height >= canvas.height) {
-      this.position.y = canvas.height - this.dimension.height;
-    }
+  public updatePosition() {
+    if (this.moveUp) this.position.y -= this.velocity.y;
+    if (this.moveDown) this.position.y += this.velocity.y;
+    this.position.y = clamp(
+      this.position.y,
+      PADDLE_MIN_Y_POS,
+      PADDLE_MAX_Y_POS
+    );
   }
 
   get getPostion(): Coordinate {
@@ -72,6 +78,22 @@ export class Player {
     return this.dimension.width / 2;
   }
 
+  public clearMovePosition(direction: keyPressedType) {
+    if (direction === KeyboardOptions.ARROW_UP) {
+      this.moveUp = false;
+      return;
+    }
+    this.moveDown = false;
+  }
+
+  public setMove(direction?: keyPressedType) {
+    if (direction === KeyboardOptions.ARROW_UP) {
+      this.moveUp = true;
+      return;
+    }
+    this.moveDown = true;
+  }
+
   public getHalfHeight(): number {
     return this.dimension.height / 2;
   }
@@ -85,13 +107,5 @@ export class Player {
 
   public scored() {
     this.score++;
-  }
-
-  get isMovingLeft(): boolean {
-    return this.moveLeft;
-  }
-
-  get isMovingRight(): boolean {
-    return this.moveRight;
   }
 }

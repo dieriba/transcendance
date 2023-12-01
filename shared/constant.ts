@@ -10,7 +10,7 @@ export const VALID_UPLOADS_MIME_TYPES = [
 export const GAME_SUBTITLE = "Click to play...";
 export const SUBTITLE_SIZE = "32px";
 export const SUBTITLE_FONT = "Arial";
-
+export type keyPressedType = "ArrowUp" | "ArrowDown";
 export const SCORE_SIZE = "60px";
 export const SCORE_FONT = "Arial";
 
@@ -19,11 +19,11 @@ export const WINNING_SCORE = 5;
 // Pixels the players are from the edge
 export const PLAYER_PADDING = 40;
 
+export const ArrowUp = "ArrowUp";
+export const ArrowDown = "ArrowDown";
+
 // Paddle size
 export const BALL_VELOCITY = 0.01;
-export const PADDLE_HEIGHT = 1 / 5;
-export const PADDLE_WIDTH = PADDLE_HEIGHT / 10;
-export const PADDLE_SPEED = 4;
 export const RESIZE_FACTOR = 1.3;
 export const defaultBall = {
   speed: BALL_VELOCITY,
@@ -32,32 +32,34 @@ export const defaultBall = {
   yPosition: 0.5,
 };
 
-export const defaultPlayer = {
-  paddleWidth: 0.015,
-  paddleHeight: 0.16,
-  xPosition: 0.015,
-  yPosition: 0.5,
-  speed: 2,
-};
-
-export const defaultOpponentPlayer = {
-  paddleWidth: 0.015,
-  paddleHeight: 0.16,
-  xPosition: 1 - defaultPlayer.xPosition,
-  yPosition: 0.5,
-  speed: 2,
-};
-
 export const GAME_INVITATION_TIME_LIMIT = 10;
 export const GAME_INVITATION_TIME_LIMIT_SNACKBAR =
   GAME_INVITATION_TIME_LIMIT * 1000;
 export const FRAME_RATE = 1000 / 60;
-export const FACTOR_POSITION = 1;
 export const BALL_HALF_WIDTH = 0.009;
 export const ASPECT_RATIO = 286 / 175;
 export const BALL_HALF_HEIGHT = BALL_HALF_WIDTH * ASPECT_RATIO;
-export const LINE_MARGIN = 0.01;
-export const LINE_WIDTH = PADDLE_WIDTH;
-export const BALL_LOW = BALL_HALF_HEIGHT / 2 + 2 * LINE_MARGIN + LINE_WIDTH;
-export const BALL_HIGH = 1 - BALL_LOW;
 export const GAME_MARGIN = 15;
+export const PLAYER_SPEED = 0.02;
+export const PADDLE_MARGIN_X = 0.01;
+export const PADDLE_MARGIN_Y = PADDLE_MARGIN_X * ASPECT_RATIO;
+export const PADDLE_WIDTH = 0.015;
+export const PADDLE_HEIGHT = 0.16;
+export const PADDLE_MIN_Y_POS = PADDLE_MARGIN_Y + PADDLE_HEIGHT / 2;
+export const PADDLE_MAX_Y_POS = 1 - PADDLE_MIN_Y_POS;
+
+export const defaultPlayer = {
+  paddleWidth: PADDLE_WIDTH,
+  paddleHeight: PADDLE_HEIGHT,
+  xPosition: PADDLE_MARGIN_X + PADDLE_WIDTH / 2,
+  yPosition: 0.5,
+  speed: PLAYER_SPEED,
+};
+
+export const defaultOpponentPlayer = {
+  paddleWidth: PADDLE_WIDTH,
+  paddleHeight: PADDLE_HEIGHT,
+  xPosition: 1 - defaultPlayer.xPosition,
+  yPosition: 0.5,
+  speed: PLAYER_SPEED,
+};

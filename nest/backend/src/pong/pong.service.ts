@@ -115,6 +115,18 @@ export class PongService {
     this.games.push(game);
   }
 
+  updateGameByGameId(gameId: string, game: Game) {
+    const index = this.games.findIndex((game) => game.getGameId === gameId);
+
+    if (index !== -1) {
+      this.games[index] = game;
+    }
+  }
+
+  getGameByGameId(gameId: string) {
+    return this.games.find((game) => game.getGameId === gameId);
+  }
+
   deleteGameRoomByGameId(gameId: string) {
     const index = this.games.findIndex((game) => game.getGameId === gameId);
 
@@ -155,7 +167,7 @@ export class PongService {
 
   joinGame(server: Server, client: SocketWithAuth, room: string) {
     client.join(room);
-    server.to(room).emit(PongEvent.LETS_PLAY);
+    server.to(room).emit(PongEvent.LETS_PLAY, { data: room });
   }
 
   checkIfMatchupIsPossible(userId: string, socketId: string): string {

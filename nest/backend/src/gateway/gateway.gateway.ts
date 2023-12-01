@@ -73,6 +73,7 @@ import { PongService } from 'src/pong/pong.service';
 import { Interval } from '@nestjs/schedule';
 import { FRAME_RATE, GAME_INVITATION_TIME_LIMIT } from '../../shared/constant';
 import { CustomException } from 'src/common/custom-exception/custom-exception';
+import { GameIdDto, UpdatePlayerPositionDto } from 'src/pong/dto/dto';
 
 @UseGuards(WsAccessTokenGuard)
 @UseFilters(WsCatchAllFilter)
@@ -3002,6 +3003,41 @@ export class GatewayGateway {
     senderSocket.join(gameId);
 
     this.pongService.joinGame(this.server, client, gameId);
+  }
+
+  @SubscribeMessage(PongEvent.UPDATE_PLAYER_POSITION)
+  updatePlayerPostion(
+    @ConnectedSocket() client: SocketWithAuth,
+    @MessageBody() { gameId, keyPressed }: UpdatePlayerPositionDto,
+  ) {
+    const { userId } = client;
+    const game = this.pongService.getGameByGameId(gameId);
+
+    if (!game) throw new WsNotFoundException('Game not found');
+
+    if (!game.getPlayers.includes(userId))
+      throw new WsUnauthorizedException('You are not allowed to move paddle!');
+
+    game.updatePlayerPosition(userId, keyPressed);
+    this.pongService.updateGameByGameId(gameId, game);
+  }
+
+  @SubscribeMessage(PongEvent.USER_STOP_UPDATE)
+  stopUserMovement(
+    @ConnectedSocket() client: SocketWithAuth,
+    @MessageBody() { gameId, keyPressed }: UpdatePlayerPositionDto,
+  ) {
+    const { userId } = client;
+    const game = this.pongService.getGameByGameId(gameId);
+
+    if (!game) throw new WsNotFoundException('Game not found');
+
+    if (!game.getPlayers.includes(userId))
+      throw new WsUnauthorizedException('You are not allowed to move paddle!');
+
+    game.stopUpdatePlayerPosition(userId, keyPressed);
+
+    this.pongService.updateGameByGameId(gameId, game);
   }
 
   @SubscribeMessage(PongEvent.DECLINE_GAME_INVITATION)

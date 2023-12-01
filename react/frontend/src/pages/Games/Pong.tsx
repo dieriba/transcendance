@@ -18,8 +18,8 @@ const Pong = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const dispatch = useAppDispatch();
   const { width, height } = usePageSize();
-  const myId = useAppSelector(
-    (state: RootState) => state.user.user?.id
+  const gameId = useAppSelector(
+    (state: RootState) => state.pong.gameId
   ) as string;
   const navigate = useNavigate();
   const gameWidth = Math.min(
@@ -52,8 +52,28 @@ const Pong = () => {
 
     const Player2 = new Player(canvas, context, { height: 0.16, width: 0.015 });
 
+
+    window.addEventListener('keydown', (event:KeyboardEvent) => {
+      const {key,code} = event;
+      if (code === PongEvent.ARROW_UP || key === PongEvent.ARROW_UP) {
+        socket.emit(PongEvent.UPDATE_PLAYER_POSITION, {gameId, keyPressed:code});
+      }
+      else if (code === PongEvent.ARROW_DOWN || key === PongEvent.ARROW_DOWN) {
+        socket.emit(PongEvent.UPDATE_PLAYER_POSITION, {gameId, keyPressed:code});
+      }
+    });
+
+    window.addEventListener('keyup', (event:KeyboardEvent) => {
+      const {key,code} = event;
+      if (code === PongEvent.ARROW_UP || key === PongEvent.ARROW_UP) {
+        socket.emit(PongEvent.USER_STOP_UPDATE, {gameId, keyPressed:code});
+      }
+      else if (code === PongEvent.ARROW_DOWN || key === PongEvent.ARROW_DOWN) {
+        socket.emit(PongEvent.USER_STOP_UPDATE, {gameId, keyPressed:code});
+      }
+    });
+
     socket.on(PongEvent.UPDATE_GAME, (data: UpdatedGameData) => {
-      console.log({ data });
       const { player1, player2 } = data;
       //context.clearRect(0, 0, canvas.width, canvas.height);
       context.fillStyle = "red";

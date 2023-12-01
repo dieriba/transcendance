@@ -1,6 +1,6 @@
-import { BALL_HALF_HEIGHT, BALL_HALF_WIDTH } from "./constant";
-import { Player } from "./Player";
-import { Coordinate, Velocity } from "./types";
+import { BALL_HALF_HEIGHT, BALL_HALF_WIDTH } from './constant';
+import { Player } from './Player';
+import { Coordinate, Velocity } from './types';
 
 export class Ball {
   private radius: number;
@@ -16,8 +16,8 @@ export class Ball {
   }
 
   public draw(context: CanvasRenderingContext2D) {
-    context.fillStyle = "white";
-    context.strokeStyle = "white";
+    context.fillStyle = 'white';
+    context.strokeStyle = 'white';
     context.beginPath();
     context.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
     context.fill();
@@ -45,13 +45,7 @@ export class Ball {
   }
 
   public checkCollisionWithPlayer = (player: Player) => {
-    if (
-      this.position.x + this.width > player.getPostion.x &&
-      this.position.x < player.getPostion.x + player.getDimension.width &&
-      this.position.y + this.width === player.getPostion.y
-    ) {
-      this.reverseY();
-    }
+    
   };
 
   public updatePosition() {

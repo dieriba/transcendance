@@ -34,6 +34,7 @@ import MobileSidebar from "../sidebar/MobileSidebar";
 import { BaseUserType } from "../../models/login/UserSchema";
 import { ChatroomGroupType } from "../../models/groupChat";
 import { addGroupInvitation } from "../../redux/features/groups/group.slice";
+import { setGameId } from "../../redux/features/pong/pong.slice";
 
 const ProtectedDashboardLayout = () => {
   const isAuthenticated = useAppSelector(
@@ -134,7 +135,8 @@ const ProtectedDashboardLayout = () => {
         }
       );
 
-      socket.on(PongEvent.LETS_PLAY, () => {
+      socket.on(PongEvent.LETS_PLAY, (data: SocketServerSucessResponse & { data: string }) => {
+        dispatch(setGameId(data.data));
         navigate(PATH_APP.dashboard.pong);
       });
 
