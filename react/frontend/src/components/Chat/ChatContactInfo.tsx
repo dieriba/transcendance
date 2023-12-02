@@ -4,11 +4,9 @@ import {
   DialogTitle,
   Divider,
   Stack,
-  Switch,
   Tooltip,
-  Typography,
 } from "@mui/material";
-import { Bell, Trash } from "phosphor-react";
+import { Trash } from "phosphor-react";
 import { useAppSelector } from "../../redux/hooks";
 import { useState } from "react";
 
@@ -23,6 +21,7 @@ import { PrivateChatroomType } from "../../models/ChatContactSchema";
 import { RootState } from "../../redux/store";
 import DialogI from "../Dialog/DialogI";
 import { useTheme } from "@mui/material/styles";
+import GameInvitation from "../game-invitation/GameInvitation";
 
 interface ChatContactInfoProps {
   openDialog: boolean;
@@ -54,7 +53,8 @@ const ChatContactInfo = ({ openDialog, handleClose }: ChatContactInfoProps) => {
   const [open, setOpen] = useState<{
     block: boolean;
     delete: boolean;
-  }>({ block: false, delete: false });
+    gameInvitation: boolean;
+  }>({ block: false, delete: false, gameInvitation: false });
 
   const [deleteFriend] = useDeleteFriendMutation();
   const [blockUser] = useBlockFriendMutation();
@@ -121,55 +121,60 @@ const ChatContactInfo = ({ openDialog, handleClose }: ChatContactInfoProps) => {
               )}
             </Stack>
             <Divider />
-
-            <Stack
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-            >
+            <Stack spacing={2}>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() =>
+                  setOpen((prev) => ({ ...prev, gameInvitation: true }))
+                }
+              >{`Play with ${user.nickname}`}</Button>
               <Stack direction="row" alignItems="center" spacing={2}>
-                <Bell size={22} />
-                <Typography variant="subtitle2">Mute Notifications</Typography>
-              </Stack>
-              <Switch />
-            </Stack>
-            <Divider />
-            <Stack direction="row" alignItems="center" spacing={2}>
-              <Button
-                size="small"
-                startIcon={<Trash />}
-                variant="outlined"
-                fullWidth
-                sx={{ textTransform: "capitalize" }}
-                onClick={() =>
-                  setOpen((prev) => ({
-                    ...prev,
-                    block: true,
-                  }))
-                }
-              >
-                Block
-              </Button>
+                <Button
+                  size="small"
+                  startIcon={<Trash />}
+                  variant="outlined"
+                  fullWidth
+                  sx={{ textTransform: "capitalize" }}
+                  onClick={() =>
+                    setOpen((prev) => ({
+                      ...prev,
+                      block: true,
+                    }))
+                  }
+                >
+                  Block
+                </Button>
 
-              <Button
-                startIcon={<Trash />}
-                size="small"
-                variant="outlined"
-                fullWidth
-                sx={{ textTransform: "capitalize" }}
-                onClick={() =>
-                  setOpen((prev) => ({
-                    ...prev,
-                    delete: true,
-                  }))
-                }
-              >
-                Delete
-              </Button>
+                <Button
+                  startIcon={<Trash />}
+                  size="small"
+                  variant="outlined"
+                  fullWidth
+                  sx={{ textTransform: "capitalize" }}
+                  onClick={() =>
+                    setOpen((prev) => ({
+                      ...prev,
+                      delete: true,
+                    }))
+                  }
+                >
+                  Delete
+                </Button>
+              </Stack>
             </Stack>
           </Stack>
         </Stack>
-
+        {open.gameInvitation && (
+          <GameInvitation
+            open={open.gameInvitation}
+            handleClose={() =>
+              setOpen((prev) => ({ ...prev, gameInvitation: false }))
+            }
+            id={user.id}
+            nickname={user.nickname}
+          />
+        )}
         <CustomDialog
           handleOnClick={handleBlockUser}
           open={open.block}

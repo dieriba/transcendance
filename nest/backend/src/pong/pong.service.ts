@@ -4,15 +4,53 @@ import { Game, GameInvitation } from '../../shared/Game';
 import { SocketWithAuth } from 'src/auth/type';
 import { PONG_ROOM_PREFIX, PongEvent } from '../../shared/socket.event';
 import { GAME_INVITATION_TIME_LIMIT } from '../../shared/constant';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
 
 @Injectable()
 export class PongService {
+  constructor(private readonly prismaService: PrismaService) {}
   private readonly games: Game[] = [];
   private readonly gameInvitation: Map<string, GameInvitation> = new Map<
     string,
     GameInvitation
   >();
   private readonly queue: Map<string, string>[] = [];
+
+  async getLeaderboard(userId: string) {
+    const user = await this.prismaService.user.findFirst({
+      where: { id: userId },
+    });
+
+    if (!user) throw new UserNotFoundException();
+
+    const players = await this.prismaService.user.findMany({
+      orderBy: { pong: { rating: 'desc' } },
+      select: {
+        id: true,
+        nickname: true,
+        profile: true,
+        pong: true,
+        friends: {
+          where: {
+            userId,
+          },
+        },
+        blockedBy: {
+          where: {
+            id: userId,
+          },
+        },
+        blockedUsers: {
+          where: {
+            id: userId,
+          },
+        },
+      },
+    });
+
+    return players;
+  }
 
   isUserInvitable(id: string): string {
     let message: string = undefined;

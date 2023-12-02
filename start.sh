@@ -6,5 +6,5 @@ rm -rf ./react/frontend/shared 2>>/dev/null
 absolute_path=$(realpath "$folder_path")
 ln -s $absolute_path ./nest/backend
 ln -s $absolute_path ./react/frontend
-
+mkdir -p ./nest/backend/public/avatar
 docker compose up --build

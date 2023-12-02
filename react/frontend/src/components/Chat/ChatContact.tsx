@@ -1,6 +1,4 @@
-import { Stack, Box, Divider, useMediaQuery } from "@mui/material";
-import { MagnifyingGlass } from "phosphor-react";
-import { Search, SearchIconWrapper, StyledInputBase } from "../search";
+import { Stack, Box, useMediaQuery } from "@mui/material";
 import ChatBox from "./ChatBox";
 import { useTheme } from "@mui/material/styles";
 import { useAppSelector } from "../../redux/hooks";
@@ -27,19 +25,6 @@ const ChatContact = () => {
       }}
     >
       <Stack height="100vh">
-        <Stack
-          p={3}
-          sx={{ width: "100%", height: "70px" }}
-          justifyContent="center"
-        >
-          <Search>
-            <SearchIconWrapper>
-              <MagnifyingGlass color="#709CE6" />
-            </SearchIconWrapper>
-            <StyledInputBase placeholder="Search" />
-          </Search>
-        </Stack>
-        <Divider />
         <Stack
           sx={{ flexGrow: 1, overflow: "scroll", height: "100%" }}
           spacing={1}

@@ -76,16 +76,4 @@ const Nav_Buttons = [
   },
 ];
 
-const Message_options = [
-  {
-    title: "Reply",
-  },
-  {
-    title: "React to message",
-  },
-  {
-    title: "Delete Message",
-  },
-];
-
-export { Profile_Menu, Nav_Buttons, Message_options };
+export { Profile_Menu, Nav_Buttons };

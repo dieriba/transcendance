@@ -16,6 +16,8 @@ import { ChatroomModule } from './chatroom/chatroom.module';
 import { ChatroomUserModule } from './chatroom-user/chatroom-user.module';
 import { UploadFilesModule } from './upload-files/upload-files.module';
 import { PongService } from './pong/pong.service';
+import { PongController } from './pong/pong.controller';
+import { PongModule } from './pong/pong.module';
 
 @Module({
   imports: [
@@ -32,6 +34,7 @@ import { PongService } from './pong/pong.service';
     ChatroomModule,
     ChatroomUserModule,
     UploadFilesModule,
+    PongModule,
   ],
   providers: [
     {
@@ -44,5 +47,6 @@ import { PongService } from './pong/pong.service';
     },
     PongService,
   ],
+  controllers: [PongController],
 })
 export class AppModule {}

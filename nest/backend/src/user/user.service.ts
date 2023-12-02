@@ -246,7 +246,6 @@ export class UserService {
           in: usersId,
         },
         friends: { some: { friendId: userId } },
-        groupParameter: { allowAll: true },
       },
       select,
     });

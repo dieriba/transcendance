@@ -38,3 +38,21 @@ export class WsUnknownException extends WsTypeException {
     super('Unknown', message);
   }
 }
+
+export class WsUserNotFoundException extends WsNotFoundException {
+  constructor() {
+    super('User Not Found');
+  }
+}
+
+export class WsChatroomNotFoundException extends WsNotFoundException {
+  constructor() {
+    super('Chatroom Not Found');
+  }
+}
+
+export class WsGameNotFoundException extends WsNotFoundException {
+  constructor() {
+    super('Chatroom Not Found');
+  }
+}

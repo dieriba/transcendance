@@ -1,3 +1,7 @@
+import {
+  UpdatedAvatarRes,
+  UserUpdated,
+} from "./../../../models/login/UserSchema";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import {
   MessageType,
@@ -103,6 +107,24 @@ export const ChatSlice = createSlice({
         state.currentChatroom.users[0].user.status = "ONLINE";
       }
     },
+    updateUserInfo: (
+      state,
+      action: PayloadAction<UserUpdated | UpdatedAvatarRes>
+    ) => {
+      const { id } = action.payload;
+      if (state.currentChatroom) {
+        const { users } = state.currentChatroom;
+        if (users[0].user.id === id) {
+          if ("nickname" in action.payload) {
+            state.currentChatroom.users[0].user.nickname =
+              action.payload.nickname;
+            return;
+          }
+          state.currentChatroom.users[0].user.profile.avatar =
+            action.payload.avatar;
+        }
+      }
+    },
   },
 });
 
@@ -116,6 +138,7 @@ export const {
   addNewChatroom,
   setChatroomMessage,
   deleteChatroomById,
+  updateUserInfo,
 } = ChatSlice.actions;
 
 export default ChatSlice.reducer;

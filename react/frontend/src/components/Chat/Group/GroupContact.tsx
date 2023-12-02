@@ -1,6 +1,5 @@
 import { Stack, Box, Divider, Button, useMediaQuery } from "@mui/material";
-import { MagnifyingGlass, Plus } from "phosphor-react";
-import { Search, SearchIconWrapper, StyledInputBase } from "../../search";
+import {  Plus } from "phosphor-react";
 import { useTheme } from "@mui/material/styles";
 import { useState } from "react";
 import CreateGroup from "./CreateGroup";
@@ -42,14 +41,6 @@ const GroupContact = () => {
         }}
       >
         <Stack height="100vh">
-          <Stack p={3} sx={{ width: "100%" }} justifyContent="center">
-            <Search>
-              <SearchIconWrapper>
-                <MagnifyingGlass color="#709CE6" />
-              </SearchIconWrapper>
-              <StyledInputBase placeholder="Search" />
-            </Search>
-          </Stack>
           <Divider />
           <Stack
             spacing={1}

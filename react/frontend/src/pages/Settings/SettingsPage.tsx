@@ -8,7 +8,7 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { Bell, Key, Lock } from "phosphor-react";
+import { Key, Lock } from "phosphor-react";
 import { ReactNode, useState } from "react";
 import { useAppSelector } from "../../redux/hooks";
 import { RootState } from "../../redux/store";
@@ -33,11 +33,6 @@ const Settings = () => {
   }>({ notification: false, privacy: false, security: false });
 
   const list: listData[] = [
-    {
-      icon: <Bell size={20} />,
-      title: "Notifications",
-      onClick: () => {},
-    },
     {
       icon: <Lock size={20} />,
       title: "Privacy",

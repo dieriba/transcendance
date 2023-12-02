@@ -1,7 +1,7 @@
-const LeaderboardPage = () => {
-  return (
-    <div>LeaderboardPage</div>
-  )
-}
+import { Stack } from "@mui/material";
 
-export default LeaderboardPage
+const LeaderboardPage = () => {
+  return <Stack></Stack>;
+};
+
+export default LeaderboardPage;

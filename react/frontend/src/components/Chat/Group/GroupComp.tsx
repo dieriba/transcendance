@@ -1,9 +1,7 @@
 import {
   Stack,
-  Typography,
   Divider,
   Button,
-  Switch,
   DialogActions,
   DialogContent,
   DialogContentText,
@@ -11,7 +9,7 @@ import {
   AlertColor,
   Alert,
 } from "@mui/material";
-import { Bell, Trash } from "phosphor-react";
+import { Trash } from "phosphor-react";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import DialogI from "../../Dialog/DialogI";
 import { useState } from "react";
@@ -131,20 +129,6 @@ const GroupComp = ({ openDialog, handleClose }: GroupCompProps) => {
             <Stack height="80%" alignItems="center" direction="row" spacing={2}>
               <View />
             </Stack>
-            <Divider />
-
-            <Stack
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-            >
-              <Stack direction="row" alignItems="center" spacing={2}>
-                <Bell size={22} />
-                <Typography variant="subtitle2">Mute Notifications</Typography>
-              </Stack>
-              <Switch />
-            </Stack>
-            <Divider />
             <Stack direction="row" alignItems="center" spacing={2}>
               {role === ROLE.DIERIBA && (
                 <Button

@@ -47,6 +47,9 @@ import {
   WsUnknownException,
   WsUnauthorizedException,
   WsNotFoundException,
+  WsUserNotFoundException,
+  WsChatroomNotFoundException,
+  WsGameNotFoundException,
 } from 'src/common/custom-exception/ws-exception';
 import { WsCatchAllFilter } from 'src/common/global-filters/ws-exception-filter';
 import { WsAccessTokenGuard } from 'src/common/guards/ws.guard';
@@ -73,7 +76,7 @@ import { PongService } from 'src/pong/pong.service';
 import { Interval } from '@nestjs/schedule';
 import { FRAME_RATE, GAME_INVITATION_TIME_LIMIT } from '../../shared/constant';
 import { CustomException } from 'src/common/custom-exception/custom-exception';
-import { GameIdDto, UpdatePlayerPositionDto } from 'src/pong/dto/dto';
+import { UpdatePlayerPositionDto } from 'src/pong/dto/dto';
 
 @UseGuards(WsAccessTokenGuard)
 @UseFilters(WsCatchAllFilter)
@@ -170,7 +173,7 @@ export class GatewayGateway {
 
     const user = await this.userService.findUserById(userId, UserData);
 
-    if (!user) throw new WsNotFoundException('User not found');
+    if (!user) throw new WsUserNotFoundException();
 
     client.broadcast.emit(GeneralEvent.USER_CHANGED_AVATAR, {
       data: {
@@ -195,7 +198,7 @@ export class GatewayGateway {
     const user = await this.userService.findUserById(userId, UserData);
 
     if (!user) {
-      throw new WsNotFoundException('User not found');
+      throw new WsUserNotFoundException();
     }
 
     const { nickname } = userInfoUpdateDto;
@@ -235,10 +238,11 @@ export class GatewayGateway {
     const { users, ...chatroom } = chatroomDto;
     const { chatroomName } = chatroom;
     const { userId } = client;
+    console.log({ users });
 
     const user = await this.userService.findUserById(client.userId, UserData);
 
-    if (!user) throw new WsUnknownException('User not found');
+    if (!user) throw new WsUserNotFoundException();
 
     this.logger.log(
       `Attempting to create the chatroom: ${chatroomName} who will be owned by ${user.nickname}`,
@@ -258,6 +262,8 @@ export class GatewayGateway {
       users,
       UserId,
     );
+
+    console.log({ existingUserId });
 
     existingUserId.push(userId);
 
@@ -511,7 +517,7 @@ export class GatewayGateway {
       },
     });
 
-    if (!user) throw new WsNotFoundException('User not found');
+    if (!user) throw new WsUserNotFoundException();
 
     if (user.chatrooms.length > 0)
       throw new WsBadRequestException('User already in group');
@@ -602,7 +608,7 @@ export class GatewayGateway {
       },
     });
 
-    if (!user) throw new WsNotFoundException('User not found');
+    if (!user) throw new WsUserNotFoundException();
 
     if (user.groupInvitation.length === 0) {
       throw new WsBadRequestException(
@@ -662,7 +668,7 @@ export class GatewayGateway {
       }),
     ]);
 
-    if (!user) throw new WsNotFoundException('User not found');
+    if (!user) throw new WsUserNotFoundException();
 
     if (user.groupInvitation.length === 0) {
       throw new WsBadRequestException(
@@ -930,7 +936,7 @@ export class GatewayGateway {
       },
     });
 
-    if (!chatroomUser) throw new WsNotFoundException('User not found');
+    if (!chatroomUser) throw new WsUserNotFoundException();
 
     if (chatroomUser.role !== ROLE.DIERIBA)
       throw new WsUnauthorizedException(
@@ -1097,7 +1103,7 @@ export class GatewayGateway {
           },
         });
 
-        if (!chatroom) throw new WsNotFoundException('Chatroom not found');
+        if (!chatroom) throw new WsChatroomNotFoundException();
 
         const { chatroomName } = chatroom;
 
@@ -1685,7 +1691,7 @@ export class GatewayGateway {
       },
     });
 
-    if (!user) throw new WsNotFoundException('User not foud');
+    if (!user) throw new WsUserNotFoundException();
 
     const chatrooms = await this.prismaService.chatroom.findMany({
       where: {
@@ -1783,7 +1789,7 @@ export class GatewayGateway {
     const { userId } = client;
     const user = await this.userService.findUserById(userId, UserData);
 
-    if (!user) throw new WsNotFoundException('User not found');
+    if (!user) throw new WsUserNotFoundException();
 
     const chatroom = await this.prismaService.chatroom.findFirst({
       where: {
@@ -1911,7 +1917,7 @@ export class GatewayGateway {
       },
     });
 
-    if (!chatroom) throw new WsUnknownException('Chatroom not found');
+    if (!chatroom) throw new WsChatroomNotFoundException();
 
     const foundChatroomUser = await this.chatroomUserService.findChatroomUser(
       chatroomId,
@@ -2023,7 +2029,7 @@ export class GatewayGateway {
       ChatroomBaseData,
     );
 
-    if (!chatroom) throw new WsNotFoundException('Chatroom not found');
+    if (!chatroom) throw new WsChatroomNotFoundException();
 
     const res = await this.prismaService.message.create({
       data: {
@@ -2092,14 +2098,14 @@ export class GatewayGateway {
 
     const user = await this.userService.findUserById(userId, UserData);
 
-    if (!user) throw new WsNotFoundException('User not found');
+    if (!user) throw new WsUserNotFoundException();
 
     const chatroom = await this.chatroomService.findChatroom(
       chatroomId,
       ChatroomBaseData,
     );
 
-    if (!chatroom) throw new WsNotFoundException('Chatroom does not exist');
+    if (!chatroom) throw new WsChatroomNotFoundException();
     //CHECK IF USER HAS DELETED ME OR BLOCKED ME
     const res = await this.prismaService.message.create({
       data: {
@@ -2201,14 +2207,14 @@ export class GatewayGateway {
     const { userId } = client;
     const user = await this.userService.findUserById(userId, UserData);
 
-    if (!user) throw new WsNotFoundException('User not found');
+    if (!user) throw new WsUserNotFoundException();
 
     const friend = await this.userService.findUserByNickName(
       nickname,
       UserData,
     );
 
-    if (!friend) throw new WsNotFoundException('User not found');
+    if (!friend) throw new WsUserNotFoundException();
 
     if (friend.nickname === user.nickname)
       throw new WsBadRequestException("Can't send friend request to myself");
@@ -2765,7 +2771,7 @@ export class GatewayGateway {
 
     const user = this.userService.findUserById(userId, UserData);
 
-    if (!user) throw new WsNotFoundException('User not found');
+    if (!user) throw new WsUserNotFoundException();
 
     const existingBlockedUser = await this.userService.findBlockedUser(
       userId,
@@ -2807,7 +2813,7 @@ export class GatewayGateway {
       where: { id: userId },
     });
 
-    if (!user) throw new WsNotFoundException('User not found');
+    if (!user) throw new WsUserNotFoundException();
     const inARoom = this.pongService.checkIfUserIsAlreadyInARoom(userId);
 
     if (inARoom) {
@@ -2841,7 +2847,7 @@ export class GatewayGateway {
 
     const user = await this.userService.findUserById(userId, UserData);
 
-    if (!user) throw new WsNotFoundException('User not found');
+    if (!user) throw new WsUserNotFoundException();
 
     const game = this.pongService.checkIfUserIsAlreadyInARoom(userId);
 
@@ -2868,7 +2874,7 @@ export class GatewayGateway {
       this.userService.findUserById(id, UserData),
     ]);
 
-    if (!me || !user) throw new WsNotFoundException('User not found');
+    if (!me || !user) throw new WsUserNotFoundException();
 
     const myGame = this.pongService.checkIfUserIsAlreadyInARoom(userId);
 
@@ -2941,7 +2947,7 @@ export class GatewayGateway {
       this.userService.findUserById(id, UserData),
     ]);
 
-    if (!me || !user) throw new WsNotFoundException('User not found');
+    if (!me || !user) throw new WsUserNotFoundException();
 
     const myGame = this.pongService.checkIfUserIsAlreadyInARoom(userId);
 
@@ -3013,7 +3019,7 @@ export class GatewayGateway {
     const { userId } = client;
     const game = this.pongService.getGameByGameId(gameId);
 
-    if (!game) throw new WsNotFoundException('Game not found');
+    if (!game) throw new WsGameNotFoundException();
 
     if (!game.getPlayers.includes(userId))
       throw new WsUnauthorizedException('You are not allowed to move paddle!');
@@ -3030,7 +3036,7 @@ export class GatewayGateway {
     const { userId } = client;
     const game = this.pongService.getGameByGameId(gameId);
 
-    if (!game) throw new WsNotFoundException('Game not found');
+    if (!game) throw new WsGameNotFoundException();
 
     if (!game.getPlayers.includes(userId))
       throw new WsUnauthorizedException('You are not allowed to move paddle!');
@@ -3052,7 +3058,7 @@ export class GatewayGateway {
       this.userService.findUserById(id, UserData),
     ]);
 
-    if (!me || !user) throw new WsNotFoundException('User not found');
+    if (!me || !user) throw new WsUserNotFoundException();
     const gameId = this.pongService.deleteInvitation(id);
 
     if (gameId) {

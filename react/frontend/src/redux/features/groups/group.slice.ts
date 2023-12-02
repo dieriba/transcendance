@@ -1,4 +1,8 @@
 import {
+  UpdatedAvatarRes,
+  UserUpdated,
+} from "./../../../models/login/UserSchema";
+import {
   BaseChatroomType,
   BaseChatroomTypeId,
   BaseChatroomWithUserIdType,
@@ -33,6 +37,7 @@ import { BaseUserTypeId } from "../../../models/login/UserSchema";
 import { AlertColor } from "@mui/material";
 
 export interface GroupState {
+  invitableUser: InvitedUserType[];
   invitedUser: InvitedUserType[];
   groupInvitation: GroupInvitation[];
   joinableGroup: JoinableChatroomType[];
@@ -57,6 +62,7 @@ export interface GroupState {
 }
 
 const initialState: GroupState = {
+  invitableUser: [],
   joinableGroup: [],
   groupChatroom: [],
   currentGroupChatroomId: undefined,
@@ -275,6 +281,57 @@ export const GroupSlice = createSlice({
         } else if (state.myId === prevAdminId) {
           state.role = ROLE.REGULAR_USER;
         }
+      }
+    },
+    updateUserInfo: (
+      state,
+      action: PayloadAction<UserUpdated | UpdatedAvatarRes>
+    ) => {
+      const { id } = action.payload;
+      const isNicknameUpdated = "nickname" in action.payload;
+
+      if (state.admin?.user.id === id) {
+        if (isNicknameUpdated) {
+          state.admin.user.nickname = (action.payload as UserUpdated).nickname;
+          return;
+        }
+        state.admin.user.profile.avatar = (
+          action.payload as UpdatedAvatarRes
+        ).avatar;
+        return;
+      }
+
+      let index = state.chatAdmin.findIndex(
+        (chatAdmin) => chatAdmin.user.id === id
+      );
+
+      if (index !== -1) {
+        if (isNicknameUpdated) {
+          state.chatAdmin[index].user.nickname = (
+            action.payload as UserUpdated
+          ).nickname;
+          return;
+        }
+        state.chatAdmin[index].user.profile.avatar = (
+          action.payload as UpdatedAvatarRes
+        ).avatar;
+        return;
+      }
+
+      index = state.regularUser.findIndex(
+        (regularUser) => regularUser.user.id === id
+      );
+
+      if (index !== -1) {
+        if (isNicknameUpdated) {
+          state.regularUser[index].user.nickname = (
+            action.payload as UserUpdated
+          ).nickname;
+          return;
+        }
+        state.regularUser[index].user.profile.avatar = (
+          action.payload as UpdatedAvatarRes
+        ).avatar;
       }
     },
     previousAdminLeaved: (
@@ -785,6 +842,7 @@ export const {
   setInvitedUser,
   deleteInvitedUser,
   setCurrentUser,
+  updateUserInfo,
 } = GroupSlice.actions;
 
 export default GroupSlice.reducer;

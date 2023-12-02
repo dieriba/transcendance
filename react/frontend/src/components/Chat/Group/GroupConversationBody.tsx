@@ -27,16 +27,21 @@ import {
   setChatroomMessage,
   setNewAdmin,
   setNewRole,
+  updateUserInfo,
 } from "../../../redux/features/groups/group.slice";
 import {
   SocketServerErrorResponse,
   SocketServerSucessWithChatroomId,
 } from "../../../services/type";
 import { connectSocket, socket } from "../../../utils/getSocket";
-import { ChatEventGroup } from "../../../../shared/socket.event";
+import { ChatEventGroup, GeneralEvent } from "../../../../shared/socket.event";
 import { UserWithProfileFriendsType } from "../../../models/ChatContactSchema";
 import TextMessage from "../TextMessage";
 import CustomNotificationBar from "../../snackbar/customNotificationBar";
+import {
+  UpdatedAvatarRes,
+  UserUpdated,
+} from "../../../models/login/UserSchema";
 export interface GroupConversationBodyProps {
   id: string;
   incoming: boolean;
@@ -76,7 +81,12 @@ const GroupConversationBody = () => {
               chatroomId: data.chatroomId,
             })
           );
-          dispatch(previousAdminLeaved({ data: data.data, chatroomId: data.chatroomId }));
+          dispatch(
+            previousAdminLeaved({
+              data: data.data,
+              chatroomId: data.chatroomId,
+            })
+          );
         }
       );
 
@@ -93,7 +103,9 @@ const GroupConversationBody = () => {
               chatroomId: data.chatroomId,
             })
           );
-          dispatch(setNewAdmin({ data: data.data, chatroomId: data.chatroomId }));
+          dispatch(
+            setNewAdmin({ data: data.data, chatroomId: data.chatroomId })
+          );
         }
       );
 
@@ -110,7 +122,9 @@ const GroupConversationBody = () => {
               chatroomId: data.chatroomId,
             })
           );
-          dispatch(removeUser({ data: data.data, chatroomId: data.chatroomId }));
+          dispatch(
+            removeUser({ data: data.data, chatroomId: data.chatroomId })
+          );
         }
       );
 
@@ -127,7 +141,9 @@ const GroupConversationBody = () => {
               chatroomId: data.chatroomId,
             })
           );
-          dispatch(setNewRole({ data: data.data, chatroomId: data.chatroomId }));
+          dispatch(
+            setNewRole({ data: data.data, chatroomId: data.chatroomId })
+          );
         }
       );
       socket.on(
@@ -143,7 +159,23 @@ const GroupConversationBody = () => {
               chatroomId: data.chatroomId,
             })
           );
-          dispatch(addRestrictedUser({ data: data.data, chatroomId: data.chatroomId }));
+          dispatch(
+            addRestrictedUser({ data: data.data, chatroomId: data.chatroomId })
+          );
+        }
+      );
+
+      socket.on(
+        GeneralEvent.USER_CHANGED_USERNAME,
+        (data: { data: UserUpdated }) => {
+          dispatch(updateUserInfo(data.data));
+        }
+      );
+
+      socket.on(
+        GeneralEvent.USER_CHANGED_AVATAR,
+        (data: { data: UpdatedAvatarRes }) => {
+          dispatch(updateUserInfo(data.data));
         }
       );
 
@@ -207,6 +239,8 @@ const GroupConversationBody = () => {
       );
 
       return () => {
+        socket.off(GeneralEvent.USER_CHANGED_AVATAR);
+        socket.off(GeneralEvent.USER_CHANGED_USERNAME);
         socket.off(ChatEventGroup.USER_ADDED);
         socket.off(ChatEventGroup.NEW_USER_CHATROOM);
         socket.off(ChatEventGroup.USER_KICKED);
@@ -277,7 +311,7 @@ const GroupConversationBody = () => {
           open={open}
           message={message}
         />
-        <Stack height={"100%"}>
+        <Stack height={"100vh"}>
           {messages.map(({ id, user, content }) => {
             const incoming = myId === user.id;
 
