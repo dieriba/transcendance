@@ -1,6 +1,10 @@
 import { GeneralEvent, PongEvent } from "../../../../shared/socket.event";
+import { LeaderboardType } from "../../../models/Leaderboard";
 import { BaseUserTypeId } from "../../../models/login/UserSchema";
-import { SocketServerSucessResponse } from "../../../services/type";
+import {
+  BaseServerResponse,
+  SocketServerSucessResponse,
+} from "../../../services/type";
 import { connectSocket, socket } from "../../../utils/getSocket";
 import { apiSlice } from "../../api/apiSlice";
 
@@ -90,6 +94,14 @@ export const PongApiSlice = apiSlice.injectEndpoints({
         });
       },
     }),
+    getLeaderboard: builder.query<
+      BaseServerResponse & { data: LeaderboardType[] },
+      void
+    >({
+      query: () => ({
+        url: "/pong/leaderboard",
+      }),
+    }),
     declineGameInvitation: builder.mutation<
       SocketServerSucessResponse & {
         data: unknown;
@@ -121,4 +133,5 @@ export const {
   useSendGameInvitationMutation,
   useAcceptGameInvitationMutation,
   useDeclineGameInvitationMutation,
+  useGetLeaderboardQuery,
 } = PongApiSlice;

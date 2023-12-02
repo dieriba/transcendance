@@ -7,6 +7,7 @@ import { BlockedUserType } from "../../../models/BlockedUserSchema";
 import { FriendType, BaseFriendType } from "../../../models/FriendsSchema";
 import {
   UpdatedAvatarRes,
+  UserUpdateStatusType,
   UserUpdated,
 } from "../../../models/login/UserSchema";
 
@@ -103,25 +104,15 @@ export const FriendsSlice = createSlice({
         (obj) => obj.friend.id !== action.payload.friendId
       );
     },
-    setOnlineFriend: (state, action: PayloadAction<BaseFriendType>) => {
-      const { friendId } = action.payload;
+    updateUserStatus: (state, action: PayloadAction<UserUpdateStatusType>) => {
+      const { id, status } = action.payload;
       const index = state.friends.findIndex(
-        (friend) => friend.friend.id === friendId
+        (friend) => friend.friend.id === id
       );
 
       if (index < 0) return;
 
-      state.friends[index].friend.status = "ONLINE";
-    },
-    setOfflineFriend: (state, action: PayloadAction<BaseFriendType>) => {
-      const { friendId } = action.payload;
-      const index = state.friends.findIndex(
-        (friend) => friend.friend.id === friendId
-      );
-
-      if (index < 0) return;
-
-      state.friends[index].friend.status = "OFFLINE";
+      state.friends[index].friend.status = status;
     },
     updateFriendInfo: (state, action: PayloadAction<UserUpdated>) => {
       const { page } = state;
@@ -213,8 +204,7 @@ export const {
   setNewUserAvatarSrc,
   deleteSentFriendRequest,
   updatePage,
-  setOnlineFriend,
-  setOfflineFriend,
+  updateUserStatus,
   updateFriendInfo,
 } = FriendsSlice.actions;
 

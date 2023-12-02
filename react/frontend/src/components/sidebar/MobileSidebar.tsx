@@ -22,7 +22,7 @@ import { LOGOUT } from "../../redux/type";
 import { matchPath, useLocation, useNavigate } from "react-router-dom";
 const MobileSidebar = () => {
   const dispatch = useAppDispatch();
-  const [loggingOut] = useLogoutMutation();
+  const [loggingOut, loggintOutMutationData] = useLogoutMutation();
   const [disconnectAllInstanceOfMe] = useDisconnectAllUserMutation();
   const location = useLocation();
   const navigate = useNavigate();
@@ -35,7 +35,15 @@ const MobileSidebar = () => {
       dispatch({ type: LOGOUT });
       // eslint-disable-next-line no-self-assign
       window.location = window.location;
-    } catch (error) { /* empty */ }
+    } catch (error) {
+      console.log({ error });
+      console.log({ loggingMutation: loggintOutMutationData.error });
+
+      dispatch(apiSlice.util.resetApiState());
+      dispatch({ type: LOGOUT });
+      // eslint-disable-next-line no-self-assign
+      window.location = window.location;
+    }
   };
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
 

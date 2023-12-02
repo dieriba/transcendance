@@ -38,6 +38,7 @@ services:
     ports:
       - 3000:3000
       - 9000:9000
+      - 5555:5555
     networks:
       - transcendance
     depends_on:

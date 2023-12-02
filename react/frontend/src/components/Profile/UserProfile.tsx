@@ -8,6 +8,7 @@ import { UserWithProfile } from "../../models/ChatContactSchema";
 
 interface UserProfileProps extends DialogProps {
   user: UserWithProfile;
+  myNickname?: string;
   open: boolean;
   handleClose: () => void;
 }
@@ -16,6 +17,7 @@ const UserProfile = ({
   user: { profile, id, nickname, pong, status },
   handleClose,
   open,
+  myNickname,
 }: UserProfileProps) => {
   const [openGameInvitation, setOpenGameInvitation] = useState(false);
   const src = profile?.avatar ?? undefined;
@@ -66,12 +68,23 @@ const UserProfile = ({
           <TextField fullWidth label="Pong Rating" disabled value={rating} />
           <TextField fullWidth label="Pong Victory" disabled value={victory} />
           <TextField fullWidth label="Pong losses" disabled value={losses} />
-          <Button
-            onClick={() => setOpenGameInvitation(true)}
-            fullWidth
-            variant="contained"
-            color="inherit"
-          >{`Play with ${nickname}`}</Button>
+          {!myNickname ? (
+            <Button
+              onClick={() => setOpenGameInvitation(true)}
+              fullWidth
+              variant="contained"
+              color="inherit"
+            >{`Play with ${nickname}`}</Button>
+          ) : (
+            myNickname !== nickname && (
+              <Button
+                onClick={() => setOpenGameInvitation(true)}
+                fullWidth
+                variant="contained"
+                color="inherit"
+              >{`Play with ${nickname}`}</Button>
+            )
+          )}
         </Stack>
       </DialogI>
       {openGameInvitation && (

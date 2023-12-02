@@ -9,6 +9,7 @@ handle_error() {
 }
 
 npx prisma migrate dev --name init
+npx prisma studio &
 
 if [ $? -ne 0 ]; then
   handle_error

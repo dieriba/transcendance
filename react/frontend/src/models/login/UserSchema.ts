@@ -1,4 +1,17 @@
 import { z } from "zod";
+import { statusTypes } from "../type-enum/typesEnum";
+
+export const BaseUserSchema = z.object({
+  id: z.string().min(1),
+});
+
+export type BaseUserTypeId = z.infer<typeof BaseUserSchema>;
+
+export const UserUpdateStatus = BaseUserSchema.extend({
+  status: z.enum(statusTypes),
+});
+
+export type UserUpdateStatusType = z.infer<typeof UserUpdateStatus>;
 
 export const UserSchema = z.object({
   id: z.string().min(1),
@@ -8,12 +21,6 @@ export const UserSchema = z.object({
 });
 
 export type BaseUserType = z.infer<typeof UserSchema>;
-
-export const BaseUserSchema = z.object({
-  id: z.string().min(1),
-});
-
-export type BaseUserTypeId = z.infer<typeof BaseUserSchema>;
 
 export const UpdateUserSchema = z.object({
   nickname: z.string().min(1),

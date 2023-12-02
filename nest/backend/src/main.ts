@@ -7,11 +7,12 @@ import { HttpExceptionFilter } from './common/global-filters/http-exception-filt
 import { allLeftOverExceptionFilter } from './common/global-filters/all-leftover-exception-filter';
 import { SocketIOAdapter } from './common/io-adapter/socket-io-adapter';
 import * as cookieParser from 'cookie-parser';
-import * as rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const clientPort = parseInt(process.env.FRONTEND_PORT);
   app.useGlobalPipes(
     new ValidationPipe({
@@ -22,7 +23,7 @@ async function bootstrap() {
     }),
   );
 
-  app.use(helmet());
+  //app.use(helmet());
   app.useWebSocketAdapter(new SocketIOAdapter(app));
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalFilters(
@@ -34,7 +35,7 @@ async function bootstrap() {
     origin: [`http://localhost:${clientPort}`],
     credentials: true,
   });
-
+  app.useStaticAssets(join(__dirname, '..', 'public/avatar'));
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
   app.use(cookieParser());
   await app.listen(process.env.BACKEND_PORT || 8100);

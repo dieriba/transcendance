@@ -18,11 +18,6 @@ import {
   showSnackBar,
 } from "../../redux/features/app/app.slice";
 import { BaseFriendType, FriendType } from "../../models/FriendsSchema";
-import {
-  deleteChatroomById,
-  setOfflineUser,
-  setOnlineUser,
-} from "../../redux/features/chat/chat.slice";
 import { RootState } from "../../redux/store";
 import {
   addFriend,
@@ -37,6 +32,7 @@ import { addGroupInvitation } from "../../redux/features/groups/group.slice";
 import { setGameId } from "../../redux/features/pong/pong.slice";
 import { apiSlice } from "../../redux/api/apiSlice";
 import { LOGOUT } from "../../redux/type";
+import { deleteChatroomById } from "../../redux/features/chat/chat.slice";
 
 const ProtectedDashboardLayout = () => {
   const isAuthenticated = useAppSelector(
@@ -112,20 +108,6 @@ const ProtectedDashboardLayout = () => {
       );
 
       socket.on(
-        GeneralEvent.USER_LOGGED_OUT,
-        (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
-          dispatch(setOfflineUser(data.data));
-        }
-      );
-
-      socket.on(
-        GeneralEvent.USER_LOGGED_IN,
-        (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
-          dispatch(setOnlineUser(data.data));
-        }
-      );
-
-      socket.on(
         FriendEvent.REQUEST_ACCEPTED_FROM_RECIPIENT,
         (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
           dispatch(
@@ -162,8 +144,6 @@ const ProtectedDashboardLayout = () => {
       return () => {
         socket.off(GeneralEvent.DISCONNECT_ME);
         socket.off(ChatEventGroup.RECEIVED_GROUP_INVITATION);
-        socket.off(GeneralEvent.USER_LOGGED_IN);
-        socket.off(GeneralEvent.USER_LOGGED_OUT);
         socket.off(FriendEvent.DELETE_FRIEND);
         socket.off(FriendEvent.NEW_FRIEND);
         socket.off(FriendEvent.REQUEST_ACCEPTED_FROM_RECIPIENT);

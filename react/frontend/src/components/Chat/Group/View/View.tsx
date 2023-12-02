@@ -11,12 +11,15 @@ import { useGetAllGroupUserQuery } from "../../../../redux/features/groups/group
 import {
   setCurrentUser,
   setGroupMembersAndRole,
-  setOfflineUser,
-  setOnlineUser,
+  updateUserStatus,
 } from "../../../../redux/features/groups/group.slice";
 import { useAppSelector, useAppDispatch } from "../../../../redux/hooks";
 import { RootState } from "../../../../redux/store";
-import { ChatRoleType, ROLE, STATUS } from "../../../../models/type-enum/typesEnum";
+import {
+  ChatRoleType,
+  ROLE,
+  STATUS,
+} from "../../../../models/type-enum/typesEnum";
 import UserInfo from "./UserInfo";
 import AdminAction from "./AdminAction";
 import ModeratorAction from "./ModeratorAction";
@@ -28,11 +31,11 @@ import { connectSocket, socket } from "../../../../utils/getSocket";
 import { GeneralEvent } from "../../../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../../../services/type";
 import UnRestrictUser from "./UnrestrictUser";
-import { BaseFriendType } from "../../../../models/FriendsSchema";
 import KickUser from "./KickUser";
 import GameInvitation from "../../../game-invitation/GameInvitation";
 import { ChatroomGroupType } from "../../../../models/groupChat";
 import UserProfileGroup from "../../../Profile/UserProfileGroup";
+import { UserUpdateStatusType } from "../../../../models/login/UserSchema";
 
 export type UserData = {
   id: string;
@@ -75,22 +78,14 @@ const View = () => {
       connectSocket();
 
       socket.on(
-        GeneralEvent.USER_LOGGED_OUT,
-        (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
-          dispatch(setOfflineUser(data.data));
-        }
-      );
-
-      socket.on(
-        GeneralEvent.USER_LOGGED_IN,
-        (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
-          dispatch(setOnlineUser(data.data));
+        GeneralEvent.USER_UPDATE_STATUS,
+        (data: SocketServerSucessResponse & { data: UserUpdateStatusType }) => {
+          dispatch(updateUserStatus(data.data));
         }
       );
 
       return () => {
-        socket.off(GeneralEvent.USER_LOGGED_IN);
-        socket.off(GeneralEvent.USER_LOGGED_OUT);
+        socket.off(GeneralEvent.USER_UPDATE_STATUS);
       };
     }
   }, [data, dispatch]);

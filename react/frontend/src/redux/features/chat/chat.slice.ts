@@ -1,13 +1,13 @@
 import {
   UpdatedAvatarRes,
   UserUpdated,
+  UserUpdateStatusType,
 } from "./../../../models/login/UserSchema";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import {
   MessageType,
   PrivateChatroomType,
 } from "../../../models/ChatContactSchema";
-import { BaseFriendType } from "../../../models/FriendsSchema";
 
 export interface ChatState {
   privateChatroom: PrivateChatroomType[];
@@ -84,27 +84,19 @@ export const ChatSlice = createSlice({
         : (removedObject.messages[0] = message);
       state.privateChatroom.unshift(removedObject);
     },
-    setOfflineUser: (state, action: PayloadAction<BaseFriendType>) => {
-      state.privateChatroom = state.privateChatroom?.map((chatroom) => {
-        const user = chatroom.users[0].user;
-        return user.id === action.payload.friendId
-          ? { status: (user.status = "OFFLINE"), ...chatroom }
-          : chatroom;
-      });
-      if (action.payload.friendId === state.currentChatroom?.users[0].user.id) {
-        state.currentChatroom.users[0].user.status = "OFFLINE";
-      }
-    },
-    setOnlineUser: (state, action: PayloadAction<BaseFriendType>) => {
-      state.privateChatroom = state.privateChatroom?.map((chatroom) => {
-        const user = chatroom.users[0].user;
-        return user.id === action.payload.friendId
-          ? { status: (user.status = "ONLINE"), ...chatroom }
-          : chatroom;
-      });
+    updateUserStatus: (state, action: PayloadAction<UserUpdateStatusType>) => {
+      const { id, status } = action.payload;
 
-      if (action.payload.friendId === state.currentChatroom?.users[0].user.id) {
-        state.currentChatroom.users[0].user.status = "ONLINE";
+      const index = state.privateChatroom.findIndex(
+        (chatroom) => chatroom.users[0].user.id === id
+      );
+
+      if (index !== -1) {
+        state.privateChatroom[index].users[0].user.status = status;
+
+        if (id === state.currentChatroom?.users[0].user.id) {
+          state.currentChatroom.users[0].user.status = status;
+        }
       }
     },
     updateUserInfo: (
@@ -133,8 +125,7 @@ export const {
   setPrivateChatroom,
   setPrivateChatroomId,
   updatePrivateChatroomList,
-  setOfflineUser,
-  setOnlineUser,
+  updateUserStatus,
   addNewChatroom,
   setChatroomMessage,
   deleteChatroomById,

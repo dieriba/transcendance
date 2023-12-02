@@ -1,5 +1,6 @@
 import {
   UpdatedAvatarRes,
+  UserUpdateStatusType,
   UserUpdated,
 } from "./../../../models/login/UserSchema";
 import {
@@ -25,9 +26,7 @@ import {
   ChatRoleType,
   ROLE,
   Restriction,
-  STATUS,
 } from "../../../models/type-enum/typesEnum";
-import { BaseFriendType } from "../../../models/FriendsSchema";
 import {
   UserProfileBanLifeType,
   UserWithProfile,
@@ -763,44 +762,24 @@ export const GroupSlice = createSlice({
         state.groupChatroom.unshift(removedObject);
       }
     },
-    setOfflineUser: (state, action: PayloadAction<BaseFriendType>) => {
-      const { friendId } = action.payload;
-      if (state.admin?.user.id === friendId) {
-        state.admin.user.status = STATUS.OFFLINE;
+    updateUserStatus: (state, action: PayloadAction<UserUpdateStatusType>) => {
+      const { id, status } = action.payload;
+      if (state.admin?.user.id === id) {
+        state.admin.user.status = status;
         return;
       }
       let index: number = state.chatAdmin.findIndex(
-        (user) => user.user.id === friendId
+        (user) => user.user.id === id
       );
 
       if (index !== -1) {
-        state.chatAdmin[index].user.status = STATUS.OFFLINE;
+        state.chatAdmin[index].user.status = status;
         return;
       }
 
-      index = state.regularUser.findIndex((user) => user.user.id === friendId);
+      index = state.regularUser.findIndex((user) => user.user.id === id);
       if (index !== -1) {
-        state.regularUser[index].user.status = STATUS.OFFLINE;
-      }
-    },
-    setOnlineUser: (state, action: PayloadAction<BaseFriendType>) => {
-      const { friendId } = action.payload;
-      if (state.admin?.user.id === friendId) {
-        state.admin.user.status = STATUS.ONLINE;
-        return;
-      }
-      let index: number = state.chatAdmin.findIndex(
-        (user) => user.user.id === friendId
-      );
-
-      if (index !== -1) {
-        state.chatAdmin[index].user.status = STATUS.ONLINE;
-        return;
-      }
-
-      index = state.regularUser.findIndex((user) => user.user.id === friendId);
-      if (index !== -1) {
-        state.regularUser[index].user.status = STATUS.ONLINE;
+        state.regularUser[index].user.status = status;
       }
     },
   },
@@ -819,8 +798,7 @@ export const {
   setJoinableGroup,
   deleteJoinableGroup,
   removeUser,
-  setOfflineUser,
-  setOnlineUser,
+  updateUserStatus,
   addNewChatroom,
   updateChatroom,
   setGroupMembersAndRole,

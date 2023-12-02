@@ -20,7 +20,6 @@ import {
   useGetAllFriendsQuery,
 } from "../../redux/features/friends/friends.api.slice";
 import { Trash, Prohibit } from "phosphor-react";
-import { BaseFriendType } from "../../models/FriendsSchema";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { useEffect, useState } from "react";
 import { connectSocket, socket } from "../../utils/getSocket";
@@ -31,15 +30,15 @@ import {
 } from "../../services/type";
 import {
   setFriends,
-  setOfflineFriend,
-  setOnlineFriend,
   updatePage,
+  updateUserStatus,
 } from "../../redux/features/friends/friends.slice";
 import { RootState } from "../../redux/store";
 import BadgeAvatar from "../Badge/BadgeAvatar";
 import UserProfile from "../Profile/UserProfile";
 import CustomDialog from "../Dialog/CustomDialog";
 import { UserWithProfile } from "../../models/ChatContactSchema";
+import { UserUpdateStatusType } from "../../models/login/UserSchema";
 
 export interface FriendProps {
   id: number;
@@ -105,22 +104,14 @@ const FriendsTable = () => {
       connectSocket();
 
       socket.on(
-        GeneralEvent.USER_LOGGED_IN,
-        (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
-          dispatch(setOnlineFriend(data.data));
-        }
-      );
-
-      socket.on(
-        GeneralEvent.USER_LOGGED_OUT,
-        (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
-          dispatch(setOfflineFriend(data.data));
+        GeneralEvent.USER_UPDATE_STATUS,
+        (data: SocketServerSucessResponse & { data: UserUpdateStatusType }) => {
+          dispatch(updateUserStatus(data.data));
         }
       );
 
       return () => {
-        socket.off(GeneralEvent.USER_LOGGED_IN);
-        socket.off(GeneralEvent.USER_LOGGED_OUT);
+        socket.off(GeneralEvent.USER_UPDATE_STATUS);
       };
     }
   }, [data, dispatch]);

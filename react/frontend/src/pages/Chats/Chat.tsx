@@ -10,10 +10,9 @@ import { useTheme } from "@mui/material/styles";
 import { useAppDispatch } from "../../redux/hooks";
 import {
   addNewChatroom,
-  setOfflineUser,
-  setOnlineUser,
   setPrivateChatroom,
   updatePrivateChatroomList,
+  updateUserStatus,
 } from "../../redux/features/chat/chat.slice";
 import { useEffect } from "react";
 import { connectSocket, socket } from "../../utils/getSocket";
@@ -26,9 +25,9 @@ import {
   MessageType,
 } from "../../models/ChatContactSchema";
 import { SocketServerSucessResponse } from "../../services/type";
-import { BaseFriendType } from "../../models/FriendsSchema";
 import DesktopChat from "./DesktopChat";
 import MobileChat from "./MobileChat";
+import { UserUpdateStatusType } from "../../models/login/UserSchema";
 
 const Chat = () => {
   const theme = useTheme();
@@ -47,16 +46,9 @@ const Chat = () => {
       if (!socket) return;
 
       socket.on(
-        GeneralEvent.USER_LOGGED_OUT,
-        (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
-          dispatch(setOfflineUser(data.data));
-        }
-      );
-
-      socket.on(
-        GeneralEvent.USER_LOGGED_IN,
-        (data: SocketServerSucessResponse & { data: BaseFriendType }) => {
-          dispatch(setOnlineUser(data.data));
+        GeneralEvent.USER_UPDATE_STATUS,
+        (data: SocketServerSucessResponse & { data: UserUpdateStatusType }) => {
+          dispatch(updateUserStatus(data.data));
         }
       );
 
@@ -77,8 +69,7 @@ const Chat = () => {
     return () => {
       socket.off(ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE);
       socket.off(ChatEventPrivateRoom.NEW_CHATROOM);
-      socket.off(GeneralEvent.USER_LOGGED_IN);
-      socket.off(GeneralEvent.USER_LOGGED_OUT);
+      socket.off(GeneralEvent.USER_UPDATE_STATUS);
       socket.off(ChatEventPrivateRoom.CLEAR_CHATROOM);
     };
   }, [data, dispatch]);

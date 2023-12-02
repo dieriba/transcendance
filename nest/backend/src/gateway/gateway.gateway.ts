@@ -101,9 +101,9 @@ export class GatewayGateway {
   /*----------------------------------------------------------------------------- */
   handleConnection(client: SocketWithAuth) {
     const { sockets } = this.server.sockets;
-
+    const { id, userId } = client;
     this.logger.log(
-      `WS client with id: ${client.id} and userId : ${client.userId} connected!`,
+      `WS client with id: ${id} and userId : ${userId} connected!`,
     );
     this.logger.log(`Socket data: `, sockets);
     this.logger.debug(`Number of connected sockets: ${sockets.size}`);
@@ -111,9 +111,7 @@ export class GatewayGateway {
     const rooms = this.server.of('/').adapter.rooms;
     console.log({ rooms });
 
-    client.broadcast.emit(GeneralEvent.USER_LOGGED_IN, {
-      data: { friendId: client.userId },
-    });
+    this.updateUserStatus(client, { id: userId, status: STATUS.ONLINE });
   }
 
   async handleDisconnect(client: SocketWithAuth) {
@@ -129,9 +127,7 @@ export class GatewayGateway {
       await this.userService.updateUserById(client.userId, {
         status: STATUS.OFFLINE,
       });
-      client.broadcast.emit(GeneralEvent.USER_LOGGED_OUT, {
-        data: { friendId: client.userId },
-      });
+      this.updateUserStatus(client, { id: userId, status: STATUS.OFFLINE });
     }
 
     const game = this.pongService.checkIfUserIsAlreadyInARoom(userId);
@@ -3122,6 +3118,13 @@ export class GatewayGateway {
 
   private getSocket(socketId: string) {
     return this.server.sockets.sockets.get(socketId);
+  }
+
+  private updateUserStatus(
+    client: SocketWithAuth,
+    data: { id: string; status: STATUS },
+  ) {
+    client.broadcast.emit(GeneralEvent.USER_UPDATE_STATUS, { data });
   }
 
   private joinOrLeaveRoom(
