@@ -46,10 +46,10 @@ const UserProfile = ({
             </PlayingAvatar>
           ) : status === "PLAYING" ? (
             <BadgeAvatar>
-              <Avatar />
+              <Avatar sx={{ width: "100px", height: "100px" }} src={src} />
             </BadgeAvatar>
           ) : (
-            <Avatar src={src} />
+            <Avatar sx={{ width: "100px", height: "100px" }} src={src} />
           )}
 
           <TextField

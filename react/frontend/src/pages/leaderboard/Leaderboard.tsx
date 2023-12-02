@@ -30,6 +30,7 @@ import {
 import { UserUpdateStatusType } from "../../models/login/UserSchema";
 import UserProfile from "../../components/Profile/UserProfile";
 import { UserWithProfile } from "../../models/ChatContactSchema";
+import StyledBadge from "../../components/Badge/StyledBadge";
 
 const LeaderboardPage = () => {
   const { data, isLoading, isError } = useGetLeaderboardQuery(undefined, {
@@ -112,7 +113,7 @@ const LeaderboardPage = () => {
               <TableHead>
                 <TableRow>
                   <TableCell padding="checkbox"></TableCell>
-                  <TableCell>Rank</TableCell>
+                  <TableCell align="center">Rank</TableCell>
                   <TableCell align="center">Avatar</TableCell>
                   <TableCell align="center">Nickname</TableCell>
                   <TableCell align="center">Rating</TableCell>
@@ -139,7 +140,7 @@ const LeaderboardPage = () => {
                       }}
                     >
                       <TableCell padding="checkbox"></TableCell>
-                      <TableCell component="th" scope="row">
+                      <TableCell align="center">
                         <Typography>{index + 1}</Typography>
                       </TableCell>
                       <TableCell align="center">
@@ -151,10 +152,12 @@ const LeaderboardPage = () => {
                             />
                           </BadgeAvatar>
                         ) : (
-                          <Avatar
-                            sx={{ width: "50px", height: "50px" }}
-                            src={avatar ? avatar : undefined}
-                          />
+                          <StyledBadge>
+                            <Avatar
+                              sx={{ width: "50px", height: "50px" }}
+                              src={avatar ? avatar : undefined}
+                            />
+                          </StyledBadge>
                         )}
                       </TableCell>
                       <TableCell align="center">

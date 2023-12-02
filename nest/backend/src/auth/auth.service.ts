@@ -33,7 +33,7 @@ export class AuthService {
     private readonly httpService: HttpService,
     private readonly userService: UserService,
     private readonly jwtTokenService: JwtTokenService,
-    private readonly argon2: Argon2Service,
+    private readonly argon2Service: Argon2Service,
     private readonly prismaService: PrismaService,
   ) {}
 
@@ -76,8 +76,10 @@ export class AuthService {
 
       const { allowForeignToDm, profile } =
         await this.userService.updateUserById(id, {
-          status: STATUS.ONLINE,
-          hashedRefreshToken: await this.argon2.hash(tokens.refresh_token),
+          status: twoFa ? STATUS.OFFLINE : STATUS.ONLINE,
+          hashedRefreshToken: await this.argon2Service.hash(
+            tokens.refresh_token,
+          ),
         });
 
       return {
@@ -123,7 +125,7 @@ export class AuthService {
         HttpStatus.BAD_REQUEST,
       );
 
-    const hashedCurrentPassword = await this.argon2.compare(
+    const hashedCurrentPassword = await this.argon2Service.compare(
       userPassword,
       currentPassword,
     );
@@ -228,7 +230,10 @@ export class AuthService {
           id,
         },
         data: {
-          hashedRefreshToken: await this.argon2.hash(tokens.refresh_token),
+          hashedRefreshToken: await this.argon2Service.hash(
+            tokens.refresh_token,
+          ),
+          status: twoFa?.otpEnabled ? STATUS.OFFLINE : STATUS.ONLINE,
         },
       });
 
@@ -236,7 +241,7 @@ export class AuthService {
         user: {
           id,
           nickname,
-          twoFa: twoFa?.otpEnabled ? twoFa.otpEnabled : false,
+          twoFa: twoFa?.otpEnabled ? true : false,
           allowForeignToDm,
           profile,
         },
@@ -255,7 +260,7 @@ export class AuthService {
     if (!user)
       throw new CustomException(RESSOURCE_NOT_FOUND, HttpStatus.NOT_FOUND);
 
-    const isMatch = await this.argon2.compare(
+    const isMatch = await this.argon2Service.compare(
       user.hashedRefreshToken,
       refresh_token,
     );
@@ -264,7 +269,9 @@ export class AuthService {
 
     const tokens = await this.jwtTokenService.getTokens(userId);
 
-    const hashedRefreshToken = await this.argon2.hash(tokens.refresh_token);
+    const hashedRefreshToken = await this.argon2Service.hash(
+      tokens.refresh_token,
+    );
     await this.userService.updateUserById(userId, {
       hashedRefreshToken,
     });

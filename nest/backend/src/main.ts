@@ -35,7 +35,7 @@ async function bootstrap() {
     origin: [`http://localhost:${clientPort}`],
     credentials: true,
   });
-  app.useStaticAssets(join(__dirname, '..', 'public/avatar'));
+  app.useStaticAssets(join(__dirname, '../..', 'public/avatar'));
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
   app.use(cookieParser());
   await app.listen(process.env.BACKEND_PORT || 8100);

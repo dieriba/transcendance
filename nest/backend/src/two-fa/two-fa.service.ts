@@ -8,8 +8,9 @@ import { authenticator } from 'otplib';
 import { CustomException } from 'src/common/custom-exception/custom-exception';
 import { VerifyOtpDto } from './dto/two-fa.dto';
 import { JwtTokenService } from 'src/jwt-token/jwtToken.service';
-import { Profile } from '@prisma/client';
+import { Profile, STATUS } from '@prisma/client';
 import { Tokens } from 'src/jwt-token/jwt.type';
+import { Argon2Service } from 'src/argon2/argon2.service';
 
 @Injectable()
 export class TwoFaService {
@@ -17,6 +18,7 @@ export class TwoFaService {
     private readonly userService: UserService,
     private readonly prismaService: PrismaService,
     private readonly jwtTokenService: JwtTokenService,
+    private readonly argon2Service: Argon2Service,
   ) {}
 
   async generateOtp(userId: string): Promise<OTP> {
@@ -121,6 +123,11 @@ export class TwoFaService {
     const { nickname, allowForeignToDm, profile } = user;
 
     const tokens = await this.jwtTokenService.getTokens(id);
+
+    await this.userService.updateUserById(id, {
+      status: STATUS.ONLINE,
+      hashedRefreshToken: await this.argon2Service.hash(tokens.refresh_token),
+    });
 
     return {
       user: { id, nickname, twoFa: true, profile, allowForeignToDm },

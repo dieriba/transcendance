@@ -31,6 +31,7 @@ export class PongService {
         nickname: true,
         profile: true,
         pong: true,
+        status: true,
         friends: {
           where: {
             userId,
