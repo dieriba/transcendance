@@ -118,13 +118,13 @@ export class GatewayGateway {
 
   async handleDisconnect(client: SocketWithAuth) {
     const { sockets } = this.server.sockets;
+    const { id, userId } = client;
 
     this.logger.log(`WS client with id: ${client.id} disconnected!`);
     this.logger.log(`Socket data: `, sockets);
     this.logger.debug(`Number of connected sockets: ${sockets.size}`);
-    const rooms = this.server.sockets.adapter.rooms.get(client.userId);
 
-    if (!rooms) {
+    if (!this.getAllSockeIdsByKey(userId)) {
       console.log('LOGGED OUT');
       await this.userService.updateUserById(client.userId, {
         status: STATUS.OFFLINE,
@@ -133,8 +133,6 @@ export class GatewayGateway {
         data: { friendId: client.userId },
       });
     }
-
-    const { id, userId } = client;
 
     const game = this.pongService.checkIfUserIsAlreadyInARoom(userId);
 
@@ -173,6 +171,19 @@ export class GatewayGateway {
     client.to(userId).emit(GeneralEvent.DISCONNECT_ME);
     this.sendToSocket(this.server, client.id, GeneralEvent.SUCCESS);
     this.deleteAllSocketIdsBy(userId);
+  }
+
+  @SubscribeMessage(GeneralEvent.DISCONNECT_ALL_EXCEPT_ME)
+  async disconnectAllExceptMe(@ConnectedSocket() client: SocketWithAuth) {
+    const { userId } = client;
+
+    if (!this.getAllSockeIdsByKey(userId)) {
+      this.sendToSocket(this.server, client.id, GeneralEvent.SUCCESS);
+      return;
+    }
+
+    client.to(userId).emit(GeneralEvent.DISCONNECT_ME);
+    this.sendToSocket(this.server, client.id, GeneralEvent.SUCCESS);
   }
 
   @SubscribeMessage(GeneralEvent.NEW_PROFILE_PICTURE)

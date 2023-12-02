@@ -10,7 +10,10 @@ import {
   isFetchBaseQueryError,
   isErrorWithMessage,
 } from "../../../services/helpers";
-import { useValidateOtpMutation } from "../../../redux/features/user/user.api.slice";
+import {
+  useDisconnectAllExceptMeMutation,
+  useValidateOtpMutation,
+} from "../../../redux/features/user/user.api.slice";
 import { useState } from "react";
 import { setMyId } from "../../../redux/features/groups/group.slice";
 import {
@@ -49,7 +52,7 @@ const TwoFaPage = () => {
     dispatch(setTwoFaId(undefined));
     navigate(PATH_APP.auth.login);
   };
-
+  const [disconnectAllInstanceExceptMe] = useDisconnectAllExceptMeMutation();
   const dispatch = useAppDispatch();
   const id = useAppSelector((state: RootState) => state.user.twoFa) as string;
   const onSubmitTwoFa = async (data: ValidateOtpType) => {
@@ -68,6 +71,7 @@ const TwoFaPage = () => {
         dispatch(setTwoFaId(undefined));
         dispatch(authenticateUser(data));
         dispatch(setMyId(data.user.id));
+        await disconnectAllInstanceExceptMe().unwrap();
         navigate(PATH_APP.dashboard.profile, { replace: true });
       }
     } catch (err) {

@@ -53,6 +53,22 @@ export const UserApiSlice = apiSlice.injectEndpoints({
         });
       },
     }),
+    disconnectAllExceptMe: builder.mutation<void, void>({
+      queryFn: () => {
+        connectSocket();
+        return new Promise((resolve) => {
+          socket.emit(GeneralEvent.DISCONNECT_ALL_EXCEPT_ME);
+
+          socket.on(GeneralEvent.SUCCESS, (data) => {
+            resolve({ data });
+          });
+
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
+            resolve({ error });
+          });
+        });
+      },
+    }),
     register: builder.mutation<
       BaseServerResponse & { data: unknown },
       RegisterFormType
@@ -194,4 +210,5 @@ export const {
   useDisable2FaMutation,
   useUpdate2FaMutation,
   useDisconnectAllUserMutation,
+  useDisconnectAllExceptMeMutation,
 } = UserApiSlice;

@@ -16,7 +16,10 @@ import { useState } from "react";
 import { Eye, EyeSlash } from "phosphor-react";
 import CustomTextField from "../CustomTextField/CustomTextField";
 import RHFTextField from "../controlled-components/RHFTextField";
-import { useLoginMutation } from "../../redux/features/user/user.api.slice";
+import {
+  useDisconnectAllExceptMeMutation,
+  useLoginMutation,
+} from "../../redux/features/user/user.api.slice";
 import {
   isFetchBaseQueryError,
   isErrorWithMessage,
@@ -46,6 +49,7 @@ const LoginForm = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [login, { isLoading, error, reset }] = useLoginMutation();
+  const [disconnectAllInstanceExceptMe] = useDisconnectAllExceptMeMutation();
   const [errMsg, setErrMsg] = useState("");
 
   const onSubmit = async (data: LoginFormType) => {
@@ -70,6 +74,7 @@ const LoginForm = () => {
         dispatch(authenticateUser(data));
         dispatch(setMyId(data.user.id));
         methods.reset();
+        await disconnectAllInstanceExceptMe().unwrap();
         navigate(PATH_APP.dashboard.profile);
       }
     } catch (err) {

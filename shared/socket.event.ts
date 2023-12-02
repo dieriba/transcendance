@@ -14,6 +14,7 @@ export enum GeneralEvent {
   TOKEN_NOT_VALID = `${General}.token.not.valid`,
   DISCONNECT_ALL_INSTANCE_OF_ME = `${General}.disconnect.all.instance.of.me`,
   DISCONNECT_ME = `${General}.disconnect.me`,
+  DISCONNECT_ALL_EXCEPT_ME = `${General}.disconnect.all.except.me`
 }
 
 const friend = "friend";
