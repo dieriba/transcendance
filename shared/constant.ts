@@ -1,26 +1,26 @@
-export const GAME_TITLE = "Pong!";
-export const TITLE_SIZE = "60px";
-export const TITLE_FONT = "Arial";
-export const MAX_DATE = "9999-12-31T23:59:59.999Z";
+export const GAME_TITLE = 'Pong!';
+export const TITLE_SIZE = '60px';
+export const TITLE_FONT = 'Arial';
+export const MAX_DATE = '9999-12-31T23:59:59.999Z';
 export const VALID_UPLOADS_MIME_TYPES = [
-  "image/jpg",
-  "image/jpeg",
-  "image/png",
+  'image/jpg',
+  'image/jpeg',
+  'image/png',
 ];
-export const GAME_SUBTITLE = "Click to play...";
-export const SUBTITLE_SIZE = "32px";
-export const SUBTITLE_FONT = "Arial";
-export type keyPressedType = "ArrowUp" | "ArrowDown";
-export const SCORE_SIZE = "60px";
-export const SCORE_FONT = "Arial";
+export const GAME_SUBTITLE = 'Click to play...';
+export const SUBTITLE_SIZE = '32px';
+export const SUBTITLE_FONT = 'Arial';
+export type keyPressedType = 'ArrowUp' | 'ArrowDown';
+export const SCORE_SIZE = '60px';
+export const SCORE_FONT = 'Arial';
 
 export const WINNING_SCORE = 5;
 
 // Pixels the players are from the edge
 export const PLAYER_PADDING = 40;
 
-export const ArrowUp = "ArrowUp";
-export const ArrowDown = "ArrowDown";
+export const ArrowUp = 'ArrowUp';
+export const ArrowDown = 'ArrowDown';
 
 // Paddle size
 export const BALL_VELOCITY = 0.01;
@@ -63,3 +63,7 @@ export const defaultOpponentPlayer = {
   yPosition: 0.5,
   speed: PLAYER_SPEED,
 };
+
+export type gameStatus = 'NOT_STARTED' | 'STARTED' | 'IN_PROGRESS' | 'FINISHED';
+export const scoreToWinPongGame = 3;
+export const pongGameDuration = 15;

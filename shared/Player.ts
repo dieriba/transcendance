@@ -1,12 +1,12 @@
-import { Coordinate, Dimension, Velocity } from "./types";
+import { Coordinate, Dimension, Velocity } from './types';
 import {
   ArrowDown,
   ArrowUp,
   PADDLE_MAX_Y_POS,
   PADDLE_MIN_Y_POS,
   keyPressedType,
-} from "./constant";
-import { clamp } from "./utils";
+} from './constant';
+import { clamp } from './utils';
 
 export enum KeyboardOptions {
   ARROW_UP = ArrowUp,
@@ -31,7 +31,7 @@ export class Player {
     dimension: Dimension,
     postion: Coordinate,
     velocity: Velocity,
-    id?: string
+    id?: string,
   ) {
     this.id = id as string;
     this.position = postion;
@@ -46,7 +46,7 @@ export class Player {
     this.position.y = clamp(
       this.position.y,
       PADDLE_MIN_Y_POS,
-      PADDLE_MAX_Y_POS
+      PADDLE_MAX_Y_POS,
     );
   }
 
@@ -56,6 +56,10 @@ export class Player {
 
   get getDimension(): Dimension {
     return this.dimension;
+  }
+
+  get getScore(): number {
+    return this.score;
   }
 
   get getPlayerId(): string {

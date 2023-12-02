@@ -20,3 +20,14 @@ export type UpdatedGameData = {
   player2: UserCoordinate;
   ball: Coordinate;
 };
+
+type playerInfo = {
+  id: string;
+  nickname?: string;
+  score: number;
+};
+
+export type EndGameData = {
+  winner: playerInfo;
+  looser: playerInfo;
+};

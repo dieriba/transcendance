@@ -1,13 +1,14 @@
-import { Ball } from './Ball';
+import { Player, Ball } from 'shared';
 import {
-  defaultBall,
-  defaultOpponentPlayer,
-  defaultPlayer,
   GAME_INVITATION_TIME_LIMIT,
+  defaultPlayer,
+  defaultOpponentPlayer,
+  defaultBall,
+  scoreToWinPongGame,
   keyPressedType,
-} from './constant';
-import { Player } from './Player';
-import { UpdatedGameData } from './types';
+  pongGameDuration,
+} from 'shared/constant';
+import { EndGameData, UpdatedGameData } from 'shared/types';
 
 export class GameInvitation {
   private readonly id: string;
@@ -58,8 +59,6 @@ export class GameInvitation {
 }
 
 export class Game {
-  private direction: keyPressedType;
-  private gameStarted: boolean;
   private activate: boolean;
   private gameId: string;
   private players: string[] = [];
@@ -69,6 +68,10 @@ export class Game {
   private startedTime: Date;
   private endTime: Date;
   private ball: Ball;
+  private gameStarted: boolean;
+  private gameDurationExceed: boolean = false;
+  private winner: Player | undefined = undefined;
+  private looser: Player | undefined = undefined;
 
   constructor(gameId: string, playerId: string, socketId: string) {
     this.gameId = gameId;
@@ -114,8 +117,33 @@ export class Game {
     this.ball.updatePosition();
     this.player.updatePosition();
     this.opponentPlayer.updatePosition();
+    this.isAWinnerOrTimeGameLimitReached();
     // this.ball.checkCollisionWithPlayer(this.player);
     //this.ball.checkCollisionWithPlayer(this.opponentPlayer);
+  }
+
+  private isAWinnerOrTimeGameLimitReached() {
+    if (this.player.getScore >= scoreToWinPongGame) {
+      this.winner = this.player;
+      this.looser = this.opponentPlayer;
+      return;
+    }
+    if (this.opponentPlayer.getScore >= scoreToWinPongGame) {
+      this.winner = this.opponentPlayer;
+      this.looser = this.player;
+      return;
+    }
+    const now = new Date();
+
+    if (now >= this.endTime) {
+      this.gameDurationExceed = true;
+    }
+  }
+
+  public endGame(): boolean {
+    if (this.winner || this.gameDurationExceed) return true;
+
+    return false;
   }
 
   public getUpdatedData(): UpdatedGameData {
@@ -126,6 +154,20 @@ export class Game {
         id: this.getOppenent.getPlayerId,
       },
       ball: this.ball.getPosition,
+    };
+  }
+
+  public getEndGameData(): EndGameData {
+    return {
+      winner: {
+        id: this.winner.getPlayerId,
+        score: this.winner.getScore,
+        nickname: '',
+      },
+      looser: {
+        id: this.looser.getPlayerId,
+        score: this.looser.getScore,
+      },
     };
   }
 
@@ -178,9 +220,12 @@ export class Game {
     this.socketsId.push(socketId);
   }
 
-  set setGameStarted(started: boolean) {
-    this.gameStarted = started;
+  public startGame() {
     this.startedTime = new Date();
+    this.gameStarted = true;
+    this.endTime = new Date(
+      this.startedTime.getTime() + pongGameDuration * 60000,
+    );
   }
 
   set setActivate(activate: boolean) {

@@ -1,11 +1,11 @@
 import { Server } from 'socket.io';
 import { Injectable } from '@nestjs/common';
-import { Game, GameInvitation } from '../../shared/Game';
 import { SocketWithAuth } from 'src/auth/type';
 import { PONG_ROOM_PREFIX, PongEvent } from '../../shared/socket.event';
 import { GAME_INVITATION_TIME_LIMIT } from '../../shared/constant';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
+import { Game, GameInvitation } from './class/Game';
 
 @Injectable()
 export class PongService {
@@ -150,7 +150,7 @@ export class PongService {
     const game = new Game(gameId, id, socketId);
     game.setOponnentPlayer = userId;
     game.setNewSocketId = otherSocketId;
-    game.setGameStarted = true;
+    game.startGame();
     this.games.push(game);
   }
 
@@ -193,15 +193,50 @@ export class PongService {
     }
   }
 
-  gameUpdate(server: Server) {
-    this.games.forEach((game) => {
+  async gameUpdate(server: Server) {
+    this.games.forEach(async (game, index) => {
       if (game.hasStarted) {
-        game.update();
-        server
-          .to(game.getGameId)
-          .emit(PongEvent.UPDATE_GAME, game.getUpdatedData());
+        if (!game.endGame()) {
+          game.update();
+          server
+            .to(game.getGameId)
+            .emit(PongEvent.UPDATE_GAME, game.getUpdatedData());
+          return;
+        }
+        await this.setPongWinner(
+          game.getPlayer.getPlayerId,
+          game.getOppenent.getPlayerId,
+        );
+        server.to(game.getGameId).emit(PongEvent.END_GAME);
+        this.games.splice(index, 1);
       }
     });
+  }
+
+  private async setPongWinner(winnerId: string, looserId: string) {
+    const winner = await this.prismaService.user.findFirst({
+      where: { id: winnerId },
+      select: {
+        nickname: true,
+        pong: true,
+        profile: true,
+      },
+    });
+    const looser = await this.prismaService.user.findFirst({
+      where: { id: looserId },
+      select: {
+        nickname: true,
+        pong: true,
+        profile: true,
+      },
+    });
+
+    if (!winner || !looser) return;
+
+    /*if (winner.pong){
+      await
+    }*/
+
   }
 
   joinGame(server: Server, client: SocketWithAuth, room: string) {
@@ -215,7 +250,7 @@ export class PongService {
 
     this.games[index].setOponnentPlayer = userId;
     this.games[index].setNewSocketId = socketId;
-    this.games[index].setGameStarted = true;
+    this.games[index].startGame();
     return this.games[index].getGameId;
   }
 
