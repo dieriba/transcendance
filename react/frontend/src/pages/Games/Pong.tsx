@@ -52,24 +52,33 @@ const Pong = () => {
 
     const Player2 = new Player(canvas, context, { height: 0.16, width: 0.015 });
 
-
-    window.addEventListener('keydown', (event:KeyboardEvent) => {
-      const {key,code} = event;
+    window.addEventListener("keydown", (event: KeyboardEvent) => {
+      const { key, code } = event;
       if (code === PongEvent.ARROW_UP || key === PongEvent.ARROW_UP) {
-        socket.emit(PongEvent.UPDATE_PLAYER_POSITION, {gameId, keyPressed:code});
-      }
-      else if (code === PongEvent.ARROW_DOWN || key === PongEvent.ARROW_DOWN) {
-        socket.emit(PongEvent.UPDATE_PLAYER_POSITION, {gameId, keyPressed:code});
+        socket.emit(PongEvent.UPDATE_PLAYER_POSITION, {
+          gameId,
+          keyPressed: code,
+        });
+      } else if (
+        code === PongEvent.ARROW_DOWN ||
+        key === PongEvent.ARROW_DOWN
+      ) {
+        socket.emit(PongEvent.UPDATE_PLAYER_POSITION, {
+          gameId,
+          keyPressed: code,
+        });
       }
     });
 
-    window.addEventListener('keyup', (event:KeyboardEvent) => {
-      const {key,code} = event;
+    window.addEventListener("keyup", (event: KeyboardEvent) => {
+      const { key, code } = event;
       if (code === PongEvent.ARROW_UP || key === PongEvent.ARROW_UP) {
-        socket.emit(PongEvent.USER_STOP_UPDATE, {gameId, keyPressed:code});
-      }
-      else if (code === PongEvent.ARROW_DOWN || key === PongEvent.ARROW_DOWN) {
-        socket.emit(PongEvent.USER_STOP_UPDATE, {gameId, keyPressed:code});
+        socket.emit(PongEvent.USER_STOP_UPDATE, { gameId, keyPressed: code });
+      } else if (
+        code === PongEvent.ARROW_DOWN ||
+        key === PongEvent.ARROW_DOWN
+      ) {
+        socket.emit(PongEvent.USER_STOP_UPDATE, { gameId, keyPressed: code });
       }
     });
 
@@ -97,7 +106,16 @@ const Pong = () => {
       socket.off(PongEvent.UPDATE_GAME);
       socket.off(PongEvent.USER_NO_MORE_IN_GAME);
     };
-  }, [navigate, canvasRef, height, width, gameHeight, gameWidth, dispatch]);
+  }, [
+    navigate,
+    canvasRef,
+    height,
+    width,
+    gameHeight,
+    gameWidth,
+    dispatch,
+    gameId,
+  ]);
 
   return (
     <Box

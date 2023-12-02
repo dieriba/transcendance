@@ -99,7 +99,7 @@ export class GatewayGateway {
   @WebSocketServer()
   server: Server;
   /*----------------------------------------------------------------------------- */
-  handleConnection(client: SocketWithAuth) {
+  async handleConnection(client: SocketWithAuth) {
     const { sockets } = this.server.sockets;
     const { id, userId } = client;
     this.logger.log(
@@ -115,6 +115,7 @@ export class GatewayGateway {
 
     if (room.size === 1) {
       this.updateUserStatus(client, { id: userId, status: STATUS.ONLINE });
+      await this.userService.updateUserById(userId, { status: STATUS.ONLINE });
     }
   }
 
@@ -129,6 +130,7 @@ export class GatewayGateway {
     if (!this.getAllSockeIdsByKey(userId)) {
       console.log('LOGGED OUT');
       this.updateUserStatus(client, { id: userId, status: STATUS.OFFLINE });
+      await this.userService.updateUserById(userId, { status: STATUS.OFFLINE });
     }
 
     const game = this.pongService.checkIfUserIsAlreadyInARoom(userId);

@@ -1,20 +1,11 @@
-import {
-  Alert,
-  AlertColor,
-  Button,
-  CircularProgress,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Alert, AlertColor, Button, Stack } from "@mui/material";
 import { useState } from "react";
-import {
-  useJoinQueueMutation,
-  useLeaveQueueMutation,
-} from "../../redux/features/pong/pong.api.slice";
+import { useJoinQueueMutation } from "../../redux/features/pong/pong.api.slice";
 import { SocketServerErrorResponse } from "../../services/type";
+import JoinQueue from "./JoinQueue";
 
 const Games = () => {
-  const [inQueue, setInQueue] = useState(false);
+  const [open, setOpen] = useState<{ queue: boolean }>({ queue: false });
 
   const [message, setMessage] = useState("");
   const [severity, setSeverity] = useState<AlertColor>("success");
@@ -31,15 +22,14 @@ const Games = () => {
     setOpenSnack(false);
   };
 
-  const [joinQueue, { isLoading }] = useJoinQueueMutation();
-  const [leaveQueue, leaveQueueAction] = useLeaveQueueMutation();
+  const [joinQueu, { isLoading }] = useJoinQueueMutation();
 
   const handleJoinQueue = async () => {
     try {
-      const res = await joinQueue().unwrap();
+      const res = await joinQueu().unwrap();
       console.log({ gameId: res.data.gameId });
 
-      setInQueue(true);
+      setOpen((prev) => ({ ...prev, queue: true }));
     } catch (error) {
       console.log({ error });
 
@@ -49,21 +39,8 @@ const Games = () => {
     }
   };
 
-  const handleLeaveQueue = async () => {
-    try {
-      await leaveQueue().unwrap();
-      setInQueue(false);
-    } catch (error) {
-      console.log({ error });
-
-      setSeverity("error");
-      setMessage((error as SocketServerErrorResponse).message);
-      setOpenSnack(true);
-    }
-  };
-
-  if (!inQueue) {
-    return (
+  return (
+    <>
       <Stack
         height={"100vh"}
         width={"100%"}
@@ -93,27 +70,15 @@ const Games = () => {
           </Button>
         </Stack>
       </Stack>
-    );
-  }
-  return (
-    <Stack
-      alignItems={"center"}
-      justifyContent={"center"}
-      height={"100vh"}
-      width={"100%"}
-      spacing={5}
-    >
-      <CircularProgress size={100} />
-      <Typography>Please wait</Typography>
-      <Button
-        disabled={leaveQueueAction.isLoading}
-        variant="contained"
-        color="inherit"
-        onClick={handleLeaveQueue}
-      >
-        Leave Queue
-      </Button>
-    </Stack>
+      {open.queue && (
+        <JoinQueue
+          open={open.queue}
+          handleClose={() => {
+            setOpen((prev) => ({ ...prev, queue: false }));
+          }}
+        />
+      )}
+    </>
   );
 };
 
