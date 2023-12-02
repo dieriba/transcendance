@@ -35,6 +35,8 @@ import { BaseUserType } from "../../models/login/UserSchema";
 import { ChatroomGroupType } from "../../models/groupChat";
 import { addGroupInvitation } from "../../redux/features/groups/group.slice";
 import { setGameId } from "../../redux/features/pong/pong.slice";
+import { apiSlice } from "../../redux/api/apiSlice";
+import { LOGOUT } from "../../redux/type";
 
 const ProtectedDashboardLayout = () => {
   const isAuthenticated = useAppSelector(
@@ -45,6 +47,13 @@ const ProtectedDashboardLayout = () => {
   useEffect(() => {
     if (isAuthenticated) {
       connectSocket();
+
+      socket.on(GeneralEvent.DISCONNECT_ME, () => {
+        dispatch(apiSlice.util.resetApiState());
+        dispatch({ type: LOGOUT });
+        // eslint-disable-next-line no-self-assign
+        window.location = window.location;
+      });
 
       socket.on(
         FriendEvent.NEW_REQUEST_RECEIVED,
@@ -135,10 +144,13 @@ const ProtectedDashboardLayout = () => {
         }
       );
 
-      socket.on(PongEvent.LETS_PLAY, (data: SocketServerSucessResponse & { data: string }) => {
-        dispatch(setGameId(data.data));
-        navigate(PATH_APP.dashboard.pong);
-      });
+      socket.on(
+        PongEvent.LETS_PLAY,
+        (data: SocketServerSucessResponse & { data: string }) => {
+          dispatch(setGameId(data.data));
+          navigate(PATH_APP.dashboard.pong);
+        }
+      );
 
       socket.on(
         PongEvent.USER_DECLINED_INVITATION,
@@ -148,6 +160,7 @@ const ProtectedDashboardLayout = () => {
       );
 
       return () => {
+        socket.off(GeneralEvent.DISCONNECT_ME);
         socket.off(ChatEventGroup.RECEIVED_GROUP_INVITATION);
         socket.off(GeneralEvent.USER_LOGGED_IN);
         socket.off(GeneralEvent.USER_LOGGED_OUT);

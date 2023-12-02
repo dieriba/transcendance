@@ -14,28 +14,28 @@ import { useState } from "react";
 import { Nav_Buttons } from "../../data/data";
 import { useAppDispatch } from "../../redux/hooks";
 import { apiSlice } from "../../redux/api/apiSlice";
-import { useLogoutMutation } from "../../redux/features/user/user.api.slice";
+import {
+  useDisconnectAllUserMutation,
+  useLogoutMutation,
+} from "../../redux/features/user/user.api.slice";
 import { LOGOUT } from "../../redux/type";
 import { matchPath, useLocation, useNavigate } from "react-router-dom";
 const MobileSidebar = () => {
   const dispatch = useAppDispatch();
   const [loggingOut] = useLogoutMutation();
+  const [disconnectAllInstanceOfMe] = useDisconnectAllUserMutation();
   const location = useLocation();
   const navigate = useNavigate();
   const pathname = location.pathname;
   const logoutUser = async () => {
     try {
       await loggingOut().unwrap();
+      await disconnectAllInstanceOfMe().unwrap();
       dispatch(apiSlice.util.resetApiState());
       dispatch({ type: LOGOUT });
       // eslint-disable-next-line no-self-assign
       window.location = window.location;
-    } catch (error) {
-      dispatch(apiSlice.util.resetApiState());
-      dispatch({ type: LOGOUT });
-      // eslint-disable-next-line no-self-assign
-      window.location = window.location;
-    }
+    } catch (error) { /* empty */ }
   };
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
 

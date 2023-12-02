@@ -163,6 +163,18 @@ export class GatewayGateway {
     }
   }
 
+  @SubscribeMessage(GeneralEvent.DISCONNECT_ALL_INSTANCE_OF_ME)
+  async disconnectAllInstanceOfMe(@ConnectedSocket() client: SocketWithAuth) {
+    const { userId } = client;
+
+    if (!this.getAllSockeIdsByKey(userId))
+      throw new WsBadRequestException('User not online');
+
+    client.to(userId).emit(GeneralEvent.DISCONNECT_ME);
+    this.sendToSocket(this.server, client.id, GeneralEvent.SUCCESS);
+    this.deleteAllSocketIdsBy(userId);
+  }
+
   @SubscribeMessage(GeneralEvent.NEW_PROFILE_PICTURE)
   async notifyUserForNewUserProfilePic(
     @ConnectedSocket() client: SocketWithAuth,
@@ -3091,6 +3103,10 @@ export class GatewayGateway {
 
   private getAllSockeIdsByKey(key: string) {
     return this.server.of('/').adapter.rooms.get(key);
+  }
+
+  private deleteAllSocketIdsBy(key: string) {
+    return this.server.of('/').adapter.rooms.delete(key);
   }
 
   private getSocket(socketId: string) {

@@ -12,6 +12,8 @@ export enum GeneralEvent {
   UPDATE_USER = `${General}.update.user`,
   USER_CHANGED_USERNAME = `${General}.changed.username`,
   TOKEN_NOT_VALID = `${General}.token.not.valid`,
+  DISCONNECT_ALL_INSTANCE_OF_ME = `${General}.disconnect.all.instance.of.me`,
+  DISCONNECT_ME = `${General}.disconnect.me`,
 }
 
 const friend = "friend";
@@ -107,5 +109,5 @@ export enum PongEvent {
   DECLINE_GAME_INVITATION = `${pong}.decline.game.invitation`,
   USER_DECLINED_INVITATION = `${pong}.user.declined.invitation`,
   UPDATE_PLAYER_POSITION = `${pong}.update.paddle.position`,
-  USER_STOP_UPDATE = `${pong}.user.stop.update`
+  USER_STOP_UPDATE = `${pong}.user.stop.update`,
 }
