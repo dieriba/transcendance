@@ -7,6 +7,9 @@ import { HttpExceptionFilter } from './common/global-filters/http-exception-filt
 import { allLeftOverExceptionFilter } from './common/global-filters/all-leftover-exception-filter';
 import { SocketIOAdapter } from './common/io-adapter/socket-io-adapter';
 import * as cookieParser from 'cookie-parser';
+import * as rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const clientPort = parseInt(process.env.FRONTEND_PORT);
@@ -18,6 +21,8 @@ async function bootstrap() {
       validateCustomDecorators: true,
     }),
   );
+
+  app.use(helmet());
   app.useWebSocketAdapter(new SocketIOAdapter(app));
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalFilters(
@@ -26,7 +31,7 @@ async function bootstrap() {
     new PrismaExceptionFilter(httpAdapterHost),
   );
   app.enableCors({
-    origin: ['*', `http://localhost:${clientPort}`],
+    origin: [`http://localhost:${clientPort}`],
     credentials: true,
   });
 
