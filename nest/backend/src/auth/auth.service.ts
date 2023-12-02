@@ -98,8 +98,9 @@ export class AuthService {
     if (!user) throw new UserNotFoundException();
 
     try {
-      await this.userService.clearHashedToken(id, {
+      await this.userService.updateUserById(id, {
         hashedRefreshToken: null,
+        status: STATUS.OFFLINE,
       });
     } catch (error) {}
   }

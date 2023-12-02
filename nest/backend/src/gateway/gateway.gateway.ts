@@ -111,7 +111,11 @@ export class GatewayGateway {
     const rooms = this.server.of('/').adapter.rooms;
     console.log({ rooms });
 
-    this.updateUserStatus(client, { id: userId, status: STATUS.ONLINE });
+    const room = this.getAllSockeIdsByKey(userId);
+
+    if (room.size === 1) {
+      this.updateUserStatus(client, { id: userId, status: STATUS.ONLINE });
+    }
   }
 
   async handleDisconnect(client: SocketWithAuth) {
@@ -124,9 +128,6 @@ export class GatewayGateway {
 
     if (!this.getAllSockeIdsByKey(userId)) {
       console.log('LOGGED OUT');
-      await this.userService.updateUserById(client.userId, {
-        status: STATUS.OFFLINE,
-      });
       this.updateUserStatus(client, { id: userId, status: STATUS.OFFLINE });
     }
 
