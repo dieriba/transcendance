@@ -7,6 +7,7 @@ import {
   scoreToWinPongGame,
   keyPressedType,
   pongGameDuration,
+  FRAME_RATE,
 } from 'shared/constant';
 import { EndGameData, UpdatedGameData } from 'shared/types';
 
@@ -73,6 +74,8 @@ export class Game {
   private winner: Player | undefined = undefined;
   private looser: Player | undefined = undefined;
   private draw: boolean = false;
+  private lastTime: number = -1;
+  private dt: number;
 
   constructor(gameId: string, playerId: string, socketId: string) {
     this.gameId = gameId;
@@ -115,12 +118,15 @@ export class Game {
   }
 
   public update() {
-    this.ball.updatePosition(this.player, this.opponentPlayer);
-    this.player.updatePosition();
-    this.opponentPlayer.updatePosition();
+    const now = performance.now();
+    const dt = this.lastTime === -1 ? FRAME_RATE : now - this.lastTime;
+    this.ball.updatePosition(dt, this.player, this.opponentPlayer);
+    this.player.updatePosition(dt);
+    this.opponentPlayer.updatePosition(dt);
     this.isAWinnerOrTimeGameLimitReached();
     // this.ball.checkCollisionWithPlayer(this.player);
     //this.ball.checkCollisionWithPlayer(this.opponentPlayer);
+    this.lastTime = now;
   }
 
   private isAWinnerOrTimeGameLimitReached() {

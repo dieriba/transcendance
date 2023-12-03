@@ -6,14 +6,24 @@ import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 export interface AppState {
   inQueue: boolean;
   waitingReady: boolean;
-  gameData: StartGameInfo | undefined;
+  gameData: StartGameInfo;
   users: LeaderboardType[];
 }
 
 const initialState: AppState = {
   inQueue: false,
   waitingReady: false,
-  gameData: undefined,
+  gameData: {
+    room: "",
+    creator: {
+      nickname: "",
+      avatar: "",
+    },
+    opponent: {
+      nickname: "",
+      avatar: "",
+    },
+  },
   users: [],
 };
 

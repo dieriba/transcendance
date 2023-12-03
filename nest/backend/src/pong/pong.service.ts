@@ -2,7 +2,10 @@ import { Server } from 'socket.io';
 import { Injectable } from '@nestjs/common';
 import { SocketWithAuth } from 'src/auth/type';
 import { PONG_ROOM_PREFIX, PongEvent } from '../../shared/socket.event';
-import { GAME_INVITATION_TIME_LIMIT } from '../../shared/constant';
+import {
+  GAME_INVITATION_TIME_LIMIT,
+  keyPressedType,
+} from '../../shared/constant';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
 import { Game, GameInvitation } from './class/Game';
@@ -20,6 +23,7 @@ export class PongService {
     string,
     GameInvitation
   >();
+  private lastTime: number = -1;
   private readonly queue: Map<string, string>[] = [];
 
   async getLeaderboard(userId: string) {
@@ -167,6 +171,22 @@ export class PongService {
     }
   }
 
+  updateGamePlayerPosition(
+    index: number,
+    userId: string,
+    direction: keyPressedType,
+  ) {
+    this.games[index].updatePlayerPosition(userId, direction);
+  }
+
+  getGameByGameIdAndReturnIndex(
+    gameId: string,
+  ): [game: Game | undefined, index: number] {
+    const index = this.games.findIndex((game) => game.getGameId === gameId);
+
+    return [index === -1 ? undefined : this.games[index], index];
+  }
+
   getGameByGameId(gameId: string) {
     return this.games.find((game) => game.getGameId === gameId);
   }
@@ -199,6 +219,8 @@ export class PongService {
   }
 
   async gameUpdate(server: Server) {
+    const now = performance.now();
+
     this.games.forEach(async (game, index) => {
       if (game.hasStarted) {
         if (!game.endGame()) {
@@ -234,6 +256,7 @@ export class PongService {
         this.libService.deleteSocketRoom(server, game.getGameId);
       }
     });
+    this.lastTime = now;
   }
 
   private async setPongWinner(

@@ -16,14 +16,13 @@ export const SCORE_FONT = 'Arial';
 
 export const WINNING_SCORE = 5;
 
-// Pixels the players are from the edge
-export const PLAYER_PADDING = 40;
-
 export const ArrowUp = 'ArrowUp';
 export const ArrowDown = 'ArrowDown';
 
-// Paddle size
-export const BALL_VELOCITY = 0.01;
+export const BALL_X_POSITION = 0.5;
+export const Ball_Y_POSITION = 0.5;
+export const BALL_VELOCITY = 0.0006;
+export const SPEED_FACTOR = BALL_VELOCITY / 10;
 export const RESIZE_FACTOR = 1.3;
 export const defaultBall = {
   speed: BALL_VELOCITY,
@@ -40,11 +39,13 @@ export const BALL_HALF_WIDTH = 0.009;
 export const ASPECT_RATIO = 286 / 175;
 export const BALL_HALF_HEIGHT = BALL_HALF_WIDTH * ASPECT_RATIO;
 export const GAME_MARGIN = 15;
-export const PLAYER_SPEED = 0.02;
+export const PLAYER_SPEED = 0.0013;
 export const PADDLE_MARGIN_X = 0.01;
 export const PADDLE_MARGIN_Y = PADDLE_MARGIN_X * ASPECT_RATIO;
 export const PADDLE_WIDTH = 0.015;
+export const PADDLE_HALF_WIDTH = PADDLE_WIDTH / 2;
 export const PADDLE_HEIGHT = 0.16;
+export const PADDLE_HALF_HEIGHT = PADDLE_HEIGHT / 2;
 export const PADDLE_MIN_Y_POS = PADDLE_MARGIN_Y + PADDLE_HEIGHT / 2;
 export const PADDLE_MAX_Y_POS = 1 - PADDLE_MIN_Y_POS;
 

@@ -1,7 +1,4 @@
-export const clamp = (val: number, min: number, max: number) => {
-  if (val < min) return min;
+export const clamp = (val: number, min: number, max: number) =>
+  val < min ? min : val > max ? max : val;
 
-  if (val > max) return max;
-
-  return val;
-};
+export const sign = (val: number) => (val < 0 ? -1 : val > 0 ? 1 : 0);

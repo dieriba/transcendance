@@ -40,9 +40,9 @@ export class Player {
     this.score = 0;
   }
 
-  public updatePosition() {
-    if (this.moveUp) this.position.y -= this.velocity.y;
-    if (this.moveDown) this.position.y += this.velocity.y;
+  public updatePosition(dt: number) {
+    if (this.moveUp) this.position.y -= this.velocity.y * dt;
+    if (this.moveDown) this.position.y += this.velocity.y * dt;
     this.position.y = clamp(
       this.position.y,
       PADDLE_MIN_Y_POS,

@@ -3184,16 +3184,17 @@ export class GatewayGateway {
     @ConnectedSocket() client: SocketWithAuth,
     @MessageBody() { gameId, keyPressed }: UpdatePlayerPositionDto,
   ) {
+    this.logger.log('Entered');
     const { userId } = client;
-    const game = this.pongService.getGameByGameId(gameId);
+    const [game, index] =
+      this.pongService.getGameByGameIdAndReturnIndex(gameId);
 
-    if (!game) throw new WsGameNotFoundException();
+    if (index === -1) throw new WsGameNotFoundException();
 
     if (!game.getPlayers.includes(userId))
       throw new WsUnauthorizedException('You are not allowed to move paddle!');
 
-    game.updatePlayerPosition(userId, keyPressed);
-    this.pongService.updateGameByGameId(gameId, game);
+    this.pongService.updateGamePlayerPosition(index, userId, keyPressed);
   }
 
   @SubscribeMessage(PongEvent.USER_STOP_UPDATE)
