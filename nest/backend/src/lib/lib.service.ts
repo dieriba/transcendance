@@ -11,8 +11,6 @@ import { SocketWithAuth } from 'src/auth/type';
 import { SocketServerResponse } from 'src/common/types/socket-types';
 @Injectable()
 export class LibService {
-  /*Generate secret for opt*/
-
   private readonly dateModifiers: Record<
     string,
     (date: Date, value: number) => Date

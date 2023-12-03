@@ -7,6 +7,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
 import { Game, GameInvitation } from './class/Game';
 import { LibService } from 'src/lib/lib.service';
+import { PlayerStartGameInfo, StartGameInfo } from 'shared/types';
 
 @Injectable()
 export class PongService {
@@ -229,7 +230,7 @@ export class PongService {
           { data },
         );
 
-        this.games.splice(index, 1);
+        this.deleteGameRoomByIndex(index);
         this.libService.deleteSocketRoom(server, game.getGameId);
       }
     });
@@ -286,19 +287,53 @@ export class PongService {
     return { message: `${winner.nickname} won the game` };
   }
 
-  joinGame(server: Server, client: SocketWithAuth, room: string) {
+  joinGame(
+    server: Server,
+    client: SocketWithAuth,
+    room: string,
+    {
+      creator,
+      opponent,
+    }: { creator: PlayerStartGameInfo; opponent: PlayerStartGameInfo },
+  ) {
     client.join(room);
-    server.to(room).emit(PongEvent.LETS_PLAY, { data: room });
+    const data: StartGameInfo = {
+      room,
+      creator,
+      opponent,
+    };
+
+    server.to(room).emit(PongEvent.LETS_PLAY, {
+      data,
+    });
   }
 
-  checkIfMatchupIsPossible(userId: string, socketId: string): string {
+  async checkIfMatchupIsPossible(
+    userId: string,
+    socketId: string,
+  ): Promise<
+    { room?: string; creator: PlayerStartGameInfo | undefined } | undefined
+  > {
     const index = this.games.findIndex((game) => game.getPlayers.length === 1);
     if (index === -1) return undefined;
+
+    const creator = await this.prismaService.user.findFirst({
+      where: { id: this.games[index].getPlayer.getPlayerId },
+      include: { profile: true },
+    });
+
+    if (!creator) {
+      this.deleteGameRoomByIndex(index);
+      return { creator: undefined };
+    }
 
     this.games[index].setOponnentPlayer = userId;
     this.games[index].setNewSocketId = socketId;
     this.games[index].startGame();
-    return this.games[index].getGameId;
+    return {
+      room: this.games[index].getGameId,
+      creator: { nickname: creator.nickname, avatar: creator.profile.avatar },
+    };
   }
 
   updateGameByUserId(game: Game, userId: string) {
@@ -309,5 +344,9 @@ export class PongService {
     if (index >= 0) {
       this.games[index] = game;
     }
+  }
+
+  private deleteGameRoomByIndex(index: number) {
+    this.games.splice(index, 1);
   }
 }

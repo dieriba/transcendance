@@ -44,11 +44,11 @@ export class Ball {
     return this.velocity;
   }
 
-  public checkCollisionWithPlayer = (player: Player) => {
+  private checkCollisionWithPlayer = (player: Player) => {
     
   };
 
-  public updatePosition() {
+  public updatePosition(player1: Player, player2: Player) {
     this.position.x += this.velocity.x;
     this.position.y += this.velocity.y;
 
@@ -70,5 +70,7 @@ export class Ball {
       this.position.x = BALL_HALF_WIDTH;
       this.reverseX();
     }
+    this.checkCollisionWithPlayer(player1);
+    this.checkCollisionWithPlayer(player2);
   }
 }

@@ -115,7 +115,7 @@ export class Game {
   }
 
   public update() {
-    this.ball.updatePosition();
+    this.ball.updatePosition(this.player, this.opponentPlayer);
     this.player.updatePosition();
     this.opponentPlayer.updatePosition();
     this.isAWinnerOrTimeGameLimitReached();

@@ -31,3 +31,14 @@ export type EndGameData = {
   winner: playerInfo;
   looser: playerInfo;
 };
+
+export type StartGameInfo = {
+  room: string;
+  creator: PlayerStartGameInfo;
+  opponent: PlayerStartGameInfo;
+};
+
+export type PlayerStartGameInfo = {
+  nickname: string;
+  avatar: string | undefined;
+};

@@ -29,10 +29,11 @@ import MobileSidebar from "../sidebar/MobileSidebar";
 import { BaseUserType } from "../../models/login/UserSchema";
 import { ChatroomGroupType } from "../../models/groupChat";
 import { addGroupInvitation } from "../../redux/features/groups/group.slice";
-import { setGameId } from "../../redux/features/pong/pong.slice";
+import { setGameData } from "../../redux/features/pong/pong.slice";
 import { apiSlice } from "../../redux/api/apiSlice";
 import { LOGOUT } from "../../redux/type";
 import { deleteChatroomById } from "../../redux/features/chat/chat.slice";
+import { StartGameInfo } from "../../../shared/types";
 
 const ProtectedDashboardLayout = () => {
   const isAuthenticated = useAppSelector(
@@ -128,8 +129,8 @@ const ProtectedDashboardLayout = () => {
 
       socket.on(
         PongEvent.LETS_PLAY,
-        (data: SocketServerSucessResponse & { data: string }) => {
-          dispatch(setGameId(data.data));
+        (data: SocketServerSucessResponse & { data: StartGameInfo }) => {
+          dispatch(setGameData(data.data));
           navigate(PATH_APP.dashboard.pong);
         }
       );

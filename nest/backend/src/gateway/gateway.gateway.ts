@@ -2954,6 +2954,9 @@ export class GatewayGateway {
 
     const user = await this.prismaService.user.findFirst({
       where: { id: userId },
+      include: {
+        profile: true,
+      },
     });
 
     if (!user) throw new WsUserNotFoundException();
@@ -2970,9 +2973,24 @@ export class GatewayGateway {
         'You must undo invitation before joining queue',
       );
 
-    const room = this.pongService.checkIfMatchupIsPossible(userId, client.id);
-    if (room) {
-      this.pongService.joinGame(this.server, client, room);
+    const data = await this.pongService.checkIfMatchupIsPossible(
+      userId,
+      client.id,
+    );
+
+    if (data) {
+      if (data.creator === undefined) throw new WsUserNotFoundException();
+
+      this.pongService.joinGame(this.server, client, data.room, {
+        creator: {
+          nickname: data.creator.nickname,
+          avatar: data.creator.avatar,
+        },
+        opponent: {
+          nickname: user.nickname,
+          avatar: user.profile.avatar,
+        },
+      });
       return;
     }
 
@@ -3155,7 +3173,10 @@ export class GatewayGateway {
 
     senderSocket.join(gameId);
 
-    this.pongService.joinGame(this.server, client, gameId);
+    this.pongService.joinGame(this.server, client, gameId, {
+      creator: { nickname: user.nickname, avatar: user.profile.avatar },
+      opponent: { nickname: me.nickname, avatar: me.profile.avatar },
+    });
   }
 
   @SubscribeMessage(PongEvent.UPDATE_PLAYER_POSITION)

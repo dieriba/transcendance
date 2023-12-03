@@ -1,3 +1,4 @@
+import { StartGameInfo } from "../../../../shared/types";
 import { UserUpdateStatusType } from "../../../models/login/UserSchema";
 import { LeaderboardType } from "./../../../models/Leaderboard";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
@@ -5,14 +6,14 @@ import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 export interface AppState {
   inQueue: boolean;
   waitingReady: boolean;
-  gameId: string | undefined;
+  gameData: StartGameInfo | undefined;
   users: LeaderboardType[];
 }
 
 const initialState: AppState = {
   inQueue: false,
   waitingReady: false,
-  gameId: undefined,
+  gameData: undefined,
   users: [],
 };
 
@@ -26,8 +27,8 @@ const PongSlice = createSlice({
     setWaitingReady: (state, action: PayloadAction<boolean>) => {
       state.waitingReady = action.payload;
     },
-    setGameId: (state, action: PayloadAction<string>) => {
-      state.gameId = action.payload;
+    setGameData: (state, action: PayloadAction<StartGameInfo>) => {
+      state.gameData = action.payload;
     },
     setLeaderboardUser: (state, action: PayloadAction<LeaderboardType[]>) => {
       state.users = action.payload;
@@ -47,7 +48,7 @@ const PongSlice = createSlice({
 export const {
   setInQueue,
   setWaitingReady,
-  setGameId,
+  setGameData,
   setLeaderboardUser,
   updateUserStatus,
 } = PongSlice.actions;

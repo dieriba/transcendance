@@ -26,8 +26,7 @@ const Games = () => {
 
   const handleJoinQueue = async () => {
     try {
-      const res = await joinQueu().unwrap();
-      console.log({ gameId: res.data.gameId });
+      await joinQueu().unwrap();
 
       setOpen((prev) => ({ ...prev, queue: true }));
     } catch (error) {

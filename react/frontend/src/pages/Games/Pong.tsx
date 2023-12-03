@@ -7,20 +7,20 @@ import usePageSize from "../../services/custom-hooks/usePageSize";
 import { GAME_MARGIN, ASPECT_RATIO } from "../../../shared/constant";
 import { useNavigate } from "react-router-dom";
 import { PATH_APP } from "../../routes/paths";
-import { Box } from "@mui/material";
+import { Avatar, Stack, Typography } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { showSnackBar } from "../../redux/features/app/app.slice";
 import { SocketServerSucessResponse } from "../../services/type";
-import { UpdatedGameData } from "../../../shared/types";
+import { StartGameInfo, UpdatedGameData } from "../../../shared/types";
 import { RootState } from "../../redux/store";
 
 const Pong = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const dispatch = useAppDispatch();
   const { width, height } = usePageSize();
-  const gameId = useAppSelector(
-    (state: RootState) => state.pong.gameId
-  ) as string;
+  const gameData = useAppSelector(
+    (state: RootState) => state.pong.gameData
+  ) as StartGameInfo;
   const navigate = useNavigate();
   const gameWidth = Math.min(
     width - 2 * GAME_MARGIN,
@@ -56,7 +56,7 @@ const Pong = () => {
       const { key, code } = event;
       if (code === PongEvent.ARROW_UP || key === PongEvent.ARROW_UP) {
         socket.emit(PongEvent.UPDATE_PLAYER_POSITION, {
-          gameId,
+          gameId: gameData?.room,
           keyPressed: code,
         });
       } else if (
@@ -64,7 +64,7 @@ const Pong = () => {
         key === PongEvent.ARROW_DOWN
       ) {
         socket.emit(PongEvent.UPDATE_PLAYER_POSITION, {
-          gameId,
+          gameId: gameData?.room,
           keyPressed: code,
         });
       }
@@ -73,12 +73,18 @@ const Pong = () => {
     window.addEventListener("keyup", (event: KeyboardEvent) => {
       const { key, code } = event;
       if (code === PongEvent.ARROW_UP || key === PongEvent.ARROW_UP) {
-        socket.emit(PongEvent.USER_STOP_UPDATE, { gameId, keyPressed: code });
+        socket.emit(PongEvent.USER_STOP_UPDATE, {
+          gameId: gameData?.room,
+          keyPressed: code,
+        });
       } else if (
         code === PongEvent.ARROW_DOWN ||
         key === PongEvent.ARROW_DOWN
       ) {
-        socket.emit(PongEvent.USER_STOP_UPDATE, { gameId, keyPressed: code });
+        socket.emit(PongEvent.USER_STOP_UPDATE, {
+          gameId: gameData?.room,
+          keyPressed: code,
+        });
       }
     });
 
@@ -102,7 +108,18 @@ const Pong = () => {
       }
     );
 
+    socket.on(
+      PongEvent.END_GAME,
+      (data: SocketServerSucessResponse & { data: { message: string } }) => {
+        navigate(PATH_APP.dashboard.games, { replace: true });
+        dispatch(
+          showSnackBar({ message: data.data.message, severity: data.severity })
+        );
+      }
+    );
+
     return () => {
+      socket.off(PongEvent.END_GAME);
       socket.off(PongEvent.UPDATE_GAME);
       socket.off(PongEvent.USER_NO_MORE_IN_GAME);
     };
@@ -114,24 +131,35 @@ const Pong = () => {
     gameHeight,
     gameWidth,
     dispatch,
-    gameId,
+    gameData,
   ]);
 
   return (
-    <Box
+    <Stack
       width={"100%"}
       alignItems={"center"}
       height={"100%"}
       display={"flex"}
       justifyContent={"center"}
+      spacing={2}
     >
+      <Stack width={"85%"} justifyContent={"space-between"} direction={"row"}>
+        <Stack>
+          <Avatar src={gameData?.creator.avatar} />
+          <Typography>{gameData?.creator.nickname}</Typography>
+        </Stack>
+        <Stack width="maxContent" alignItems={"center"}>
+          <Avatar src={gameData?.opponent.avatar} />
+          <Typography>{gameData?.opponent.nickname}</Typography>
+        </Stack>
+      </Stack>
       <canvas
         style={{ width: gameWidth, height: gameHeight }}
         ref={canvasRef}
         width={gameWidth}
         height={gameHeight}
       />
-    </Box>
+    </Stack>
   );
 };
 
