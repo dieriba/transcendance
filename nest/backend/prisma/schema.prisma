@@ -41,15 +41,14 @@ model User {
 
 model GameHistory {
   id          String      @id @default(uuid())
-  user1       Pong        @relation("gameHistoryUsers1", fields: [user1Id], references: [userId])
-  user1Id     String
-  user2       Pong        @relation("gameHistoryUsers2", fields: [user2Id], references: [userId])
-  user2Id     String
-  winnerId    String
+  winner       Pong        @relation("gameHistoryUsers1", fields: [winnerId], references: [userId])
+  winnerId     String
+  looser       Pong        @relation("gameHistoryUsers2", fields: [looserId], references: [userId])
+  looserId     String
   matchDate   DateTime    @default(now())
   matchResult GAME_RESULT
 
-  @@unique([user1Id, user2Id, matchDate])
+  @@unique([winnerId, looserId, matchDate])
 }
 
 model Group {

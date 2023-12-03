@@ -6,6 +6,7 @@ import { GAME_INVITATION_TIME_LIMIT } from '../../shared/constant';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
 import { Game, GameInvitation } from './class/Game';
+import { Pong } from '@prisma/client';
 
 @Injectable()
 export class PongService {
@@ -233,10 +234,19 @@ export class PongService {
 
     if (!winner || !looser) return;
 
-    /*if (winner.pong){
-      await
-    }*/
-
+    await this.prismaService.$transaction(async (tx) => {
+      await this.prismaService.pong.upsert({
+        where: { userId: winnerId },
+        create: {
+          game: {
+            create: {
+              
+            },
+          },
+        },
+        update: {},
+      });
+    });
   }
 
   joinGame(server: Server, client: SocketWithAuth, room: string) {
