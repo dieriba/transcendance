@@ -38,8 +38,8 @@ services:
     image: nest:v1
     volumes:
         - ./nest/backend:/app:rw
-        - /app/node_modules
-        - ./shared:/app/shared
+        - /app/node_modules:rw
+        - ./shared:/app/shared:rw
     ports:
       - 3000:3000
       - 9000:9000
@@ -59,9 +59,9 @@ services:
     restart: unless-stopped
     image: react:v1
     volumes:
-      - ./react/frontend:/app
-      - /app/node_modules
-      - ./shared:/app/shared
+      - ./react/frontend:/app:rw
+      - /app/node_modules:rw
+      - ./shared:/app/shared:rw
     ports:
       - 5173:5173
     networks:
