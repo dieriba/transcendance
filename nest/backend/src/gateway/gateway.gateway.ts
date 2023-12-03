@@ -54,7 +54,6 @@ import {
 import { WsCatchAllFilter } from 'src/common/global-filters/ws-exception-filter';
 import { WsAccessTokenGuard } from 'src/common/guards/ws.guard';
 import { ChatroomBaseData } from 'src/common/types/chatroom-info-type';
-import { SocketServerResponse } from 'src/common/types/socket-types';
 import { UserData, UserId } from 'src/common/types/user-info.type';
 import { LibService } from 'src/lib/lib.service';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -139,7 +138,7 @@ export class GatewayGateway {
     console.log({ allRooms });
 
     if (game?.hasStarted) {
-      this.sendToSocket(
+      this.libService.sendToSocket(
         this.server,
         game.getGameId,
         PongEvent.USER_NO_MORE_IN_GAME,
@@ -147,7 +146,6 @@ export class GatewayGateway {
           severity: 'info',
           message:
             'Redirecting you to game page as your adversary leaved the game',
-          data: {},
         },
       );
       this.pongService.deleteGameRoomByGameId(game.getGameId);
@@ -168,7 +166,7 @@ export class GatewayGateway {
       throw new WsBadRequestException('User not online');
 
     client.to(userId).emit(GeneralEvent.DISCONNECT_ME);
-    this.sendToSocket(this.server, client.id, GeneralEvent.SUCCESS);
+    this.libService.sendToSocket(this.server, client.id, GeneralEvent.SUCCESS);
     this.deleteAllSocketIdsBy(userId);
   }
 
@@ -177,12 +175,16 @@ export class GatewayGateway {
     const { userId } = client;
 
     if (!this.getAllSockeIdsByKey(userId)) {
-      this.sendToSocket(this.server, client.id, GeneralEvent.SUCCESS);
+      this.libService.sendToSocket(
+        this.server,
+        client.id,
+        GeneralEvent.SUCCESS,
+      );
       return;
     }
 
     client.to(userId).emit(GeneralEvent.DISCONNECT_ME);
-    this.sendToSocket(this.server, client.id, GeneralEvent.SUCCESS);
+    this.libService.sendToSocket(this.server, client.id, GeneralEvent.SUCCESS);
   }
 
   @SubscribeMessage(GeneralEvent.NEW_PROFILE_PICTURE)
@@ -204,9 +206,8 @@ export class GatewayGateway {
       },
     });
 
-    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+    this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
       message: 'ok',
-      data: {},
     });
   }
 
@@ -246,7 +247,7 @@ export class GatewayGateway {
       data: { id: userId, nickname },
     });
 
-    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+    this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
       message: 'Profile updated ',
       data: { nickname },
     });
@@ -311,23 +312,26 @@ export class GatewayGateway {
     const { type } = newChatroom;
 
     existingUserId.map((id) => {
-      this.sendToSocket(this.server, id, ChatEventGroup.NEW_CHATROOM, {
-        message: '',
-        data: {
-          id: newChatroom.id,
-          chatroomName,
-          type,
-          messages: [],
-          restrictedUsers: [],
+      this.libService.sendToSocket(
+        this.server,
+        id,
+        ChatEventGroup.NEW_CHATROOM,
+        {
+          data: {
+            id: newChatroom.id,
+            chatroomName,
+            type,
+            messages: [],
+            restrictedUsers: [],
+          },
         },
-      });
+      );
 
       this.joinOrLeaveRoom(id, GeneralEvent.JOIN, chatroomName);
 
       if (id === userId) {
-        this.sendToSocket(this.server, id, GeneralEvent.SUCCESS, {
+        this.libService.sendToSocket(this.server, id, GeneralEvent.SUCCESS, {
           message: 'Group created succesfully',
-          data: {},
         });
       }
     });
@@ -413,7 +417,7 @@ export class GatewayGateway {
 
     const chat = await this.chatroomService.updateChatroom(chatroomId, data);
 
-    this.sendToSocket(
+    this.libService.sendToSocket(
       client,
       chatroom.chatroomName,
       ChatEventGroup.UPDATED_GROUP_CHATROOM,
@@ -423,7 +427,7 @@ export class GatewayGateway {
       },
     );
 
-    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+    this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
       message: 'Group edited succesflly',
       data: { chatroomId, type },
     });
@@ -592,7 +596,7 @@ export class GatewayGateway {
       },
     });
 
-    this.sendToSocket(
+    this.libService.sendToSocket(
       this.server,
       id,
       ChatEventGroup.RECEIVED_GROUP_INVITATION,
@@ -603,8 +607,7 @@ export class GatewayGateway {
       },
     );
 
-    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
-      data: {},
+    this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
       message: `${nickname} succesfully invited`,
     });
 
@@ -652,12 +655,12 @@ export class GatewayGateway {
       },
     });
 
-    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+    this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
       data: { chatroomId },
       message: 'Invitation successfully declined',
     });
 
-    this.sendToSocket(
+    this.libService.sendToSocket(
       this.server,
       chatroom.chatroomName,
       ChatEventGroup.USER_DECLINED_INVITATION,
@@ -712,12 +715,16 @@ export class GatewayGateway {
       },
     });
 
-    this.sendToSocket(this.server, id, ChatEventGroup.DELETE_USER_INVITATION, {
-      data: { chatroomId },
-      message: '',
-    });
+    this.libService.sendToSocket(
+      this.server,
+      id,
+      ChatEventGroup.DELETE_USER_INVITATION,
+      {
+        data: { chatroomId },
+      },
+    );
 
-    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+    this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
       data: { id },
       message: `User invitation for ${user.nickname} has been canceled!`,
     });
@@ -819,30 +826,37 @@ export class GatewayGateway {
     });
 
     if (existingUserAndNonBlocked.length === 0) {
-      this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
-        message: '',
-        data: {},
-      });
+      this.libService.sendToSocket(
+        this.server,
+        userId,
+        GeneralEvent.SUCCESS,
+        {},
+      );
       return;
     }
 
     existingUserAndNonBlocked.map(
       async ({ id, nickname, status, profile, friends }) => {
         await this.chatroomUserService.createNewChatroomUser(id, chatroomId);
-        this.sendToSocket(this.server, id, ChatEventGroup.NEW_CHATROOM, {
-          message: `${nickname} added you in the group named ${chatroomName}`,
-          data: {
-            id: chatroomId,
-            chatroomName,
-            type,
-            messages,
-            restrictedUsers: [],
+        this.libService.sendToSocket(
+          this.server,
+          id,
+          ChatEventGroup.NEW_CHATROOM,
+          {
+            message: `${nickname} added you in the group named ${chatroomName}`,
+            data: {
+              id: chatroomId,
+              chatroomName,
+              type,
+              messages,
+              restrictedUsers: [],
+            },
           },
-        });
+        );
 
         this.joinOrLeaveRoom(id, GeneralEvent.JOIN, chatroomName);
 
-        this.sendToSocket(
+        this.libService.sendToSocket(
           this.server,
           chatroomName,
           ChatEventGroup.USER_ADDED,
@@ -860,9 +874,8 @@ export class GatewayGateway {
       },
     );
 
-    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+    this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
       message: 'User added successully!',
-      data: {},
     });
   }
 
@@ -921,14 +934,18 @@ export class GatewayGateway {
       }),
     ]);
 
-    this.sendToSocket(client, chatroomName, ChatEventGroup.NEW_ADMIN, {
-      message: `${updateNewDieriba.user.nickname} is now admin of that group!`,
-      chatroomId,
-      data: { id, role: chatroomUser.role },
-    });
+    this.libService.sendToSocket(
+      client,
+      chatroomName,
+      ChatEventGroup.NEW_ADMIN,
+      {
+        message: `${updateNewDieriba.user.nickname} is now admin of that group!`,
+        chatroomId,
+        data: { id, role: chatroomUser.role },
+      },
+    );
 
-    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
-      message: '',
+    this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
       data: { id, role: chatroomUser.role },
     });
   }
@@ -976,7 +993,7 @@ export class GatewayGateway {
 
     const { chatroomName } = chatroom;
 
-    this.sendToSocket(
+    this.libService.sendToSocket(
       client,
       chatroomName,
       ChatEventGroup.GROUP_CHATROOM_DELETED,
@@ -986,12 +1003,12 @@ export class GatewayGateway {
       },
     );
 
-    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+    this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
       data: { chatroomId },
       message: 'chatroom deleted',
     });
 
-    this.deleteSocketRoom(chatroomName);
+    this.libService.deleteSocketRoom(this.server, chatroomName);
   }
 
   @SubscribeMessage(ChatEventGroup.KICK_USER)
@@ -1050,18 +1067,23 @@ export class GatewayGateway {
 
     this.joinOrLeaveRoom(id, GeneralEvent.LEAVE, chatroomName);
 
-    this.sendToSocket(client, chatroomName, ChatEventGroup.USER_KICKED, {
-      data: { id, chatroomId, role: chatroomUser.role },
-      chatroomId,
-      message: `${clientNickname} has kicked ${nickname}`,
-    });
+    this.libService.sendToSocket(
+      client,
+      chatroomName,
+      ChatEventGroup.USER_KICKED,
+      {
+        data: { id, chatroomId, role: chatroomUser.role },
+        chatroomId,
+        message: `${clientNickname} has kicked ${nickname}`,
+      },
+    );
 
-    this.sendToSocket(this.server, id, ChatEventGroup.BEEN_KICKED, {
+    this.libService.sendToSocket(this.server, id, ChatEventGroup.BEEN_KICKED, {
       message: `You have been kicked out of the group ${chatroomName}`,
       data: { chatroomId },
     });
 
-    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+    this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
       data: { id, chatroomId, role: chatroomUser.role },
       message: `${nickname} has been kicked`,
     });
@@ -1137,14 +1159,19 @@ export class GatewayGateway {
               id: chatroomId,
             },
           });
-          this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
-            data: { chatroomId },
-            message: `You leaved the group ${chatroomName}`,
-          });
+          this.libService.sendToSocket(
+            this.server,
+            userId,
+            GeneralEvent.SUCCESS,
+            {
+              data: { chatroomId },
+              message: `You leaved the group ${chatroomName}`,
+            },
+          );
           client.broadcast.emit(ChatEventGroup.DELETE_JOINABLE_GROUP, {
             data: { chatroomId },
           });
-          this.deleteSocketRoom(chatroomName);
+          this.libService.deleteSocketRoom(this.server, chatroomName);
           return;
         }
         const { role } = await tx.chatroomUser.update({
@@ -1169,7 +1196,7 @@ export class GatewayGateway {
 
         this.joinOrLeaveRoom(userId, GeneralEvent.LEAVE, chatroomName);
 
-        this.sendToSocket(
+        this.libService.sendToSocket(
           this.server,
           chatroomName,
           ChatEventGroup.PREVIOUS_ADMIN_LEAVED,
@@ -1183,10 +1210,15 @@ export class GatewayGateway {
           },
         );
 
-        this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
-          data: { chatroomId },
-          message: `You left the group ${chatroomName}`,
-        });
+        this.libService.sendToSocket(
+          this.server,
+          userId,
+          GeneralEvent.SUCCESS,
+          {
+            data: { chatroomId },
+            message: `You left the group ${chatroomName}`,
+          },
+        );
       });
       return;
     } else {
@@ -1207,16 +1239,21 @@ export class GatewayGateway {
 
     this.joinOrLeaveRoom(userId, GeneralEvent.LEAVE, chatroomName);
 
-    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+    this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
       data: { chatroomId },
       message: `chatroom ${chatroomName} leaved`,
     });
 
-    this.sendToSocket(client, chatroomName, ChatEventGroup.USER_LEAVED, {
-      chatroomId,
-      data: { id: userId, chatroomId, role: chatroomUser.role },
-      message: `${nickname} has leaved the chatroom`,
-    });
+    this.libService.sendToSocket(
+      client,
+      chatroomName,
+      ChatEventGroup.USER_LEAVED,
+      {
+        chatroomId,
+        data: { id: userId, chatroomId, role: chatroomUser.role },
+        message: `${nickname} has leaved the chatroom`,
+      },
+    );
   }
 
   @SubscribeMessage(ChatEventGroup.CHANGE_USER_ROLE)
@@ -1286,7 +1323,7 @@ export class GatewayGateway {
     });
 
     if (chatroomUser.role === ROLE.CHAT_ADMIN) {
-      this.sendToSocket(
+      this.libService.sendToSocket(
         client,
         chatroomName,
         ChatEventGroup.USER_ROLE_CHANGED,
@@ -1297,7 +1334,7 @@ export class GatewayGateway {
         },
       );
     } else {
-      this.sendToSocket(
+      this.libService.sendToSocket(
         client,
         chatroomName,
         ChatEventGroup.USER_ROLE_CHANGED,
@@ -1308,7 +1345,7 @@ export class GatewayGateway {
       );
     }
 
-    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+    this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
       message: `${chatroomUser.user.nickname} is now a ${
         role === ROLE.CHAT_ADMIN ? 'moderator' : 'regular user'
       }`,
@@ -1467,12 +1504,11 @@ export class GatewayGateway {
         this.joinOrLeaveRoom(id, GeneralEvent.LEAVE, chatroomName);
       }
 
-      this.sendToSocket(
+      this.libService.sendToSocket(
         this.server,
         id,
         ChatEventGroup.USER_BANNED_MUTED_KICKED_RESTRICTION,
         {
-          message: '',
           data: {
             chatroomId,
             reason,
@@ -1484,7 +1520,7 @@ export class GatewayGateway {
         },
       );
 
-      this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+      this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
         data: {
           role: isChatAdmin ? ROLE.CHAT_ADMIN : ROLE.REGULAR_USER,
           user: {
@@ -1506,28 +1542,33 @@ export class GatewayGateway {
         }`,
       });
 
-      this.sendToSocket(client, chatroomName, ChatEventGroup.USER_RESTRICTED, {
-        data: {
-          role: isChatAdmin ? ROLE.CHAT_ADMIN : ROLE.REGULAR_USER,
-          user: {
-            ...user,
-            restrictedGroups: [
-              {
-                admin,
-                reason,
-                restrictionTimeEnd,
-                restriction,
-              },
-            ],
+      this.libService.sendToSocket(
+        client,
+        chatroomName,
+        ChatEventGroup.USER_RESTRICTED,
+        {
+          data: {
+            role: isChatAdmin ? ROLE.CHAT_ADMIN : ROLE.REGULAR_USER,
+            user: {
+              ...user,
+              restrictedGroups: [
+                {
+                  admin,
+                  reason,
+                  restrictionTimeEnd,
+                  restriction,
+                },
+              ],
+            },
           },
+          chatroomId,
+          message: `${nickname} has been ${restriction} for ${
+            duration === Number.MAX_SAFE_INTEGER
+              ? 'life'
+              : `${duration} ${durationUnit}`
+          } by ${chatroomUser.user.nickname}`,
         },
-        chatroomId,
-        message: `${nickname} has been ${restriction} for ${
-          duration === Number.MAX_SAFE_INTEGER
-            ? 'life'
-            : `${duration} ${durationUnit}`
-        } by ${chatroomUser.user.nickname}`,
-      });
+      );
     });
   }
 
@@ -1662,12 +1703,11 @@ export class GatewayGateway {
       },
     });
 
-    this.sendToSocket(
+    this.libService.sendToSocket(
       this.server,
       id,
       ChatEventGroup.USER_UNBANNED_UNKICKED_UNMUTED,
       {
-        message: '',
         data: { message, chatroomId, restriction },
       },
     );
@@ -1676,15 +1716,26 @@ export class GatewayGateway {
       this.joinOrLeaveRoom(id, GeneralEvent.JOIN, chatroomName);
     }
 
-    this.sendToSocket(client, chatroomName, ChatEventGroup.USER_UNRESTRICTED, {
-      data: { user: { ...user, banLife: restrictedUser.banLife, chatroomId } },
-      message: '',
-    });
+    this.libService.sendToSocket(
+      client,
+      chatroomName,
+      ChatEventGroup.USER_UNRESTRICTED,
+      {
+        data: {
+          user: { ...user, banLife: restrictedUser.banLife, chatroomId },
+        },
+      },
+    );
 
-    this.sendToSocket(this.server, client.userId, GeneralEvent.SUCCESS, {
-      data: { ...user, banLife: restrictedUser.banLife },
-      message: `${user.nickname} is no longer ${restriction}`,
-    });
+    this.libService.sendToSocket(
+      this.server,
+      client.userId,
+      GeneralEvent.SUCCESS,
+      {
+        data: { ...user, banLife: restrictedUser.banLife },
+        message: `${user.nickname} is no longer ${restriction}`,
+      },
+    );
   }
 
   @SubscribeMessage(ChatEventGroup.REQUEST_ALL_CHATROOM)
@@ -1791,15 +1842,19 @@ export class GatewayGateway {
       }
     });
 
-    this.sendToSocket(this.server, userId, ChatEventGroup.GET_ALL_CHATROOM, {
-      message: '',
-      data: {
-        chatrooms,
-        blockedUser: user.blockedUsers,
-        blockedBy: user.blockedBy,
-        numberOfGroupInvitation: user._count.groupInvitation,
+    this.libService.sendToSocket(
+      this.server,
+      userId,
+      ChatEventGroup.GET_ALL_CHATROOM,
+      {
+        data: {
+          chatrooms,
+          blockedUser: user.blockedUsers,
+          blockedBy: user.blockedBy,
+          numberOfGroupInvitation: user._count.groupInvitation,
+        },
       },
-    });
+    );
   }
 
   @SubscribeMessage(ChatEventGroup.REQUEST_ALL_CHATROOM_MESSAGE)
@@ -1868,12 +1923,11 @@ export class GatewayGateway {
         'Chat does not exist or user is not part of that chat',
       );
 
-    this.sendToSocket(
+    this.libService.sendToSocket(
       this.server,
       client.userId,
       ChatEventGroup.GET_ALL_CHATROOM_MESSAGE,
       {
-        message: '',
         data: chatroom.messages,
       },
     );
@@ -2005,7 +2059,7 @@ export class GatewayGateway {
     }
     const { user } = userInfo;
 
-    this.sendToSocket(
+    this.libService.sendToSocket(
       this.server,
       chatroom.chatroomName,
       ChatEventGroup.NEW_USER_CHATROOM,
@@ -2018,7 +2072,7 @@ export class GatewayGateway {
       },
     );
 
-    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+    this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
       message: `Succesfully joined the group: ${chatroom.chatroomName}`,
       data,
     });
@@ -2087,12 +2141,11 @@ export class GatewayGateway {
       },
     });
 
-    this.sendToSocket(
+    this.libService.sendToSocket(
       this.server,
       chatroom.chatroomName,
       ChatEventGroup.RECEIVE_GROUP_MESSAGE,
       {
-        message: '',
         data: {
           id: res.id,
           content,
@@ -2160,12 +2213,11 @@ export class GatewayGateway {
         },
       },
     });
-    this.sendToSocket(
+    this.libService.sendToSocket(
       this.server,
       friendId,
       ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE,
       {
-        message: '',
         data: {
           id: res.id,
           chatroomId,
@@ -2180,7 +2232,6 @@ export class GatewayGateway {
     this.server
       .to(client.userId)
       .emit(ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE, {
-        message: '',
         data: {
           id: res.id,
           chatroomId,
@@ -2299,31 +2350,40 @@ export class GatewayGateway {
       },
     });
 
-    this.sendToSocket(this.server, friendId, FriendEvent.NEW_REQUEST_RECEIVED, {
-      message: `You received a friend request from ${user.nickname}`,
-      data: {
-        friendId: client.userId,
-      },
-    });
-
-    this.sendToSocket(this.server, friendId, FriendEvent.ADD_NEW_REQUEST, {
-      message: `You received a friend request from ${user.nickname}`,
-      data: {
-        createdAt: request.createdAt,
-        sender: {
-          nickname: user.nickname,
-          id: client.userId,
-          profile: { avatar: user.profile?.avatar },
+    this.libService.sendToSocket(
+      this.server,
+      friendId,
+      FriendEvent.NEW_REQUEST_RECEIVED,
+      {
+        message: `You received a friend request from ${user.nickname}`,
+        data: {
+          friendId: client.userId,
         },
       },
-    });
+    );
 
-    this.sendToSocket(
+    this.libService.sendToSocket(
+      this.server,
+      friendId,
+      FriendEvent.ADD_NEW_REQUEST,
+      {
+        message: `You received a friend request from ${user.nickname}`,
+        data: {
+          createdAt: request.createdAt,
+          sender: {
+            nickname: user.nickname,
+            id: client.userId,
+            profile: { avatar: user.profile?.avatar },
+          },
+        },
+      },
+    );
+
+    this.libService.sendToSocket(
       this.server,
       client.userId,
       FriendEvent.NEW_REQUEST_SENT,
       {
-        message: '',
         data: {
           recipient: {
             nickname: friend.nickname,
@@ -2334,10 +2394,14 @@ export class GatewayGateway {
       },
     );
 
-    this.sendToSocket(this.server, client.userId, GeneralEvent.SUCCESS, {
-      message: 'Friend request succesfully sent',
-      data: {},
-    });
+    this.libService.sendToSocket(
+      this.server,
+      client.userId,
+      GeneralEvent.SUCCESS,
+      {
+        message: 'Friend request succesfully sent',
+      },
+    );
   }
 
   @SubscribeMessage(FriendEvent.CANCEL_REQUEST)
@@ -2375,22 +2439,35 @@ export class GatewayGateway {
       },
     });
 
-    this.sendToSocket(this.server, friendId, FriendEvent.CANCEL_REQUEST, {
-      message: '',
-      data: { friendId: client.userId },
-    });
-
-    this.sendToSocket(this.server, client.userId, FriendEvent.CANCEL_REQUEST, {
-      message: 'Friend request declined succesfully',
-      data: {
-        friendId,
+    this.libService.sendToSocket(
+      this.server,
+      friendId,
+      FriendEvent.CANCEL_REQUEST,
+      {
+        data: { friendId: client.userId },
       },
-    });
+    );
 
-    this.sendToSocket(this.server, client.userId, GeneralEvent.SUCCESS, {
-      message: 'Friend request declined succesfully',
-      data: {},
-    });
+    this.libService.sendToSocket(
+      this.server,
+      client.userId,
+      FriendEvent.CANCEL_REQUEST,
+      {
+        message: 'Friend request declined succesfully',
+        data: {
+          friendId,
+        },
+      },
+    );
+
+    this.libService.sendToSocket(
+      this.server,
+      client.userId,
+      GeneralEvent.SUCCESS,
+      {
+        message: 'Friend request declined succesfully',
+      },
+    );
   }
 
   @SubscribeMessage(FriendEvent.REQUEST_ACCEPTED)
@@ -2529,20 +2606,33 @@ export class GatewayGateway {
       });
     });
 
-    this.sendToSocket(this.server, friendId, FriendEvent.CANCEL_REQUEST, {
-      message: '',
-      data: { friendId: client.userId },
-    });
+    this.libService.sendToSocket(
+      this.server,
+      friendId,
+      FriendEvent.CANCEL_REQUEST,
+      {
+        data: { friendId: client.userId },
+      },
+    );
 
-    this.sendToSocket(this.server, client.userId, FriendEvent.CANCEL_REQUEST, {
-      message: '',
-      data: { friendId },
-    });
+    this.libService.sendToSocket(
+      this.server,
+      client.userId,
+      FriendEvent.CANCEL_REQUEST,
+      {
+        data: { friendId },
+      },
+    );
 
-    this.sendToSocket(this.server, friendId, FriendEvent.NEW_REQUEST_ACCEPTED, {
-      message: `${recipient.nickname} accepted your friend request`,
-      data: { friendId: client.userId },
-    });
+    this.libService.sendToSocket(
+      this.server,
+      friendId,
+      FriendEvent.NEW_REQUEST_ACCEPTED,
+      {
+        message: `${recipient.nickname} accepted your friend request`,
+        data: { friendId: client.userId },
+      },
+    );
 
     this.server
       .to(client.userId)
@@ -2553,60 +2643,68 @@ export class GatewayGateway {
         data: { friendId },
       });
 
-    this.sendToSocket(this.server, friendId, FriendEvent.NEW_FRIEND, {
-      message: '',
-      data: {
-        friend: {
-          id: sender.id === friendId ? recipient.id : friendId,
-          nickname:
-            sender.id === friendId ? recipient.nickname : sender.nickname,
-          profile: {
-            avatar:
-              sender.id === friendId
-                ? recipient.profile.avatar
-                : sender.profile.avatar,
+    this.libService.sendToSocket(
+      this.server,
+      friendId,
+      FriendEvent.NEW_FRIEND,
+      {
+        data: {
+          friend: {
+            id: sender.id === friendId ? recipient.id : friendId,
+            nickname:
+              sender.id === friendId ? recipient.nickname : sender.nickname,
+            profile: {
+              avatar:
+                sender.id === friendId
+                  ? recipient.profile.avatar
+                  : sender.profile.avatar,
+            },
+            status:
+              sender.id === client.userId ? sender.status : recipient.status,
           },
-          status:
-            sender.id === client.userId ? sender.status : recipient.status,
         },
       },
-    });
+    );
 
-    this.sendToSocket(this.server, client.userId, FriendEvent.NEW_FRIEND, {
-      message: '',
-      data: {
-        friend: {
-          id: sender.id === client.userId ? recipient.id : friendId,
-          nickname:
-            sender.id === client.userId ? recipient.nickname : sender.nickname,
-          profile: {
-            avatar:
+    this.libService.sendToSocket(
+      this.server,
+      client.userId,
+      FriendEvent.NEW_FRIEND,
+      {
+        data: {
+          friend: {
+            id: sender.id === client.userId ? recipient.id : friendId,
+            nickname:
               sender.id === client.userId
-                ? recipient.profile.avatar
-                : sender.profile.avatar,
+                ? recipient.nickname
+                : sender.nickname,
+            profile: {
+              avatar:
+                sender.id === client.userId
+                  ? recipient.profile.avatar
+                  : sender.profile.avatar,
+            },
+            status:
+              sender.id === client.userId ? sender.status : recipient.status,
           },
-          status:
-            sender.id === client.userId ? sender.status : recipient.status,
         },
       },
-    });
+    );
 
-    this.sendToSocket(
+    this.libService.sendToSocket(
       this.server,
       client.userId,
       ChatEventPrivateRoom.NEW_CHATROOM,
       {
-        message: '',
         data: chatroom,
       },
     );
 
-    this.sendToSocket(
+    this.libService.sendToSocket(
       this.server,
       friendId,
       ChatEventPrivateRoom.NEW_CHATROOM,
       {
-        message: '',
         data: chatroom,
       },
     );
@@ -2656,18 +2754,30 @@ export class GatewayGateway {
       }
     });
 
-    this.sendToSocket(this.server, friendId, FriendEvent.DELETE_FRIEND, {
-      message: '',
-      data: { friendId: client.userId },
-    });
-    this.sendToSocket(this.server, client.userId, FriendEvent.DELETE_FRIEND, {
-      message: '',
-      data: { friendId },
-    });
-    this.sendToSocket(this.server, client.userId, GeneralEvent.SUCCESS, {
-      message: 'Friend Deleted',
-      data: {},
-    });
+    this.libService.sendToSocket(
+      this.server,
+      friendId,
+      FriendEvent.DELETE_FRIEND,
+      {
+        data: { friendId: client.userId },
+      },
+    );
+    this.libService.sendToSocket(
+      this.server,
+      client.userId,
+      FriendEvent.DELETE_FRIEND,
+      {
+        data: { friendId },
+      },
+    );
+    this.libService.sendToSocket(
+      this.server,
+      client.userId,
+      GeneralEvent.SUCCESS,
+      {
+        message: 'Friend Deleted',
+      },
+    );
   }
 
   @SubscribeMessage(FriendEvent.BLOCK_FRIEND)
@@ -2734,15 +2844,23 @@ export class GatewayGateway {
           });
         }
       });
-      this.sendToSocket(this.server, friendId, FriendEvent.DELETE_FRIEND, {
-        message: '',
-        data: { friendId: client.userId },
-      });
+      this.libService.sendToSocket(
+        this.server,
+        friendId,
+        FriendEvent.DELETE_FRIEND,
+        {
+          data: { friendId: client.userId },
+        },
+      );
 
-      this.sendToSocket(this.server, client.userId, FriendEvent.DELETE_FRIEND, {
-        message: '',
-        data: { friendId },
-      });
+      this.libService.sendToSocket(
+        this.server,
+        client.userId,
+        FriendEvent.DELETE_FRIEND,
+        {
+          data: { friendId },
+        },
+      );
     } else if (existingFriendRequest) {
       await this.prismaService.$transaction([
         this.prismaService.user.update({
@@ -2758,19 +2876,22 @@ export class GatewayGateway {
           },
         }),
       ]);
-      this.sendToSocket(
+      this.libService.sendToSocket(
         this.server,
         client.userId,
         FriendEvent.CANCEL_REQUEST,
         {
-          message: '',
           data: { friendId },
         },
       );
-      this.sendToSocket(this.server, friendId, FriendEvent.CANCEL_REQUEST, {
-        message: '',
-        data: { friendId: client.userId },
-      });
+      this.libService.sendToSocket(
+        this.server,
+        friendId,
+        FriendEvent.CANCEL_REQUEST,
+        {
+          data: { friendId: client.userId },
+        },
+      );
     } else {
       await this.prismaService.user.update({
         where: { id: userId },
@@ -2806,7 +2927,7 @@ export class GatewayGateway {
         data: { blockedUsers: { disconnect: { id: friendId } } },
       });
 
-      this.sendToSocket(
+      this.libService.sendToSocket(
         this.server,
         client.userId,
         FriendEvent.UNBLOCK_FRIEND,
@@ -2857,9 +2978,8 @@ export class GatewayGateway {
 
     this.pongService.createGameRoom(userId, client);
 
-    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+    this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
       message: 'Please wait for an opponent...',
-      data: {},
     });
   }
 
@@ -2876,7 +2996,7 @@ export class GatewayGateway {
     if (game?.getSocketIds.includes(id)) {
       this.pongService.leaveRoom(userId);
     }
-    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS);
+    this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS);
   }
 
   @SubscribeMessage(PongEvent.SEND_GAME_INVITATION)
@@ -2951,10 +3071,15 @@ export class GatewayGateway {
     });
     console.log({ userId });
 
-    this.sendToSocket(this.server, id, PongEvent.RECEIVE_GAME_INVITATION, {
-      message: `${me.nickname} invited you to a pong game`,
-      data: { id: userId },
-    });
+    this.libService.sendToSocket(
+      this.server,
+      id,
+      PongEvent.RECEIVE_GAME_INVITATION,
+      {
+        message: `${me.nickname} invited you to a pong game`,
+        data: { id: userId },
+      },
+    );
   }
 
   @SubscribeMessage(PongEvent.ACCEPT_GAME_INVITATION)
@@ -3026,7 +3151,7 @@ export class GatewayGateway {
       otherSocketId: client.id,
     });
 
-    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS);
+    this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS);
 
     senderSocket.join(gameId);
 
@@ -3084,32 +3209,23 @@ export class GatewayGateway {
     const gameId = this.pongService.deleteInvitation(id);
 
     if (gameId) {
-      this.sendToSocket(this.server, id, PongEvent.USER_DECLINED_INVITATION, {
-        message: `${me.nickname} has declined your game invitation`,
-        data: {},
-        severity: 'info',
-      });
+      this.libService.sendToSocket(
+        this.server,
+        id,
+        PongEvent.USER_DECLINED_INVITATION,
+        {
+          message: `${me.nickname} has declined your game invitation`,
+          severity: 'info',
+        },
+      );
     }
 
-    this.sendToSocket(this.server, userId, GeneralEvent.SUCCESS);
+    this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS);
   }
 
   /*------------------------------------------------------------------------------------------------------ */
 
   /*------------------------------------------------------------------------------------------------------ */
-
-  private sendToSocket(
-    instance: SocketWithAuth | Server,
-    room: string,
-    emit: string,
-    object?: SocketServerResponse,
-  ) {
-    instance.to(room).emit(emit, object);
-  }
-
-  private deleteSocketRoom(room: string) {
-    this.server.of('/').adapter.rooms.delete(room);
-  }
 
   private getAllSockeIdsByKey(key: string) {
     return this.server.of('/').adapter.rooms.get(key);

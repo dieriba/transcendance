@@ -6,6 +6,9 @@ import { INTERNAL_SERVER_ERROR } from 'src/common/constant/http-error.constant';
 import { CustomException } from 'src/common/custom-exception/custom-exception';
 import * as fs from 'fs';
 import { MAX_DATE } from '../../shared/constant';
+import { Server } from 'socket.io';
+import { SocketWithAuth } from 'src/auth/type';
+import { SocketServerResponse } from 'src/common/types/socket-types';
 @Injectable()
 export class LibService {
   /*Generate secret for opt*/
@@ -18,6 +21,19 @@ export class LibService {
     HOURS: this.addHours,
     DAYS: this.addDays,
   };
+
+  deleteSocketRoom(server: Server, room: string) {
+    server.of('/').adapter.rooms.delete(room);
+  }
+
+  sendToSocket(
+    instance: SocketWithAuth | Server,
+    room: string,
+    emit: string,
+    object?: Partial<SocketServerResponse>,
+  ) {
+    instance.to(room).emit(emit, object);
+  }
 
   addMinutes(date: Date, minutesToAdd: number): Date {
     return new Date(date.getTime() + minutesToAdd * 60000);

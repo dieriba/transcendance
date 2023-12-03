@@ -40,13 +40,12 @@ model User {
 }
 
 model GameHistory {
-  id          String      @id @default(uuid())
-  winner       Pong        @relation("gameHistoryUsers1", fields: [winnerId], references: [userId])
-  winnerId     String
-  looser       Pong        @relation("gameHistoryUsers2", fields: [looserId], references: [userId])
-  looserId     String
-  matchDate   DateTime    @default(now())
-  matchResult GAME_RESULT
+  id        String   @id @default(uuid())
+  winner    Pong     @relation("winnedGame", fields: [winnerId], references: [userId])
+  winnerId  String
+  looser    Pong     @relation("loosedGame", fields: [looserId], references: [userId])
+  looserId  String
+  matchDate DateTime @default(now())
 
   @@unique([winnerId, looserId, matchDate])
 }
@@ -60,13 +59,13 @@ model Group {
 }
 
 model Pong {
-  user        User          @relation("pong", fields: [userId], references: [id], onDelete: Cascade)
-  userId      String        @unique @default(uuid())
-  victory     Int           @default(0)
-  losses      Int           @default(0)
-  rating      Int           @default(0)
-  gameHistory GameHistory[] @relation("gameHistoryUsers1")
-  game        GameHistory[] @relation("gameHistoryUsers2")
+  user       User          @relation("pong", fields: [userId], references: [id], onDelete: Cascade)
+  userId     String        @unique @default(uuid())
+  victory    Int           @default(0)
+  losses     Int           @default(0)
+  rating     Int           @default(0)
+  winnedGame GameHistory[] @relation("winnedGame")
+  loosedGame GameHistory[] @relation("loosedGame")
 }
 
 model Friends {
@@ -229,10 +228,4 @@ enum TYPE {
   PRIVATE
   PROTECTED
   DM
-}
-
-enum GAME_RESULT {
-  WIN
-  LOSS
-  DRAW
 }

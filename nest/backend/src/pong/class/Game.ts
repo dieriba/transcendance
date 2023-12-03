@@ -72,6 +72,7 @@ export class Game {
   private gameDurationExceed: boolean = false;
   private winner: Player | undefined = undefined;
   private looser: Player | undefined = undefined;
+  private draw: boolean = false;
 
   constructor(gameId: string, playerId: string, socketId: string) {
     this.gameId = gameId;
@@ -137,6 +138,20 @@ export class Game {
 
     if (now >= this.endTime) {
       this.gameDurationExceed = true;
+
+      if (this.player.getScore >= scoreToWinPongGame) {
+        this.winner = this.player;
+        this.looser = this.opponentPlayer;
+        return;
+      }
+
+      if (this.opponentPlayer.getScore >= scoreToWinPongGame) {
+        this.winner = this.opponentPlayer;
+        this.looser = this.player;
+        return;
+      }
+
+      this.draw = true;
     }
   }
 
@@ -189,6 +204,18 @@ export class Game {
 
   get getOppenent(): Player {
     return this.opponentPlayer;
+  }
+
+  get getWinner(): Player {
+    return this.winner;
+  }
+
+  get getLooser(): Player {
+    return this.looser;
+  }
+
+  get getDraw(): boolean {
+    return this.draw;
   }
 
   get getBall(): Ball {

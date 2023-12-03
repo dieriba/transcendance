@@ -6,11 +6,14 @@ import { GAME_INVITATION_TIME_LIMIT } from '../../shared/constant';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
 import { Game, GameInvitation } from './class/Game';
-import { Pong } from '@prisma/client';
+import { LibService } from 'src/lib/lib.service';
 
 @Injectable()
 export class PongService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly libService: LibService,
+  ) {}
   private readonly games: Game[] = [];
   private readonly gameInvitation: Map<string, GameInvitation> = new Map<
     string,
@@ -199,22 +202,43 @@ export class PongService {
       if (game.hasStarted) {
         if (!game.endGame()) {
           game.update();
-          server
-            .to(game.getGameId)
-            .emit(PongEvent.UPDATE_GAME, game.getUpdatedData());
+          this.libService.sendToSocket(
+            server,
+            game.getGameId,
+            PongEvent.UPDATE_GAME,
+            {
+              data: game.getUpdatedData(),
+            },
+          );
           return;
         }
-        await this.setPongWinner(
-          game.getPlayer.getPlayerId,
-          game.getOppenent.getPlayerId,
+
+        let data = { message: 'Draw' };
+
+        if (!game.getDraw) {
+          data = await this.setPongWinner(
+            game.getWinner.getPlayerId,
+            game.getLooser.getPlayerId,
+          );
+        }
+
+        this.libService.sendToSocket(
+          server,
+          game.getGameId,
+          PongEvent.END_GAME,
+          { data },
         );
-        server.to(game.getGameId).emit(PongEvent.END_GAME);
+
         this.games.splice(index, 1);
+        this.libService.deleteSocketRoom(server, game.getGameId);
       }
     });
   }
 
-  private async setPongWinner(winnerId: string, looserId: string) {
+  private async setPongWinner(
+    winnerId: string,
+    looserId: string,
+  ): Promise<{ message: string | undefined }> {
     const winner = await this.prismaService.user.findFirst({
       where: { id: winnerId },
       select: {
@@ -232,21 +256,34 @@ export class PongService {
       },
     });
 
-    if (!winner || !looser) return;
+    if (!winner || !looser) return { message: undefined };
 
     await this.prismaService.$transaction(async (tx) => {
+      await tx.pong.upsert({
+        where: { userId: looserId },
+        create: { userId: looserId, losses: 1 },
+        update: { losses: { increment: 1 } },
+      });
+
       await this.prismaService.pong.upsert({
         where: { userId: winnerId },
         create: {
-          game: {
+          victory: 1,
+          winnedGame: {
             create: {
-              
+              looser: { connect: { userId: looserId } },
             },
           },
         },
-        update: {},
+        update: {
+          victory: { increment: 1 },
+          rating: { increment: 10 },
+          winnedGame: { create: { looser: { connect: { userId: looserId } } } },
+        },
       });
     });
+
+    return { message: `${winner.nickname} won the game` };
   }
 
   joinGame(server: Server, client: SocketWithAuth, room: string) {

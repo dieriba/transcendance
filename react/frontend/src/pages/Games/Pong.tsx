@@ -82,12 +82,12 @@ const Pong = () => {
       }
     });
 
-    socket.on(PongEvent.UPDATE_GAME, (data: UpdatedGameData) => {
-      const { player1, player2 } = data;
+    socket.on(PongEvent.UPDATE_GAME, (data: { data: UpdatedGameData }) => {
+      const { player1, player2 } = data.data;
       //context.clearRect(0, 0, canvas.width, canvas.height);
       context.fillStyle = "red";
       context.fillRect(0, 0, canvas.width, canvas.height);
-      ball.draw(canvas, context, data.ball);
+      ball.draw(canvas, context, data.data.ball);
       Player1.draw(player1);
       Player2.draw(player2);
     });

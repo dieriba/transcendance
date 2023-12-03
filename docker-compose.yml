@@ -27,6 +27,11 @@ services:
     build:
       context: "./nest"
       dockerfile: backend.dockerfile
+      args:
+        - POSTGRES_DB=transcendance
+        - POSTGRES_HOST=postgres
+        - POSTGRES_USER=dieri
+        - POSTGRES_PWD=dieri
     env_file:
       .env
     restart: unless-stopped

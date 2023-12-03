@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { GatewayService } from './gateway.service';
 import { GatewayGateway } from './gateway.gateway';
 import { FriendsModule } from 'src/friends/friends.module';
 import { Argon2Module } from 'src/argon2/argon2.module';
@@ -22,7 +21,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     FriendsModule,
     JwtTokenModule,
   ],
-  providers: [GatewayService, GatewayGateway, PongService],
-  exports: [GatewayService, GatewayGateway],
+  providers: [GatewayGateway, PongService],
+  exports: [GatewayGateway],
 })
 export class GatewayModule {}
