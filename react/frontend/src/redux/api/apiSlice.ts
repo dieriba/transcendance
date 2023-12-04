@@ -33,8 +33,6 @@ const baseQueryWithReauth: BaseQueryFn<
     const access_token = (refreshResult.data as ServerTokenResponse).data
       .access_token;
     if (refreshResult.data) {
-      console.log({ access_token });
-
       api.dispatch(newAccessToken(access_token));
 
       result = await baseQuery(args, api, extraOptions);

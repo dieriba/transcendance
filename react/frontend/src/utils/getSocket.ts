@@ -7,8 +7,8 @@ const connectSocket = () => {
   const state: RootState = store.getState();
   if (!socket) {
     socket = io("http://localhost:9000", {
-      auth: {
-        token: state.user.access_token as string,
+      auth: (cb) => {
+        cb({ token: state.user.access_token });
       },
       transports: ["websocket", "polling"],
       withCredentials: true,

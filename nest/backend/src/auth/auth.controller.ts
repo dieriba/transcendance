@@ -102,7 +102,7 @@ export class AuthController {
       httpOnly: true,
       path: '/auth/refresh',
       maxAge: 7 * 60 * 60 * 24,
-      sameSite: 'strict',
+      sameSite: 'lax',
     });
     return data;
   }
