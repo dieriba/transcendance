@@ -2767,6 +2767,7 @@ export class GatewayGateway {
       client.userId,
       FriendEvent.DELETE_FRIEND,
       {
+        message: 'Friend deleted!',
         data: { friendId },
       },
     );

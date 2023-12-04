@@ -26,7 +26,7 @@ import {
   setJoinableGroup,
   deleteGroupInvitation,
 } from "../../../redux/features/groups/group.slice";
-import { socket } from "../../../utils/getSocket";
+import { connectSocket, socket } from "../../../utils/getSocket";
 import { ChatEventGroup } from "../../../../shared/socket.event";
 import {
   BaseChatroomTypeId,
@@ -69,7 +69,7 @@ const JoinGroup = ({ open, handleClose }: JoinGroupProps) => {
   useEffect(() => {
     if (data && data.data) {
       dispatch(setJoinableGroup(data.data));
-      if (!socket) return;
+      connectSocket();
 
       socket.on(
         ChatEventGroup.NEW_AVAILABLE_CHATROOM,

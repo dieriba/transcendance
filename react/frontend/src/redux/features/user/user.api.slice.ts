@@ -10,7 +10,7 @@ import {
 } from "../../../models/login/ResponseLogin";
 import { apiSlice } from "../../api/apiSlice";
 import { GeneralEvent } from "../../../../shared/socket.event";
-import { socket } from "../../../utils/getSocket";
+import { clearSocket, connectSocket, socket } from "../../../utils/getSocket";
 import {
   BaseUserTypeId,
   ChangePasswordType,
@@ -40,17 +40,17 @@ export const UserApiSlice = apiSlice.injectEndpoints({
     disconnectAllUser: builder.mutation<void, void>({
       queryFn: () => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket();
 
           socket.emit(GeneralEvent.DISCONNECT_ALL_INSTANCE_OF_ME);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
-            socket.off(GeneralEvent.SUCCESS);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });
@@ -59,17 +59,17 @@ export const UserApiSlice = apiSlice.injectEndpoints({
     disconnectAllExceptMe: builder.mutation<void, void>({
       queryFn: () => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket();
 
           socket.emit(GeneralEvent.DISCONNECT_ALL_EXCEPT_ME);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
-            socket.off(GeneralEvent.SUCCESS);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });
@@ -110,17 +110,17 @@ export const UserApiSlice = apiSlice.injectEndpoints({
     notifyNewProfilePic: builder.mutation<null, { avatar: string }>({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket();
 
           socket.emit(GeneralEvent.NEW_PROFILE_PICTURE, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
-            socket.off(GeneralEvent.SUCCESS);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });
@@ -132,17 +132,17 @@ export const UserApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket();
 
           socket.emit(GeneralEvent.UPDATE_USER, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
-            socket.off(GeneralEvent.SUCCESS);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });

@@ -8,11 +8,8 @@ import {
 import { useTheme } from "@mui/material/styles";
 import { useAppDispatch } from "../../redux/hooks";
 import { useEffect } from "react";
-import { socket } from "../../utils/getSocket";
-import {
-  ChatEventPrivateRoom,
-  ChatEventGroup,
-} from "../../../shared/socket.event";
+import { connectSocket, socket } from "../../utils/getSocket";
+import { ChatEventGroup } from "../../../shared/socket.event";
 import {
   SocketServerSucessResponse,
   SocketServerSucessWithChatroomId,
@@ -53,7 +50,7 @@ const GroupChatPage = () => {
   useEffect(() => {
     if (data?.data) {
       dispatch(setGroupChatroom(data.data));
-      if (!socket) return;
+      connectSocket();
 
       socket.on(
         ChatEventGroup.USER_BANNED_MUTED_KICKED_RESTRICTION,
@@ -99,7 +96,7 @@ const GroupChatPage = () => {
       );
 
       socket.on(
-        ChatEventPrivateRoom.CLEAR_CHATROOM,
+        ChatEventGroup.CLEAR_CHATROOM,
         (
           data: SocketServerSucessResponse & { data: { chatroomId: string } }
         ) => {

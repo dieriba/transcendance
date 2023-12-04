@@ -5,7 +5,7 @@ import {
   BaseServerResponse,
   SocketServerSucessResponse,
 } from "../../../services/type";
-import { socket } from "../../../utils/getSocket";
+import { clearSocket, connectSocket, socket } from "../../../utils/getSocket";
 import { apiSlice } from "../../api/apiSlice";
 
 export const PongApiSlice = apiSlice.injectEndpoints({
@@ -18,17 +18,17 @@ export const PongApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: () => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket()
 
           socket.emit(PongEvent.JOIN_QUEUE);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
-            socket.off(GeneralEvent.SUCCESS);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });
@@ -42,17 +42,17 @@ export const PongApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: () => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket()
 
           socket.emit(PongEvent.LEAVE_QUEUE);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
-            socket.off(GeneralEvent.SUCCESS);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });
@@ -66,17 +66,17 @@ export const PongApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket()
 
           socket.emit(PongEvent.SEND_GAME_INVITATION, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
-            socket.off(GeneralEvent.SUCCESS);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });
@@ -90,17 +90,17 @@ export const PongApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket()
 
           socket.emit(PongEvent.ACCEPT_GAME_INVITATION, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
-            socket.off(GeneralEvent.SUCCESS);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });
@@ -122,17 +122,17 @@ export const PongApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket()
 
           socket.emit(PongEvent.DECLINE_GAME_INVITATION, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
-            socket.off(GeneralEvent.SUCCESS);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });

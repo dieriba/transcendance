@@ -13,7 +13,7 @@ import {
   GeneralEvent,
 } from "../../../../shared/socket.event";
 
-import { socket } from "../../../utils/getSocket";
+import { connectSocket, socket } from "../../../utils/getSocket";
 import { BaseChatroomTypeId } from "../../../models/groupChat";
 
 export const chatApiSlice = apiSlice.injectEndpoints({
@@ -24,7 +24,7 @@ export const chatApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket();
 
           socket.emit(ChatEventPrivateRoom.SEND_PRIVATE_MESSAGE, data);
 

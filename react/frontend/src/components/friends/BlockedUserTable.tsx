@@ -21,7 +21,7 @@ import { X } from "phosphor-react";
 import { BaseFriendType } from "../../models/FriendsSchema";
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
-import { socket } from "../../utils/getSocket";
+import { connectSocket, socket } from "../../utils/getSocket";
 import { FriendEvent } from "../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../services/type";
 import {
@@ -52,7 +52,7 @@ const BlockedUserTable = () => {
     if (data && data.data) {
       dispatch(setBlockedUser(data.data));
       dispatch(updatePage("BLOCKED"));
-      if (!socket) return;
+      connectSocket();
 
       socket.on(
         FriendEvent.UNBLOCK_FRIEND,

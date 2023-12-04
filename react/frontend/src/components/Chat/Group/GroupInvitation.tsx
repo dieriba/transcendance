@@ -25,7 +25,7 @@ import {
   setGroupInvitation,
   deleteGroupInvitation,
 } from "../../../redux/features/groups/group.slice";
-import { socket } from "../../../utils/getSocket";
+import { connectSocket, socket } from "../../../utils/getSocket";
 import { ChatEventGroup } from "../../../../shared/socket.event";
 import { BaseChatroomTypeId } from "../../../models/groupChat";
 import { RootState } from "../../../redux/store";
@@ -68,7 +68,7 @@ const GroupInvitation = ({ open, handleClose }: GroupInvitationProps) => {
   useEffect(() => {
     if (data && data.data) {
       dispatch(setGroupInvitation(data.data));
-      if (!socket) return;
+      connectSocket();
 
       socket.on(
         ChatEventGroup.DELETE_USER_INVITATION,

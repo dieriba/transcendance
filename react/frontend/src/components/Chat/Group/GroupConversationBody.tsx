@@ -33,7 +33,7 @@ import {
   SocketServerErrorResponse,
   SocketServerSucessWithChatroomId,
 } from "../../../services/type";
-import { socket } from "../../../utils/getSocket";
+import { connectSocket, socket } from "../../../utils/getSocket";
 import { ChatEventGroup, GeneralEvent } from "../../../../shared/socket.event";
 import { UserWithProfileFriendsType } from "../../../models/ChatContactSchema";
 import TextMessage from "../TextMessage";
@@ -65,7 +65,7 @@ const GroupConversationBody = () => {
   useEffect(() => {
     if (data?.data) {
       dispatch(setChatroomMessage(data.data));
-      if (!socket) return;
+      connectSocket();
 
       socket.on(
         ChatEventGroup.PREVIOUS_ADMIN_LEAVED,

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { Ball } from "./Ball";
 import { Player } from "./Player";
-import { socket } from "../../utils/getSocket";
+import { connectSocket, socket } from "../../utils/getSocket";
 import { PongEvent } from "../../../shared/socket.event";
 import usePageSize from "../../services/custom-hooks/usePageSize";
 import { GAME_MARGIN, ASPECT_RATIO } from "../../../shared/constant";
@@ -96,7 +96,7 @@ const Pong = () => {
 
     window.addEventListener("keyup", keyup);
 
-    if (!socket) return;
+    connectSocket();
 
     socket.on(PongEvent.UPDATE_GAME, (data: { data: UpdatedGameData }) => {
       const { player1, player2 } = data.data;

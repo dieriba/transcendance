@@ -27,7 +27,7 @@ import SetAsAdmin from "./AdminView/SetAsAdmin";
 import SetNewRole from "./AdminView/SetNewRole";
 import UserAction from "./UserAction";
 import RestrictUser from "./RestrictUser";
-import { socket } from "../../../../utils/getSocket";
+import { connectSocket, socket } from "../../../../utils/getSocket";
 import { GeneralEvent } from "../../../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../../../services/type";
 import UnRestrictUser from "./UnrestrictUser";
@@ -74,7 +74,7 @@ const View = () => {
   useEffect(() => {
     if (data?.data) {
       dispatch(setGroupMembersAndRole(data.data));
-      if (!socket) return;
+      connectSocket();
 
       socket.on(
         GeneralEvent.USER_UPDATE_STATUS,

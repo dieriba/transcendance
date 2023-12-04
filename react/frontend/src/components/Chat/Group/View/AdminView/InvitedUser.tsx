@@ -25,7 +25,7 @@ import {
   setInvitedUser,
 } from "../../../../../redux/features/groups/group.slice";
 import { X } from "phosphor-react";
-import { socket } from "../../../../../utils/getSocket";
+import { connectSocket, socket } from "../../../../../utils/getSocket";
 import { ChatEventGroup } from "../../../../../../shared/socket.event";
 import { BaseUserTypeId } from "../../../../../models/login/UserSchema";
 
@@ -56,7 +56,7 @@ const InvitedUser = () => {
   useEffect(() => {
     if (data?.data) {
       dispatch(setInvitedUser(data.data));
-      if (!socket) return;
+      connectSocket();
 
       socket.on(
         ChatEventGroup.USER_DECLINED_INVITATION,

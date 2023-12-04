@@ -45,8 +45,6 @@ const ProtectedDashboardLayout = () => {
     if (isAuthenticated) {
       connectSocket();
 
-      if (!socket) return;
-
       socket.on(GeneralEvent.DISCONNECT_ME, () => {
         dispatch(apiSlice.util.resetApiState());
         dispatch({ type: LOGOUT });

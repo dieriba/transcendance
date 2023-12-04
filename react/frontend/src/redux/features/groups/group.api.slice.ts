@@ -21,7 +21,7 @@ import {
 import { apiSlice } from "../../api/apiSlice";
 import { ChatEventGroup, GeneralEvent } from "../../../../shared/socket.event";
 
-import { socket } from "../../../utils/getSocket";
+import { clearSocket, connectSocket, socket } from "../../../utils/getSocket";
 import { CreateGroupFormType } from "../../../models/CreateGroupSchema";
 import {
   ChatroomGroupType,
@@ -44,17 +44,17 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket();
 
           socket.emit(ChatEventGroup.CREATE_GROUP_CHATROOM, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
-            socket.off(GeneralEvent.SUCCESS);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });
@@ -66,17 +66,17 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket();
 
           socket.emit(ChatEventGroup.EDIT_GROUP_CHATROOM, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
-            socket.off(GeneralEvent.SUCCESS);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });
@@ -88,12 +88,12 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket();
 
           socket.emit(ChatEventGroup.SEND_GROUP_MESSAGE, data);
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });
@@ -105,17 +105,17 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket();
 
           socket.emit(ChatEventGroup.JOIN_CHATROOM, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
-            socket.off(GeneralEvent.SUCCESS);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });
@@ -127,17 +127,17 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket();
 
           socket.emit(ChatEventGroup.JOIN_CHATROOM, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
-            socket.off(GeneralEvent.SUCCESS);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });
@@ -149,17 +149,17 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket();
 
           socket.emit(ChatEventGroup.SET_DIERIBA, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
-            socket.off(GeneralEvent.SUCCESS);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });
@@ -171,17 +171,17 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket();
 
           socket.emit(ChatEventGroup.CHANGE_USER_ROLE, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
-            socket.off(GeneralEvent.SUCCESS);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });
@@ -193,17 +193,17 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket();
 
           socket.emit(ChatEventGroup.RESTRICT_USER, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
-            socket.off(GeneralEvent.SUCCESS);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });
@@ -215,17 +215,17 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket();
 
           socket.emit(ChatEventGroup.UNRESTRICT_USER, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
-            socket.off(GeneralEvent.SUCCESS);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });
@@ -237,17 +237,17 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket();
 
           socket.emit(ChatEventGroup.KICK_USER, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
-            socket.off(GeneralEvent.SUCCESS);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });
@@ -259,17 +259,17 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket();
 
           socket.emit(ChatEventGroup.ADD_FRIEND_USER, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
-            socket.off(GeneralEvent.SUCCESS);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });
@@ -281,17 +281,17 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket();
 
           socket.emit(ChatEventGroup.ADD_INVITE_USER, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
-            socket.off(GeneralEvent.SUCCESS);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });
@@ -303,17 +303,17 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket();
 
           socket.emit(ChatEventGroup.LEAVE_GROUP, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
-            socket.off(GeneralEvent.SUCCESS);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });
@@ -325,17 +325,17 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket();
 
           socket.emit(ChatEventGroup.DELETE_GROUP_CHATROOM, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
-            socket.off(GeneralEvent.SUCCESS);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });
@@ -347,17 +347,17 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket();
 
           socket.emit(ChatEventGroup.CANCEL_USER_INVITATION, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
-            socket.off(GeneralEvent.SUCCESS);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });
@@ -369,17 +369,17 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket();
 
           socket.emit(ChatEventGroup.DECLINE_GROUP_INVITATION, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
-            socket.off(GeneralEvent.SUCCESS);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
             resolve({ error });
           });
         });
@@ -398,17 +398,23 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: () => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket();
 
           socket.emit(ChatEventGroup.REQUEST_ALL_CHATROOM);
 
           socket.on(ChatEventGroup.GET_ALL_CHATROOM, (data) => {
-            socket.off(ChatEventGroup.GET_ALL_CHATROOM);
+            clearSocket([
+              GeneralEvent.EXCEPTION,
+              ChatEventGroup.GET_ALL_CHATROOM,
+            ]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([
+              GeneralEvent.EXCEPTION,
+              ChatEventGroup.GET_ALL_CHATROOM,
+            ]);
             resolve({ error });
           });
         });
@@ -420,17 +426,23 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          if (!socket) return;
+          connectSocket();
 
           socket.emit(ChatEventGroup.REQUEST_ALL_CHATROOM_MESSAGE, data);
 
           socket.on(ChatEventGroup.GET_ALL_CHATROOM_MESSAGE, (data) => {
-            socket.off(ChatEventGroup.GET_ALL_CHATROOM_MESSAGE);
+            clearSocket([
+              GeneralEvent.EXCEPTION,
+              ChatEventGroup.GET_ALL_CHATROOM_MESSAGE,
+            ]);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([
+              GeneralEvent.EXCEPTION,
+              ChatEventGroup.GET_ALL_CHATROOM_MESSAGE,
+            ]);
             resolve({ error });
           });
         });

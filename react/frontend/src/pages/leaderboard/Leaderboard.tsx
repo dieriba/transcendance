@@ -61,7 +61,7 @@ const LeaderboardPage = () => {
     if (data && data.data) {
       dispatch(setLeaderboardUser(data.data));
 
-      if (!socket) return;
+      connectSocket();
 
       socket.on(
         GeneralEvent.USER_UPDATE_STATUS,

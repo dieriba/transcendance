@@ -6,7 +6,7 @@ let socket: Socket;
 const connectSocket = () => {
   const state: RootState = store.getState();
   console.log(socket);
-  
+
   if (!socket) {
     socket = io("http://localhost:9000", {
       auth: {
@@ -16,6 +16,12 @@ const connectSocket = () => {
       withCredentials: true,
     });
   }
+};
+
+export const clearSocket = (events: string[]) => {
+  events.map((event) => {
+    if (socket.hasListeners(event)) socket.off(event);
+  });
 };
 
 export { socket, connectSocket };
