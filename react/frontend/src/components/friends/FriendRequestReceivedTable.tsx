@@ -33,7 +33,7 @@ import {
 } from "../../redux/features/friends/friends.slice";
 import { FriendEvent } from "../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../services/type";
-import { connectSocket, socket } from "../../utils/getSocket";
+import { socket } from "../../utils/getSocket";
 import { FriendReceivedRequestType } from "../../models/FriendRequestSchema";
 import { showSnackBar } from "../../redux/features/app/app.slice";
 import { RootState } from "../../redux/store";
@@ -52,7 +52,8 @@ const FriendRequestReceived = () => {
     if (data && data.data) {
       dispatch(setFriendRequestReceived(data.data));
       dispatch(updatePage("RECEIVED"));
-      connectSocket();
+      if (!socket) return;
+
       socket.on(
         FriendEvent.ADD_NEW_REQUEST,
         (

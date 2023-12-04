@@ -52,6 +52,8 @@ const BlockedUserTable = () => {
     if (data && data.data) {
       dispatch(setBlockedUser(data.data));
       dispatch(updatePage("BLOCKED"));
+      if (!socket) return;
+
       socket.on(
         FriendEvent.UNBLOCK_FRIEND,
         (

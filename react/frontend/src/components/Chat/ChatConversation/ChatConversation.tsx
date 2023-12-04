@@ -5,7 +5,7 @@ import ChatConversationFooter from "./ChatConversationFooter";
 import { useTheme } from "@mui/material/styles";
 import { useEffect } from "react";
 import { useAppDispatch } from "../../../redux/hooks";
-import { connectSocket, socket } from "../../../utils/getSocket";
+import { socket } from "../../../utils/getSocket";
 import { GeneralEvent } from "../../../../shared/socket.event";
 import {
   UpdatedAvatarRes,
@@ -18,7 +18,8 @@ const ChatConversation = () => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    connectSocket();
+    if (!socket) return;
+
     socket.on(
       GeneralEvent.USER_CHANGED_USERNAME,
       (data: { data: UserUpdated }) => {

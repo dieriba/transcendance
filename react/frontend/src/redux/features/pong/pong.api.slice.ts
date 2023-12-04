@@ -5,7 +5,7 @@ import {
   BaseServerResponse,
   SocketServerSucessResponse,
 } from "../../../services/type";
-import { connectSocket, socket } from "../../../utils/getSocket";
+import { socket } from "../../../utils/getSocket";
 import { apiSlice } from "../../api/apiSlice";
 
 export const PongApiSlice = apiSlice.injectEndpoints({
@@ -17,15 +17,18 @@ export const PongApiSlice = apiSlice.injectEndpoints({
       void
     >({
       queryFn: () => {
-        connectSocket();
         return new Promise((resolve) => {
+          if (!socket) return;
+
           socket.emit(PongEvent.JOIN_QUEUE);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
+            socket.off(GeneralEvent.SUCCESS);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
+            socket.off(GeneralEvent.EXCEPTION);
             resolve({ error });
           });
         });
@@ -38,15 +41,18 @@ export const PongApiSlice = apiSlice.injectEndpoints({
       void
     >({
       queryFn: () => {
-        connectSocket();
         return new Promise((resolve) => {
+          if (!socket) return;
+
           socket.emit(PongEvent.LEAVE_QUEUE);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
+            socket.off(GeneralEvent.SUCCESS);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
+            socket.off(GeneralEvent.EXCEPTION);
             resolve({ error });
           });
         });
@@ -59,15 +65,18 @@ export const PongApiSlice = apiSlice.injectEndpoints({
       BaseUserTypeId
     >({
       queryFn: (data) => {
-        connectSocket();
         return new Promise((resolve) => {
+          if (!socket) return;
+
           socket.emit(PongEvent.SEND_GAME_INVITATION, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
+            socket.off(GeneralEvent.SUCCESS);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
+            socket.off(GeneralEvent.EXCEPTION);
             resolve({ error });
           });
         });
@@ -80,15 +89,18 @@ export const PongApiSlice = apiSlice.injectEndpoints({
       BaseUserTypeId
     >({
       queryFn: (data) => {
-        connectSocket();
         return new Promise((resolve) => {
+          if (!socket) return;
+
           socket.emit(PongEvent.ACCEPT_GAME_INVITATION, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
+            socket.off(GeneralEvent.SUCCESS);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
+            socket.off(GeneralEvent.EXCEPTION);
             resolve({ error });
           });
         });
@@ -109,15 +121,18 @@ export const PongApiSlice = apiSlice.injectEndpoints({
       BaseUserTypeId
     >({
       queryFn: (data) => {
-        connectSocket();
         return new Promise((resolve) => {
+          if (!socket) return;
+
           socket.emit(PongEvent.DECLINE_GAME_INVITATION, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
+            socket.off(GeneralEvent.SUCCESS);
             resolve({ data });
           });
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
+            socket.off(GeneralEvent.EXCEPTION);
             resolve({ error });
           });
         });

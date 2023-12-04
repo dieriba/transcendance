@@ -16,7 +16,7 @@ import {
 import { GameController, User } from "phosphor-react";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { useEffect, useState } from "react";
-import { connectSocket, socket } from "../../utils/getSocket";
+import { socket } from "../../utils/getSocket";
 import { GeneralEvent } from "../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../services/type";
 import { RootState } from "../../redux/store";
@@ -60,7 +60,8 @@ const LeaderboardPage = () => {
   useEffect(() => {
     if (data && data.data) {
       dispatch(setLeaderboardUser(data.data));
-      connectSocket();
+
+      if (!socket) return;
 
       socket.on(
         GeneralEvent.USER_UPDATE_STATUS,

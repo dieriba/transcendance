@@ -22,7 +22,7 @@ import {
 import { Trash, Prohibit } from "phosphor-react";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { useEffect, useState } from "react";
-import { connectSocket, socket } from "../../utils/getSocket";
+import { socket } from "../../utils/getSocket";
 import { GeneralEvent } from "../../../shared/socket.event";
 import {
   BaseFriendTypeWithChatroom,
@@ -101,7 +101,7 @@ const FriendsTable = () => {
     if (data && data.data) {
       dispatch(updatePage("FRIENDS"));
       dispatch(setFriends(data.data));
-      connectSocket();
+      if (!socket) return;
 
       socket.on(
         GeneralEvent.USER_UPDATE_STATUS,

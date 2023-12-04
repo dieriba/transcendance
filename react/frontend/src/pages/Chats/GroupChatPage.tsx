@@ -8,7 +8,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import { useAppDispatch } from "../../redux/hooks";
 import { useEffect } from "react";
-import { connectSocket, socket } from "../../utils/getSocket";
+import { socket } from "../../utils/getSocket";
 import {
   ChatEventPrivateRoom,
   ChatEventGroup,
@@ -53,7 +53,6 @@ const GroupChatPage = () => {
   useEffect(() => {
     if (data?.data) {
       dispatch(setGroupChatroom(data.data));
-      connectSocket();
       if (!socket) return;
 
       socket.on(

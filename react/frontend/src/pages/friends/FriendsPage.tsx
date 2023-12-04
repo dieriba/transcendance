@@ -8,7 +8,7 @@ import CustomTabPanel from "../../components/table-panel/CustomTablePanel";
 import FriendRequestReceived from "../../components/friends/FriendRequestReceivedTable";
 import FriendRequestSentTable from "../../components/friends/FriendRequestSentTable";
 import BlockedUserTable from "../../components/friends/BlockedUserTable";
-import { connectSocket, socket } from "../../utils/getSocket";
+import { socket } from "../../utils/getSocket";
 import { GeneralEvent } from "../../../shared/socket.event";
 import { useAppDispatch } from "../../redux/hooks";
 import {
@@ -28,7 +28,8 @@ const FriendsPage = () => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    connectSocket();
+    if (!socket) return;
+
     socket.on(
       GeneralEvent.USER_CHANGED_USERNAME,
       (data: { data: UserUpdated }) => {
@@ -44,6 +45,7 @@ const FriendsPage = () => {
     );
     return () => {
       socket.off(GeneralEvent.USER_CHANGED_USERNAME);
+      socket.off(GeneralEvent.USER_CHANGED_AVATAR);
     };
   }, [dispatch]);
 

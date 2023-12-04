@@ -15,7 +15,7 @@ import {
   updateUserStatus,
 } from "../../redux/features/chat/chat.slice";
 import { useEffect } from "react";
-import { connectSocket, socket } from "../../utils/getSocket";
+import { socket } from "../../utils/getSocket";
 import {
   GeneralEvent,
   ChatEventPrivateRoom,
@@ -42,7 +42,6 @@ const Chat = () => {
   useEffect(() => {
     if (data && data.data) {
       dispatch(setPrivateChatroom(data.data));
-      connectSocket();
       if (!socket) return;
 
       socket.on(
@@ -70,7 +69,6 @@ const Chat = () => {
       socket.off(ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE);
       socket.off(ChatEventPrivateRoom.NEW_CHATROOM);
       socket.off(GeneralEvent.USER_UPDATE_STATUS);
-      socket.off(ChatEventPrivateRoom.CLEAR_CHATROOM);
     };
   }, [data, dispatch]);
   if (isLoading) {

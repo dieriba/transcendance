@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef } from "react";
 import { Ball } from "./Ball";
 import { Player } from "./Player";
-import { connectSocket, socket } from "../../utils/getSocket";
+import { socket } from "../../utils/getSocket";
 import { PongEvent } from "../../../shared/socket.event";
 import usePageSize from "../../services/custom-hooks/usePageSize";
 import { GAME_MARGIN, ASPECT_RATIO } from "../../../shared/constant";
 import { useNavigate } from "react-router-dom";
 import { PATH_APP } from "../../routes/paths";
-import {  Stack  } from "@mui/material";
+import { Stack } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { showSnackBar } from "../../redux/features/app/app.slice";
 import { SocketServerSucessResponse } from "../../services/type";
@@ -18,7 +18,7 @@ const Pong = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const dispatch = useAppDispatch();
   const { width, height } = usePageSize();
-  const {room,creator,opponent} = useAppSelector(
+  const { room, creator, opponent } = useAppSelector(
     (state: RootState) => state.pong.gameData
   ) as StartGameInfo;
   const navigate = useNavigate();
@@ -45,7 +45,8 @@ const Pong = () => {
           keyPressed: code,
         });
       }
-    }, []
+    },
+    [room]
   );
 
   const keyup = useCallback(
@@ -65,7 +66,8 @@ const Pong = () => {
           keyPressed: code,
         });
       }
-    }, []
+    },
+    [room]
   );
 
   useEffect(() => {
@@ -76,8 +78,6 @@ const Pong = () => {
     const context = canvas.getContext("2d");
 
     if (!context) return;
-
-    connectSocket();
 
     canvas.width = gameWidth;
     canvas.height = gameHeight;
@@ -95,6 +95,8 @@ const Pong = () => {
     window.addEventListener("keydown", keyPress);
 
     window.addEventListener("keyup", keyup);
+
+    if (!socket) return;
 
     socket.on(PongEvent.UPDATE_GAME, (data: { data: UpdatedGameData }) => {
       const { player1, player2 } = data.data;
@@ -143,7 +145,9 @@ const Pong = () => {
     dispatch,
     room,
     creator,
-    opponent
+    opponent,
+    keyPress,
+    keyup,
   ]);
 
   return (

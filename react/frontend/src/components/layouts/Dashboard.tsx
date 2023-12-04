@@ -45,6 +45,8 @@ const ProtectedDashboardLayout = () => {
     if (isAuthenticated) {
       connectSocket();
 
+      if (!socket) return;
+
       socket.on(GeneralEvent.DISCONNECT_ME, () => {
         dispatch(apiSlice.util.resetApiState());
         dispatch({ type: LOGOUT });
@@ -151,6 +153,7 @@ const ProtectedDashboardLayout = () => {
         socket.off(FriendEvent.NEW_REQUEST_RECEIVED);
         socket.off(FriendEvent.NEW_REQUEST_ACCEPTED);
         socket.off(PongEvent.LETS_PLAY);
+        socket.off(PongEvent.USER_DECLINED_INVITATION);
         socket.off(PongEvent.RECEIVE_GAME_INVITATION);
       };
     }
