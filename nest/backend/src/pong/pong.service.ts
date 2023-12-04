@@ -223,37 +223,35 @@ export class PongService {
 
     this.games.forEach(async (game, index) => {
       if (game.hasStarted) {
-        if (!game.endGame()) {
-          game.update();
-          this.libService.sendToSocket(
-            server,
-            game.getGameId,
-            PongEvent.UPDATE_GAME,
-            {
-              data: game.getUpdatedData(),
-            },
-          );
-          return;
-        }
-
-        let data = { message: 'Draw' };
-
-        if (!game.getDraw) {
-          data = await this.setPongWinner(
-            game.getWinner.getPlayerId,
-            game.getLooser.getPlayerId,
-          );
-        }
-
+        game.update();
         this.libService.sendToSocket(
           server,
           game.getGameId,
-          PongEvent.END_GAME,
-          { data },
+          PongEvent.UPDATE_GAME,
+          {
+            data: game.getUpdatedData(),
+          },
         );
+        if (game.endGame()) {
+          let data = { message: 'Draw' };
 
-        this.deleteGameRoomByIndex(index);
-        this.libService.deleteSocketRoom(server, game.getGameId);
+          if (!game.getDraw) {
+            data = await this.setPongWinner(
+              game.getWinner.getPlayerId,
+              game.getLooser.getPlayerId,
+            );
+          }
+
+          this.libService.sendToSocket(
+            server,
+            game.getGameId,
+            PongEvent.END_GAME,
+            { data },
+          );
+
+          this.deleteGameRoomByIndex(index);
+          this.libService.deleteSocketRoom(server, game.getGameId);
+        }
       }
     });
     this.lastTime = now;
@@ -271,6 +269,7 @@ export class PongService {
         profile: true,
       },
     });
+
     const looser = await this.prismaService.user.findFirst({
       where: { id: looserId },
       select: {
@@ -282,6 +281,8 @@ export class PongService {
 
     if (!winner || !looser) return { message: undefined };
 
+    console.log({ winner, looser, winnerId, looserId });
+
     await this.prismaService.$transaction(async (tx) => {
       await tx.pong.upsert({
         where: { userId: looserId },
@@ -289,10 +290,12 @@ export class PongService {
         update: { losses: { increment: 1 } },
       });
 
-      await this.prismaService.pong.upsert({
+      await tx.pong.upsert({
         where: { userId: winnerId },
         create: {
+          userId: winnerId,
           victory: 1,
+          rating: 10,
           winnedGame: {
             create: {
               looser: { connect: { userId: looserId } },

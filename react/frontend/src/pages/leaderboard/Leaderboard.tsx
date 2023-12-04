@@ -16,7 +16,7 @@ import {
 import { GameController, User } from "phosphor-react";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { useEffect, useState } from "react";
-import { socket } from "../../utils/getSocket";
+import { connectSocket, socket } from "../../utils/getSocket";
 import { GeneralEvent } from "../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../services/type";
 import { RootState } from "../../redux/store";

@@ -30,7 +30,7 @@ export class LibService {
     emit: string,
     object?: Partial<SocketServerResponse>,
   ) {
-    if (object?.message === undefined) object.message = '';
+    if (object && object.message === undefined) object.message = '';
 
     instance.to(room).emit(emit, object);
   }

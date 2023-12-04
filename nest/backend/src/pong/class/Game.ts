@@ -121,21 +121,21 @@ export class Game {
     const now = performance.now();
     const dt = this.lastTime === -1 ? FRAME_RATE : now - this.lastTime;
     this.ball.updatePosition(dt, this.player, this.opponentPlayer);
+    console.log(this.ball.getPlayersScore);
+
     this.player.updatePosition(dt);
     this.opponentPlayer.updatePosition(dt);
     this.isAWinnerOrTimeGameLimitReached();
-    // this.ball.checkCollisionWithPlayer(this.player);
-    //this.ball.checkCollisionWithPlayer(this.opponentPlayer);
     this.lastTime = now;
   }
 
   private isAWinnerOrTimeGameLimitReached() {
-    if (this.player.getScore >= scoreToWinPongGame) {
+    if (this.ball.getPlayersScore[0] >= scoreToWinPongGame) {
       this.winner = this.player;
       this.looser = this.opponentPlayer;
       return;
     }
-    if (this.opponentPlayer.getScore >= scoreToWinPongGame) {
+    if (this.ball.getPlayersScore[1] >= scoreToWinPongGame) {
       this.winner = this.opponentPlayer;
       this.looser = this.player;
       return;

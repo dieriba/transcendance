@@ -3161,6 +3161,7 @@ export class GatewayGateway {
     if (!senderSocket) {
       throw new WsUnknownException(`${user.nickname} is currently not online`);
     }
+    console.log('1');
 
     this.pongService.addNewGameRoom({
       gameId,
@@ -3169,6 +3170,7 @@ export class GatewayGateway {
       socketId: invitation.getSocketId,
       otherSocketId: client.id,
     });
+    console.log('2');
 
     this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS);
 
@@ -3178,6 +3180,7 @@ export class GatewayGateway {
       creator: { nickname: user.nickname, avatar: user.profile.avatar },
       opponent: { nickname: me.nickname, avatar: me.profile.avatar },
     });
+    console.log('3');
   }
 
   @SubscribeMessage(PongEvent.UPDATE_PLAYER_POSITION)

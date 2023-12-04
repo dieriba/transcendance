@@ -121,6 +121,8 @@ const Pong = () => {
     socket.on(
       PongEvent.END_GAME,
       (data: SocketServerSucessResponse & { data: { message: string } }) => {
+        console.log("ok");
+
         navigate(PATH_APP.dashboard.games, { replace: true });
         dispatch(
           showSnackBar({ message: data.data.message, severity: data.severity })
