@@ -211,17 +211,23 @@ export class AuthService {
         avatar: undefined,
       };
 
-      const { id, nickname, twoFa } =
-        await this.userService.createOrReturn42User(
-          tx,
-          user,
-          profile,
-          UserData,
-        );
+      const {
+        id,
+        nickname,
+        twoFa,
+        profile: { avatar },
+      } = await this.userService.createOrReturn42User(
+        tx,
+        user,
+        profile,
+        UserData,
+      );
 
       if (twoFa?.otpEnabled) {
         return { id, twoFa: true };
       }
+
+      profile.avatar = avatar;
 
       const tokens = await this.jwtTokenService.getTokens(id);
 

@@ -46,6 +46,7 @@ const ProtectedDashboardLayout = () => {
       connectSocket();
 
       socket.on(GeneralEvent.DISCONNECT_ME, () => {
+        
         dispatch(apiSlice.util.resetApiState());
         dispatch({ type: LOGOUT });
         // eslint-disable-next-line no-self-assign

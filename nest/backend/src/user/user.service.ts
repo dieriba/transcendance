@@ -187,6 +187,10 @@ export class UserService {
     });
   }
 
+  async getAllChatableUsers() {
+
+  }
+
   async getExistingUsers(usersId: string[]): Promise<string[]> {
     const foundUsers = await this.prismaService.user.findMany({
       where: {

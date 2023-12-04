@@ -6,7 +6,7 @@ import {
   Typography,
 } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
-import { useOauthQuery } from "../../redux/features/user/user.api.slice";
+import { useDisconnectAllExceptMeMutation, useOauthQuery } from "../../redux/features/user/user.api.slice";
 import { useQuery } from "../../hooks/useQuery";
 import { useAppDispatch } from "../../redux/hooks";
 import {
@@ -30,6 +30,7 @@ const OauthPage = () => {
   const { data, isLoading, isFetching, isError } = useOauthQuery({
     code: query.get("code") as string,
   });
+  const [disconnectAllInstanceExceptMe] = useDisconnectAllExceptMeMutation();
 
   useEffect(() => {
     const login = async (data: ResponseLoginType | ResponseTwoFaLoginType) => {
@@ -47,6 +48,7 @@ const OauthPage = () => {
         const { user, access_token } = data as ResponseLoginType;
         dispatch(authenticateUser({ user, access_token }));
         dispatch(setMyId(user.id));
+        await disconnectAllInstanceExceptMe().unwrap();
         navigate(PATH_APP.dashboard.profile, { replace: true });
       }
     };

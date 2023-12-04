@@ -14,7 +14,6 @@ export type keyPressedType = 'ArrowUp' | 'ArrowDown';
 export const SCORE_SIZE = '60px';
 export const SCORE_FONT = 'Arial';
 
-export const WINNING_SCORE = 5;
 
 export const ArrowUp = 'ArrowUp';
 export const ArrowDown = 'ArrowDown';
@@ -66,5 +65,5 @@ export const defaultOpponentPlayer = {
 };
 
 export type gameStatus = 'NOT_STARTED' | 'STARTED' | 'IN_PROGRESS' | 'FINISHED';
-export const scoreToWinPongGame = 3;
+export const scoreToWinPongGame = 15;
 export const pongGameDuration = 15;

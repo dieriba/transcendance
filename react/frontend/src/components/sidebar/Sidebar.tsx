@@ -8,7 +8,7 @@ import { matchPath, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { apiSlice } from "../../redux/api/apiSlice";
 import { LOGOUT } from "../../redux/type";
-import { useLogoutMutation } from "../../redux/features/user/user.api.slice";
+import { useDisconnectAllUserMutation, useLogoutMutation } from "../../redux/features/user/user.api.slice";
 import { RootState } from "../../redux/store";
 import { useLocation } from "react-router-dom";
 import { User } from "../../redux/features/user/user.slice";
@@ -25,6 +25,7 @@ const Sidebar = () => {
     setAnchorEl(event.currentTarget);
   };
   const user = useAppSelector((state: RootState) => state.user.user);
+  const [disconnectAllInstanceOfMe] = useDisconnectAllUserMutation();
 
   const onlyMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -38,6 +39,7 @@ const Sidebar = () => {
   const logoutUser = async () => {
     try {
       await loggingOut().unwrap();
+      await disconnectAllInstanceOfMe().unwrap();
       dispatch(apiSlice.util.resetApiState());
       dispatch({ type: LOGOUT });
       // eslint-disable-next-line no-self-assign

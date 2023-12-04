@@ -3,6 +3,7 @@ import ChatBox from "./ChatBox";
 import { useTheme } from "@mui/material/styles";
 import { useAppSelector } from "../../redux/hooks";
 import { RootState } from "../../redux/store";
+import NewChat from "../../pages/Chats/NewChat";
 
 const ChatContact = () => {
   const theme = useTheme();
@@ -23,13 +24,16 @@ const ChatContact = () => {
             : theme.palette.background.paper,
         boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.25)",
       }}
+      p={2}
+
     >
+      <NewChat />
       <Stack height="100vh">
         <Stack
           sx={{ flexGrow: 1, overflow: "scroll", height: "100%" }}
           spacing={1}
         >
-          <Stack p={2} spacing={0}>
+          <Stack  spacing={0}>
             {chats.map(({ id, users, messages }) => {
               const user = users[0].user;
               const lastMsg = messages[messages.length - 1];

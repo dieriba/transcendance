@@ -161,6 +161,7 @@ export class GatewayGateway {
   @SubscribeMessage(GeneralEvent.DISCONNECT_ALL_INSTANCE_OF_ME)
   async disconnectAllInstanceOfMe(@ConnectedSocket() client: SocketWithAuth) {
     const { userId } = client;
+    console.log('ok');
 
     if (!this.getAllSockeIdsByKey(userId))
       throw new WsBadRequestException('User not online');
@@ -173,6 +174,7 @@ export class GatewayGateway {
   @SubscribeMessage(GeneralEvent.DISCONNECT_ALL_EXCEPT_ME)
   async disconnectAllExceptMe(@ConnectedSocket() client: SocketWithAuth) {
     const { userId } = client;
+    console.log(this.getAllSockeIdsByKey(userId));
 
     if (!this.getAllSockeIdsByKey(userId)) {
       this.libService.sendToSocket(
@@ -182,7 +184,6 @@ export class GatewayGateway {
       );
       return;
     }
-
     client.to(userId).emit(GeneralEvent.DISCONNECT_ME);
     this.libService.sendToSocket(this.server, client.id, GeneralEvent.SUCCESS);
   }
