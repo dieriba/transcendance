@@ -3,7 +3,7 @@ import { ApiUser, CreatedUser, Profile } from './types/user.types';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserData, UserInfo } from 'src/common/types/user-info.type';
 import { ChatroomUserInfo } from 'src/common/types/chatroom-user-type';
-import { Prisma, PrismaClient, User } from '@prisma/client';
+import { Prisma, PrismaClient, TYPE, User } from '@prisma/client';
 import { DefaultArgs } from '@prisma/client/runtime/library';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
 import { CustomException } from 'src/common/custom-exception/custom-exception';
@@ -187,8 +187,29 @@ export class UserService {
     });
   }
 
-  async getAllChatableUsers() {
+  async getAllChatableUsers(userId: string) {
+    const chatableUsers = await this.prismaService.user.findMany({
+      where: {
+        chatrooms: {
+          none: {
+            chatroom: {
+              AND: [
+                { type: TYPE.DM },
+                {
+                  users: {
+                    some: {
+                      userId,
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        },
+      },
+    });
 
+    return chatableUsers;
   }
 
   async getExistingUsers(usersId: string[]): Promise<string[]> {

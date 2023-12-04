@@ -161,7 +161,6 @@ export class GatewayGateway {
   @SubscribeMessage(GeneralEvent.DISCONNECT_ALL_INSTANCE_OF_ME)
   async disconnectAllInstanceOfMe(@ConnectedSocket() client: SocketWithAuth) {
     const { userId } = client;
-    console.log('ok');
 
     if (!this.getAllSockeIdsByKey(userId))
       throw new WsBadRequestException('User not online');
