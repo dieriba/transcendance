@@ -16,9 +16,20 @@ import {
 import { connectSocket, socket } from "../../../utils/getSocket";
 import { BaseChatroomTypeId } from "../../../models/groupChat";
 import { BaseUserInfoType } from "../../../models/login/UserSchema";
+import { Basetype } from "../../../models/BaseType";
 
 export const chatApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
+    createPrivateChatroom: builder.mutation<
+      BaseServerResponse & { data: PrivateChatroomType },
+      Basetype
+    >({
+      query: (data) => ({
+        url: "chat/create-private-chatroom",
+        method: "POST",
+        body: data,
+      }),
+    }),
     sendPrivateMessage: builder.mutation<
       SocketServerSucessResponse,
       MessageFormType
@@ -65,4 +76,5 @@ export const {
   useSendPrivateMessageMutation,
   useGetAllChatroomMessageQuery,
   useGetAllChatableUserQuery,
+  useCreatePrivateChatroomMutation,
 } = chatApiSlice;

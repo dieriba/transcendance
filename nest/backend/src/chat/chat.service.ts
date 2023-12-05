@@ -9,15 +9,15 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { RESTRICTION, ROLE, TYPE } from '@prisma/client';
 import { UserData } from 'src/common/types/user-info.type';
-import { ChatroomUserService } from 'src/chatroom-user/chatroom-user.service';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
+import { LibService } from 'src/lib/lib.service';
 
 @Injectable()
 export class ChatService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly userService: UserService,
-    private readonly chatroomUserService: ChatroomUserService,
+    private readonly libService: LibService,
   ) {}
   private readonly logger = new Logger(ChatService.name);
 
@@ -82,6 +82,55 @@ export class ChatService {
     });
 
     return chatrooms;
+  }
+
+  async createNewPrivateChatroom(userId: string, id: string) {
+    const [me, user] = await Promise.all([
+      this.prismaService.user.findFirst({ where: { id: userId } }),
+      this.prismaService.user.findFirst({ where: { id } }),
+    ]);
+
+    if (!me || !user) throw new UserNotFoundException();
+
+    const newChatroom = await this.prismaService.chatroom.create({
+      data: {
+        type: TYPE.DM,
+        users: {
+          create: [{ userId }, { userId: id }],
+        },
+      },
+      select: {
+        id: true,
+        users: {
+          where: {
+            userId: {
+              not: userId,
+            },
+          },
+          select: {
+            user: {
+              select: {
+                id: true,
+                nickname: true,
+                status: true,
+                profile: {
+                  select: {
+                    avatar: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        messages: {
+          orderBy: {
+            createdAt: 'asc',
+          },
+        },
+      },
+    });
+
+    return newChatroom;
   }
 
   async getAllChatableUsers(userId: string) {
