@@ -1,4 +1,5 @@
 import {
+  BaseUserInfoType,
   UpdatedAvatarRes,
   UserUpdated,
   UserUpdateStatusType,
@@ -10,6 +11,7 @@ import {
 } from "../../../models/ChatContactSchema";
 
 export interface ChatState {
+  chatableUsers: BaseUserInfoType[];
   privateChatroom: PrivateChatroomType[];
   currentPrivateChatroomId: string | undefined;
   currentChatroom: PrivateChatroomType | undefined;
@@ -17,6 +19,7 @@ export interface ChatState {
 }
 
 const initialState: ChatState = {
+  chatableUsers: [],
   privateChatroom: [],
   currentPrivateChatroomId: undefined,
   currentChatroom: undefined,
@@ -42,6 +45,9 @@ export const ChatSlice = createSlice({
         state.currentChatroom = state.privateChatroom?.find(
           (chatroom) => chatroom.id === action.payload
         ) as PrivateChatroomType;
+    },
+    setChatableUser: (state, action: PayloadAction<BaseUserInfoType[]>) => {
+      state.chatableUsers = action.payload;
     },
     addNewChatroom: (
       state,
@@ -112,8 +118,9 @@ export const ChatSlice = createSlice({
               action.payload.nickname;
             return;
           }
-          state.currentChatroom.users[0].user.profile.avatar =
-            action.payload.avatar;
+          state.currentChatroom.users[0].user.profile.avatar = (
+            action.payload as UpdatedAvatarRes
+          ).avatar;
         }
       }
     },
@@ -130,6 +137,7 @@ export const {
   setChatroomMessage,
   deleteChatroomById,
   updateUserInfo,
+  setChatableUser
 } = ChatSlice.actions;
 
 export default ChatSlice.reducer;

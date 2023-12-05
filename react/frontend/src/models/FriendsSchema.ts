@@ -2,6 +2,7 @@ import { z } from "zod";
 import { ProfileSchema } from "./ProfileFormSchema";
 import { friendsType } from "./type-enum/typesEnum";
 import { PongSchema } from "./PongSchema";
+import { BaseUserSchema } from "./login/UserSchema";
 
 export const BaseFriendSchema = z.object({
   friendId: z.string().min(1),
@@ -14,9 +15,7 @@ export const FriendsChatSchema = BaseFriendSchema.extend({
 });
 
 export const FriendSchema = z.object({
-  friend: z.object({
-    id: z.string().min(1),
-    nickname: z.string().min(1),
+  friend: BaseUserSchema.extend({
     status: z.enum(friendsType),
     pong: PongSchema.nullable(),
     profile: ProfileSchema,

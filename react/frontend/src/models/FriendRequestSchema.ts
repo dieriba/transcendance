@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ProfileSchema } from "./ProfileFormSchema";
+import { BaseUserInfoSchema } from "./login/UserSchema";
 
 export const FriendRequestSchema = z.object({
   nickname: z.string().min(1),
@@ -8,11 +8,7 @@ export const FriendRequestSchema = z.object({
 export type FriendRequestType = z.infer<typeof FriendRequestSchema>;
 
 export const FriendReceivedRequestSchema = z.object({
-  sender: z.object({
-    id: z.string().min(1),
-    nickname: z.string().min(1),
-    profile: ProfileSchema,
-  }),
+  sender: BaseUserInfoSchema,
 });
 
 export type FriendReceivedRequestType = z.infer<
@@ -20,11 +16,7 @@ export type FriendReceivedRequestType = z.infer<
 >;
 
 export const FriendSentRequestSchema = z.object({
-  recipient: z.object({
-    id: z.string().min(1),
-    nickname: z.string().min(1),
-    profile: ProfileSchema,
-  }),
+  recipient: BaseUserInfoSchema,
 });
 
 export type FriendSentRequestType = z.infer<typeof FriendSentRequestSchema>;

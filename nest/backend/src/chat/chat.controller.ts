@@ -14,6 +14,11 @@ import { IsRestrictedUserGuardHttp } from './guards/is-restricted-user.guard.htt
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
+  @Get('get-all-chatables-users')
+  async getAllChatableUsers(@GetUser('userId') userId: string) {
+    return await this.chatService.getAllChatableUsers(userId);
+  }
+
   @Get('get-all-private-chatroom')
   async getUserChatroom(@GetUser('userId') userId: string) {
     return await this.chatService.getUserChatroom(userId);

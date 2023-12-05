@@ -1,11 +1,11 @@
-import { BaseUserSchema } from "./login/UserSchema";
 import { z } from "zod";
 import { UserSchemaWithProfile } from "./ChatContactSchema";
+import { BaseSchema } from "./BaseType";
 
 export const LeaderboardSchema = UserSchemaWithProfile.extend({
-  friends: z.array(BaseUserSchema),
-  blockedBy: z.array(BaseUserSchema),
-  blockedUsers: z.array(BaseUserSchema),
+  friends: z.array(BaseSchema),
+  blockedBy: z.array(BaseSchema),
+  blockedUsers: z.array(BaseSchema),
 });
 
 export type LeaderboardType = z.infer<typeof LeaderboardSchema>;

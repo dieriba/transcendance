@@ -2,10 +2,9 @@ import { z } from "zod";
 import { ProfileSchema } from "./ProfileFormSchema";
 import { BaseFriendSchema } from "./FriendsSchema";
 import { PongSchema } from "./PongSchema";
+import { BaseUserInfoSchema } from "./login/UserSchema";
 
-export const UserSchemaWithProfile = z.object({
-  id: z.string(),
-  nickname: z.string(),
+export const UserSchemaWithProfile = BaseUserInfoSchema.extend({
   status: z.enum(["OFFLINE", "ONLINE", "PLAYING"]),
   pong: PongSchema.nullable(),
   profile: ProfileSchema,

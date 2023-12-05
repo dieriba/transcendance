@@ -1,11 +1,19 @@
 import { z } from "zod";
 import { statusTypes } from "../type-enum/typesEnum";
+import { ProfileSchema } from "../ProfileFormSchema";
 
 export const BaseUserSchema = z.object({
   id: z.string().min(1),
+  nickname: z.string().min(1),
 });
 
 export type BaseUserTypeId = z.infer<typeof BaseUserSchema>;
+
+export const BaseUserInfoSchema = BaseUserSchema.extend({
+  profile: ProfileSchema,
+});
+
+export type BaseUserInfoType = z.infer<typeof BaseUserInfoSchema>;
 
 export const UserUpdateStatus = BaseUserSchema.extend({
   status: z.enum(statusTypes),
@@ -13,9 +21,7 @@ export const UserUpdateStatus = BaseUserSchema.extend({
 
 export type UserUpdateStatusType = z.infer<typeof UserUpdateStatus>;
 
-export const UserSchema = z.object({
-  id: z.string().min(1),
-  nickname: z.string().min(3),
+export const UserSchema = BaseUserSchema.extend({
   twoFa: z.boolean(),
   allowForeignToDm: z.boolean(),
 });

@@ -13,11 +13,6 @@ export class UserController {
     return await this.userService.findUserById(userId, UserData);
   }
 
-  @Get('get-all-chatables-users')
-  async getAllChatableUsers(@GetUser('userId') userId: string) {
-    return await this.getAllChatableUsers(userId);
-  }
-
   @Get(':id')
   async getUserInfo(
     @GetUser('userId') userId: string,

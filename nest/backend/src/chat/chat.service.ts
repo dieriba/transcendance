@@ -84,6 +84,31 @@ export class ChatService {
     return chatrooms;
   }
 
+  async getAllChatableUsers(userId: string) {
+    const chatableUsers = await this.prismaService.user.findMany({
+      where: {
+        id: { not: userId },
+        blockedBy: {
+          none: {
+            id: userId,
+          },
+        },
+        blockedUsers: {
+          none: {
+            id: userId,
+          },
+        },
+      },
+      select: {
+        id: true,
+        nickname: true,
+        profile: { select: { avatar: true } },
+      },
+    });
+
+    return chatableUsers;
+  }
+
   async getAllChatroomMessage(userId: string, chatroomId: string) {
     if (!chatroomId) throw new BadRequestException('Bad Request');
 

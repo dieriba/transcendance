@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { ProfileSchema } from "./ProfileFormSchema";
 import { UserSchemaWithProfile } from "./ChatContactSchema";
 import {
   durationUnit,
@@ -20,6 +19,7 @@ import {
   MUTE_MAX_MIN,
 } from "../../shared/restriction.constant";
 import { BaseFriendSchema } from "./FriendsSchema";
+import { BaseUserInfoSchema } from "./login/UserSchema";
 
 export const BaseChatroomIdSchema = z.object({
   chatroomId: z.string().min(1),
@@ -47,11 +47,7 @@ export type BaseChatroomWithUserIdType = z.infer<
 export const MessageGroupSchema = z.object({
   id: z.string().min(1),
   chatroomId: z.string().min(1),
-  user: z.object({
-    id: z.string().min(1),
-    nickname: z.string().min(1),
-    profile: ProfileSchema,
-  }),
+  user: BaseUserInfoSchema,
   content: z.string().min(1),
   createdAt: z.date(),
 });
@@ -149,11 +145,7 @@ export const UserGroupSchema = z.object({
 });
 
 export const InvitedUserSchema = z.object({
-  user: z.object({
-    id: z.string().min(1),
-    nickname: z.string().min(1),
-    profile: z.object({ avatar: z.string().min(1) }),
-  }),
+  user: BaseUserInfoSchema,
 });
 
 export type InvitedUserType = z.infer<typeof InvitedUserSchema>;
