@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   HttpCode,
@@ -47,7 +48,7 @@ export class ChatController {
   @Post('create-private-chatroom')
   async createNewPrivateChatroom(
     @GetUser('userId') userId: string,
-    { id }: UserIdDto,
+    @Body() { id }: UserIdDto,
   ) {
     return await this.chatService.createNewPrivateChatroom(userId, id);
   }

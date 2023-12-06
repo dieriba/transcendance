@@ -185,8 +185,6 @@ const GroupConversationBody = () => {
             data: BaseChatroomWithUserIdType;
           }
         ) => {
-          console.log({ data });
-
           dispatch(
             displayMessage({
               message: data.message,

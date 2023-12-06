@@ -189,14 +189,15 @@ export const GroupSlice = createSlice({
       });
     },
     setGroupChatroomId: (state, action: PayloadAction<string | undefined>) => {
-      if (action.payload !== undefined) {
-        state.currentGroupChatroomId = action.payload;
-        state.currentChatroom = state.groupChatroom?.find(
-          (chatroom) => chatroom.id === action.payload
-        );
-        return;
-      }
-      state.currentGroupChatroomId = undefined;
+      if (action.payload === state.currentGroupChatroomId) return;
+
+      state.currentGroupChatroomId = action.payload;
+
+      if (action.payload === undefined) return;
+      state.currentGroupChatroomId = action.payload;
+      state.currentChatroom = state.groupChatroom?.find(
+        (chatroom) => chatroom.id === action.payload
+      );
     },
     addNewChatroom: (state, action: PayloadAction<ChatroomGroupType>) => {
       state.groupChatroom.unshift(action.payload);
@@ -364,10 +365,6 @@ export const GroupSlice = createSlice({
 
         state.admin = admin;
       } else {
-        state.regularUser.map((user) => {
-          console.log({ user });
-        });
-
         const previousAdminIndex = state.regularUser.findIndex(
           (user) => user.user.id === newAdminId
         );

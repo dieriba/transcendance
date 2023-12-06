@@ -145,14 +145,6 @@ export class AuthService {
       } & Tokens)
     | { id: string; twoFa: boolean }
   > {
-    console.log({
-      client_secret: process.env.CLIENT_SECRET,
-      client_id: process.env.CLIENT_ID,
-      grant_type: process.env.GRANT_TYPE,
-      redirect_uri: process.env.REDIRECT_URI,
-      code: code,
-    });
-
     const formData = new FormData();
 
     formData.append('client_secret', process.env.CLIENT_SECRET);
@@ -178,7 +170,6 @@ export class AuthService {
       },
     );
 
-    console.log({ code, response });
     if (response?.status == HttpStatusCode.Unauthorized) {
       throw new UnauthorizedException(
         'Account do not have enough authorization',

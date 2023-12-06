@@ -1,27 +1,23 @@
-import {
-  Avatar,
-  Button,
-  DialogTitle,
-  Divider,
-  Stack,
-  Tooltip,
-} from "@mui/material";
-import { Trash } from "phosphor-react";
-import { useAppSelector } from "../../redux/hooks";
-import { useState } from "react";
-
-import CustomDialog from "../Dialog/CustomDialog";
-import {
-  useDeleteFriendMutation,
-  useBlockFriendMutation,
-} from "../../redux/features/friends/friends.api.slice";
+import { Avatar, DialogTitle, Divider, Stack, Tooltip } from "@mui/material";
+import { GameController, Trash, User } from "phosphor-react";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+import { useEffect, useState } from "react";
 import BadgeAvatar from "../Badge/BadgeAvatar";
-import { BaseFriendTypeWithChatroom } from "../../services/type";
 import { PrivateChatroomType } from "../../models/ChatContactSchema";
 import { RootState } from "../../redux/store";
 import DialogI from "../Dialog/DialogI";
 import { useTheme } from "@mui/material/styles";
 import GameInvitation from "../game-invitation/GameInvitation";
+import BlockUserDialog from "../friends/BlockFriendDialog";
+import DeleteFriendDialog from "../friends/DeleteFriendDialog";
+import ButtonDialogOutlined from "../Button/ButtonDialogOutlined";
+import UserProfile from "../Profile/UserProfile";
+import { connectSocket, socket } from "../../utils/getSocket";
+import { ChatEventPrivateRoom } from "../../../shared/socket.event";
+import { BaseChatroomTypeId } from "../../models/groupChat";
+import { deleteChatroomById } from "../../redux/features/chat/chat.slice";
+import { SocketServerSucessResponse } from "../../services/type";
+import { showSnackBar } from "../../redux/features/app/app.slice";
 
 interface ChatContactInfoProps {
   openDialog: boolean;
@@ -30,39 +26,40 @@ interface ChatContactInfoProps {
 
 const ChatContactInfo = ({ openDialog, handleClose }: ChatContactInfoProps) => {
   const theme = useTheme();
-  const handleDeleteFriend = async (data: BaseFriendTypeWithChatroom) => {
-    try {
-      const { friendId } = data;
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    connectSocket();
+    socket.on(
+      ChatEventPrivateRoom.SWITCH_PROFILE,
+      (data: SocketServerSucessResponse & { data: BaseChatroomTypeId }) => {
+        dispatch(deleteChatroomById(data.data.chatroomId));
+        dispatch(
+          showSnackBar({ severity: data.severity, message: data.message })
+        );
+      }
+    );
 
-      await deleteFriend({ friendId }).unwrap();
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const handleBlockUser = async (data: BaseFriendTypeWithChatroom) => {
-    try {
-      const { friendId } = data;
-
-      await blockUser({ friendId }).unwrap();
-    } catch (error) {
-      console.log(error);
-    }
-  };
+    return () => {
+      socket.off(ChatEventPrivateRoom.SWITCH_PROFILE);
+    };
+  }, [dispatch]);
 
   const [open, setOpen] = useState<{
     block: boolean;
     delete: boolean;
     gameInvitation: boolean;
-  }>({ block: false, delete: false, gameInvitation: false });
+    profile: boolean;
+  }>({ block: false, delete: false, gameInvitation: false, profile: false });
 
-  const [deleteFriend] = useDeleteFriendMutation();
-  const [blockUser] = useBlockFriendMutation();
-
+  const myNickname = useAppSelector(
+    (state: RootState) => state.user.user?.nickname
+  );
   const chatroomInfo = useAppSelector(
     (state: RootState) => state.chat.currentChatroom as PrivateChatroomType
   );
-  const user = chatroomInfo.users[0].user;
+  const { id, nickname, pong, friends, profile, status } =
+    chatroomInfo.users[0].user;
+
   return (
     <>
       <DialogI open={openDialog} handleClose={handleClose}>
@@ -92,16 +89,12 @@ const ChatContactInfo = ({ openDialog, handleClose }: ChatContactInfoProps) => {
               direction="row"
               spacing={2}
             >
-              {user.status === "ONLINE" ? (
+              {status === "ONLINE" ? (
                 <>
-                  <Tooltip placement="top" title={user.nickname}>
+                  <Tooltip placement="top" title={nickname}>
                     <BadgeAvatar>
                       <Avatar
-                        src={
-                          user.profile?.avatar
-                            ? user.profile?.avatar
-                            : undefined
-                        }
+                        src={profile?.avatar ? profile?.avatar : undefined}
                         sx={{ height: 64, width: 64 }}
                       />
                     </BadgeAvatar>
@@ -109,11 +102,9 @@ const ChatContactInfo = ({ openDialog, handleClose }: ChatContactInfoProps) => {
                 </>
               ) : (
                 <>
-                  <Tooltip placement="top" title={user.nickname}>
+                  <Tooltip placement="top" title={nickname}>
                     <Avatar
-                      src={
-                        user.profile?.avatar ? user.profile?.avatar : undefined
-                      }
+                      src={profile?.avatar ? profile?.avatar : undefined}
                       sx={{ height: 64, width: 64 }}
                     />
                   </Tooltip>
@@ -122,75 +113,86 @@ const ChatContactInfo = ({ openDialog, handleClose }: ChatContactInfoProps) => {
             </Stack>
             <Divider />
             <Stack spacing={2}>
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={() =>
+              <ButtonDialogOutlined
+                open={open.profile}
+                handleOpen={() =>
+                  setOpen((prev) => ({ ...prev, profile: true }))
+                }
+                buttonName="Profile"
+                icon={<User />}
+                children={
+                  <UserProfile
+                    open={open.profile}
+                    handleClose={() =>
+                      setOpen((prev) => ({ ...prev, profile: false }))
+                    }
+                    myNickname={myNickname}
+                    user={{ status, id, nickname, profile, pong }}
+                  />
+                }
+              />
+              <ButtonDialogOutlined
+                open={open.gameInvitation}
+                handleOpen={() =>
                   setOpen((prev) => ({ ...prev, gameInvitation: true }))
                 }
-              >{`Play with ${user.nickname}`}</Button>
+                children={
+                  <GameInvitation
+                    open={open.gameInvitation}
+                    handleClose={() =>
+                      setOpen((prev) => ({ ...prev, gameInvitation: false }))
+                    }
+                    id={id}
+                    nickname={nickname}
+                  />
+                }
+                icon={<GameController />}
+                buttonName={`Play with ${nickname}`}
+              />
               <Stack direction="row" alignItems="center" spacing={2}>
-                <Button
-                  size="small"
-                  startIcon={<Trash />}
-                  variant="outlined"
-                  fullWidth
-                  sx={{ textTransform: "capitalize" }}
-                  onClick={() =>
-                    setOpen((prev) => ({
-                      ...prev,
-                      block: true,
-                    }))
+                <ButtonDialogOutlined
+                  open={open.block}
+                  handleOpen={() =>
+                    setOpen((prev) => ({ ...prev, block: true }))
                   }
-                >
-                  Block
-                </Button>
+                  children={
+                    <BlockUserDialog
+                      open={open.block}
+                      handleClose={() =>
+                        setOpen((prev) => ({ ...prev, block: false }))
+                      }
+                      friendId={id}
+                      nickname={nickname}
+                    />
+                  }
+                  icon={<Trash />}
+                  buttonName={`Block ${nickname}`}
+                />
 
-                <Button
-                  startIcon={<Trash />}
-                  size="small"
-                  variant="outlined"
-                  fullWidth
-                  sx={{ textTransform: "capitalize" }}
-                  onClick={() =>
-                    setOpen((prev) => ({
-                      ...prev,
-                      delete: true,
-                    }))
-                  }
-                >
-                  Delete
-                </Button>
+                {friends.length > 0 && (
+                  <ButtonDialogOutlined
+                    open={open.delete}
+                    handleOpen={() =>
+                      setOpen((prev) => ({ ...prev, delete: true }))
+                    }
+                    children={
+                      <DeleteFriendDialog
+                        open={open.delete}
+                        handleClose={() =>
+                          setOpen((prev) => ({ ...prev, delete: false }))
+                        }
+                        friendId={id}
+                        nickname={nickname}
+                      />
+                    }
+                    icon={<Trash />}
+                    buttonName={`Delete ${nickname}`}
+                  />
+                )}
               </Stack>
             </Stack>
           </Stack>
         </Stack>
-        {open.gameInvitation && (
-          <GameInvitation
-            open={open.gameInvitation}
-            handleClose={() =>
-              setOpen((prev) => ({ ...prev, gameInvitation: false }))
-            }
-            id={user.id}
-            nickname={user.nickname}
-          />
-        )}
-        <CustomDialog
-          handleOnClick={handleBlockUser}
-          open={open.block}
-          handleClose={() => setOpen((prev) => ({ ...prev, block: false }))}
-          title="Block User ?"
-          content="Do you really want to block that user ?"
-          friendId={user.id}
-        />
-        <CustomDialog
-          handleOnClick={handleDeleteFriend}
-          open={open.delete}
-          handleClose={() => setOpen((prev) => ({ ...prev, delete: false }))}
-          title="Delete friend  ?"
-          content="Do you really want to delete that friend ?"
-          friendId={user.id}
-        />
       </DialogI>
     </>
   );

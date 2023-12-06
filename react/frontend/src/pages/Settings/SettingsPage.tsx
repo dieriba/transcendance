@@ -14,6 +14,7 @@ import { useAppSelector } from "../../redux/hooks";
 import { RootState } from "../../redux/store";
 import { User } from "../../redux/features/user/user.slice";
 import Security from "../../components/Settings/security/Security";
+import { CHATBAR_WIDTH } from "../../utils/constant";
 const Settings = () => {
   const theme = useTheme();
   const onlyMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
@@ -52,7 +53,7 @@ const Settings = () => {
       <Stack mt={5} sx={{ width: "100%" }}>
         <Box
           sx={{
-            width: onlyMediumScreen ? "100vw" : "320px",
+            width: onlyMediumScreen ? "100vw" : `${CHATBAR_WIDTH}px`,
             height: onlyMediumScreen ? "100%" : "auto",
             backgroundColor:
               theme.palette.mode === "light"

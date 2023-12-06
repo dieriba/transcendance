@@ -36,6 +36,7 @@ import GameInvitation from "../../../game-invitation/GameInvitation";
 import { ChatroomGroupType } from "../../../../models/groupChat";
 import UserProfileGroup from "../../../Profile/UserProfileGroup";
 import { UserUpdateStatusType } from "../../../../models/login/UserSchema";
+import { CHATBAR_WIDTH } from "../../../../utils/constant";
 
 export type UserData = {
   id: string;
@@ -122,7 +123,7 @@ const View = () => {
 
   if (isLoading) {
     return (
-      <Box width="320px">
+      <Box width={`${CHATBAR_WIDTH}px`}>
         <Stack alignItems="center" height="100%" justifyContent="center">
           <CircularProgress size={100} />
         </Stack>
@@ -130,7 +131,7 @@ const View = () => {
     );
   } else if (isError || !data) {
     return (
-      <Box width="320px">
+      <Box width={`${CHATBAR_WIDTH}px`}>
         <Stack
           alignItems="center"
           height="100%"

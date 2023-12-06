@@ -14,20 +14,13 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import {
-  useBlockFriendMutation,
-  useDeleteFriendMutation,
-  useGetAllFriendsQuery,
-} from "../../redux/features/friends/friends.api.slice";
+import { useGetAllFriendsQuery } from "../../redux/features/friends/friends.api.slice";
 import { Trash, Prohibit } from "phosphor-react";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { useEffect, useState } from "react";
 import { connectSocket, socket } from "../../utils/getSocket";
 import { GeneralEvent } from "../../../shared/socket.event";
-import {
-  BaseFriendTypeWithChatroom,
-  SocketServerSucessResponse,
-} from "../../services/type";
+import { SocketServerSucessResponse } from "../../services/type";
 import {
   setFriends,
   updatePage,
@@ -36,9 +29,10 @@ import {
 import { RootState } from "../../redux/store";
 import BadgeAvatar from "../Badge/BadgeAvatar";
 import UserProfile from "../Profile/UserProfile";
-import CustomDialog from "../Dialog/CustomDialog";
 import { UserWithProfile } from "../../models/ChatContactSchema";
 import { UserUpdateStatusType } from "../../models/login/UserSchema";
+import DeleteFriendDialog from "./DeleteFriendDialog";
+import BlockUserDialog from "./BlockFriendDialog";
 
 export interface FriendProps {
   id: number;
@@ -47,54 +41,34 @@ export interface FriendProps {
   nickname: string;
   friendSince: string;
 }
+type OpenType = {
+  open: boolean;
+  block: boolean;
+  delete: boolean;
+  id?: string;
+};
 
 const FriendsTable = () => {
   const { data, isLoading, isError } = useGetAllFriendsQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
 
-  const [deleteFriend] = useDeleteFriendMutation();
-  const [blockUser] = useBlockFriendMutation();
-
-  const [info, setInfo] = useState<{
-    open: boolean;
-    block: boolean;
-    delete: boolean;
-    id?: string;
-  }>({ open: false, block: false, delete: false });
+  const [info, setInfo] = useState<OpenType>({
+    open: false,
+    block: false,
+    delete: false,
+  });
 
   const dispatch = useAppDispatch();
 
   const [user, setUser] = useState<UserWithProfile | undefined>(undefined);
 
-  const handleSetUser = (data: UserWithProfile) => {
-    setUser(data);
-    setInfo((prev) => ({ ...prev, open: true }));
-  };
-
-  const handleDeleteFriend = async (data: BaseFriendTypeWithChatroom) => {
-    try {
-      const { friendId } = data;
-
-      await deleteFriend({ friendId }).unwrap();
-      setInfo((prev) => ({ ...prev, open: false }));
-    } catch (error) {
-      setInfo((prev) => ({ ...prev, open: false }));
-      console.log(error);
-    }
-  };
-
-  const handleBlockUser = async (data: BaseFriendTypeWithChatroom) => {
-    try {
-      const { friendId } = data;
-
-      await blockUser({ friendId }).unwrap();
-
-      setInfo((prev) => ({ ...prev, open: false }));
-    } catch (error) {
-      console.log(error);
-      setInfo((prev) => ({ ...prev, open: false }));
-    }
+  const handleSetUser = (
+    data: Partial<UserWithProfile>,
+    open: Partial<OpenType>
+  ) => {
+    setUser((prev) => ({ ...prev, ...(data as UserWithProfile) }));
+    setInfo((prev) => ({ ...prev, ...open }));
   };
 
   useEffect(() => {
@@ -191,13 +165,16 @@ const FriendsTable = () => {
                           variant="contained"
                           color="inherit"
                           onClick={() => {
-                            handleSetUser({
-                              id,
-                              nickname,
-                              status,
-                              profile: { avatar, firstname, lastname },
-                              pong,
-                            });
+                            handleSetUser(
+                              {
+                                id,
+                                nickname,
+                                status,
+                                profile: { avatar, firstname, lastname },
+                                pong,
+                              },
+                              { open: true }
+                            );
                           }}
                         >
                           Profile
@@ -211,11 +188,13 @@ const FriendsTable = () => {
                         >
                           <Tooltip
                             onClick={() => {
-                              setInfo((prev) => ({
-                                ...prev,
-                                delete: true,
-                                id,
-                              }));
+                              handleSetUser(
+                                {
+                                  id,
+                                  nickname,
+                                },
+                                { delete: true }
+                              );
                             }}
                             placement="top"
                             title="delete"
@@ -226,11 +205,13 @@ const FriendsTable = () => {
                           </Tooltip>
                           <Tooltip
                             onClick={() => {
-                              setInfo((prev) => ({
-                                ...prev,
-                                block: true,
-                                id,
-                              }));
+                              handleSetUser(
+                                {
+                                  id,
+                                  nickname,
+                                },
+                                { block: true }
+                              );
                             }}
                             placement="top"
                             title="Block"
@@ -256,24 +237,24 @@ const FriendsTable = () => {
           />
         )}
         {info.block && (
-          <CustomDialog
-            handleOnClick={handleBlockUser}
+          <BlockUserDialog
             open={info.block}
             handleClose={() => setInfo((prev) => ({ ...prev, block: false }))}
-            title={`Block ${nickname} ?`}
-            content={`Do you really want to block ${nickname} ?`}
             friendId={info.id as string}
+            nickname={nickname as string}
           />
         )}
         {info.delete && (
-          <CustomDialog
-            handleOnClick={handleDeleteFriend}
-            open={info.delete}
-            handleClose={() => setInfo((prev) => ({ ...prev, delete: false }))}
-            title={`Delete ${nickname}`}
-            content={`Do you really want to delete ${nickname} ?`}
-            friendId={info.id as string}
-          />
+          <>
+            <DeleteFriendDialog
+              open={info.delete}
+              handleClose={() =>
+                setInfo((prev) => ({ ...prev, delete: false }))
+              }
+              friendId={info.id as string}
+              nickname={nickname as string}
+            />
+          </>
         )}
       </>
     );

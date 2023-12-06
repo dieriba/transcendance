@@ -51,7 +51,7 @@ export const PrivateChatroomSchema = z.object({
   id: z.string(),
   users: z.array(
     z.object({
-      user: UserSchemaWithProfile,
+      user: UserWithProfileFriendsSchema,
     })
   ),
   messages: z.array(MessageSchema),

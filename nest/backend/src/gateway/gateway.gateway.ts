@@ -286,8 +286,6 @@ export class GatewayGateway {
       UserId,
     );
 
-    console.log({ existingUserId });
-
     existingUserId.push(userId);
 
     const newChatroom = await this.prismaService.chatroom.create({
@@ -2476,42 +2474,125 @@ export class GatewayGateway {
     @MessageBody(IsFriendExistWs) body: FriendsTypeDto,
   ) {
     const { friendId } = body;
-    const userId = client.userId;
-
-    const existingFriendship = await this.friendService.isFriends(
-      userId,
-      friendId,
-    );
-
-    if (existingFriendship)
-      throw new WsBadRequestException('You are already friends with that user');
-
-    const existingFriendRequest =
-      await this.friendService.hasUserSentMeARequest(friendId, userId);
-
-    if (!existingFriendRequest)
-      throw new WsBadRequestException('User has not send you a friend request');
+    const { userId } = client;
 
     let chatroom: Partial<Chatroom>;
-    const { sender, recipient } = existingFriendRequest;
+    const [me, user] = await Promise.all([
+      this.prismaService.user.findUnique({
+        where: { id: userId },
+        select: {
+          chatrooms: {
+            where: {
+              chatroom: {
+                type: TYPE.DM,
+                users: {
+                  some: {
+                    userId: friendId,
+                  },
+                },
+              },
+            },
+          },
+          friends: {
+            where: {
+              friendId,
+            },
+          },
+          friendRequestsSent: {
+            where: {
+              recipientId: friendId,
+            },
+            select: {
+              sender: {
+                include: { profile: true },
+              },
+              recipient: {
+                include: { profile: true },
+              },
+              senderId: true,
+              recipientId: true,
+            },
+          },
+          friendRequestsReceived: {
+            where: {
+              senderId: friendId,
+            },
+            select: {
+              sender: {
+                include: { profile: true },
+              },
+              recipient: {
+                include: { profile: true },
+              },
+              senderId: true,
+              recipientId: true,
+            },
+          },
+        },
+      }),
+      this.prismaService.user.findUnique({ where: { id: friendId } }),
+    ]);
+
+    if (!me || !user) throw new WsUserNotFoundException();
+
+    const { friends, friendRequestsReceived, friendRequestsSent, chatrooms } =
+      me;
+
+    if (friends.length > 0)
+      throw new WsBadRequestException('You are already friends with that user');
+
+    if (friendRequestsReceived.length === 0 || friendRequestsSent.length === 0)
+      throw new WsBadRequestException('User has not send you a friend request');
+
+    const existingFriendRequest =
+      friendRequestsReceived.length > 0
+        ? friendRequestsReceived
+        : friendRequestsSent;
+
+    const { sender, recipient, senderId, recipientId } =
+      existingFriendRequest[0];
     await this.prismaService.$transaction(async (tx) => {
       await tx.friendRequest.delete({
         where: {
           senderId_recipientId: {
-            senderId: existingFriendRequest.senderId,
-            recipientId: existingFriendRequest.recipientId,
+            senderId,
+            recipientId,
           },
         },
       });
 
-      chatroom = await tx.chatroom.findFirst({
-        where: {
-          type: TYPE.DM,
-          AND: [
-            { users: { some: { userId: existingFriendRequest.senderId } } },
-            { users: { some: { userId: existingFriendRequest.recipientId } } },
-          ],
+      await tx.friends.create({
+        data: {
+          user: { connect: { id: userId } },
+          friend: { connect: { id: friendId } },
         },
+      });
+      await tx.friends.create({
+        data: {
+          user: { connect: { id: friendId } },
+          friend: { connect: { id: userId } },
+        },
+      });
+
+      chatroom = await tx.chatroom.upsert({
+        where: {
+          id: chatrooms.length > 0 ? chatrooms[0].chatroomId : '',
+          type: TYPE.DM,
+          users: {
+            every: {
+              userId: {
+                in: [senderId, recipientId],
+              },
+            },
+          },
+        },
+        create: {
+          type: TYPE.DM,
+          users: {
+            create: [{ userId: userId }, { userId: friendId }],
+          },
+        },
+        update: { active: true },
         select: {
           id: true,
           users: {
@@ -2524,11 +2605,22 @@ export class GatewayGateway {
               user: {
                 select: {
                   id: true,
+                  pong: true,
                   nickname: true,
                   status: true,
                   profile: {
                     select: {
                       avatar: true,
+                      lastname: true,
+                      firstname: true,
+                    },
+                  },
+                  friends: {
+                    where: {
+                      friendId: userId,
+                    },
+                    select: {
+                      friendId: true,
                     },
                   },
                 },
@@ -2539,69 +2631,8 @@ export class GatewayGateway {
             orderBy: {
               createdAt: 'asc',
             },
+            take: 1,
           },
-        },
-      });
-
-      if (chatroom) {
-        await tx.chatroom.update({
-          where: {
-            id: chatroom.id,
-          },
-          data: {
-            active: true,
-          },
-        });
-        chatroom.active = true;
-      } else {
-        chatroom = await tx.chatroom.create({
-          data: {
-            type: TYPE.DM,
-            users: {
-              create: [{ userId: userId }, { userId: friendId }],
-            },
-          },
-          select: {
-            id: true,
-            users: {
-              where: {
-                userId: {
-                  not: userId,
-                },
-              },
-              select: {
-                user: {
-                  select: {
-                    id: true,
-                    nickname: true,
-                    status: true,
-                    profile: {
-                      select: {
-                        avatar: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-            messages: {
-              orderBy: {
-                createdAt: 'asc',
-              },
-            },
-          },
-        });
-      }
-      await tx.friends.create({
-        data: {
-          user: { connect: { id: userId } },
-          friend: { connect: { id: friendId } },
-        },
-      });
-      await tx.friends.create({
-        data: {
-          user: { connect: { id: friendId } },
-          friend: { connect: { id: userId } },
         },
       });
     });
@@ -2787,32 +2818,86 @@ export class GatewayGateway {
     @MessageBody(IsFriendExistWs) body: FriendsTypeDto,
   ) {
     const { friendId } = body;
-    const userId = client.userId;
+    const { userId } = client;
 
-    const existingBlockedUser = await this.userService.findBlockedUser(
-      userId,
-      friendId,
-    );
+    const [me, user] = await Promise.all([
+      this.prismaService.user.findFirst({
+        where: { id: userId },
+        select: {
+          blockedUsers: {
+            where: {
+              id: friendId,
+            },
+          },
 
-    if (existingBlockedUser && existingBlockedUser.blockedUsers.length > 0)
+          friends: {
+            where: {
+              friendId,
+            },
+          },
+          friendRequestsReceived: {
+            where: {
+              senderId: friendId,
+            },
+            select: {
+              senderId: true,
+              recipientId: true,
+            },
+          },
+          friendRequestsSent: {
+            where: {
+              recipientId: friendId,
+            },
+            select: {
+              senderId: true,
+              recipientId: true,
+            },
+          },
+        },
+      }),
+      this.prismaService.user.findFirst({ where: { id: friendId } }),
+    ]);
+
+    if (!me || !user) throw new WsUserNotFoundException();
+
+    const {
+      blockedUsers,
+      friends,
+      friendRequestsReceived,
+      friendRequestsSent,
+    } = me;
+
+    if (blockedUsers.length > 0)
       throw new WsBadRequestException('User already blocked');
 
-    const existingFriendShip = await this.friendService.isFriends(
-      userId,
-      friendId,
-    );
+    const chatroom = await this.prismaService.chatroom.findFirst({
+      where: {
+        type: TYPE.DM,
+        AND: [
+          { users: { some: { userId } } },
+          { users: { some: { userId: friendId } } },
+        ],
+      },
+    });
 
-    const existingFriendRequest = await this.friendService.isRequestBetweenUser(
-      userId,
-      friendId,
-    );
+    const existingFriendRequest =
+      friendRequestsReceived.length > 0
+        ? friendRequestsReceived
+        : friendRequestsSent;
 
-    if (existingFriendShip) {
-      await this.prismaService.$transaction(async (tx) => {
+    await this.prismaService.$transaction(async (tx) => {
+      if (chatroom) {
+        await tx.chatroom.update({
+          where: { id: chatroom.id },
+          data: { active: false },
+        });
+      }
+      if (friends.length > 0) {
         await tx.user.update({
           where: { id: userId },
           data: { blockedUsers: { connect: { id: friendId } } },
         });
+
         await tx.friends.delete({
           where: {
             userId_friendId: {
@@ -2821,6 +2906,7 @@ export class GatewayGateway {
             },
           },
         });
+
         await tx.friends.delete({
           where: {
             userId_friendId: {
@@ -2829,76 +2915,75 @@ export class GatewayGateway {
             },
           },
         });
-        const chatroom = await tx.chatroom.findFirst({
-          where: {
-            type: TYPE.DM,
-            AND: [
-              { users: { some: { userId } } },
-              { users: { some: { userId: friendId } } },
-            ],
+
+        this.libService.sendToSocket(
+          this.server,
+          friendId,
+          FriendEvent.DELETE_FRIEND,
+          {
+            data: { friendId: client.userId },
           },
-        });
-        if (chatroom) {
-          await tx.chatroom.update({
-            where: { id: chatroom.id },
-            data: { active: false },
+        );
+
+        this.libService.sendToSocket(
+          this.server,
+          client.userId,
+          FriendEvent.DELETE_FRIEND,
+          {
+            data: { friendId },
+          },
+        );
+
+        return;
+      } else {
+        if (existingFriendRequest.length > 0) {
+          await tx.user.update({
+            where: { id: userId },
+            data: { blockedUsers: { connect: { id: friendId } } },
+          });
+          await tx.friendRequest.delete({
+            where: {
+              senderId_recipientId: {
+                senderId: existingFriendRequest[0].senderId,
+                recipientId: existingFriendRequest[0].recipientId,
+              },
+            },
+          });
+
+          this.libService.sendToSocket(
+            this.server,
+            client.userId,
+            FriendEvent.CANCEL_REQUEST,
+            {
+              data: { friendId },
+            },
+          );
+
+          this.libService.sendToSocket(
+            this.server,
+            friendId,
+            FriendEvent.CANCEL_REQUEST,
+            {
+              data: { friendId: client.userId },
+            },
+          );
+        } else {
+          await this.prismaService.user.update({
+            where: { id: userId },
+            data: { blockedUsers: { connect: { id: friendId } } },
           });
         }
-      });
-      this.libService.sendToSocket(
-        this.server,
-        friendId,
-        FriendEvent.DELETE_FRIEND,
-        {
-          data: { friendId: client.userId },
-        },
-      );
-
-      this.libService.sendToSocket(
-        this.server,
-        client.userId,
-        FriendEvent.DELETE_FRIEND,
-        {
-          data: { friendId },
-        },
-      );
-    } else if (existingFriendRequest) {
-      await this.prismaService.$transaction([
-        this.prismaService.user.update({
-          where: { id: userId },
-          data: { blockedUsers: { connect: { id: friendId } } },
-        }),
-        this.prismaService.friendRequest.delete({
-          where: {
-            senderId_recipientId: {
-              senderId: existingFriendRequest.senderId,
-              recipientId: existingFriendRequest.recipientId,
-            },
+        this.libService.sendToSocket(
+          this.server,
+          client.userId,
+          ChatEventPrivateRoom.SWITCH_PROFILE,
+          {
+            data: { chatroomId: chatroom.id },
+            message: `${user.nickname} blocked!`,
           },
-        }),
-      ]);
-      this.libService.sendToSocket(
-        this.server,
-        client.userId,
-        FriendEvent.CANCEL_REQUEST,
-        {
-          data: { friendId },
-        },
-      );
-      this.libService.sendToSocket(
-        this.server,
-        friendId,
-        FriendEvent.CANCEL_REQUEST,
-        {
-          data: { friendId: client.userId },
-        },
-      );
-    } else {
-      await this.prismaService.user.update({
-        where: { id: userId },
-        data: { blockedUsers: { connect: { id: friendId } } },
-      });
-    }
+        );
+      }
+    });
 
     this.server
       .to(client.userId)
@@ -3088,7 +3173,6 @@ export class GatewayGateway {
     client.emit(GeneralEvent.SUCCESS, {
       message: `Game invitation succesfully sent to ${user.nickname}`,
     });
-    console.log({ userId });
 
     this.libService.sendToSocket(
       this.server,
@@ -3161,7 +3245,6 @@ export class GatewayGateway {
     if (!senderSocket) {
       throw new WsUnknownException(`${user.nickname} is currently not online`);
     }
-    console.log('1');
 
     this.pongService.addNewGameRoom({
       gameId,
@@ -3170,7 +3253,6 @@ export class GatewayGateway {
       socketId: invitation.getSocketId,
       otherSocketId: client.id,
     });
-    console.log('2');
 
     this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS);
 
@@ -3180,7 +3262,6 @@ export class GatewayGateway {
       creator: { nickname: user.nickname, avatar: user.profile.avatar },
       opponent: { nickname: me.nickname, avatar: me.profile.avatar },
     });
-    console.log('3');
   }
 
   @SubscribeMessage(PongEvent.UPDATE_PLAYER_POSITION)

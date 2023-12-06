@@ -28,13 +28,35 @@ export class ChatService {
 
     const chatrooms = await this.prismaService.chatroom.findMany({
       where: {
-        users: {
-          some: {
-            userId,
+        AND: [
+          {
+            users: {
+              some: {
+                userId,
+              },
+            },
+            type: TYPE.DM,
+            active: true,
           },
-        },
-        type: TYPE.DM,
-        active: true,
+          {
+            OR: [
+              {
+                users: {
+                  some: {
+                    user: {
+                      friends: {
+                        some: { friendId: userId },
+                      },
+                    },
+                  },
+                },
+              },
+              {
+                messages: { some: {} },
+              },
+            ],
+          },
+        ],
       },
       select: {
         id: true,
@@ -53,6 +75,33 @@ export class ChatService {
                 profile: {
                   select: {
                     avatar: true,
+                    lastname: true,
+                    firstname: true,
+                  },
+                },
+                pong: true,
+                friends: {
+                  where: {
+                    friendId: userId,
+                  },
+                  select: {
+                    friendId: true,
+                  },
+                },
+                friendRequestsReceived: {
+                  where: {
+                    senderId: userId,
+                  },
+                  select: {
+                    recipientId: true,
+                  },
+                },
+                friendRequestsSent: {
+                  where: {
+                    recipientId: userId,
+                  },
+                  select: {
+                    senderId: true,
                   },
                 },
               },
@@ -85,12 +134,77 @@ export class ChatService {
   }
 
   async createNewPrivateChatroom(userId: string, id: string) {
-    const [me, user] = await Promise.all([
+    const [me, user, chatroom] = await Promise.all([
       this.prismaService.user.findFirst({ where: { id: userId } }),
       this.prismaService.user.findFirst({ where: { id } }),
+      this.prismaService.chatroom.findFirst({
+        where: {
+          type: TYPE.DM,
+          active: true,
+          users: { every: { userId: { in: [userId, id] } } },
+        },
+        select: {
+          id: true,
+          users: {
+            where: {
+              userId: {
+                not: userId,
+              },
+            },
+            select: {
+              user: {
+                select: {
+                  id: true,
+                  nickname: true,
+                  status: true,
+                  profile: {
+                    select: {
+                      avatar: true,
+                      lastname: true,
+                      firstname: true,
+                    },
+                  },
+                  friends: {
+                    where: {
+                      friendId: userId,
+                    },
+                    select: {
+                      friendId: true,
+                    },
+                  },
+                  friendRequestsReceived: {
+                    where: {
+                      senderId: userId,
+                    },
+                    select: {
+                      recipientId: true,
+                    },
+                  },
+                  friendRequestsSent: {
+                    where: {
+                      recipientId: userId,
+                    },
+                    select: {
+                      senderId: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          messages: {
+            orderBy: {
+              createdAt: 'asc',
+            },
+            take: 1,
+          },
+        },
+      }),
     ]);
 
     if (!me || !user) throw new UserNotFoundException();
+
+    if (chatroom) return chatroom;
 
     const newChatroom = await this.prismaService.chatroom.create({
       data: {
@@ -113,9 +227,36 @@ export class ChatService {
                 id: true,
                 nickname: true,
                 status: true,
+                pong: true,
                 profile: {
                   select: {
                     avatar: true,
+                    lastname: true,
+                    firstname: true,
+                  },
+                },
+                friends: {
+                  where: {
+                    friendId: userId,
+                  },
+                  select: {
+                    friendId: true,
+                  },
+                },
+                friendRequestsReceived: {
+                  where: {
+                    senderId: userId,
+                  },
+                  select: {
+                    recipientId: true,
+                  },
+                },
+                friendRequestsSent: {
+                  where: {
+                    recipientId: userId,
+                  },
+                  select: {
+                    senderId: true,
                   },
                 },
               },
@@ -126,6 +267,7 @@ export class ChatService {
           orderBy: {
             createdAt: 'asc',
           },
+          take: 1,
         },
       },
     });

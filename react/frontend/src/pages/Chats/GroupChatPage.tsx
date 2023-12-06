@@ -37,6 +37,7 @@ import { editGroupResponseType } from "../../models/EditGroupSchema";
 import { UserProfileBanLifeType } from "../../models/ChatContactSchema";
 import GroupMobileChat from "../../components/Chat/Group/GroupMobileChat";
 import GroupDesktopChat from "../../components/Chat/Group/GroupDesktopChat";
+import { CHATBAR_WIDTH } from "../../utils/constant";
 
 const GroupChatPage = () => {
   const theme = useTheme();
@@ -149,7 +150,7 @@ const GroupChatPage = () => {
       <Box
         sx={{
           position: "relative",
-          width: 320,
+          width: CHATBAR_WIDTH,
           backgroundColor:
             theme.palette.mode === "light"
               ? "#F8FAFF"

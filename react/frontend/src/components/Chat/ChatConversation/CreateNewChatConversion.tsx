@@ -12,9 +12,16 @@ import { useTheme } from "@mui/material/styles";
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { RootState } from "../../../redux/store";
-import { addNewChatroom, setChatableUser, setPrivateChatroomId } from "../../../redux/features/chat/chat.slice";
-import { useCreatePrivateChatroomMutation, useGetAllChatableUserQuery } from "../../../redux/features/chat/chats.api.slice";
-import { SocketServerErrorResponse } from "../../../services/type";
+import {
+  addNewChatroom,
+  setChatableUser,
+  setPrivateChatroomId,
+} from "../../../redux/features/chat/chat.slice";
+import {
+  useCreatePrivateChatroomMutation,
+  useGetAllChatableUserQuery,
+} from "../../../redux/features/chat/chats.api.slice";
+import { BaseServerResponse } from "../../../services/type";
 import DialogI from "../../Dialog/DialogI";
 import { Basetype } from "../../../models/BaseType";
 interface CreateNewChatConversationProps {
@@ -30,7 +37,7 @@ const CreateNewChatConversation = ({
     refetchOnMountOrArgChange: true,
   });
   const theme = useTheme();
-  const [createNewChat] = useCreatePrivateChatroomMutation()
+  const [createNewChat] = useCreatePrivateChatroomMutation();
   const [message, setMessage] = useState("");
   const [severity, setSeverity] = useState<AlertColor>("success");
   const [openSnack, setOpenSnack] = useState(false);
@@ -52,30 +59,29 @@ const CreateNewChatConversation = ({
     }
   }, [data, dispatch]);
 
-  const {chatableUsers, privateChatroom} = useAppSelector(
+  const { chatableUsers, privateChatroom } = useAppSelector(
     (state: RootState) => state.chat
   );
 
-  const handleSubmit = async ({id} : Basetype) => {
+  const handleSubmit = async ({ id }: Basetype) => {
     try {
+      const { data } = await createNewChat({ id }).unwrap();
+      const chatroom = privateChatroom.find(
+        (chatroom) => chatroom.users[0].user.id === data.users[0].user.id
+      );
 
-      const chatroom = privateChatroom.find((chatroom) => chatroom.users[0].user.id === id);
-
-      if (chatroom)
-      {
+      if (chatroom) {
         dispatch(setPrivateChatroomId(chatroom.id));
         handleClose();
-        return ;
+        return;
       }
 
-      const {data} = await createNewChat({id
-      }).unwrap();
       dispatch(addNewChatroom(data));
       dispatch(setPrivateChatroomId(data.id));
       handleClose();
     } catch (error) {
       setSeverity("error");
-      setMessage((error as SocketServerErrorResponse).message);
+      setMessage((error as BaseServerResponse).message);
       setOpenSnack(true);
     }
   };
@@ -140,7 +146,7 @@ const CreateNewChatConversation = ({
                       />
                       <Typography>{nickname}</Typography>
                       <Button
-                        onClick={() => handleSubmit({id})}
+                        onClick={() => handleSubmit({ id })}
                         variant="contained"
                         color="inherit"
                       >

@@ -39,6 +39,7 @@ import {
 import { SocketServerErrorResponse } from "../../services/type";
 import RHFTextField from "../../components/controlled-components/RHFTextField";
 import { RootState } from "../../redux/store";
+import { CHATBAR_WIDTH } from "../../utils/constant";
 const ProfilePage = () => {
   const theme = useTheme();
   const user = useAppSelector((state: RootState) => state.user.user);
@@ -156,7 +157,7 @@ const ProfilePage = () => {
                 ? "#F8FAFF"
                 : theme.palette.background.paper,
             boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.25)",
-            width: onlyMediumScreen ? "100vw" : "320px",
+            width: onlyMediumScreen ? "100vw" : `${CHATBAR_WIDTH}px`,
             height: onlyMediumScreen ? "100vh" : "auto",
           }}
         >

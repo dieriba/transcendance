@@ -34,7 +34,7 @@ export class PongService {
     if (!user) throw new UserNotFoundException();
 
     const players = await this.prismaService.user.findMany({
-      orderBy: { pong: { rating: 'desc' } },
+      orderBy: [{ pong: { rating: 'desc' } }, { createdAt: 'asc' }],
       select: {
         id: true,
         nickname: true,
@@ -58,6 +58,8 @@ export class PongService {
         },
       },
     });
+
+    console.log({ players });
 
     return players;
   }

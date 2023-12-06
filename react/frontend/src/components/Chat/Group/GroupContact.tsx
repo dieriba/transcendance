@@ -8,6 +8,7 @@ import GroupBox from "../GroupBox";
 import { RootState } from "../../../redux/store";
 import JoinGroup from "./JoinGroup";
 import GroupInvitation from "./GroupInvitation";
+import { CHATBAR_WIDTH } from "../../../utils/constant";
 
 const GroupContact = () => {
   const theme = useTheme();
@@ -32,7 +33,7 @@ const GroupContact = () => {
       <Box
         sx={{
           position: "relative",
-          width: onlyMediumScreen ? "100%" : 320,
+          width: onlyMediumScreen ? "100%" : CHATBAR_WIDTH,
           backgroundColor:
             theme.palette.mode === "light"
               ? "#F8FAFF"

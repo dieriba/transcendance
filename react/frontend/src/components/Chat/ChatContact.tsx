@@ -3,7 +3,11 @@ import ChatBox from "./ChatBox";
 import { useTheme } from "@mui/material/styles";
 import { useAppSelector } from "../../redux/hooks";
 import { RootState } from "../../redux/store";
-import NewChat from "../../pages/Chats/NewChat";
+import { CHATBAR_WIDTH } from "../../utils/constant";
+import { useState } from "react";
+import ButtonDialogContained from "../Button/ButtonDialogContained";
+import CreateNewChatConversation from "./ChatConversation/CreateNewChatConversion";
+import { Plus } from "phosphor-react";
 
 const ChatContact = () => {
   const theme = useTheme();
@@ -11,29 +15,40 @@ const ChatContact = () => {
     (state: RootState) => state.chat.privateChatroom
   );
   const onlyMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
-
+  const [open, setOpen] = useState(false);
   const myId = useAppSelector((state: RootState) => state.user.user?.id);
   return (
     <Box
       sx={{
         position: "relative",
-        width: onlyMediumScreen ? "100%" : 320,
+        width: onlyMediumScreen ? "100%" : CHATBAR_WIDTH,
         backgroundColor:
           theme.palette.mode === "light"
             ? "#F8FAFF"
             : theme.palette.background.paper,
         boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.25)",
+        overflow: "hidden",
       }}
       p={2}
-
     >
-      <NewChat />
       <Stack height="100vh">
         <Stack
           sx={{ flexGrow: 1, overflow: "scroll", height: "100%" }}
           spacing={1}
         >
-          <Stack  spacing={0}>
+          <ButtonDialogContained
+            children={
+              <CreateNewChatConversation
+                open={open}
+                handleClose={() => setOpen(false)}
+              />
+            }
+            icon={<Plus />}
+            buttonName={"conversation"}
+            open={open}
+            handleOpen={() => setOpen(true)}
+          />
+          <Stack spacing={1}>
             {chats.map(({ id, users, messages }) => {
               const user = users[0].user;
               const lastMsg = messages[messages.length - 1];

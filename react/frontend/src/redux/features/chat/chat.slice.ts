@@ -40,21 +40,33 @@ export const ChatSlice = createSlice({
       state,
       action: PayloadAction<string | undefined>
     ) => {
+      if (action.payload === state.currentPrivateChatroomId) return;
+
       state.currentPrivateChatroomId = action.payload;
-      if (action.payload !== undefined)
-        state.currentChatroom = state.privateChatroom?.find(
-          (chatroom) => chatroom.id === action.payload
-        ) as PrivateChatroomType;
+
+      if (action.payload === undefined) return;
+
+      state.messages = [];
+      state.currentChatroom = state.privateChatroom?.find(
+        (chatroom) => chatroom.id === action.payload
+      ) as PrivateChatroomType;
     },
     setChatableUser: (state, action: PayloadAction<BaseUserInfoType[]>) => {
       state.chatableUsers = action.payload;
     },
-    addNewChatroom: (
-      state,
-      action: PayloadAction<PrivateChatroomType | undefined>
-    ) => {
+    addNewChatroom: (state, action: PayloadAction<PrivateChatroomType>) => {
       if (action.payload) {
-        state.privateChatroom.unshift(action.payload);
+        const index = state.privateChatroom.findIndex(
+          (chatroom) => chatroom.id === action.payload.id
+        );
+
+        if (index === -1) {
+          state.privateChatroom.unshift(action.payload);
+          return;
+        }
+
+        state.privateChatroom[index].users[0].user.friends =
+          action.payload.users[0].user.friends;
       }
     },
     setChatroomMessage: (state, action: PayloadAction<MessageType[]>) => {
@@ -77,18 +89,20 @@ export const ChatSlice = createSlice({
     },
     updatePrivateChatroomList: (state, action: PayloadAction<MessageType>) => {
       const message = action.payload;
-      const indexToRemove = state.privateChatroom?.findIndex(
-        (chatroom) => chatroom.id === message.chatroomId
-      );
-
-      const removedObject = state.privateChatroom?.splice(indexToRemove, 1)[0];
       if (message.chatroomId === state.currentPrivateChatroomId) {
+        const indexToRemove = state.privateChatroom?.findIndex(
+          (chatroom) => chatroom.id === message.chatroomId
+        );
+        const removedObject = state.privateChatroom?.splice(
+          indexToRemove,
+          1
+        )[0];
         state.messages.push(message);
+        removedObject.messages.length === 0
+          ? removedObject.messages.push(message)
+          : (removedObject.messages[0] = message);
+        state.privateChatroom.unshift(removedObject);
       }
-      removedObject.messages.length === 0
-        ? removedObject.messages.push(message)
-        : (removedObject.messages[0] = message);
-      state.privateChatroom.unshift(removedObject);
     },
     updateUserStatus: (state, action: PayloadAction<UserUpdateStatusType>) => {
       const { id, status } = action.payload;
@@ -137,7 +151,7 @@ export const {
   setChatroomMessage,
   deleteChatroomById,
   updateUserInfo,
-  setChatableUser
+  setChatableUser,
 } = ChatSlice.actions;
 
 export default ChatSlice.reducer;

@@ -61,6 +61,8 @@ const Chat = () => {
       socket.on(
         ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE,
         (data: SocketServerSucessResponse & { data: MessageType }) => {
+          console.log({ data });
+
           dispatch(updatePrivateChatroomList(data.data));
         }
       );
