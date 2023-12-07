@@ -145,7 +145,7 @@ export class Game {
     if (now >= this.endTime) {
       this.gameDurationExceed = true;
 
-      if (this.player.getScore >= scoreToWinPongGame) {
+      /*if (this.player.getScore >= scoreToWinPongGame) {
         this.winner = this.player;
         this.looser = this.opponentPlayer;
         return;
@@ -155,7 +155,7 @@ export class Game {
         this.winner = this.opponentPlayer;
         this.looser = this.player;
         return;
-      }
+      }*/
 
       this.draw = true;
     }
@@ -169,9 +169,14 @@ export class Game {
 
   public getUpdatedData(): UpdatedGameData {
     return {
-      player1: { ...this.getPlayer.getPostion, id: this.getPlayer.getPlayerId },
+      player1: {
+        ...this.getPlayer.getPostion,
+        score: this.ball.getPlayersScore[0],
+        id: this.getPlayer.getPlayerId,
+      },
       player2: {
         ...this.getOppenent.getPostion,
+        score: this.ball.getPlayersScore[1],
         id: this.getOppenent.getPlayerId,
       },
       ball: this.ball.getPosition,

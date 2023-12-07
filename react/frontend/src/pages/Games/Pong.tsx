@@ -1,13 +1,17 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Ball } from "./Ball";
 import { Player } from "./Player";
 import { connectSocket, socket } from "../../utils/getSocket";
 import { PongEvent } from "../../../shared/socket.event";
 import usePageSize from "../../services/custom-hooks/usePageSize";
-import { GAME_MARGIN, ASPECT_RATIO } from "../../../shared/constant";
+import {
+  GAME_MARGIN,
+  ASPECT_RATIO,
+  PADDLE_HEIGHT,
+} from "../../../shared/constant";
 import { useNavigate } from "react-router-dom";
 import { PATH_APP } from "../../routes/paths";
-import { Stack } from "@mui/material";
+import { Stack, Typography } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { showSnackBar } from "../../redux/features/app/app.slice";
 import { SocketServerSucessResponse } from "../../services/type";
@@ -17,6 +21,10 @@ import { RootState } from "../../redux/store";
 const Pong = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const dispatch = useAppDispatch();
+  const [score, setScore] = useState<{ player1: number; player2: number }>({
+    player1: 0,
+    player2: 0,
+  });
   const { width, height } = usePageSize();
   const { room, creator, opponent } = useAppSelector(
     (state: RootState) => state.pong.gameData
@@ -88,9 +96,15 @@ const Pong = () => {
 
     const ball = new Ball();
 
-    const Player1 = new Player(canvas, context, { height: 0.16, width: 0.015 });
+    const Player1 = new Player(canvas, context, {
+      height: PADDLE_HEIGHT,
+      width: 0.015,
+    });
 
-    const Player2 = new Player(canvas, context, { height: 0.16, width: 0.015 });
+    const Player2 = new Player(canvas, context, {
+      height: PADDLE_HEIGHT,
+      width: 0.015,
+    });
 
     window.addEventListener("keydown", keyPress);
 
@@ -100,9 +114,8 @@ const Pong = () => {
 
     socket.on(PongEvent.UPDATE_GAME, (data: { data: UpdatedGameData }) => {
       const { player1, player2 } = data.data;
-      //context.clearRect(0, 0, canvas.width, canvas.height);
-      context.fillStyle = "red";
-      context.fillRect(0, 0, canvas.width, canvas.height);
+      setScore({ player1: player1.score, player2: player2.score });
+      context.clearRect(0, 0, canvas.width, canvas.height);
       ball.draw(canvas, context, data.data.ball);
       Player1.draw(player1);
       Player2.draw(player2);
@@ -121,8 +134,6 @@ const Pong = () => {
     socket.on(
       PongEvent.END_GAME,
       (data: SocketServerSucessResponse & { data: { message: string } }) => {
-        console.log("ok");
-
         navigate(PATH_APP.dashboard.games, { replace: true });
         dispatch(
           showSnackBar({ message: data.data.message, severity: data.severity })
@@ -159,10 +170,24 @@ const Pong = () => {
       height={"100%"}
       display={"flex"}
       justifyContent={"center"}
-      spacing={2}
+      position={"relative"}
     >
+      <Stack
+        width={gameWidth}
+        top={"10%"}
+        position={"absolute"}
+        direction={"row"}
+        justifyContent={"space-around"}
+      >
+        <Typography variant="h1">{score.player1}</Typography>
+        <Typography variant="h1">{score.player2}</Typography>
+      </Stack>
       <canvas
-        style={{ width: gameWidth, height: gameHeight }}
+        style={{
+          width: gameWidth,
+          height: gameHeight,
+          border: "1px solid white",
+        }}
         ref={canvasRef}
         width={gameWidth}
         height={gameHeight}
