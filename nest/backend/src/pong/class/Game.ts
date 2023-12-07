@@ -77,7 +77,12 @@ export class Game {
   private lastTime: number = -1;
   private dt: number;
 
-  constructor(gameId: string, playerId: string, socketId: string) {
+  constructor(
+    gameId: string,
+    playerId: string,
+    socketId: string,
+    special: boolean,
+  ) {
     this.gameId = gameId;
     this.player = new Player(
       {
@@ -145,7 +150,7 @@ export class Game {
     if (now >= this.endTime) {
       this.gameDurationExceed = true;
 
-      /*if (this.player.getScore >= scoreToWinPongGame) {
+      if (this.player.getScore >= scoreToWinPongGame) {
         this.winner = this.player;
         this.looser = this.opponentPlayer;
         return;
@@ -155,7 +160,7 @@ export class Game {
         this.winner = this.opponentPlayer;
         this.looser = this.player;
         return;
-      }*/
+      }
 
       this.draw = true;
     }

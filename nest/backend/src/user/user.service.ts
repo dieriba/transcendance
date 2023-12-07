@@ -52,7 +52,7 @@ export class UserService {
 
   async createUser(user: CreatedUser, profile: Profile, select: UserInfo) {
     return await this.prismaService.user.create({
-      data: { ...user, profile: { create: { ...profile } } },
+      data: { ...user, profile: { create: profile }, pong: {} },
       select,
     });
   }
@@ -173,7 +173,7 @@ export class UserService {
     if (foundUser) return foundUser;
 
     const newUser = await tx.user.create({
-      data: { ...user, profile: { create: profile } },
+      data: { ...user, profile: { create: profile }, pong: {} },
       select,
     });
 

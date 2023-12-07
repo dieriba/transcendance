@@ -44,6 +44,7 @@ export type StartGameInfo = {
 };
 
 export type PlayerStartGameInfo = {
+  id?: string;
   nickname: string;
   avatar: string | undefined;
 };

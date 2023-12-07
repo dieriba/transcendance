@@ -1,3 +1,4 @@
+import { STATUS } from '@prisma/client';
 import { Server } from 'socket.io';
 import { Injectable } from '@nestjs/common';
 import { SocketWithAuth } from 'src/auth/type';
@@ -138,10 +139,26 @@ export class PongService {
     return game;
   }
 
-  createGameRoom(userId: string, socket: SocketWithAuth): string {
+  createGameRoom(
+    userId: string,
+    socket: SocketWithAuth,
+    special: boolean,
+  ): string {
     const gameId = PONG_ROOM_PREFIX + userId;
 
-    const game = new Game(gameId, userId, socket.id);
+    const game = new Game(gameId, userId, socket.id, special);
+
+    this.games.push(game);
+
+    socket.join(gameId);
+
+    return gameId;
+  }
+
+  createSpecialGameRoom(userId: string, socket: SocketWithAuth): string {
+    const gameId = PONG_ROOM_PREFIX + userId;
+
+    const game = new Game(gameId, userId, socket.id, false);
 
     this.games.push(game);
 
@@ -158,7 +175,7 @@ export class PongService {
     otherSocketId: string;
   }) {
     const { gameId, userId, id, socketId, otherSocketId } = data;
-    const game = new Game(gameId, id, socketId);
+    const game = new Game(gameId, id, socketId, false);
     game.setOponnentPlayer = userId;
     game.setNewSocketId = otherSocketId;
     game.startGame();
@@ -236,12 +253,10 @@ export class PongService {
         );
         if (game.endGame()) {
           let data = { message: 'Draw' };
-
+          const winnerId = game.getWinner.getPlayerId;
+          const looserId = game.getLooser.getPlayerId;
           if (!game.getDraw) {
-            data = await this.setPongWinner(
-              game.getWinner.getPlayerId,
-              game.getLooser.getPlayerId,
-            );
+            data = await this.setPongWinner(winnerId, looserId);
           }
 
           this.libService.sendToSocket(
@@ -253,6 +268,14 @@ export class PongService {
 
           this.deleteGameRoomByIndex(index);
           this.libService.deleteSocketRoom(server, game.getGameId);
+          this.libService.updateUserStatus(server, {
+            id: winnerId,
+            status: STATUS.ONLINE,
+          });
+          this.libService.updateUserStatus(server, {
+            id: looserId,
+            status: STATUS.ONLINE,
+          });
         }
       }
     });
@@ -282,8 +305,6 @@ export class PongService {
     });
 
     if (!winner || !looser) return { message: undefined };
-
-    console.log({ winner, looser, winnerId, looserId });
 
     await this.prismaService.$transaction(async (tx) => {
       await tx.pong.upsert({
@@ -360,7 +381,11 @@ export class PongService {
     this.games[index].startGame();
     return {
       room: this.games[index].getGameId,
-      creator: { nickname: creator.nickname, avatar: creator.profile.avatar },
+      creator: {
+        id: creator.id,
+        nickname: creator.nickname,
+        avatar: creator.profile.avatar,
+      },
     };
   }
 

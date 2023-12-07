@@ -9,6 +9,8 @@ import { MAX_DATE } from '../../shared/constant';
 import { Server } from 'socket.io';
 import { SocketWithAuth } from 'src/auth/type';
 import { SocketServerResponse } from 'src/common/types/socket-types';
+import { STATUS } from '@prisma/client';
+import { GeneralEvent } from 'shared/socket.event';
 @Injectable()
 export class LibService {
   private readonly dateModifiers: Record<
@@ -33,6 +35,10 @@ export class LibService {
     if (object && object.message === undefined) object.message = '';
 
     instance.to(room).emit(emit, object);
+  }
+
+  updateUserStatus(server: Server, data: { id: string; status: STATUS }) {
+    server.emit(GeneralEvent.USER_UPDATE_STATUS, { data });
   }
 
   addMinutes(date: Date, minutesToAdd: number): Date {

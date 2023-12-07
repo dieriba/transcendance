@@ -113,7 +113,10 @@ export class GatewayGateway {
     const room = this.getAllSockeIdsByKey(userId);
 
     if (room.size === 1) {
-      this.updateUserStatus(client, { id: userId, status: STATUS.ONLINE });
+      this.libService.updateUserStatus(this.server, {
+        id: userId,
+        status: STATUS.ONLINE,
+      });
       await this.userService.updateUserById(userId, { status: STATUS.ONLINE });
     }
   }
@@ -128,7 +131,10 @@ export class GatewayGateway {
 
     if (!this.getAllSockeIdsByKey(userId)) {
       console.log('LOGGED OUT');
-      this.updateUserStatus(client, { id: userId, status: STATUS.OFFLINE });
+      this.libService.updateUserStatus(this.server, {
+        id: userId,
+        status: STATUS.OFFLINE,
+      });
       await this.userService.updateUserById(userId, { status: STATUS.OFFLINE });
     }
 
@@ -3065,6 +3071,15 @@ export class GatewayGateway {
     );
 
     if (data) {
+      this.libService.updateUserStatus(this.server, {
+        id: userId,
+        status: STATUS.PLAYING,
+      });
+      this.libService.updateUserStatus(this.server, {
+        id: data.creator.id as string,
+        status: STATUS.PLAYING,
+      });
+
       if (data.creator === undefined) throw new WsUserNotFoundException();
 
       this.pongService.joinGame(this.server, client, data.room, {
@@ -3080,7 +3095,7 @@ export class GatewayGateway {
       return;
     }
 
-    this.pongService.createGameRoom(userId, client);
+    this.pongService.createGameRoom(userId, client, false);
 
     this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
       message: 'Please wait for an opponent...',
@@ -3344,13 +3359,6 @@ export class GatewayGateway {
 
   private getSocket(socketId: string) {
     return this.server.sockets.sockets.get(socketId);
-  }
-
-  private updateUserStatus(
-    client: SocketWithAuth,
-    data: { id: string; status: STATUS },
-  ) {
-    client.broadcast.emit(GeneralEvent.USER_UPDATE_STATUS, { data });
   }
 
   private joinOrLeaveRoom(

@@ -64,6 +64,9 @@ const Games = () => {
           >
             Join Queue
           </Button>
+          <Button disabled={isLoading} variant="contained" color="inherit">
+            Join Special Queue
+          </Button>
           <Button variant="contained" color="inherit">
             Spectate a game
           </Button>
