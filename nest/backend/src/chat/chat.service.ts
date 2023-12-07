@@ -18,7 +18,6 @@ export class ChatService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly userService: UserService,
-    private readonly libService: LibService,
   ) {}
   private readonly logger = new Logger(ChatService.name);
 

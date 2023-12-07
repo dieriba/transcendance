@@ -33,8 +33,6 @@ const ChatContactInfo = ({ openDialog, handleClose }: ChatContactInfoProps) => {
     socket.on(
       ChatEventPrivateRoom.CLEAR_CHATROOM,
       (data: SocketServerSucessResponse & { data: BaseChatroomTypeId }) => {
-        console.log({ data });
-
         dispatch(deleteChatroomById(data.data.chatroomId));
         dispatch(
           showSnackBar({ severity: data.severity, message: data.message })

@@ -1919,11 +1919,6 @@ export class GatewayGateway {
         messages: {
           where: {
             user: {
-              blockedBy: {
-                none: {
-                  id: userId,
-                },
-              },
               blockedUsers: {
                 none: {
                   id: userId,

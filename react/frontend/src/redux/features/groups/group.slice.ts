@@ -99,14 +99,12 @@ export const GroupSlice = createSlice({
       action: PayloadAction<{
         chatrooms: ChatroomGroupType[];
         blockedUser: BaseUserTypeId[];
-        blockedBy: BaseUserTypeId[];
         numbersOfGroupInvitation: number;
       }>
     ) => {
-      const { chatrooms, blockedBy, blockedUser } = action.payload;
+      const { chatrooms, blockedUser } = action.payload;
       state.groupChatroom = chatrooms;
       state.blockedUser = blockedUser;
-      state.blockedBy = blockedBy;
     },
     setJoinableGroup: (
       state,
@@ -740,10 +738,8 @@ export const GroupSlice = createSlice({
       const message = action.payload;
 
       if (
-        message.user.id !== state.myId &&
-        (state.blockedUser.findIndex((user) => user.id === message.user.id) >=
-          0 ||
-          state.blockedBy.findIndex((user) => user.id === message.user.id) >= 0)
+        message.chatroomId !== state.currentGroupChatroomId ||
+        state.blockedUser.findIndex((user) => user.id === message.user.id) >= 0
       )
         return;
 
