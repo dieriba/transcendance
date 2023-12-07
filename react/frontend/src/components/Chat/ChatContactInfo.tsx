@@ -18,6 +18,7 @@ import { BaseChatroomTypeId } from "../../models/groupChat";
 import { deleteChatroomById } from "../../redux/features/chat/chat.slice";
 import { SocketServerSucessResponse } from "../../services/type";
 import { showSnackBar } from "../../redux/features/app/app.slice";
+import StyledBadge from "../Badge/StyledBadge";
 
 interface ChatContactInfoProps {
   openDialog: boolean;
@@ -30,8 +31,10 @@ const ChatContactInfo = ({ openDialog, handleClose }: ChatContactInfoProps) => {
   useEffect(() => {
     connectSocket();
     socket.on(
-      ChatEventPrivateRoom.SWITCH_PROFILE,
+      ChatEventPrivateRoom.CLEAR_CHATROOM,
       (data: SocketServerSucessResponse & { data: BaseChatroomTypeId }) => {
+        console.log({ data });
+
         dispatch(deleteChatroomById(data.data.chatroomId));
         dispatch(
           showSnackBar({ severity: data.severity, message: data.message })
@@ -40,7 +43,7 @@ const ChatContactInfo = ({ openDialog, handleClose }: ChatContactInfoProps) => {
     );
 
     return () => {
-      socket.off(ChatEventPrivateRoom.SWITCH_PROFILE);
+      socket.off(ChatEventPrivateRoom.CLEAR_CHATROOM);
     };
   }, [dispatch]);
 
@@ -92,12 +95,19 @@ const ChatContactInfo = ({ openDialog, handleClose }: ChatContactInfoProps) => {
               {status === "ONLINE" ? (
                 <>
                   <Tooltip placement="top" title={nickname}>
-                    <BadgeAvatar>
+                    <StyledBadge
+                      overlap="circular"
+                      anchorOrigin={{
+                        vertical: "bottom",
+                        horizontal: "right",
+                      }}
+                      variant="dot"
+                    >
                       <Avatar
                         src={profile?.avatar ? profile?.avatar : undefined}
                         sx={{ height: 64, width: 64 }}
                       />
-                    </BadgeAvatar>
+                    </StyledBadge>
                   </Tooltip>
                 </>
               ) : (

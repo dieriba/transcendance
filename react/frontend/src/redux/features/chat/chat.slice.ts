@@ -73,17 +73,34 @@ export const ChatSlice = createSlice({
       state.messages = action.payload;
     },
     deleteChatroomById: (state, action: PayloadAction<string | undefined>) => {
-      const friendId = action.payload;
+      const id = action.payload;
 
-      if (friendId) {
-        state.privateChatroom = state.privateChatroom.filter(
-          (chatroom) => chatroom.users[0].user.id !== friendId
+      if (id) {
+        let index = state.privateChatroom.findIndex(
+          (chatroom) => chatroom.users[0].user.id === id
         );
 
-        if (state.currentChatroom?.users[0].user.id === friendId) {
-          state.currentChatroom = undefined;
-          state.currentPrivateChatroomId = undefined;
-          state.messages = [];
+        if (index !== -1) {
+          state.privateChatroom.splice(index, 1);
+          if (state.currentChatroom?.users[0].user.id === id) {
+            state.currentChatroom = undefined;
+            state.currentPrivateChatroomId = undefined;
+            state.messages = [];
+          }
+          return;
+        }
+
+        index = state.privateChatroom.findIndex(
+          (chatroom) => chatroom.id === id
+        );
+
+        if (index !== -1) {
+          state.privateChatroom.splice(index, 1);
+          if (state.currentChatroom?.id === id) {
+            state.currentChatroom = undefined;
+            state.currentPrivateChatroomId = undefined;
+            state.messages = [];
+          }
         }
       }
     },

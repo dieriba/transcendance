@@ -3027,18 +3027,18 @@ export class GatewayGateway {
             data: { blockedUsers: { connect: { id: friendId } } },
           });
         }
-
-        this.libService.sendToSocket(
-          this.server,
-          client.userId,
-          ChatEventPrivateRoom.CLEAR_CHATROOM,
-          {
-            data: { chatroomId: chatroom.id },
-            message: `${user.nickname} blocked!`,
-          },
-        );
       }
     });
+
+    this.libService.sendToSocket(
+      this.server,
+      client.userId,
+      ChatEventPrivateRoom.CLEAR_CHATROOM,
+      {
+        data: { chatroomId: chatroom.id },
+        message: `${user.nickname} blocked!`,
+      },
+    );
 
     this.server
       .to(client.userId)
