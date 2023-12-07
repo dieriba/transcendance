@@ -44,13 +44,22 @@ const PongSlice = createSlice({
       state.users = action.payload;
     },
     updateUserStatus: (state, action: PayloadAction<UserUpdateStatusType>) => {
-      const { id, status } = action.payload;
+      const { ids, status } = action.payload;
+      state.users.forEach((user) => {
+        if (ids.includes(user.id)) {
+          user.status = status;
+        }
+      });
+    },
+    addNewPlayerToLeaderboard: (
+      state,
+      action: PayloadAction<LeaderboardType>
+    ) => {
+      const index = state.users.findIndex(
+        (user) => user.id === action.payload.id
+      );
 
-      const index = state.users.findIndex((user) => user.id === id);
-
-      if (index === -1) return;
-
-      state.users[index].status = status;
+      if (index === -1) state.users.push(action.payload);
     },
   },
 });
@@ -61,6 +70,7 @@ export const {
   setGameData,
   setLeaderboardUser,
   updateUserStatus,
+  addNewPlayerToLeaderboard,
 } = PongSlice.actions;
 
 export default PongSlice;

@@ -113,11 +113,44 @@ export class GatewayGateway {
     const room = this.getAllSockeIdsByKey(userId);
 
     if (room.size === 1) {
+      const user = await this.userService.findUserById(userId, UserData);
+
+      if (!user) {
+        client.disconnect();
+        return;
+      }
+
       this.libService.updateUserStatus(this.server, {
-        id: userId,
+        ids: [userId],
         status: STATUS.ONLINE,
       });
-      await this.userService.updateUserById(userId, { status: STATUS.ONLINE });
+
+      if (user.firstConnection) {
+        const {
+          id,
+          status,
+          pong,
+          nickname,
+          profile: { firstname, lastname, avatar },
+        } = user;
+        this.libService.sendToSocket(
+          this.server,
+          GeneralEvent.BROADCAST,
+          PongEvent.NEW_PLAYER,
+          {
+            data: {
+              id,
+              status,
+              pong,
+              nickname,
+              profile: { avatar, firstname, lastname },
+            },
+          },
+        );
+      }
+      await this.userService.updateUserById(userId, {
+        status: STATUS.ONLINE,
+      });
     }
   }
 
@@ -132,7 +165,7 @@ export class GatewayGateway {
     if (!this.getAllSockeIdsByKey(userId)) {
       console.log('LOGGED OUT');
       this.libService.updateUserStatus(this.server, {
-        id: userId,
+        ids: [userId],
         status: STATUS.OFFLINE,
       });
       await this.userService.updateUserById(userId, { status: STATUS.OFFLINE });
@@ -3072,11 +3105,7 @@ export class GatewayGateway {
 
     if (data) {
       this.libService.updateUserStatus(this.server, {
-        id: userId,
-        status: STATUS.PLAYING,
-      });
-      this.libService.updateUserStatus(this.server, {
-        id: data.creator.id as string,
+        ids: [userId, data.creator.id as string],
         status: STATUS.PLAYING,
       });
 

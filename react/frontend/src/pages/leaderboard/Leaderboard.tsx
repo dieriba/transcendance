@@ -17,13 +17,14 @@ import { GameController, User } from "phosphor-react";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { useEffect, useState } from "react";
 import { connectSocket, socket } from "../../utils/getSocket";
-import { GeneralEvent } from "../../../shared/socket.event";
+import { GeneralEvent, PongEvent } from "../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../services/type";
 import { RootState } from "../../redux/store";
 import BadgeAvatar from "../../components/Badge/BadgeAvatar";
 import { useGetLeaderboardQuery } from "../../redux/features/pong/pong.api.slice";
 import GameInvitation from "../../components/game-invitation/GameInvitation";
 import {
+  addNewPlayerToLeaderboard,
   setLeaderboardUser,
   updateUserStatus,
 } from "../../redux/features/pong/pong.slice";
@@ -31,6 +32,7 @@ import { UserUpdateStatusType } from "../../models/login/UserSchema";
 import UserProfile from "../../components/Profile/UserProfile";
 import { UserWithProfile } from "../../models/ChatContactSchema";
 import StyledBadge from "../../components/Badge/StyledBadge";
+import { LeaderboardType } from "../../models/Leaderboard";
 
 const LeaderboardPage = () => {
   const { data, isLoading, isError } = useGetLeaderboardQuery(undefined, {
@@ -70,7 +72,15 @@ const LeaderboardPage = () => {
         }
       );
 
+      socket.on(
+        PongEvent.NEW_PLAYER,
+        (data: SocketServerSucessResponse & { data: LeaderboardType }) => {
+          dispatch(addNewPlayerToLeaderboard(data.data));
+        }
+      );
+
       return () => {
+        socket.off(PongEvent.NEW_PLAYER);
         socket.off(GeneralEvent.USER_UPDATE_STATUS);
       };
     }

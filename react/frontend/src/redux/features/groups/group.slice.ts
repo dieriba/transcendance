@@ -760,24 +760,22 @@ export const GroupSlice = createSlice({
       }
     },
     updateUserStatus: (state, action: PayloadAction<UserUpdateStatusType>) => {
-      const { id, status } = action.payload;
-      if (state.admin?.user.id === id) {
+      const { ids, status } = action.payload;
+      if (state.admin && ids.includes(state.admin.user.id)) {
         state.admin.user.status = status;
         return;
       }
-      let index: number = state.chatAdmin.findIndex(
-        (user) => user.user.id === id
-      );
+      state.chatAdmin.forEach((chatAdmin) => {
+        if (ids.includes(chatAdmin.user.id)) {
+          chatAdmin.user.status = status;
+        }
+      });
 
-      if (index !== -1) {
-        state.chatAdmin[index].user.status = status;
-        return;
-      }
-
-      index = state.regularUser.findIndex((user) => user.user.id === id);
-      if (index !== -1) {
-        state.regularUser[index].user.status = status;
-      }
+      state.regularUser.forEach((regularUser) => {
+        if (ids.includes(regularUser.user.id)) {
+          regularUser.user.status = status;
+        }
+      });
     },
   },
 });

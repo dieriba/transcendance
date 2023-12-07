@@ -34,10 +34,19 @@ export class LibService {
   ) {
     if (object && object.message === undefined) object.message = '';
 
+    if (room === GeneralEvent.BROADCAST) {
+      if (!this.isSocketWithAuth(instance)) {
+        instance.emit(emit, object);
+        return;
+      }
+      instance.broadcast.emit(emit, object);
+      return;
+    }
+
     instance.to(room).emit(emit, object);
   }
 
-  updateUserStatus(server: Server, data: { id: string; status: STATUS }) {
+  updateUserStatus(server: Server, data: { ids: string[]; status: STATUS }) {
     server.emit(GeneralEvent.USER_UPDATE_STATUS, { data });
   }
 
@@ -111,5 +120,11 @@ export class LibService {
     });
 
     return filename;
+  }
+
+  private isSocketWithAuth(
+    instance: SocketWithAuth | Server,
+  ): instance is SocketWithAuth {
+    return (instance as SocketWithAuth).userId !== undefined;
   }
 }

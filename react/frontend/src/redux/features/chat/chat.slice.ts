@@ -105,19 +105,13 @@ export const ChatSlice = createSlice({
       }
     },
     updateUserStatus: (state, action: PayloadAction<UserUpdateStatusType>) => {
-      const { id, status } = action.payload;
+      const { ids, status } = action.payload;
 
-      const index = state.privateChatroom.findIndex(
-        (chatroom) => chatroom.users[0].user.id === id
-      );
-
-      if (index !== -1) {
-        state.privateChatroom[index].users[0].user.status = status;
-
-        if (id === state.currentChatroom?.users[0].user.id) {
-          state.currentChatroom.users[0].user.status = status;
+      state.privateChatroom.forEach((chatroom) => {
+        if (ids.includes(chatroom.users[0].user.id)) {
+          chatroom.users[0].user.status = status;
         }
-      }
+      });
     },
     updateUserInfo: (
       state,

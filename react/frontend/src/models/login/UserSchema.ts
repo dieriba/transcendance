@@ -15,7 +15,8 @@ export const BaseUserInfoSchema = BaseUserSchema.extend({
 
 export type BaseUserInfoType = z.infer<typeof BaseUserInfoSchema>;
 
-export const UserUpdateStatus = BaseUserSchema.extend({
+export const UserUpdateStatus = z.object({
+  ids: z.array(z.string()),
   status: z.enum(statusTypes),
 });
 

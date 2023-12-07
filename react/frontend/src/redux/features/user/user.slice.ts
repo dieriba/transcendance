@@ -1,6 +1,5 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { ResponseLoginType } from "../../../models/login/ResponseLogin";
-import { AccessTokenType } from "../../../models/login/AccessTokenSchema";
 
 export interface User {
   id: string | undefined;

@@ -105,14 +105,13 @@ export const FriendsSlice = createSlice({
       );
     },
     updateUserStatus: (state, action: PayloadAction<UserUpdateStatusType>) => {
-      const { id, status } = action.payload;
-      const index = state.friends.findIndex(
-        (friend) => friend.friend.id === id
-      );
+      const { ids, status } = action.payload;
 
-      if (index < 0) return;
-
-      state.friends[index].friend.status = status;
+      state.friends.forEach((friend) => {
+        if (ids.includes(friend.friend.id)) {
+          friend.friend.status = status;
+        }
+      });
     },
     updateFriendInfo: (state, action: PayloadAction<UserUpdated>) => {
       const { page } = state;

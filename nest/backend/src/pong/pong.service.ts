@@ -269,11 +269,7 @@ export class PongService {
           this.deleteGameRoomByIndex(index);
           this.libService.deleteSocketRoom(server, game.getGameId);
           this.libService.updateUserStatus(server, {
-            id: winnerId,
-            status: STATUS.ONLINE,
-          });
-          this.libService.updateUserStatus(server, {
-            id: looserId,
+            ids: [winnerId, looserId],
             status: STATUS.ONLINE,
           });
         }

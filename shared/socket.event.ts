@@ -1,8 +1,9 @@
-const General = "general";
+const General = 'general';
 
 export enum GeneralEvent {
+  BROADCAST = 'broadcast',
   USER_UPDATE_STATUS = `${General}.user.update.status`,
-  EXCEPTION = "exception",
+  EXCEPTION = 'exception',
   SUCCESS = `${General}.success`,
   JOIN = `${General}.join`,
   LEAVE = `${General}.leave`,
@@ -14,10 +15,10 @@ export enum GeneralEvent {
   DISCONNECT_ALL_INSTANCE_OF_ME = `${General}.disconnect.all.instance.of.me`,
   DISCONNECT_ME = `${General}.disconnect.me`,
   DISCONNECT_ALL_EXCEPT_ME = `${General}.disconnect.all.except.me`,
-  DISCONNECT = "disconnect",
+  DISCONNECT = 'disconnect',
 }
 
-const friend = "friend";
+const friend = 'friend';
 
 export enum FriendEvent {
   REQUEST_RECEIVED = `${friend}.request.received`,
@@ -36,7 +37,7 @@ export enum FriendEvent {
   NEW_FRIEND = `${friend}.new.friend`,
 }
 
-const privateChatroom = "chatroom.private";
+const privateChatroom = 'chatroom.private';
 
 export enum ChatEventPrivateRoom {
   NEW_CHATROOM = `${privateChatroom}.new.chatroom`,
@@ -46,7 +47,7 @@ export enum ChatEventPrivateRoom {
   SWITCH_PROFILE = `${privateChatroom}.switch.profile`,
 }
 
-const groupChatroom = "chatroom.group";
+const groupChatroom = 'chatroom.group';
 
 export enum ChatEventGroup {
   CREATE_GROUP_CHATROOM = `${groupChatroom}.create`,
@@ -93,11 +94,12 @@ export enum ChatEventGroup {
   CREATE_NEW_CHAT = `${groupChatroom}.create.new.chat`,
 }
 
-const pong = "pong";
-export const PONG_ROOM_PREFIX = "pong_";
+const pong = 'pong';
+export const PONG_ROOM_PREFIX = 'pong_';
 export enum PongEvent {
   ARROW_UP = `ArrowUp`,
   ARROW_DOWN = `ArrowDown`,
+  NEW_PLAYER = `${pong}.new.player`,
   PADDLE_UP = `${pong}.up`,
   PADDLE_DOWN = `${pong}.down`,
   JOIN_QUEUE = `${pong}.join.queue`,

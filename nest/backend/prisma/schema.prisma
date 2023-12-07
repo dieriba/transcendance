@@ -19,6 +19,7 @@ model User {
   createdAt              DateTime        @default(now())
   updatedAt              DateTime        @updatedAt
   hashedRefreshToken     String?
+  firstConnection        Boolean         @default(true)
   twoFa                  TwoFa?          @relation("userTwoFa")
   profile                Profile?        @relation("userProfile")
   groupParameter         Group?          @relation("groupInvitation")
