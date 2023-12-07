@@ -2205,12 +2205,30 @@ export class GatewayGateway {
     @ConnectedSocket() client: SocketWithAuth,
     @MessageBody() message: DmMessageDto,
   ) {
-    const { friendId, content, chatroomId, image } = message;
+    const { friendId, content, chatroomId } = message;
     const { userId } = client;
 
-    const user = await this.userService.findUserById(userId, UserData);
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      select: {
+        blockedBy: {
+          where: {
+            id: friendId,
+          },
+        },
+        blockedUsers: { where: { id: friendId } },
+      },
+    });
 
     if (!user) throw new WsUserNotFoundException();
+
+    if (user.blockedBy.length > 0) {
+      throw new WsUnauthorizedException('Cannot dm a user that blocked you');
+    }
+
+    if (user.blockedUsers.length > 0) {
+      throw new WsUnauthorizedException('Cannot dm a user that you blocked');
+    }
 
     const chatroom = await this.chatroomService.findChatroom(
       chatroomId,
@@ -2218,11 +2236,9 @@ export class GatewayGateway {
     );
 
     if (!chatroom) throw new WsChatroomNotFoundException();
-    //CHECK IF USER HAS DELETED ME OR BLOCKED ME
     const res = await this.prismaService.message.create({
       data: {
         content: content,
-        imageUrl: image,
         user: {
           connect: {
             id: userId,
@@ -2868,7 +2884,6 @@ export class GatewayGateway {
               id: friendId,
             },
           },
-
           friends: {
             where: {
               friendId,
@@ -3012,10 +3027,11 @@ export class GatewayGateway {
             data: { blockedUsers: { connect: { id: friendId } } },
           });
         }
+
         this.libService.sendToSocket(
           this.server,
           client.userId,
-          ChatEventPrivateRoom.SWITCH_PROFILE,
+          ChatEventPrivateRoom.CLEAR_CHATROOM,
           {
             data: { chatroomId: chatroom.id },
             message: `${user.nickname} blocked!`,

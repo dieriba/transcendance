@@ -60,19 +60,6 @@ export class DmMessageDto {
   @IsString()
   @IsNotEmpty()
   content: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  @IsNotEmpty()
-  image: string;
-
-  /*ONLY accept reply if type IS REPLY*/
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  @IsNotEmpty()
-  reply: string;
 }
 
 export class ChatroomMessageDto {

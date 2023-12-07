@@ -11,6 +11,7 @@ import { RESTRICTION, ROLE, TYPE } from '@prisma/client';
 import { UserData } from 'src/common/types/user-info.type';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
 import { LibService } from 'src/lib/lib.service';
+import { WsBadRequestException } from 'src/common/custom-exception/ws-exception';
 
 @Injectable()
 export class ChatService {
@@ -135,16 +136,22 @@ export class ChatService {
 
   async createNewPrivateChatroom(userId: string, id: string) {
     const [me, user, chatroom] = await Promise.all([
-      this.prismaService.user.findFirst({ where: { id: userId } }),
+      this.prismaService.user.findFirst({
+        where: { id: userId },
+        include: {
+          blockedBy: { where: { id } },
+          blockedUsers: { where: { id } },
+        },
+      }),
       this.prismaService.user.findFirst({ where: { id } }),
       this.prismaService.chatroom.findFirst({
         where: {
           type: TYPE.DM,
-          active: true,
           users: { every: { userId: { in: [userId, id] } } },
         },
         select: {
           id: true,
+          active: true,
           users: {
             where: {
               userId: {
@@ -204,7 +211,30 @@ export class ChatService {
 
     if (!me || !user) throw new UserNotFoundException();
 
-    if (chatroom) return chatroom;
+    if (me.blockedUsers.length > 0) {
+      throw new CustomException(
+        "You can't create a conversation with user, you blocked",
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    if (me.blockedBy.length > 0) {
+      throw new CustomException(
+        "You can't create a conversation with user that blocked you",
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    if (chatroom) {
+      const { active, ...data } = chatroom;
+      if (!active) {
+        await this.prismaService.chatroom.update({
+          where: { id: chatroom.id },
+          data: { active: true },
+        });
+      }
+      return data;
+    }
 
     const newChatroom = await this.prismaService.chatroom.create({
       data: {
