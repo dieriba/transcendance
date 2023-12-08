@@ -316,7 +316,7 @@ const View = () => {
         )}
         {open.details && (
           <UserProfileGroup
-            open={open.details}
+            openDialog={open.details}
             handleClose={() => setOpen((prev) => ({ ...prev, details: false }))}
           />
         )}

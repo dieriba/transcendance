@@ -59,7 +59,7 @@ export const ChatSlice = createSlice({
         const index = state.privateChatroom.findIndex(
           (chatroom) => chatroom.id === action.payload.id
         );
-
+ 
         if (index === -1) {
           state.privateChatroom.unshift(action.payload);
           return;

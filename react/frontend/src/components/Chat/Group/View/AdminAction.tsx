@@ -52,7 +52,7 @@ const AdminAction = ({
         </Tooltip>
         <Tooltip placement="top" title="unrestrict user">
           <IconButton
-            onClick={() => handleAction({ nickname }, { restriction: true })}
+            onClick={() => handleAction({ nickname }, { unrestriction: true })}
           >
             <UserGear size={20} />
           </IconButton>

@@ -1,4 +1,4 @@
-import { Avatar, Button, DialogProps, Stack, TextField } from "@mui/material";
+import { Avatar, Stack, TextField } from "@mui/material";
 import DialogI from "../Dialog/DialogI";
 import BadgeAvatar from "../Badge/BadgeAvatar";
 import PlayingAvatar from "../Badge/PlayingAvatar";
@@ -7,13 +7,19 @@ import { useState } from "react";
 import { UserWithProfile } from "../../models/ChatContactSchema";
 import { useAppSelector } from "../../redux/hooks";
 import { RootState } from "../../redux/store";
+import ButtonDialogContained from "../Button/ButtonDialogContained";
+import BlockUserDialog from "../friends/BlockFriendDialog";
+import { GameController, Trash } from "phosphor-react";
 
-interface UserProfileGroupProps extends DialogProps {
-  open: boolean;
+interface UserProfileGroupProps {
+  openDialog: boolean;
   handleClose: () => void;
 }
 
-const UserProfileGroup = ({ handleClose, open }: UserProfileGroupProps) => {
+const UserProfileGroup = ({
+  handleClose,
+  openDialog,
+}: UserProfileGroupProps) => {
   const { myId, currentUser } = useAppSelector(
     (state: RootState) => state.groups
   );
@@ -21,7 +27,9 @@ const UserProfileGroup = ({ handleClose, open }: UserProfileGroupProps) => {
   const { profile, pong, id, nickname, status } =
     currentUser as UserWithProfile;
 
-  const [openGameInvitation, setOpenGameInvitation] = useState(false);
+  const [open, setOpen] = useState<{ gameInvitation: boolean; block: boolean }>(
+    { gameInvitation: false, block: false }
+  );
   const src = profile?.avatar ?? undefined;
   let rating: number = 0;
   let victory: number = 0;
@@ -35,7 +43,7 @@ const UserProfileGroup = ({ handleClose, open }: UserProfileGroupProps) => {
 
   return (
     <>
-      <DialogI open={open} handleClose={handleClose}>
+      <DialogI open={openDialog} handleClose={handleClose}>
         <Stack
           p={5}
           alignItems={"center"}
@@ -71,23 +79,45 @@ const UserProfileGroup = ({ handleClose, open }: UserProfileGroupProps) => {
           <TextField fullWidth label="Pong Victory" disabled value={victory} />
           <TextField fullWidth label="Pong losses" disabled value={losses} />
           {myId !== id && (
-            <Button
-              onClick={() => setOpenGameInvitation(true)}
-              fullWidth
-              variant="contained"
-              color="inherit"
-            >{`Play with ${nickname}`}</Button>
+            <>
+              <ButtonDialogContained
+                open={open.block}
+                handleOpen={() => setOpen((prev) => ({ ...prev, block: true }))}
+                children={
+                  <BlockUserDialog
+                    open={open.block}
+                    handleClose={() =>
+                      setOpen((prev) => ({ ...prev, block: false }))
+                    }
+                    friendId={id}
+                    nickname={nickname}
+                  />
+                }
+                icon={<Trash />}
+                buttonName={`Block ${nickname}`}
+              />
+              <ButtonDialogContained
+                open={open.gameInvitation}
+                handleOpen={() =>
+                  setOpen((prev) => ({ ...prev, gameInvitation: true }))
+                }
+                children={
+                  <GameInvitation
+                    open={open.gameInvitation}
+                    handleClose={() =>
+                      setOpen((prev) => ({ ...prev, gameInvitation: false }))
+                    }
+                    id={id}
+                    nickname={nickname}
+                  />
+                }
+                icon={<GameController />}
+                buttonName={`Play with ${nickname}`}
+              />
+            </>
           )}
         </Stack>
       </DialogI>
-      {myId !== id && openGameInvitation && (
-        <GameInvitation
-          id={id}
-          nickname={nickname}
-          open={openGameInvitation}
-          handleClose={() => setOpenGameInvitation(false)}
-        />
-      )}
     </>
   );
 };

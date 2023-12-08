@@ -12,6 +12,7 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  WsException,
 } from '@nestjs/websockets';
 import { ROLE, TYPE, Chatroom, RESTRICTION, STATUS } from '@prisma/client';
 import {
@@ -1788,11 +1789,6 @@ export class GatewayGateway {
             id: true,
           },
         },
-        blockedBy: {
-          select: {
-            id: true,
-          },
-        },
         _count: {
           select: {
             groupInvitation: true,
@@ -1887,7 +1883,6 @@ export class GatewayGateway {
         data: {
           chatrooms,
           blockedUser: user.blockedUsers,
-          blockedBy: user.blockedBy,
           numberOfGroupInvitation: user._count.groupInvitation,
         },
       },
@@ -2591,7 +2586,7 @@ export class GatewayGateway {
     if (friends.length > 0)
       throw new WsBadRequestException('You are already friends with that user');
 
-    if (friendRequestsReceived.length === 0 || friendRequestsSent.length === 0)
+    if (friendRequestsReceived.length === 0)
       throw new WsBadRequestException('User has not send you a friend request');
 
     const existingFriendRequest =
@@ -3171,11 +3166,24 @@ export class GatewayGateway {
       );
 
     const [me, user] = await Promise.all([
-      this.userService.findUserById(userId, UserData),
+      this.prismaService.user.findFirst({
+        where: { id: userId },
+        include: {
+          blockedBy: {
+            where: { id },
+          },
+        },
+      }),
       this.userService.findUserById(id, UserData),
     ]);
 
     if (!me || !user) throw new WsUserNotFoundException();
+
+    if (me.blockedBy.length > 0) {
+      throw new WsException(
+        'You cannot play with a user that have blocked you',
+      );
+    }
 
     const myGame = this.pongService.checkIfUserIsAlreadyInARoom(userId);
 

@@ -2,7 +2,6 @@ import { Avatar, DialogTitle, Divider, Stack, Tooltip } from "@mui/material";
 import { GameController, Trash, User } from "phosphor-react";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { useEffect, useState } from "react";
-import BadgeAvatar from "../Badge/BadgeAvatar";
 import { PrivateChatroomType } from "../../models/ChatContactSchema";
 import { RootState } from "../../redux/store";
 import DialogI from "../Dialog/DialogI";

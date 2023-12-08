@@ -229,22 +229,26 @@ const FriendRequestReceived = () => {
           </TableContainer>
         </Stack>
 
-        <CustomDialog
-          handleOnClick={handleBlockUser}
-          open={open.block}
-          handleClose={() => setOpen((prev) => ({ ...prev, block: false }))}
-          title="Block User ?"
-          content="Do you really want to block that user ?"
-          friendId={open.friendId}
-        />
-        <CustomDialog
-          handleOnClick={cancelFriendRequest}
-          open={open.cancel}
-          handleClose={() => setOpen((prev) => ({ ...prev, cancel: false }))}
-          title="Cancel friend request ?"
-          content="Do you really want to cancel that friend request ?"
-          friendId={open.friendId}
-        />
+        {open.block && (
+          <CustomDialog
+            handleOnClick={handleBlockUser}
+            open={open.block}
+            handleClose={() => setOpen((prev) => ({ ...prev, block: false }))}
+            title="Block User ?"
+            content="Do you really want to block that user ?"
+            friendId={open.friendId}
+          />
+        )}
+        {open.cancel && (
+          <CustomDialog
+            handleOnClick={cancelFriendRequest}
+            open={open.cancel}
+            handleClose={() => setOpen((prev) => ({ ...prev, cancel: false }))}
+            title="Cancel friend request ?"
+            content="Do you really want to cancel that friend request ?"
+            friendId={open.friendId}
+          />
+        )}
       </>
     );
   }

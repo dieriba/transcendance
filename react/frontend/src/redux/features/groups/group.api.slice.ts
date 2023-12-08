@@ -390,7 +390,6 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
         data: {
           chatrooms: ChatroomGroupType[];
           blockedUser: BaseUserTypeId[];
-          blockedBy: BaseUserTypeId[];
           numbersOfGroupInvitation: number;
         };
       },

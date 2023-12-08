@@ -68,7 +68,7 @@ const FriendsTable = () => {
     open: Partial<OpenType>
   ) => {
     setUser((prev) => ({ ...prev, ...(data as UserWithProfile) }));
-    setInfo((prev) => ({ ...prev, ...open }));
+    setInfo((prev) => ({ ...prev, ...open, id: data?.id }));
   };
 
   useEffect(() => {
