@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsNotEmpty, IsString, Matches, MinLength } from 'class-validator';
 
 export class UserIdDto {
   @IsString()
@@ -9,5 +9,6 @@ export class UserIdDto {
 export class UserInfoUpdateDto {
   @IsString()
   @MinLength(3)
+  @Matches('^[a-zA-Z][a-zA-Z0-9_.]*$')
   nickname: string;
 }
