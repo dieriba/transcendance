@@ -20,7 +20,7 @@ const DeleteFriendDialog = ({
 
       await deleteFriend({ friendId }).unwrap();
     } catch (error) {
-      console.log(error);
+      /** */
     }
     handleClose();
   };

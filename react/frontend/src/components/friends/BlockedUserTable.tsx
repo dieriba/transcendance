@@ -22,15 +22,17 @@ import { BaseFriendType } from "../../models/FriendsSchema";
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { connectSocket, socket } from "../../utils/getSocket";
-import { FriendEvent } from "../../../shared/socket.event";
+import { GeneralEvent } from "../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../services/type";
 import {
+  addBlockedUser,
   removeBlockedUser,
   setBlockedUser,
   updatePage,
 } from "../../redux/features/friends/friends.slice";
 import { RootState } from "../../redux/store";
 import CustomDialog from "../Dialog/CustomDialog";
+import { BaseUserInfoType } from "../../models/login/UserSchema";
 
 const BlockedUserTable = () => {
   const { data, isLoading, isError } = useGetAllBlockedUserQuery(undefined, {
@@ -55,17 +57,24 @@ const BlockedUserTable = () => {
       connectSocket();
 
       socket.on(
-        FriendEvent.UNBLOCK_FRIEND,
+        GeneralEvent.NEW_BLOCKED_USER,
+        (data: SocketServerSucessResponse & { data: BaseUserInfoType }) => {
+          dispatch(addBlockedUser(data.data));
+        }
+      );
+
+      socket.on(
+        GeneralEvent.REMOVE_BLOCKED_USER,
         (
           data: SocketServerSucessResponse & {
-            data: BaseFriendType;
+            data: string;
           }
         ) => {
           dispatch(removeBlockedUser(data.data));
         }
       );
       return () => {
-        socket.off(FriendEvent.UNBLOCK_FRIEND);
+        socket.off(GeneralEvent.REMOVE_BLOCKED_USER);
       };
     }
   }, [data, dispatch]);
@@ -78,7 +87,7 @@ const BlockedUserTable = () => {
     try {
       await unblockFriend(friend).unwrap();
     } catch (error) {
-      console.log(error);
+      /** */
     }
   };
 

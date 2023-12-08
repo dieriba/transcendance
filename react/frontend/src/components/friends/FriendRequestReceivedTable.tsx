@@ -103,7 +103,7 @@ const FriendRequestReceived = () => {
     try {
       await cancelRequest(friend).unwrap();
     } catch (error) {
-      console.log(error);
+      /** */
     }
   };
 
@@ -111,7 +111,7 @@ const FriendRequestReceived = () => {
     try {
       await blockUser(friend).unwrap();
     } catch (error) {
-      console.log(error);
+      /** */
     }
   };
 
@@ -119,7 +119,7 @@ const FriendRequestReceived = () => {
     try {
       await acceptRequest(friend).unwrap();
     } catch (error) {
-      console.log(error);
+      /** */
     }
   };
 

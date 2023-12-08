@@ -12,7 +12,6 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  WsException,
 } from '@nestjs/websockets';
 import { ROLE, TYPE, Chatroom, RESTRICTION, STATUS } from '@prisma/client';
 import {
@@ -175,7 +174,6 @@ export class GatewayGateway {
     const game = this.pongService.checkIfUserIsAlreadyInARoom(userId);
 
     const allRooms = this.server.of('/').adapter.rooms;
-    console.log({ allRooms });
 
     if (game?.hasStarted) {
       this.libService.sendToSocket(
@@ -213,7 +211,6 @@ export class GatewayGateway {
   @SubscribeMessage(GeneralEvent.DISCONNECT_ALL_EXCEPT_ME)
   async disconnectAllExceptMe(@ConnectedSocket() client: SocketWithAuth) {
     const { userId } = client;
-    console.log(this.getAllSockeIdsByKey(userId));
 
     if (!this.getAllSockeIdsByKey(userId)) {
       this.libService.sendToSocket(
@@ -239,19 +236,22 @@ export class GatewayGateway {
 
     if (!user) throw new WsUserNotFoundException();
 
-    client.broadcast.emit(GeneralEvent.USER_CHANGED_AVATAR, {
-      data: {
-        id: userId,
-        avatar,
+    this.libService.sendToSocket(
+      this.server,
+      GeneralEvent.BROADCAST,
+      GeneralEvent.USER_CHANGED_AVATAR,
+      {
+        data: {
+          id: userId,
+          avatar,
+        },
       },
-    });
+    );
 
-    this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
-      message: 'ok',
-    });
+    this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS);
   }
 
-  @SubscribeMessage(GeneralEvent.UPDATE_USER)
+  @SubscribeMessage(GeneralEvent.UPDATE_USER_PROFILE)
   async updateUserInfo(
     @ConnectedSocket() client: SocketWithAuth,
     @MessageBody() userInfoUpdateDto: UserInfoUpdateDto,
@@ -283,9 +283,14 @@ export class GatewayGateway {
       data: { ...userInfoUpdateDto },
     });
 
-    client.broadcast.emit(GeneralEvent.USER_CHANGED_USERNAME, {
-      data: { id: userId, nickname },
-    });
+    this.libService.sendToSocket(
+      this.server,
+      GeneralEvent.BROADCAST,
+      GeneralEvent.USER_CHANGED_USERNAME,
+      {
+        data: { id: userId, nickname },
+      },
+    );
 
     this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
       message: 'Profile updated ',
@@ -301,7 +306,6 @@ export class GatewayGateway {
     const { users, ...chatroom } = chatroomDto;
     const { chatroomName } = chatroom;
     const { userId } = client;
-    console.log({ users });
 
     const user = await this.userService.findUserById(client.userId, UserData);
 
@@ -375,13 +379,18 @@ export class GatewayGateway {
     });
 
     if (newChatroom.type === TYPE.PUBLIC || newChatroom.type === TYPE.PROTECTED)
-      client.broadcast.emit(ChatEventGroup.NEW_AVAILABLE_CHATROOM, {
-        data: {
-          id: newChatroom.id,
-          type: newChatroom.type,
-          chatroomName: newChatroom.chatroomName,
+      this.libService.sendToSocket(
+        this.server,
+        GeneralEvent.BROADCAST,
+        ChatEventGroup.NEW_AVAILABLE_CHATROOM,
+        {
+          data: {
+            id: newChatroom.id,
+            type: newChatroom.type,
+            chatroomName: newChatroom.chatroomName,
+          },
         },
-      });
+      );
   }
 
   @SubscribeMessage(ChatEventGroup.EDIT_GROUP_CHATROOM)
@@ -471,17 +480,27 @@ export class GatewayGateway {
     });
 
     if (type !== TYPE.PRIVATE) {
-      client.broadcast.emit(ChatEventGroup.NEW_AVAILABLE_CHATROOM, {
-        data: {
-          id: chatroomId,
-          type: type,
-          chatroomName: chat.chatroomName,
+      this.libService.sendToSocket(
+        this.server,
+        GeneralEvent.BROADCAST,
+        ChatEventGroup.NEW_AVAILABLE_CHATROOM,
+        {
+          data: {
+            id: chatroomId,
+            type: type,
+            chatroomName: chat.chatroomName,
+          },
         },
-      });
+      );
     } else {
-      client.broadcast.emit(ChatEventGroup.DELETE_JOINABLE_GROUP, {
-        data: { chatroomId },
-      });
+      this.libService.sendToSocket(
+        this.server,
+        GeneralEvent.BROADCAST,
+        ChatEventGroup.DELETE_JOINABLE_GROUP,
+        {
+          data: { chatroomId },
+        },
+      );
     }
   }
 
@@ -1206,9 +1225,14 @@ export class GatewayGateway {
               message: `You leaved the group ${chatroomName}`,
             },
           );
-          client.broadcast.emit(ChatEventGroup.DELETE_JOINABLE_GROUP, {
-            data: { chatroomId },
-          });
+          this.libService.sendToSocket(
+            this.server,
+            GeneralEvent.BROADCAST,
+            ChatEventGroup.DELETE_JOINABLE_GROUP,
+            {
+              data: { chatroomId },
+            },
+          );
           this.libService.deleteSocketRoom(this.server, chatroomName);
           return;
         }
@@ -2899,7 +2923,14 @@ export class GatewayGateway {
           },
         },
       }),
-      this.prismaService.user.findFirst({ where: { id: friendId } }),
+      this.prismaService.user.findFirst({
+        where: { id: friendId },
+        select: {
+          id: true,
+          nickname: true,
+          profile: { select: { avatar: true } },
+        },
+      }),
     ]);
 
     if (!me || !user) throw new WsUserNotFoundException();
@@ -3023,6 +3054,13 @@ export class GatewayGateway {
     this.libService.sendToSocket(
       this.server,
       client.userId,
+      GeneralEvent.NEW_BLOCKED_USER,
+      { data: user },
+    );
+
+    this.libService.sendToSocket(
+      this.server,
+      client.userId,
       ChatEventPrivateRoom.CLEAR_CHATROOM,
       {
         data: { chatroomId: chatroom.id },
@@ -3061,10 +3099,10 @@ export class GatewayGateway {
       this.libService.sendToSocket(
         this.server,
         client.userId,
-        FriendEvent.UNBLOCK_FRIEND,
+        GeneralEvent.REMOVE_BLOCKED_USER,
         {
           message: '',
-          data: { friendId },
+          data: friendId,
         },
       );
     }
@@ -3180,7 +3218,7 @@ export class GatewayGateway {
     if (!me || !user) throw new WsUserNotFoundException();
 
     if (me.blockedBy.length > 0) {
-      throw new WsException(
+      throw new WsBadRequestException(
         'You cannot play with a user that have blocked you',
       );
     }

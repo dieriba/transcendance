@@ -78,8 +78,6 @@ const GroupComp = ({ openDialog, handleClose }: GroupCompProps) => {
       setMessage(res.message);
       setOpenSnack(true);
     } catch (error) {
-      console.log({ error });
-
       setSeverity("error");
       setMessage((error as SocketServerErrorResponse).message);
       setOpenSnack(true);
@@ -95,8 +93,6 @@ const GroupComp = ({ openDialog, handleClose }: GroupCompProps) => {
       setMessage(res.message);
       setOpenSnack(true);
     } catch (error) {
-      console.log({ error });
-
       setSeverity("error");
       setMessage((error as SocketServerErrorResponse).message);
       setOpenSnack(true);

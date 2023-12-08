@@ -94,7 +94,7 @@ const FriendRequestSentTable = () => {
     try {
       await cancelRequest(friend).unwrap();
     } catch (error) {
-      console.log(error);
+      /** */
     }
   };
 

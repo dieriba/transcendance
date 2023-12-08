@@ -9,7 +9,7 @@ import { useTheme } from "@mui/material/styles";
 import { useAppDispatch } from "../../redux/hooks";
 import { useEffect } from "react";
 import { connectSocket, socket } from "../../utils/getSocket";
-import { ChatEventGroup } from "../../../shared/socket.event";
+import { ChatEventGroup, GeneralEvent } from "../../../shared/socket.event";
 import {
   SocketServerSucessResponse,
   SocketServerSucessWithChatroomId,
@@ -19,6 +19,7 @@ import {
   addNewChatroom,
   deleteChatroom,
   leaveChatroom,
+  removeBlockedUser,
   restrict,
   setGroupChatroom,
   unrestrict,
@@ -132,8 +133,16 @@ const GroupChatPage = () => {
           dispatch(leaveChatroom(data.data));
         }
       );
+
+      socket.on(
+        GeneralEvent.REMOVE_BLOCKED_USER,
+        (data: SocketServerSucessResponse & { data: string }) => {
+          dispatch(removeBlockedUser(data.data));
+        }
+      );
     }
     return () => {
+      socket.off(GeneralEvent.REMOVE_BLOCKED_USER)
       socket.off(ChatEventGroup.USER_UNRESTRICTED);
       socket.off(ChatEventGroup.GROUP_CHATROOM_DELETED);
       socket.off(ChatEventGroup.BEEN_KICKED);

@@ -35,7 +35,7 @@ const GroupConversationFooter = () => {
         chatroomId: currentGroupChatroomId,
       }).unwrap();
     } catch (error) {
-      console.log(error);
+      /** */
     }
   };
   const toShow =

@@ -34,8 +34,6 @@ const InviteUser = () => {
       setMessage(res.message);
       setOpenSnack(true);
     } catch (error) {
-      console.log({ error });
-
       setSeverity("error");
       setMessage((error as SocketServerErrorResponse).message);
       setOpenSnack(true);
@@ -75,11 +73,7 @@ const InviteUser = () => {
         )}
         <form onSubmit={handleSubmit(onSubmit)}>
           <Stack spacing={3}>
-            <RHFTextField
-              name="nickname"
-              label="Nickname"
-              control={control}
-            />
+            <RHFTextField name="nickname" label="Nickname" control={control} />
             <Button
               color="inherit"
               fullWidth

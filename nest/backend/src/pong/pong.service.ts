@@ -60,8 +60,6 @@ export class PongService {
       },
     });
 
-    console.log({ players });
-
     return players;
   }
 

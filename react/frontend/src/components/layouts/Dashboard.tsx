@@ -26,7 +26,6 @@ import {
 } from "../../redux/features/friends/friends.slice";
 import { useTheme } from "@mui/material/styles";
 import MobileSidebar from "../sidebar/MobileSidebar";
-import { BaseUserType } from "../../models/login/UserSchema";
 import { ChatroomGroupType } from "../../models/groupChat";
 import { addGroupInvitation } from "../../redux/features/groups/group.slice";
 import { setGameData } from "../../redux/features/pong/pong.slice";
@@ -34,6 +33,7 @@ import { apiSlice } from "../../redux/api/apiSlice";
 import { LOGOUT } from "../../redux/type";
 import { deleteChatroomById } from "../../redux/features/chat/chat.slice";
 import { StartGameInfo } from "../../../shared/types";
+import { Basetype } from "../../models/BaseType";
 
 const ProtectedDashboardLayout = () => {
   const isAuthenticated = useAppSelector(
@@ -121,7 +121,7 @@ const ProtectedDashboardLayout = () => {
 
       socket.on(
         PongEvent.RECEIVE_GAME_INVITATION,
-        (data: SocketServerSucessResponse & { data: BaseUserType }) => {
+        (data: SocketServerSucessResponse & { data: Basetype }) => {
           dispatch(
             setGameInvitation({ message: data.message, id: data.data.id })
           );

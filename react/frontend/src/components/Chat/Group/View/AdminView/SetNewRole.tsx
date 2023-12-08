@@ -73,8 +73,6 @@ const SetNewRole = ({
       );
       handleClose();
     } catch (error) {
-      console.log({ error });
-
       setSeverity("error");
       setMessage((error as SocketServerErrorResponse).message);
       setOpenSnack(true);

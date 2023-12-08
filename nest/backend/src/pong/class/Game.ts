@@ -126,8 +126,6 @@ export class Game {
     const now = performance.now();
     const dt = this.lastTime === -1 ? FRAME_RATE : now - this.lastTime;
     this.ball.updatePosition(dt, this.player, this.opponentPlayer);
-    console.log(this.ball.getPlayersScore);
-
     this.player.updatePosition(dt);
     this.opponentPlayer.updatePosition(dt);
     this.isAWinnerOrTimeGameLimitReached();

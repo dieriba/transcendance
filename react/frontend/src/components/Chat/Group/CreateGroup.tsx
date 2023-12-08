@@ -31,7 +31,6 @@ import { SocketServerErrorResponse } from "../../../services/type";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { setFriends } from "../../../redux/features/friends/friends.slice";
 import { RootState } from "../../../redux/store";
-import { socket } from "../../../utils/getSocket";
 
 interface CreateGroupProps {
   open: boolean;
@@ -85,9 +84,7 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
       setSeverity("success");
       setMessage(res.message);
       setOpenSnack(true);
-      console.log({ socket });
     } catch (error) {
-      console.log({ error });
 
       setSeverity("error");
       setMessage((error as SocketServerErrorResponse).message);

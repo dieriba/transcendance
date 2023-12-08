@@ -1,6 +1,6 @@
 import { GeneralEvent, PongEvent } from "../../../../shared/socket.event";
+import { Basetype } from "../../../models/BaseType";
 import { LeaderboardType } from "../../../models/Leaderboard";
-import { BaseUserTypeId } from "../../../models/login/UserSchema";
 import {
   BaseServerResponse,
   SocketServerSucessResponse,
@@ -18,7 +18,7 @@ export const PongApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: () => {
         return new Promise((resolve) => {
-          connectSocket()
+          connectSocket();
 
           socket.emit(PongEvent.JOIN_QUEUE);
 
@@ -42,7 +42,7 @@ export const PongApiSlice = apiSlice.injectEndpoints({
     >({
       queryFn: () => {
         return new Promise((resolve) => {
-          connectSocket()
+          connectSocket();
 
           socket.emit(PongEvent.LEAVE_QUEUE);
 
@@ -62,11 +62,11 @@ export const PongApiSlice = apiSlice.injectEndpoints({
       SocketServerSucessResponse & {
         data: unknown;
       },
-      BaseUserTypeId
+      Basetype
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          connectSocket()
+          connectSocket();
 
           socket.emit(PongEvent.SEND_GAME_INVITATION, data);
 
@@ -86,11 +86,11 @@ export const PongApiSlice = apiSlice.injectEndpoints({
       SocketServerSucessResponse & {
         data: unknown;
       },
-      BaseUserTypeId
+      Basetype
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          connectSocket()
+          connectSocket();
 
           socket.emit(PongEvent.ACCEPT_GAME_INVITATION, data);
 
@@ -118,11 +118,11 @@ export const PongApiSlice = apiSlice.injectEndpoints({
       SocketServerSucessResponse & {
         data: unknown;
       },
-      BaseUserTypeId
+      Basetype
     >({
       queryFn: (data) => {
         return new Promise((resolve) => {
-          connectSocket()
+          connectSocket();
 
           socket.emit(PongEvent.DECLINE_GAME_INVITATION, data);
 

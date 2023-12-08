@@ -3,13 +3,20 @@ import DialogI from "../Dialog/DialogI";
 import BadgeAvatar from "../Badge/BadgeAvatar";
 import PlayingAvatar from "../Badge/PlayingAvatar";
 import GameInvitation from "../game-invitation/GameInvitation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { UserWithProfile } from "../../models/ChatContactSchema";
-import { useAppSelector } from "../../redux/hooks";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { RootState } from "../../redux/store";
 import ButtonDialogContained from "../Button/ButtonDialogContained";
 import BlockUserDialog from "../friends/BlockFriendDialog";
 import { GameController, Trash } from "phosphor-react";
+import { connectSocket, socket } from "../../utils/getSocket";
+import { GeneralEvent } from "../../../shared/socket.event";
+import { BaseUserInfoType } from "../../models/login/UserSchema";
+import { SocketServerSucessResponse } from "../../services/type";
+import { showSnackBar } from "../../redux/features/app/app.slice";
+import { addBlockedUser } from "../../redux/features/groups/group.slice";
+import UnblockUserDialog from "../friends/UnblockFriendDialog";
 
 interface UserProfileGroupProps {
   openDialog: boolean;
@@ -20,16 +27,35 @@ const UserProfileGroup = ({
   handleClose,
   openDialog,
 }: UserProfileGroupProps) => {
-  const { myId, currentUser } = useAppSelector(
+  const { myId, currentUser, blockedUser } = useAppSelector(
     (state: RootState) => state.groups
   );
+
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    connectSocket();
+    socket.on(
+      GeneralEvent.NEW_BLOCKED_USER,
+      (data: SocketServerSucessResponse & { data: BaseUserInfoType }) => {
+        dispatch(addBlockedUser({ id: data.data.id }));
+        dispatch(showSnackBar({ message: data.message }));
+      }
+    );
+
+    return () => {
+      socket.off(GeneralEvent.NEW_BLOCKED_USER);
+    };
+  }, [dispatch]);
 
   const { profile, pong, id, nickname, status } =
     currentUser as UserWithProfile;
 
-  const [open, setOpen] = useState<{ gameInvitation: boolean; block: boolean }>(
-    { gameInvitation: false, block: false }
-  );
+  const [open, setOpen] = useState<{
+    gameInvitation: boolean;
+    block: boolean;
+    unblock: boolean;
+  }>({ gameInvitation: false, block: false, unblock: false });
   const src = profile?.avatar ?? undefined;
   let rating: number = 0;
   let victory: number = 0;
@@ -40,6 +66,8 @@ const UserProfileGroup = ({
     victory = pong.victory;
     losses = pong.losses;
   }
+
+  const isBlocked = blockedUser.find((user) => user.id === id);
 
   return (
     <>
@@ -80,22 +108,45 @@ const UserProfileGroup = ({
           <TextField fullWidth label="Pong losses" disabled value={losses} />
           {myId !== id && (
             <>
-              <ButtonDialogContained
-                open={open.block}
-                handleOpen={() => setOpen((prev) => ({ ...prev, block: true }))}
-                children={
-                  <BlockUserDialog
-                    open={open.block}
-                    handleClose={() =>
-                      setOpen((prev) => ({ ...prev, block: false }))
-                    }
-                    friendId={id}
-                    nickname={nickname}
-                  />
-                }
-                icon={<Trash />}
-                buttonName={`Block ${nickname}`}
-              />
+              {isBlocked ? (
+                <ButtonDialogContained
+                  open={open.unblock}
+                  handleOpen={() =>
+                    setOpen((prev) => ({ ...prev, unblock: true }))
+                  }
+                  children={
+                    <UnblockUserDialog
+                      open={open.unblock}
+                      handleClose={() =>
+                        setOpen((prev) => ({ ...prev, unblock: false }))
+                      }
+                      friendId={id}
+                      nickname={nickname}
+                    />
+                  }
+                  icon={<Trash />}
+                  buttonName={`Unblock ${nickname}`}
+                />
+              ) : (
+                <ButtonDialogContained
+                  open={open.block}
+                  handleOpen={() =>
+                    setOpen((prev) => ({ ...prev, block: true }))
+                  }
+                  children={
+                    <BlockUserDialog
+                      open={open.block}
+                      handleClose={() =>
+                        setOpen((prev) => ({ ...prev, block: false }))
+                      }
+                      friendId={id}
+                      nickname={nickname}
+                    />
+                  }
+                  icon={<Trash />}
+                  buttonName={`Block ${nickname}`}
+                />
+              )}
               <ButtonDialogContained
                 open={open.gameInvitation}
                 handleOpen={() =>

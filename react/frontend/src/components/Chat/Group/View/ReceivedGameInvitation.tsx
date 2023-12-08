@@ -1,10 +1,10 @@
 import { Snackbar, Alert, Stack, Typography, Button } from "@mui/material";
 import { GAME_INVITATION_TIME_LIMIT_SNACKBAR } from "../../../../../shared/constant";
-import { BaseUserTypeId } from "../../../../models/login/UserSchema";
 import {
   useAcceptGameInvitationMutation,
   useDeclineGameInvitationMutation,
 } from "../../../../redux/features/pong/pong.api.slice";
+import { Basetype } from "../../../../models/BaseType";
 
 interface ReceivedGameInvitationProps {
   open: boolean;
@@ -25,7 +25,7 @@ const ReceivedGameInvitation = ({
   const [declineGameInvitation, declineGameInvitationAction] =
     useDeclineGameInvitationMutation();
 
-  const accept = async (data: BaseUserTypeId) => {
+  const accept = async (data: Basetype) => {
     try {
       await acceptGameInvitation(data).unwrap();
       onClose();
@@ -34,17 +34,13 @@ const ReceivedGameInvitation = ({
     }
   };
 
-  const decline = async (data: BaseUserTypeId) => {
+  const decline = async (data: Basetype) => {
     try {
       await declineGameInvitation(data).unwrap();
-      console.log("success");
-
-      onClose();
     } catch (error) {
-      console.log({ error });
-
-      onClose();
+      /** */
     }
+    onClose();
   };
 
   const clickable =

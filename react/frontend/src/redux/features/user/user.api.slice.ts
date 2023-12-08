@@ -12,12 +12,12 @@ import { apiSlice } from "../../api/apiSlice";
 import { GeneralEvent } from "../../../../shared/socket.event";
 import { clearSocket, connectSocket, socket } from "../../../utils/getSocket";
 import {
-  BaseUserTypeId,
   ChangePasswordType,
   OtpType,
   UpdateUserType,
   ValidateOtpType,
 } from "../../../models/login/UserSchema";
+import { Basetype } from "../../../models/BaseType";
 
 export const UserApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -134,7 +134,7 @@ export const UserApiSlice = apiSlice.injectEndpoints({
         return new Promise((resolve) => {
           connectSocket();
 
-          socket.emit(GeneralEvent.UPDATE_USER, data);
+          socket.emit(GeneralEvent.UPDATE_USER_PROFILE, data);
 
           socket.on(GeneralEvent.SUCCESS, (data) => {
             clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
@@ -176,7 +176,7 @@ export const UserApiSlice = apiSlice.injectEndpoints({
     }),
     validateOtp: builder.mutation<
       BaseServerResponse & { data: ResponseLoginType },
-      ValidateOtpType & BaseUserTypeId
+      ValidateOtpType & Basetype
     >({
       query: (data) => ({
         url: "/2fa/validate",

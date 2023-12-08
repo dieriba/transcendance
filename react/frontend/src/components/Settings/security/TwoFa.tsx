@@ -22,7 +22,7 @@ const TwoFa = () => {
 
       setData((prev) => ({ ...prev, ...res.data }));
     } catch (error) {
-      console.log({ error });
+      /** */
     }
   };
   const twoFa = useAppSelector((state: RootState) => state.user.user?.twoFa);

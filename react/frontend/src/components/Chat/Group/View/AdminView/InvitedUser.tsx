@@ -27,7 +27,7 @@ import {
 import { X } from "phosphor-react";
 import { connectSocket, socket } from "../../../../../utils/getSocket";
 import { ChatEventGroup } from "../../../../../../shared/socket.event";
-import { BaseUserTypeId } from "../../../../../models/login/UserSchema";
+import { Basetype } from "../../../../../models/BaseType";
 
 const InvitedUser = () => {
   const { currentGroupChatroomId, invitedUser } = useAppSelector(
@@ -60,7 +60,7 @@ const InvitedUser = () => {
 
       socket.on(
         ChatEventGroup.USER_DECLINED_INVITATION,
-        (data: SocketServerSucessResponse & { data: BaseUserTypeId }) => {
+        (data: SocketServerSucessResponse & { data: Basetype }) => {
           dispatch(deleteInvitedUser(data.data.id));
         }
       );

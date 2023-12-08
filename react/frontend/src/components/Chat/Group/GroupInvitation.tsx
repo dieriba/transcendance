@@ -93,8 +93,6 @@ const GroupInvitation = ({ open, handleClose }: GroupInvitationProps) => {
       setMessage(res.message);
       setOpenSnack(true);
     } catch (error) {
-      console.log({ error });
-
       setSeverity("error");
       setMessage((error as SocketServerErrorResponse).message);
       setOpenSnack(true);
@@ -111,8 +109,6 @@ const GroupInvitation = ({ open, handleClose }: GroupInvitationProps) => {
       setMessage(res.message);
       setOpenSnack(true);
     } catch (error) {
-      console.log({ error });
-
       setSeverity("error");
       setMessage((error as SocketServerErrorResponse).message);
       setOpenSnack(true);

@@ -32,8 +32,8 @@ import {
   UserWithProfile,
   UserWithProfileFriendsType,
 } from "../../../models/ChatContactSchema";
-import { BaseUserTypeId } from "../../../models/login/UserSchema";
 import { AlertColor } from "@mui/material";
+import { Basetype } from "../../../models/BaseType";
 
 export interface GroupState {
   invitableUser: InvitedUserType[];
@@ -51,8 +51,7 @@ export interface GroupState {
   restrictedUser: UserGroupType[];
   openGroupSidebar: boolean;
   myId: string | undefined;
-  blockedUser: BaseUserTypeId[];
-  blockedBy: BaseUserTypeId[];
+  blockedUser: Basetype[];
   message: string;
   severity: AlertColor;
   open: boolean;
@@ -75,7 +74,6 @@ const initialState: GroupState = {
   openGroupSidebar: false,
   myId: undefined,
   blockedUser: [],
-  blockedBy: [],
   message: "",
   severity: "success",
   open: false,
@@ -89,6 +87,20 @@ export const GroupSlice = createSlice({
   name: "group",
   initialState,
   reducers: {
+    addBlockedUser: (state, action: PayloadAction<Basetype>) => {
+      if (!state.blockedUser.includes(action.payload)) {
+        state.blockedUser.push(action.payload);
+      }
+    },
+    removeBlockedUser: (state, action: PayloadAction<string>) => {
+      const index = state.blockedUser.findIndex(
+        (user) => user.id === action.payload
+      );
+
+      if (index !== -1) {
+        state.blockedUser.splice(index, 1);
+      }
+    },
     toggleOpenGroupSidebar: (state) => {
       state.openGroupSidebar = !state.openGroupSidebar;
       state.chatAdmin = [];
@@ -98,7 +110,7 @@ export const GroupSlice = createSlice({
       state,
       action: PayloadAction<{
         chatrooms: ChatroomGroupType[];
-        blockedUser: BaseUserTypeId[];
+        blockedUser: Basetype[];
         numbersOfGroupInvitation: number;
       }>
     ) => {
@@ -288,9 +300,31 @@ export const GroupSlice = createSlice({
       const { id } = action.payload;
       const isNicknameUpdated = "nickname" in action.payload;
 
+      state.messages.forEach((message) => {
+        if (message.user.id === id) {
+          if (isNicknameUpdated) {
+            message.user.nickname = action.payload.nickname;
+          } else {
+            message.user.profile.avatar = (
+              action.payload as UpdatedAvatarRes
+            ).avatar;
+          }
+        }
+      });
+
+      if (state.currentUser?.id === id) {
+        if (isNicknameUpdated) {
+          state.currentUser.nickname = action.payload.nickname;
+        } else {
+          state.currentUser.profile.avatar = (
+            action.payload as UpdatedAvatarRes
+          ).avatar;
+        }
+      }
+
       if (state.admin?.user.id === id) {
         if (isNicknameUpdated) {
-          state.admin.user.nickname = (action.payload as UserUpdated).nickname;
+          state.admin.user.nickname = action.payload.nickname;
           return;
         }
         state.admin.user.profile.avatar = (
@@ -812,6 +846,8 @@ export const {
   deleteInvitedUser,
   setCurrentUser,
   updateUserInfo,
+  addBlockedUser,
+  removeBlockedUser,
 } = GroupSlice.actions;
 
 export default GroupSlice.reducer;

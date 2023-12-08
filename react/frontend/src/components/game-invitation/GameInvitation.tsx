@@ -12,8 +12,8 @@ import {
 import DialogI from "../Dialog/DialogI";
 import { useState } from "react";
 import { SocketServerErrorResponse } from "../../services/type";
-import { BaseUserTypeId } from "../../models/login/UserSchema";
 import { useSendGameInvitationMutation } from "../../redux/features/pong/pong.api.slice";
+import { Basetype } from "../../models/BaseType";
 
 interface GameInvitationProps extends DialogProps {
   id: string;
@@ -41,7 +41,7 @@ const GameInvitation = ({
 
     setOpenSnack(false);
   };
-  const handleOnClick = async (data: BaseUserTypeId) => {
+  const handleOnClick = async (data: Basetype) => {
     try {
       const res = await sendGameInvitation(data).unwrap();
       setSeverity("success");

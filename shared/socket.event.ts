@@ -1,24 +1,26 @@
-const General = 'general';
+const General = "general";
 
 export enum GeneralEvent {
-  BROADCAST = 'broadcast',
+  BROADCAST = "broadcast",
   USER_UPDATE_STATUS = `${General}.user.update.status`,
-  EXCEPTION = 'exception',
+  EXCEPTION = "exception",
   SUCCESS = `${General}.success`,
   JOIN = `${General}.join`,
   LEAVE = `${General}.leave`,
   NEW_PROFILE_PICTURE = `${General}.new.profile.pic`,
   USER_CHANGED_AVATAR = `${General}.new.avatar.pic`,
-  UPDATE_USER = `${General}.update.user`,
+  UPDATE_USER_PROFILE = `${General}.update.user`,
   USER_CHANGED_USERNAME = `${General}.changed.username`,
   TOKEN_NOT_VALID = `${General}.token.not.valid`,
   DISCONNECT_ALL_INSTANCE_OF_ME = `${General}.disconnect.all.instance.of.me`,
   DISCONNECT_ME = `${General}.disconnect.me`,
   DISCONNECT_ALL_EXCEPT_ME = `${General}.disconnect.all.except.me`,
-  DISCONNECT = 'disconnect',
+  DISCONNECT = "disconnect",
+  NEW_BLOCKED_USER = `${General}.add.blocked.user`,
+  REMOVE_BLOCKED_USER = `${General}.remove.blocked.user`,
 }
 
-const friend = 'friend';
+const friend = "friend";
 
 export enum FriendEvent {
   REQUEST_RECEIVED = `${friend}.request.received`,
@@ -37,7 +39,7 @@ export enum FriendEvent {
   NEW_FRIEND = `${friend}.new.friend`,
 }
 
-const privateChatroom = 'chatroom.private';
+const privateChatroom = "chatroom.private";
 
 export enum ChatEventPrivateRoom {
   NEW_CHATROOM = `${privateChatroom}.new.chatroom`,
@@ -46,7 +48,7 @@ export enum ChatEventPrivateRoom {
   CLEAR_CHATROOM = `${privateChatroom}.clear.chatroom`,
 }
 
-const groupChatroom = 'chatroom.group';
+const groupChatroom = "chatroom.group";
 
 export enum ChatEventGroup {
   CREATE_GROUP_CHATROOM = `${groupChatroom}.create`,
@@ -93,8 +95,8 @@ export enum ChatEventGroup {
   CREATE_NEW_CHAT = `${groupChatroom}.create.new.chat`,
 }
 
-const pong = 'pong';
-export const PONG_ROOM_PREFIX = 'pong_';
+const pong = "pong";
+export const PONG_ROOM_PREFIX = "pong_";
 export enum PongEvent {
   ARROW_UP = `ArrowUp`,
   ARROW_DOWN = `ArrowDown`,

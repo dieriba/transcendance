@@ -47,8 +47,6 @@ const RegisterForm = () => {
         }
       } else if (isErrorWithMessage(err)) {
         setMessage(err.message);
-
-        console.log(err);
       } else setMessage("An error has occured, please try again later!");
     }
   };

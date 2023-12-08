@@ -74,8 +74,6 @@ const ProtectedGroupForm = ({
       setMessage(res.message);
       setOpenSnack(true);
     } catch (error) {
-      console.log({ error });
-
       setSeverity("error");
       setMessage((error as SocketServerErrorResponse).message);
       setOpenSnack(true);

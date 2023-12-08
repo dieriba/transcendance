@@ -7,7 +7,7 @@ export const BaseUserSchema = z.object({
   nickname: z.string().min(1),
 });
 
-export type BaseUserTypeId = z.infer<typeof BaseUserSchema>;
+export type BaseUserType = z.infer<typeof BaseUserSchema>;
 
 export const BaseUserInfoSchema = BaseUserSchema.extend({
   profile: ProfileSchema,
@@ -22,22 +22,15 @@ export const UserUpdateStatus = z.object({
 
 export type UserUpdateStatusType = z.infer<typeof UserUpdateStatus>;
 
-export const UserSchema = BaseUserSchema.extend({
-  twoFa: z.boolean(),
-  allowForeignToDm: z.boolean(),
-});
-
-export type BaseUserType = z.infer<typeof UserSchema>;
-
 export const UpdateUserSchema = z.object({
   nickname: z.string().min(1),
 });
 
 export type UpdateUserType = z.infer<typeof UpdateUserSchema>;
 
-export type UserUpdated = UpdateUserType & BaseUserTypeId;
+export type UserUpdated = UpdateUserType & BaseUserType;
 
-export type UpdatedAvatarRes = BaseUserTypeId & { avatar: string };
+export type UpdatedAvatarRes = BaseUserType & { avatar: string };
 
 export const ChangePasswordSchema = z
   .object({

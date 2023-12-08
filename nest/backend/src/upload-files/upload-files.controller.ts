@@ -70,8 +70,6 @@ export class UploadFilesController {
       process.env.BACKEND_DOMAIN_AVATAR +
       this.libService.createFile(process.env.AVATAR_UPLOAD_PATH, file);
 
-    console.log({ avatar, back: process.env.BACKEND_DOMAIN_AVATAR });
-
     await this.prismaService.profile.update({
       where: {
         userId,

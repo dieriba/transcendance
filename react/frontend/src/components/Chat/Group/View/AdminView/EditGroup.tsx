@@ -68,8 +68,6 @@ const EditGroup = ({ open, handleClose }: EditGroupProps) => {
       setMessage(message);
       setOpenSnack(true);
     } catch (error) {
-      console.log({ error });
-
       setSeverity("error");
       setMessage((error as SocketServerErrorResponse).message);
       setOpenSnack(true);
@@ -85,7 +83,7 @@ const EditGroup = ({ open, handleClose }: EditGroupProps) => {
   return (
     <>
       <DialogI maxWidth="sm" open={open} handleClose={handleClose}>
-        <DialogTitle sx={{ backgroundColor: theme.palette.background.paper }} >
+        <DialogTitle sx={{ backgroundColor: theme.palette.background.paper }}>
           Edit Group
         </DialogTitle>
         <DialogContent sx={{ backgroundColor: theme.palette.background.paper }}>

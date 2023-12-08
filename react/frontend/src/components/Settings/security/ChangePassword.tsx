@@ -73,7 +73,6 @@ const ChangePassword = () => {
           setMessage("An error has occured, please try again later!");
         }
       } else if (isErrorWithMessage(error)) {
-        console.log("cx");
         setMessage(error.message);
       }
       setOpenSnack(true);

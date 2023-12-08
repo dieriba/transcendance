@@ -1,3 +1,4 @@
+import { BaseUserInfoType } from "./../../../models/login/UserSchema";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import {
   FriendReceivedRequestType,
@@ -91,10 +92,22 @@ export const FriendsSlice = createSlice({
         (obj) => obj.recipient.id !== action.payload.friendId
       );
     },
-    removeBlockedUser: (state, action: PayloadAction<BaseFriendType>) => {
-      state.blockedUser = state.blockedUser.filter(
-        (obj) => obj.id !== action.payload.friendId
+    addBlockedUser: (state, action: PayloadAction<BaseUserInfoType>) => {
+      const { id } = action.payload;
+      const index = state.blockedUser.findIndex((user) => user.id === id);
+
+      if (index !== -1) {
+        state.blockedUser.unshift(action.payload);
+      }
+    },
+    removeBlockedUser: (state, action: PayloadAction<string>) => {
+      const index = state.blockedUser.findIndex(
+        (user) => user.id === action.payload
       );
+
+      if (index !== -1) {
+        state.blockedUser.splice(index, 1);
+      }
     },
     addFriend: (state, action: PayloadAction<FriendType>) => {
       state.friends.push(action.payload);
@@ -197,6 +210,7 @@ export const {
   addNewFriendRequestReceived,
   addNewFriendRequestSent,
   addFriend,
+  addBlockedUser,
   removeBlockedUser,
   deleteFriend,
   deleteReceivedFriendRequest,
