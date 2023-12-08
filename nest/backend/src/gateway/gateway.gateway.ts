@@ -168,7 +168,14 @@ export class GatewayGateway {
         ids: [userId],
         status: STATUS.OFFLINE,
       });
-      await this.userService.updateUserById(userId, { status: STATUS.OFFLINE });
+
+      const user = await this.userService.findUserById(userId, UserData);
+
+      if (user) {
+        await this.userService.updateUserById(userId, {
+          status: STATUS.OFFLINE,
+        });
+      }
     }
 
     const game = this.pongService.checkIfUserIsAlreadyInARoom(userId);
@@ -3425,7 +3432,7 @@ export class GatewayGateway {
       return;
     }
 
-    this.pongService.createGameRoom(userId, client, false);
+    this.pongService.createGameRoom(userId, client);
 
     this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
       message: 'Please wait for an opponent...',

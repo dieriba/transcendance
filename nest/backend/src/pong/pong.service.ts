@@ -24,7 +24,6 @@ export class PongService {
     string,
     GameInvitation
   >();
-  private lastTime: number = -1;
   private readonly queue: Map<string, string>[] = [];
 
   async getLeaderboard(userId: string) {
@@ -232,8 +231,6 @@ export class PongService {
   }
 
   async gameUpdate(server: Server) {
-    const now = performance.now();
-
     this.games.forEach(async (game, index) => {
       if (game.hasStarted) {
         game.update();
@@ -269,7 +266,6 @@ export class PongService {
         }
       }
     });
-    this.lastTime = now;
   }
 
   private async setPongWinner(

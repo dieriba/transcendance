@@ -1,5 +1,9 @@
 import { StartGameInfo } from "../../../../shared/types";
-import { UserUpdateStatusType } from "../../../models/login/UserSchema";
+import {
+  UpdatedAvatarRes,
+  UserUpdateStatusType,
+  UserUpdated,
+} from "../../../models/login/UserSchema";
 import { LeaderboardType } from "./../../../models/Leaderboard";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
@@ -51,6 +55,24 @@ const PongSlice = createSlice({
         }
       });
     },
+    updateUserInfo: (
+      state,
+      action: PayloadAction<UserUpdated | UpdatedAvatarRes>
+    ) => {
+      const index = state.users.findIndex(
+        (user) => user.id === action.payload.id
+      );
+
+      if (index >= 0) {
+        if ("nickname" in action.payload) {
+          state.users[index].nickname = action.payload.nickname;
+          return;
+        }
+        state.users[index].profile.avatar = (
+          action.payload as UpdatedAvatarRes
+        ).avatar;
+      }
+    },
     addNewPlayerToLeaderboard: (
       state,
       action: PayloadAction<LeaderboardType>
@@ -71,6 +93,7 @@ export const {
   setLeaderboardUser,
   updateUserStatus,
   addNewPlayerToLeaderboard,
+  updateUserInfo,
 } = PongSlice.actions;
 
 export default PongSlice;

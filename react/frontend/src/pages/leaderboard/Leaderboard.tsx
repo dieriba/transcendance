@@ -24,9 +24,10 @@ import GameInvitation from "../../components/game-invitation/GameInvitation";
 import {
   addNewPlayerToLeaderboard,
   setLeaderboardUser,
+  updateUserInfo,
   updateUserStatus,
 } from "../../redux/features/pong/pong.slice";
-import { UserUpdateStatusType } from "../../models/login/UserSchema";
+import { UpdatedAvatarRes, UserUpdateStatusType, UserUpdated } from "../../models/login/UserSchema";
 import UserProfile from "../../components/Profile/UserProfile";
 import { UserWithProfile } from "../../models/ChatContactSchema";
 import { LeaderboardType } from "../../models/Leaderboard";
@@ -77,8 +78,24 @@ const LeaderboardPage = () => {
         }
       );
 
+      socket.on(
+        GeneralEvent.USER_CHANGED_USERNAME,
+        (data: { data: UserUpdated }) => {
+          dispatch(updateUserInfo(data.data));
+        }
+      );
+
+      socket.on(
+        GeneralEvent.USER_CHANGED_AVATAR,
+        (data: { data: UpdatedAvatarRes }) => {
+          dispatch(updateUserInfo(data.data));
+        }
+      );
+
       return () => {
         socket.off(PongEvent.NEW_PLAYER);
+        socket.off(GeneralEvent.USER_CHANGED_USERNAME);
+        socket.off(GeneralEvent.USER_CHANGED_AVATAR);
         socket.off(GeneralEvent.USER_UPDATE_STATUS);
       };
     }
