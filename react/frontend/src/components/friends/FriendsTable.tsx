@@ -6,7 +6,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import {
-  Avatar,
   Button,
   CircularProgress,
   IconButton,
@@ -27,12 +26,12 @@ import {
   updateUserStatus,
 } from "../../redux/features/friends/friends.slice";
 import { RootState } from "../../redux/store";
-import BadgeAvatar from "../Badge/BadgeAvatar";
 import UserProfile from "../Profile/UserProfile";
 import { UserWithProfile } from "../../models/ChatContactSchema";
 import { UserUpdateStatusType } from "../../models/login/UserSchema";
 import DeleteFriendDialog from "./DeleteFriendDialog";
 import BlockUserDialog from "./BlockFriendDialog";
+import GetAvatar from "../Badge/GetAvatar";
 
 export interface FriendProps {
   id: number;
@@ -143,19 +142,12 @@ const FriendsTable = () => {
                       <TableCell padding="checkbox"></TableCell>
 
                       <TableCell component="th" scope="row">
-                        {status === "ONLINE" ? (
-                          <BadgeAvatar>
-                            <Avatar
-                              sx={{ width: "50px", height: "50px" }}
-                              src={avatar ? avatar : undefined}
-                            />
-                          </BadgeAvatar>
-                        ) : (
-                          <Avatar
-                            sx={{ width: "50px", height: "50px" }}
-                            src={avatar ? avatar : undefined}
-                          />
-                        )}
+                        <GetAvatar
+                          src={avatar ? avatar : undefined}
+                          status={status}
+                          width="50px"
+                          height="50px"
+                        />
                       </TableCell>
                       <TableCell align="center">
                         <Typography variant="subtitle1">{nickname}</Typography>

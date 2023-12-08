@@ -6,7 +6,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import {
-  Avatar,
   CircularProgress,
   IconButton,
   Stack,
@@ -20,7 +19,6 @@ import { connectSocket, socket } from "../../utils/getSocket";
 import { GeneralEvent, PongEvent } from "../../../shared/socket.event";
 import { SocketServerSucessResponse } from "../../services/type";
 import { RootState } from "../../redux/store";
-import BadgeAvatar from "../../components/Badge/BadgeAvatar";
 import { useGetLeaderboardQuery } from "../../redux/features/pong/pong.api.slice";
 import GameInvitation from "../../components/game-invitation/GameInvitation";
 import {
@@ -31,8 +29,8 @@ import {
 import { UserUpdateStatusType } from "../../models/login/UserSchema";
 import UserProfile from "../../components/Profile/UserProfile";
 import { UserWithProfile } from "../../models/ChatContactSchema";
-import StyledBadge from "../../components/Badge/StyledBadge";
 import { LeaderboardType } from "../../models/Leaderboard";
+import GetAvatar from "../../components/Badge/GetAvatar";
 
 const LeaderboardPage = () => {
   const { data, isLoading, isError } = useGetLeaderboardQuery(undefined, {
@@ -124,7 +122,6 @@ const LeaderboardPage = () => {
               <TableHead>
                 <TableRow>
                   <TableCell padding="checkbox"></TableCell>
-                  <TableCell align="center">Rank</TableCell>
                   <TableCell align="center">Avatar</TableCell>
                   <TableCell align="center">Nickname</TableCell>
                   <TableCell align="center">Rating</TableCell>
@@ -134,16 +131,13 @@ const LeaderboardPage = () => {
               </TableHead>
               <TableBody>
                 {users.map(
-                  (
-                    {
-                      id,
-                      nickname,
-                      pong,
-                      status,
-                      profile: { avatar, firstname, lastname },
-                    },
-                    index
-                  ) => (
+                  ({
+                    id,
+                    nickname,
+                    pong,
+                    status,
+                    profile: { avatar, firstname, lastname },
+                  }) => (
                     <TableRow
                       key={id}
                       sx={{
@@ -152,24 +146,12 @@ const LeaderboardPage = () => {
                     >
                       <TableCell padding="checkbox"></TableCell>
                       <TableCell align="center">
-                        <Typography>{index + 1}</Typography>
-                      </TableCell>
-                      <TableCell align="center">
-                        {status === "ONLINE" ? (
-                          <BadgeAvatar>
-                            <Avatar
-                              sx={{ width: "50px", height: "50px" }}
-                              src={avatar ? avatar : undefined}
-                            />
-                          </BadgeAvatar>
-                        ) : (
-                          <StyledBadge>
-                            <Avatar
-                              sx={{ width: "50px", height: "50px" }}
-                              src={avatar ? avatar : undefined}
-                            />
-                          </StyledBadge>
-                        )}
+                        <GetAvatar
+                          src={avatar ? avatar : undefined}
+                          status={status}
+                          width="50px"
+                          height="50px"
+                        />
                       </TableCell>
                       <TableCell align="center">
                         <Typography variant="subtitle1">{nickname}</Typography>

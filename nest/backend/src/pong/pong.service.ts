@@ -137,14 +137,10 @@ export class PongService {
     return game;
   }
 
-  createGameRoom(
-    userId: string,
-    socket: SocketWithAuth,
-    special: boolean,
-  ): string {
+  createGameRoom(userId: string, socket: SocketWithAuth): string {
     const gameId = PONG_ROOM_PREFIX + userId;
 
-    const game = new Game(gameId, userId, socket.id, special);
+    const game = new Game(gameId, userId, socket.id);
 
     this.games.push(game);
 
@@ -156,7 +152,7 @@ export class PongService {
   createSpecialGameRoom(userId: string, socket: SocketWithAuth): string {
     const gameId = PONG_ROOM_PREFIX + userId;
 
-    const game = new Game(gameId, userId, socket.id, false);
+    const game = new Game(gameId, userId, socket.id);
 
     this.games.push(game);
 
@@ -173,7 +169,7 @@ export class PongService {
     otherSocketId: string;
   }) {
     const { gameId, userId, id, socketId, otherSocketId } = data;
-    const game = new Game(gameId, id, socketId, false);
+    const game = new Game(gameId, id, socketId);
     game.setOponnentPlayer = userId;
     game.setNewSocketId = otherSocketId;
     game.startGame();

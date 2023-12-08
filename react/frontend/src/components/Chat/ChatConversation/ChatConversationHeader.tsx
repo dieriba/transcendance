@@ -1,5 +1,4 @@
 import {
-  Avatar,
   Box,
   Divider,
   IconButton,
@@ -9,7 +8,6 @@ import {
 } from "@mui/material";
 import { CaretLeft } from "phosphor-react";
 import { useTheme } from "@mui/material/styles";
-import StyledBadge from "../../Badge/StyledBadge";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { RootState } from "../../../redux/store";
 import { PrivateChatroomType } from "../../../models/ChatContactSchema";
@@ -17,6 +15,7 @@ import { STATUS } from "../../../models/type-enum/typesEnum";
 import ChatContactInfo from "../ChatContactInfo";
 import { useState } from "react";
 import { setPrivateChatroomId } from "../../../redux/features/chat/chat.slice";
+import GetAvatar from "../../Badge/GetAvatar";
 
 const ChatConversationHeader = () => {
   const theme = useTheme();
@@ -64,28 +63,13 @@ const ChatConversationHeader = () => {
                     <CaretLeft />
                   </IconButton>
                 )}
-                {status === STATUS.ONLINE ? (
-                  <StyledBadge
-                    sx={{ cursor: "pointer" }}
-                    overlap="circular"
-                    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                    variant="dot"
-                  >
-                    <Avatar
-                      sx={{ width: "50px", height: "50px" }}
-                      src={avatar ? avatar : undefined}
-                      alt={avatar ? avatar : undefined}
-                    />
-                  </StyledBadge>
-                ) : (
-                  <>
-                    <Avatar
-                      sx={{ cursor: "pointer", width: "50px", height: "50px" }}
-                      src={avatar ? avatar : undefined}
-                      alt={avatar ? avatar : undefined}
-                    />
-                  </>
-                )}
+                <GetAvatar
+                  src={avatar ? avatar : undefined}
+                  status={status}
+                  width="50px"
+                  height="50px"
+                  cursor={true}
+                />
               </Stack>
             </div>
 
@@ -93,6 +77,8 @@ const ChatConversationHeader = () => {
               <Typography variant="subtitle2">{nickname}</Typography>
               {status === STATUS.ONLINE ? (
                 <Typography variant="subtitle2">Online</Typography>
+              ) : status === STATUS.PLAYING ? (
+                <Typography variant="subtitle2">Playing</Typography>
               ) : (
                 <Typography variant="subtitle2">Offline</Typography>
               )}

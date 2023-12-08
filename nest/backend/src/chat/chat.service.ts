@@ -94,7 +94,13 @@ export class ChatService {
           select: {
             id: true,
             chatroomId: true,
-            userId: true,
+            user: {
+              select: {
+                id: true,
+                nickname: true,
+                profile: { select: { avatar: true } },
+              },
+            },
             content: true,
             createdAt: true,
           },

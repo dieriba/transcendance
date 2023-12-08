@@ -51,7 +51,6 @@ const ChatContact = () => {
           <Stack spacing={1}>
             {chats.map(({ id, users, messages }) => {
               const user = users[0].user;
-              const lastMsg = messages[messages.length - 1];
               let date: Date | undefined = undefined;
 
               if (messages.length > 0) date = new Date(messages[0].createdAt);
@@ -68,14 +67,14 @@ const ChatContact = () => {
                   avatar={
                     user.profile?.avatar ? user.profile?.avatar : undefined
                   }
-                  online={user.status === "ONLINE" ? true : false}
+                  status={user.status}
                   username={users[0].user.nickname}
                   msg={
                     messages.length === 0
                       ? "Start Conversation"
-                      : lastMsg.userId === myId
-                      ? `You: ${lastMsg.content}`
-                      : lastMsg.content
+                      : messages[0].user.id === myId
+                      ? `You: ${messages[0].content}`
+                      : messages[0].content
                   }
                   unread={0}
                   key={id}

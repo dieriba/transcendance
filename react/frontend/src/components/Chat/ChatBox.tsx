@@ -1,27 +1,28 @@
-import { Avatar, Badge, Stack, Typography } from "@mui/material";
-import BadgeAvatar from "../Badge/BadgeAvatar";
+import { Badge, Stack, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { setPrivateChatroomId } from "../../redux/features/chat/chat.slice";
 import { RootState } from "../../redux/store";
+import GetAvatar from "../Badge/GetAvatar";
+import { StatusType } from "../../models/type-enum/typesEnum";
 export interface ChatBoxProps {
   username: string;
   msg: string;
   unread: number;
-  online: boolean;
   avatar: string | undefined;
   time: string;
   chatroomId: string;
+  status: StatusType;
 }
 
 const ChatBox = ({
   username,
   msg,
   unread,
-  online,
   avatar,
   time,
   chatroomId,
+  status,
 }: ChatBoxProps) => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
@@ -66,17 +67,11 @@ const ChatBox = ({
         p={2}
         mb={1}
       >
-        {online ? (
-          <BadgeAvatar>
-            <Avatar sx={{ width: "50px", height: "50px" }} src={avatar} />
-          </BadgeAvatar>
-        ) : (
-          <Avatar sx={{ width: "50px", height: "50px" }} src={avatar} />
-        )}
+        <GetAvatar status={status} src={avatar} width="50px" height="50px" />
         <Stack
           direction="row"
           alignItems={"center"}
-          width={"100%"}  
+          width={"100%"}
           justifyContent={"space-between"}
           spacing={2}
         >

@@ -1,23 +1,23 @@
-import { Avatar, Box, Button, Stack, Tooltip, Typography } from "@mui/material";
-import BadgeAvatar from "../../../Badge/BadgeAvatar";
+import { Box, Button, Stack, Tooltip, Typography } from "@mui/material";
 import { ReactNode } from "react";
 import { RestrictedGroupType } from "../../../../models/groupChat";
+import GetAvatar from "../../../Badge/GetAvatar";
+import { StatusType } from "../../../../models/type-enum/typesEnum";
 
 interface UserInfoProps {
-  online: boolean;
   nickname: string;
   avatar: string | undefined;
   children: ReactNode;
   restrictedUser?: RestrictedGroupType | undefined;
-  //handleUser: (id:string, nickname:string, role:string) => void;
+  status: StatusType | undefined;
 }
 
 const UserInfo = ({
-  online,
   nickname,
   avatar,
   children,
   restrictedUser,
+  status,
 }: UserInfoProps) => {
   return (
     <Stack width="100%" alignItems="flex-start">
@@ -28,13 +28,7 @@ const UserInfo = ({
         alignItems="center"
         width="100%"
       >
-        {online ? (
-          <BadgeAvatar>
-            <Avatar sx={{ height: "2rem", width: "2rem" }} src={avatar} />
-          </BadgeAvatar>
-        ) : (
-          <Avatar sx={{ height: "2rem", width: "2rem" }} src={avatar} />
-        )}
+        <GetAvatar status={status} src={avatar} height="2rem" width="2rem" />
         <Typography>{nickname}</Typography>
         {restrictedUser && (
           <Box textAlign="center">

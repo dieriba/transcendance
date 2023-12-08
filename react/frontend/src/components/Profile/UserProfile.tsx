@@ -1,10 +1,9 @@
-import { Avatar, Button, DialogProps, Stack, TextField } from "@mui/material";
+import { Button, DialogProps, Stack, TextField } from "@mui/material";
 import DialogI from "../Dialog/DialogI";
-import BadgeAvatar from "../Badge/BadgeAvatar";
-import PlayingAvatar from "../Badge/PlayingAvatar";
 import GameInvitation from "../game-invitation/GameInvitation";
 import { useState } from "react";
 import { UserWithProfile } from "../../models/ChatContactSchema";
+import GetAvatar from "../Badge/GetAvatar";
 
 interface UserProfileProps extends DialogProps {
   user: UserWithProfile;
@@ -40,18 +39,7 @@ const UserProfile = ({
           justifyContent={"center"}
           spacing={2}
         >
-          {status === "ONLINE" ? (
-            <PlayingAvatar>
-              <Avatar sx={{ width: "100px", height: "100px" }} src={src} />
-            </PlayingAvatar>
-          ) : status === "PLAYING" ? (
-            <BadgeAvatar>
-              <Avatar sx={{ width: "100px", height: "100px" }} src={src} />
-            </BadgeAvatar>
-          ) : (
-            <Avatar sx={{ width: "100px", height: "100px" }} src={src} />
-          )}
-
+          <GetAvatar src={src} status={status} width="100px" height="100px" />
           <TextField
             fullWidth
             label="Lastname"

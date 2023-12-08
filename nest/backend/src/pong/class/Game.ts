@@ -77,12 +77,7 @@ export class Game {
   private lastTime: number = -1;
   private dt: number;
 
-  constructor(
-    gameId: string,
-    playerId: string,
-    socketId: string,
-    special: boolean,
-  ) {
+  constructor(gameId: string, playerId: string, socketId: string) {
     this.gameId = gameId;
     this.player = new Player(
       {

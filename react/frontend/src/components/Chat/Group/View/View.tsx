@@ -15,11 +15,7 @@ import {
 } from "../../../../redux/features/groups/group.slice";
 import { useAppSelector, useAppDispatch } from "../../../../redux/hooks";
 import { RootState } from "../../../../redux/store";
-import {
-  ChatRoleType,
-  ROLE,
-  STATUS,
-} from "../../../../models/type-enum/typesEnum";
+import { ChatRoleType, ROLE } from "../../../../models/type-enum/typesEnum";
 import UserInfo from "./UserInfo";
 import AdminAction from "./AdminAction";
 import ModeratorAction from "./ModeratorAction";
@@ -158,7 +154,7 @@ const View = () => {
                 : undefined
             }
             nickname={admin?.user.nickname as string}
-            online={admin?.user.status === STATUS.ONLINE}
+            status={admin?.user.status}
           >
             <AdminAction
               type={type}
@@ -183,9 +179,9 @@ const View = () => {
                 ({ user: { nickname, status, profile, id } }, index) => {
                   return (
                     <UserInfo
+                      status={status}
                       key={index}
                       nickname={nickname}
-                      online={status === STATUS.ONLINE}
                       avatar={profile?.avatar ? profile.avatar : undefined}
                     >
                       <ModeratorAction
@@ -218,9 +214,9 @@ const View = () => {
                 ) => {
                   return (
                     <UserInfo
+                      status={status}
                       key={index}
                       nickname={nickname}
-                      online={status === STATUS.ONLINE}
                       avatar={profile?.avatar ? profile.avatar : undefined}
                       restrictedUser={
                         restrictedGroups.length == 0

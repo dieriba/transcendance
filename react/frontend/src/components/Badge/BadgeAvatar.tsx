@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import StyledBadge from "./StyledBadge";
 
+
 interface BadgeAvatarProps {
   children: ReactNode;
 }

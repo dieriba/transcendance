@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import StyledBadge from "./StyledBadge";
-import { Button, Stack } from "@mui/material";
+import { GameController } from "phosphor-react";
 
 interface PlayingAvatarProps {
   children: ReactNode;
@@ -14,6 +14,7 @@ const PlayingAvatar = ({ children }: PlayingAvatarProps) => {
       variant="dot"
     >
       {children}
+      <GameController />
     </StyledBadge>
   );
 };
