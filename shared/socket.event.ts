@@ -46,6 +46,7 @@ export enum ChatEventPrivateRoom {
   SEND_PRIVATE_MESSAGE = `${privateChatroom}.sent.private.message`,
   RECEIVE_PRIVATE_MESSAGE = `${privateChatroom}.receive.private.message`,
   CLEAR_CHATROOM = `${privateChatroom}.clear.chatroom`,
+  CREATE_PRIVATE_CHATROOM = `${privateChatroom}.create.private.chatroom`
 }
 
 const groupChatroom = "chatroom.group";

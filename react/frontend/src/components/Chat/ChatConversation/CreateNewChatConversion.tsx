@@ -13,7 +13,9 @@ import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { RootState } from "../../../redux/store";
 import {
+  addChatableUser,
   addNewChatroom,
+  removeChatableUser,
   setChatableUser,
   setPrivateChatroomId,
 } from "../../../redux/features/chat/chat.slice";
@@ -21,9 +23,16 @@ import {
   useCreatePrivateChatroomMutation,
   useGetAllChatableUserQuery,
 } from "../../../redux/features/chat/chats.api.slice";
-import { BaseServerResponse } from "../../../services/type";
+import {
+  BaseServerResponse,
+  SocketServerSucessResponse,
+} from "../../../services/type";
 import DialogI from "../../Dialog/DialogI";
 import { Basetype } from "../../../models/BaseType";
+import { connectSocket, socket } from "../../../utils/getSocket";
+import { GeneralEvent } from "../../../../shared/socket.event";
+import { BaseUserInfoType } from "../../../models/login/UserSchema";
+
 interface CreateNewChatConversationProps {
   open: boolean;
   handleClose: () => void;
@@ -56,7 +65,27 @@ const CreateNewChatConversation = ({
   useEffect(() => {
     if (data?.data) {
       dispatch(setChatableUser(data.data));
+
+      connectSocket();
+
+      socket.on(
+        GeneralEvent.REMOVE_BLOCKED_USER,
+        (data: SocketServerSucessResponse & { data: BaseUserInfoType }) => {
+          dispatch(addChatableUser(data.data));
+        }
+      );
+
+      socket.on(
+        GeneralEvent.NEW_BLOCKED_USER,
+        (data: SocketServerSucessResponse & { data: BaseUserInfoType }) => {
+          dispatch(removeChatableUser(data.data.id));
+        }
+      );
     }
+    return () => {
+      socket.off(GeneralEvent.NEW_BLOCKED_USER);
+      socket.off(GeneralEvent.REMOVE_BLOCKED_USER);
+    };
   }, [data, dispatch]);
 
   const { chatableUsers, privateChatroom } = useAppSelector(
@@ -66,8 +95,9 @@ const CreateNewChatConversation = ({
   const handleSubmit = async ({ id }: Basetype) => {
     try {
       const { data } = await createNewChat({ id }).unwrap();
+      const userId = data?.users[0].user.id;
       const chatroom = privateChatroom.find(
-        (chatroom) => chatroom.users[0].user.id === data.users[0].user.id
+        (chatroom) => chatroom.users[0].user.id === userId
       );
 
       if (chatroom) {
@@ -80,6 +110,8 @@ const CreateNewChatConversation = ({
       dispatch(setPrivateChatroomId(data.id));
       handleClose();
     } catch (error) {
+      console.log({ error });
+
       setSeverity("error");
       setMessage((error as BaseServerResponse).message);
       setOpenSnack(true);

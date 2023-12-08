@@ -1,17 +1,14 @@
 import {
-  Body,
   Controller,
   Get,
   HttpCode,
   HttpStatus,
-  Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
 import { GetUser } from 'src/common/custom-decorator/get-user.decorator';
 import { ChatService } from './chat.service';
 import { IsRestrictedUserGuardHttp } from './guards/is-restricted-user.guard.http';
-import { UserIdDto } from 'src/user/dto/UserInfo.dto';
 
 @Controller('chat')
 export class ChatController {
@@ -43,14 +40,6 @@ export class ChatController {
     @Query('chatroomId') chatroomId: string,
   ) {
     return await this.chatService.getAllInvitedUser(userId, chatroomId);
-  }
-
-  @Post('create-private-chatroom')
-  async createNewPrivateChatroom(
-    @GetUser('userId') userId: string,
-    @Body() { id }: UserIdDto,
-  ) {
-    return await this.chatService.createNewPrivateChatroom(userId, id);
   }
 
   @HttpCode(HttpStatus.OK)

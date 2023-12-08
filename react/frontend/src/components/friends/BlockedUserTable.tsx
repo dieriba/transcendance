@@ -67,10 +67,10 @@ const BlockedUserTable = () => {
         GeneralEvent.REMOVE_BLOCKED_USER,
         (
           data: SocketServerSucessResponse & {
-            data: string;
+            data: BaseUserInfoType;
           }
         ) => {
-          dispatch(removeBlockedUser(data.data));
+          dispatch(removeBlockedUser(data.data.id));
         }
       );
       return () => {

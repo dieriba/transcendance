@@ -10,8 +10,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { RESTRICTION, ROLE, TYPE } from '@prisma/client';
 import { UserData } from 'src/common/types/user-info.type';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
-import { LibService } from 'src/lib/lib.service';
-import { WsBadRequestException } from 'src/common/custom-exception/ws-exception';
 
 @Injectable()
 export class ChatService {
@@ -28,35 +26,13 @@ export class ChatService {
 
     const chatrooms = await this.prismaService.chatroom.findMany({
       where: {
-        AND: [
-          {
-            users: {
-              some: {
-                userId,
-              },
-            },
-            type: TYPE.DM,
-            active: true,
+        users: {
+          some: {
+            userId,
           },
-          {
-            OR: [
-              {
-                users: {
-                  some: {
-                    user: {
-                      friends: {
-                        some: { friendId: userId },
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                messages: { some: {} },
-              },
-            ],
-          },
-        ],
+        },
+        type: TYPE.DM,
+        active: true,
       },
       select: {
         id: true,
@@ -131,177 +107,6 @@ export class ChatService {
     });
 
     return chatrooms;
-  }
-
-  async createNewPrivateChatroom(userId: string, id: string) {
-    const [me, user, chatroom] = await Promise.all([
-      this.prismaService.user.findFirst({
-        where: { id: userId },
-        include: {
-          blockedBy: { where: { id } },
-          blockedUsers: { where: { id } },
-        },
-      }),
-      this.prismaService.user.findFirst({ where: { id } }),
-      this.prismaService.chatroom.findFirst({
-        where: {
-          type: TYPE.DM,
-          users: { every: { userId: { in: [userId, id] } } },
-        },
-        select: {
-          id: true,
-          active: true,
-          users: {
-            where: {
-              userId: {
-                not: userId,
-              },
-            },
-            select: {
-              user: {
-                select: {
-                  id: true,
-                  nickname: true,
-                  status: true,
-                  profile: {
-                    select: {
-                      avatar: true,
-                      lastname: true,
-                      firstname: true,
-                    },
-                  },
-                  friends: {
-                    where: {
-                      friendId: userId,
-                    },
-                    select: {
-                      friendId: true,
-                    },
-                  },
-                  friendRequestsReceived: {
-                    where: {
-                      senderId: userId,
-                    },
-                    select: {
-                      recipientId: true,
-                    },
-                  },
-                  friendRequestsSent: {
-                    where: {
-                      recipientId: userId,
-                    },
-                    select: {
-                      senderId: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-          messages: {
-            orderBy: {
-              createdAt: 'asc',
-            },
-            take: 1,
-          },
-        },
-      }),
-    ]);
-
-    if (!me || !user) throw new UserNotFoundException();
-
-    if (me.blockedUsers.length > 0) {
-      throw new CustomException(
-        "You can't create a conversation with user, you blocked",
-        HttpStatus.FORBIDDEN,
-      );
-    }
-
-    if (me.blockedBy.length > 0) {
-      throw new CustomException(
-        "You can't create a conversation with user that blocked you",
-        HttpStatus.FORBIDDEN,
-      );
-    }
-
-    if (chatroom) {
-      const { active, ...data } = chatroom;
-      if (!active) {
-        await this.prismaService.chatroom.update({
-          where: { id: chatroom.id },
-          data: { active: true },
-        });
-      }
-      return data;
-    }
-
-    const newChatroom = await this.prismaService.chatroom.create({
-      data: {
-        type: TYPE.DM,
-        users: {
-          create: [{ userId }, { userId: id }],
-        },
-      },
-      select: {
-        id: true,
-        users: {
-          where: {
-            userId: {
-              not: userId,
-            },
-          },
-          select: {
-            user: {
-              select: {
-                id: true,
-                nickname: true,
-                status: true,
-                pong: true,
-                profile: {
-                  select: {
-                    avatar: true,
-                    lastname: true,
-                    firstname: true,
-                  },
-                },
-                friends: {
-                  where: {
-                    friendId: userId,
-                  },
-                  select: {
-                    friendId: true,
-                  },
-                },
-                friendRequestsReceived: {
-                  where: {
-                    senderId: userId,
-                  },
-                  select: {
-                    recipientId: true,
-                  },
-                },
-                friendRequestsSent: {
-                  where: {
-                    recipientId: userId,
-                  },
-                  select: {
-                    senderId: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-        messages: {
-          orderBy: {
-            createdAt: 'asc',
-          },
-          take: 1,
-        },
-      },
-    });
-
-    return newChatroom;
   }
 
   async getAllChatableUsers(userId: string) {

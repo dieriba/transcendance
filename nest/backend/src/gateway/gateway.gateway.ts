@@ -13,7 +13,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { ROLE, TYPE, Chatroom, RESTRICTION, STATUS } from '@prisma/client';
+import { ROLE, TYPE, RESTRICTION, STATUS } from '@prisma/client';
 import {
   ChatEventPrivateRoom,
   FriendEvent,
@@ -203,7 +203,7 @@ export class GatewayGateway {
     if (!this.getAllSockeIdsByKey(userId))
       throw new WsBadRequestException('User not online');
 
-    client.to(userId).emit(GeneralEvent.DISCONNECT_ME);
+    this.libService.sendToSocket(client, userId, GeneralEvent.DISCONNECT_ME);
     this.libService.sendToSocket(this.server, client.id, GeneralEvent.SUCCESS);
     this.deleteAllSocketIdsBy(userId);
   }
@@ -220,7 +220,7 @@ export class GatewayGateway {
       );
       return;
     }
-    client.to(userId).emit(GeneralEvent.DISCONNECT_ME);
+    this.libService.sendToSocket(client, userId, GeneralEvent.DISCONNECT_ME);
     this.libService.sendToSocket(this.server, client.id, GeneralEvent.SUCCESS);
   }
 
@@ -1057,6 +1057,7 @@ export class GatewayGateway {
       {
         data: { chatroomId },
         message: `${chatroomUser.user.nickname} deleted the chatroom`,
+        severity: 'info',
       },
     );
 
@@ -2288,7 +2289,6 @@ export class GatewayGateway {
         data: {
           id: res.id,
           chatroomId,
-          userId,
           content,
           user: res.user,
           createdAt: res.createdAt,
@@ -2296,18 +2296,20 @@ export class GatewayGateway {
       },
     );
 
-    this.server
-      .to(client.userId)
-      .emit(ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE, {
+    this.libService.sendToSocket(
+      this.server,
+      userId,
+      ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE,
+      {
         data: {
           id: res.id,
           chatroomId,
-          userId,
           content,
           user: res.user,
           createdAt: res.createdAt,
         },
-      });
+      },
+    );
   }
 
   private async isDieriba(userId: string, chatroomId: string): Promise<string> {
@@ -2506,25 +2508,19 @@ export class GatewayGateway {
       },
     });
 
-    this.libService.sendToSocket(
+    this.libService.sendSameEventToSockets(
       this.server,
-      friendId,
       FriendEvent.CANCEL_REQUEST,
-      {
-        data: { friendId: client.userId },
-      },
-    );
-
-    this.libService.sendToSocket(
-      this.server,
-      client.userId,
-      FriendEvent.CANCEL_REQUEST,
-      {
-        message: 'Friend request declined succesfully',
-        data: {
-          friendId,
+      [
+        {
+          room: userId,
+          object: {
+            data: { friendId },
+            message: 'Friend request declined succesfully',
+          },
         },
-      },
+        { room: friendId, object: { data: { friendId: userId } } },
+      ],
     );
 
     this.libService.sendToSocket(
@@ -2545,7 +2541,6 @@ export class GatewayGateway {
     const { friendId } = body;
     const { userId } = client;
 
-    let chatroom: Partial<Chatroom>;
     const [me, user] = await Promise.all([
       this.prismaService.user.findUnique({
         where: { id: userId },
@@ -2643,7 +2638,7 @@ export class GatewayGateway {
         },
       });
 
-      chatroom = await tx.chatroom.upsert({
+      const chatroom = await tx.chatroom.upsert({
         where: {
           id: chatrooms.length > 0 ? chatrooms[0].chatroomId : '',
           type: TYPE.DM,
@@ -2665,11 +2660,6 @@ export class GatewayGateway {
         select: {
           id: true,
           users: {
-            where: {
-              userId: {
-                not: userId,
-              },
-            },
             select: {
               user: {
                 select: {
@@ -2704,110 +2694,121 @@ export class GatewayGateway {
           },
         },
       });
+
+      this.libService.sendSameEventToSockets(
+        this.server,
+        FriendEvent.CANCEL_REQUEST,
+        [
+          { room: friendId, object: { data: { friendId: userId } } },
+          { room: userId, object: { data: { friendId } } },
+        ],
+      );
+
+      this.libService.sendToSocket(
+        this.server,
+        friendId,
+        FriendEvent.NEW_REQUEST_ACCEPTED,
+        {
+          message: `${recipient.nickname} accepted your friend request`,
+          data: { friendId: client.userId },
+        },
+      );
+
+      this.libService.sendToSocket(
+        this.server,
+        userId,
+        FriendEvent.REQUEST_ACCEPTED_FROM_RECIPIENT,
+        {
+          message: `You are now friend with ${
+            friendId === sender.id ? sender.nickname : recipient.nickname
+          }`,
+          data: { friendId },
+        },
+      );
+
+      this.libService.sendSameEventToSockets(
+        this.server,
+        FriendEvent.NEW_FRIEND,
+        [
+          {
+            room: friendId,
+            object: {
+              data: {
+                friend: {
+                  id: sender.id === friendId ? recipient.id : friendId,
+                  nickname:
+                    sender.id === friendId
+                      ? recipient.nickname
+                      : sender.nickname,
+                  profile: {
+                    avatar:
+                      sender.id === friendId
+                        ? recipient.profile.avatar
+                        : sender.profile.avatar,
+                  },
+                  status:
+                    sender.id === client.userId
+                      ? sender.status
+                      : recipient.status,
+                },
+              },
+            },
+          },
+          {
+            room: userId,
+            object: {
+              data: {
+                friend: {
+                  id: sender.id === client.userId ? recipient.id : friendId,
+                  nickname:
+                    sender.id === client.userId
+                      ? recipient.nickname
+                      : sender.nickname,
+                  profile: {
+                    avatar:
+                      sender.id === client.userId
+                        ? recipient.profile.avatar
+                        : sender.profile.avatar,
+                  },
+                  status:
+                    sender.id === client.userId
+                      ? sender.status
+                      : recipient.status,
+                },
+              },
+            },
+          },
+        ],
+      );
+
+      const firstArrUser = userId === chatroom.users[0].user.id;
+      const secondArrUser = !firstArrUser;
+
+      this.libService.sendSameEventToSockets(
+        this.server,
+        ChatEventPrivateRoom.NEW_CHATROOM,
+        [
+          {
+            room: friendId,
+            object: {
+              data: {
+                ...chatroom,
+                users: [secondArrUser ? chatroom.users[1] : chatroom.users[0]],
+              },
+            },
+          },
+          {
+            room: userId,
+            object: {
+              data: {
+                ...chatroom,
+                users: [firstArrUser ? chatroom.users[1] : chatroom.users[0]],
+              },
+            },
+          },
+        ],
+      );
     });
-
-    this.libService.sendToSocket(
-      this.server,
-      friendId,
-      FriendEvent.CANCEL_REQUEST,
-      {
-        data: { friendId: client.userId },
-      },
-    );
-
-    this.libService.sendToSocket(
-      this.server,
-      client.userId,
-      FriendEvent.CANCEL_REQUEST,
-      {
-        data: { friendId },
-      },
-    );
-
-    this.libService.sendToSocket(
-      this.server,
-      friendId,
-      FriendEvent.NEW_REQUEST_ACCEPTED,
-      {
-        message: `${recipient.nickname} accepted your friend request`,
-        data: { friendId: client.userId },
-      },
-    );
-
-    this.server
-      .to(client.userId)
-      .emit(FriendEvent.REQUEST_ACCEPTED_FROM_RECIPIENT, {
-        message: `You are now friend with ${
-          friendId === sender.id ? sender.nickname : recipient.nickname
-        }`,
-        data: { friendId },
-      });
-
-    this.libService.sendToSocket(
-      this.server,
-      friendId,
-      FriendEvent.NEW_FRIEND,
-      {
-        data: {
-          friend: {
-            id: sender.id === friendId ? recipient.id : friendId,
-            nickname:
-              sender.id === friendId ? recipient.nickname : sender.nickname,
-            profile: {
-              avatar:
-                sender.id === friendId
-                  ? recipient.profile.avatar
-                  : sender.profile.avatar,
-            },
-            status:
-              sender.id === client.userId ? sender.status : recipient.status,
-          },
-        },
-      },
-    );
-
-    this.libService.sendToSocket(
-      this.server,
-      client.userId,
-      FriendEvent.NEW_FRIEND,
-      {
-        data: {
-          friend: {
-            id: sender.id === client.userId ? recipient.id : friendId,
-            nickname:
-              sender.id === client.userId
-                ? recipient.nickname
-                : sender.nickname,
-            profile: {
-              avatar:
-                sender.id === client.userId
-                  ? recipient.profile.avatar
-                  : sender.profile.avatar,
-            },
-            status:
-              sender.id === client.userId ? sender.status : recipient.status,
-          },
-        },
-      },
-    );
-
-    this.libService.sendToSocket(
-      this.server,
-      client.userId,
-      ChatEventPrivateRoom.NEW_CHATROOM,
-      {
-        data: chatroom,
-      },
-    );
-
-    this.libService.sendToSocket(
-      this.server,
-      friendId,
-      ChatEventPrivateRoom.NEW_CHATROOM,
-      {
-        data: chatroom,
-      },
-    );
   }
 
   @SubscribeMessage(FriendEvent.DELETE_FRIEND)
@@ -2854,30 +2855,21 @@ export class GatewayGateway {
       }
     });
 
-    this.libService.sendToSocket(
+    this.libService.sendSameEventToSockets(
       this.server,
-      friendId,
       FriendEvent.DELETE_FRIEND,
-      {
-        data: { friendId: client.userId },
-      },
-    );
-    this.libService.sendToSocket(
-      this.server,
-      client.userId,
-      FriendEvent.DELETE_FRIEND,
-      {
-        message: 'Friend deleted!',
-        data: { friendId },
-      },
+      [
+        { room: friendId, object: { data: { friendId: userId } } },
+        {
+          room: userId,
+          object: { data: { friendId }, message: 'Friend deleted!' },
+        },
+      ],
     );
     this.libService.sendToSocket(
       this.server,
       client.userId,
       GeneralEvent.SUCCESS,
-      {
-        message: 'Friend Deleted',
-      },
     );
   }
 
@@ -2948,10 +2940,13 @@ export class GatewayGateway {
     const chatroom = await this.prismaService.chatroom.findFirst({
       where: {
         type: TYPE.DM,
-        AND: [
-          { users: { some: { userId } } },
-          { users: { some: { userId: friendId } } },
-        ],
+        users: {
+          every: {
+            userId: {
+              in: [userId, friendId],
+            },
+          },
+        },
       },
     });
 
@@ -2968,11 +2963,6 @@ export class GatewayGateway {
         });
       }
       if (friends.length > 0) {
-        await tx.user.update({
-          where: { id: userId },
-          data: { blockedUsers: { connect: { id: friendId } } },
-        });
-
         await tx.friends.delete({
           where: {
             userId_friendId: {
@@ -2991,64 +2981,85 @@ export class GatewayGateway {
           },
         });
 
-        this.libService.sendToSocket(
-          this.server,
-          friendId,
-          FriendEvent.DELETE_FRIEND,
-          {
-            data: { friendId: client.userId },
-          },
-        );
+        await tx.user.update({
+          where: { id: userId },
+          data: { blockedUsers: { connect: { id: friendId } } },
+        });
 
-        this.libService.sendToSocket(
+        this.libService.sendSameEventToSockets(
           this.server,
-          client.userId,
           FriendEvent.DELETE_FRIEND,
-          {
-            data: { friendId },
-          },
+          [
+            {
+              room: userId,
+              object: {
+                data: { friendId, message: `${user.nickname} blocked!` },
+              },
+            },
+            {
+              room: friendId,
+              object: {
+                data: { friendId: userId },
+              },
+            },
+          ],
         );
 
         return;
-      } else {
-        if (existingFriendRequest.length > 0) {
-          await tx.user.update({
-            where: { id: userId },
-            data: { blockedUsers: { connect: { id: friendId } } },
-          });
-          await tx.friendRequest.delete({
-            where: {
-              senderId_recipientId: {
-                senderId: existingFriendRequest[0].senderId,
-                recipientId: existingFriendRequest[0].recipientId,
+      }
+      if (existingFriendRequest.length > 0) {
+        await tx.friendRequest.delete({
+          where: {
+            senderId_recipientId: {
+              senderId: existingFriendRequest[0].senderId,
+              recipientId: existingFriendRequest[0].recipientId,
+            },
+          },
+        });
+
+        await tx.user.update({
+          where: { id: userId },
+          data: { blockedUsers: { connect: { id: friendId } } },
+        });
+
+        this.libService.sendSameEventToSockets(
+          this.server,
+          FriendEvent.CANCEL_REQUEST,
+          [
+            {
+              room: userId,
+              object: {
+                data: { friendId },
               },
             },
-          });
-
-          this.libService.sendToSocket(
-            this.server,
-            client.userId,
-            FriendEvent.CANCEL_REQUEST,
             {
-              data: { friendId },
+              room: friendId,
+              object: {
+                data: { friendId: userId },
+              },
             },
-          );
-
-          this.libService.sendToSocket(
-            this.server,
-            friendId,
-            FriendEvent.CANCEL_REQUEST,
-            {
-              data: { friendId: client.userId },
-            },
-          );
-        } else {
-          await this.prismaService.user.update({
-            where: { id: userId },
-            data: { blockedUsers: { connect: { id: friendId } } },
-          });
-        }
+          ],
+        );
+      } else {
+        await this.prismaService.user.update({
+          where: { id: userId },
+          data: { blockedUsers: { connect: { id: friendId } } },
+        });
       }
+      this.libService.sendSameEventToSockets(
+        this.server,
+        ChatEventPrivateRoom.CLEAR_CHATROOM,
+        [
+          {
+            room: userId,
+            object: {
+              data: { chatroomId: chatroom.id },
+              message: `${user.nickname} blocked!`,
+            },
+          },
+          { room: friendId, object: { data: { chatroomId: chatroom.id } } },
+        ],
+      );
     });
 
     this.libService.sendToSocket(
@@ -3061,16 +3072,9 @@ export class GatewayGateway {
     this.libService.sendToSocket(
       this.server,
       client.userId,
-      ChatEventPrivateRoom.CLEAR_CHATROOM,
-      {
-        data: { chatroomId: chatroom.id },
-        message: `${user.nickname} blocked!`,
-      },
+      GeneralEvent.SUCCESS,
+      { message: 'User blocked succesfully' },
     );
-
-    this.server
-      .to(client.userId)
-      .emit(GeneralEvent.SUCCESS, { message: 'User blocked succesfully' });
   }
 
   @SubscribeMessage(FriendEvent.UNBLOCK_FRIEND)
@@ -3081,36 +3085,289 @@ export class GatewayGateway {
     const { friendId } = body;
     const { userId } = client;
 
-    const user = this.userService.findUserById(userId, UserData);
+    const [me, user] = await Promise.all([
+      this.prismaService.user.findUnique({
+        where: { id: userId },
+        select: { blockedUsers: { where: { id: friendId } } },
+      }),
+      this.prismaService.user.findFirst({
+        where: { id: friendId },
+        select: {
+          id: true,
+          nickname: true,
+          profile: { select: { avatar: true } },
+        },
+      }),
+    ]);
 
-    if (!user) throw new WsUserNotFoundException();
+    if (!me || !user) throw new WsUserNotFoundException();
 
-    const existingBlockedUser = await this.userService.findBlockedUser(
-      userId,
-      friendId,
-    );
+    const { blockedUsers } = me;
 
-    if (existingBlockedUser && existingBlockedUser.blockedUsers.length > 0) {
+    if (blockedUsers.length > 0) {
       await this.prismaService.user.update({
         where: { id: userId },
         data: { blockedUsers: { disconnect: { id: friendId } } },
       });
+      const { id, nickname, profile } = user;
 
       this.libService.sendToSocket(
         this.server,
         client.userId,
         GeneralEvent.REMOVE_BLOCKED_USER,
         {
-          message: '',
-          data: friendId,
+          data: { id, nickname, profile },
         },
       );
     }
-    this.server
-      .to(client.userId)
-      .emit(GeneralEvent.SUCCESS, { message: 'User unblocked!' });
+    this.libService.sendToSocket(
+      this.server,
+      client.userId,
+      GeneralEvent.SUCCESS,
+      { message: 'User Unblocked' },
+    );
   }
 
+  @SubscribeMessage(ChatEventPrivateRoom.CREATE_PRIVATE_CHATROOM)
+  async createNewPrivateChatroom(
+    @ConnectedSocket() client: SocketWithAuth,
+    @MessageBody() { id }: UserIdDto,
+  ) {
+    const { userId } = client;
+    const [me, user, chatroom] = await Promise.all([
+      this.prismaService.user.findFirst({
+        where: { id: userId },
+        include: {
+          blockedBy: { where: { id } },
+          blockedUsers: { where: { id } },
+        },
+      }),
+      this.prismaService.user.findFirst({ where: { id } }),
+      this.prismaService.chatroom.findFirst({
+        where: {
+          type: TYPE.DM,
+          users: { every: { userId: { in: [userId, id] } } },
+        },
+        select: {
+          id: true,
+          active: true,
+          users: {
+            select: {
+              user: {
+                select: {
+                  id: true,
+                  nickname: true,
+                  status: true,
+                  profile: {
+                    select: {
+                      avatar: true,
+                      lastname: true,
+                      firstname: true,
+                    },
+                  },
+                  friends: {
+                    where: {
+                      friendId: userId,
+                    },
+                    select: {
+                      friendId: true,
+                    },
+                  },
+                  friendRequestsReceived: {
+                    where: {
+                      senderId: userId,
+                    },
+                    select: {
+                      recipientId: true,
+                    },
+                  },
+                  friendRequestsSent: {
+                    where: {
+                      recipientId: userId,
+                    },
+                    select: {
+                      senderId: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          messages: {
+            orderBy: {
+              createdAt: 'asc',
+            },
+            take: 1,
+          },
+        },
+      }),
+    ]);
+
+    if (!me || !user) throw new UserNotFoundException();
+
+    if (me.blockedUsers.length > 0) {
+      throw new CustomException(
+        "You can't create a conversation with user, you blocked",
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    if (me.blockedBy.length > 0) {
+      throw new CustomException(
+        "You can't create a conversation with user that blocked you",
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    if (chatroom) {
+      const { active, ...data } = chatroom;
+      if (!active) {
+        await this.prismaService.chatroom.update({
+          where: { id: chatroom.id },
+          data: { active: true },
+        });
+      }
+
+      const firstArrUser = userId === chatroom.users[0].user.id;
+      const secondArrUser = !firstArrUser;
+
+      this.libService.sendSameEventToSockets(
+        this.server,
+        ChatEventPrivateRoom.NEW_CHATROOM,
+        [
+          {
+            client,
+            room: userId,
+            object: {
+              data: {
+                ...data,
+                users: [firstArrUser ? chatroom.users[1] : chatroom.users[0]],
+              },
+            },
+          },
+          {
+            room: id,
+            object: {
+              data: {
+                ...data,
+                users: [secondArrUser ? chatroom.users[1] : chatroom.users[0]],
+              },
+            },
+          },
+        ],
+      );
+
+      this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+        data: {
+          ...data,
+          users: [firstArrUser ? chatroom.users[1] : chatroom.users[0]],
+        },
+      });
+
+      return;
+    }
+
+    const newChatroom = await this.prismaService.chatroom.create({
+      data: {
+        type: TYPE.DM,
+        users: {
+          create: [{ userId }, { userId: id }],
+        },
+      },
+      select: {
+        id: true,
+        users: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                nickname: true,
+                status: true,
+                pong: true,
+                profile: {
+                  select: {
+                    avatar: true,
+                    lastname: true,
+                    firstname: true,
+                  },
+                },
+                friends: {
+                  where: {
+                    friendId: userId,
+                  },
+                  select: {
+                    friendId: true,
+                  },
+                },
+                friendRequestsReceived: {
+                  where: {
+                    senderId: userId,
+                  },
+                  select: {
+                    recipientId: true,
+                  },
+                },
+                friendRequestsSent: {
+                  where: {
+                    recipientId: userId,
+                  },
+                  select: {
+                    senderId: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        messages: {
+          orderBy: {
+            createdAt: 'asc',
+          },
+          take: 1,
+        },
+      },
+    });
+
+    const firstArrUser = userId === newChatroom.users[0].user.id;
+    const secondArrUser = !firstArrUser;
+
+    this.libService.sendSameEventToSockets(
+      this.server,
+      ChatEventPrivateRoom.NEW_CHATROOM,
+      [
+        {
+          client,
+          room: userId,
+          object: {
+            data: {
+              ...newChatroom,
+              users: [
+                firstArrUser ? newChatroom.users[1] : newChatroom.users[0],
+              ],
+            },
+          },
+        },
+        {
+          room: id,
+          object: {
+            data: {
+              ...newChatroom,
+              users: [
+                secondArrUser ? newChatroom.users[1] : newChatroom.users[0],
+              ],
+            },
+          },
+        },
+      ],
+    );
+
+    this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
+      data: {
+        ...newChatroom,
+        users: [firstArrUser ? newChatroom.users[1] : newChatroom.users[0]],
+      },
+    });
+  }
   /*------------------------------------------------------------------------------------------------------ */
   @Interval(FRAME_RATE)
   async updateGame() {

@@ -46,6 +46,25 @@ export class LibService {
     instance.to(room).emit(emit, object);
   }
 
+  sendSameEventToSockets(
+    instance: Server | SocketWithAuth,
+    emit: string,
+    data: {
+      client?: SocketWithAuth;
+      room: string;
+      object?: Partial<SocketServerResponse>;
+    }[],
+  ) {
+    data.forEach((data) => {
+      this.sendToSocket(
+        data.client ? data.client : instance,
+        data.room,
+        emit,
+        data.object,
+      );
+    });
+  }
+
   updateUserStatus(server: Server, data: { ids: string[]; status: STATUS }) {
     server.emit(GeneralEvent.USER_UPDATE_STATUS, { data });
   }

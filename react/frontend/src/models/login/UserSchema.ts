@@ -7,6 +7,11 @@ export const BaseUserSchema = z.object({
   nickname: z.string().min(1),
 });
 
+export const UserSchema = BaseUserSchema.extend({
+  twoFa: z.boolean(),
+  allowForeignToDm: z.boolean(),
+});
+
 export type BaseUserType = z.infer<typeof BaseUserSchema>;
 
 export const BaseUserInfoSchema = BaseUserSchema.extend({

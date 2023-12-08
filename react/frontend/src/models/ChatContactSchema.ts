@@ -31,7 +31,6 @@ export type UserProfileBanLifeType = z.infer<typeof UserSchemaProfileBanLife>;
 export const MessageSchema = z.object({
   id: z.string(),
   chatroomId: z.string().min(1),
-  userId: z.string(),
   content: z.string(),
   createdAt: z.date(),
   user: UserSchemaWithProfile,

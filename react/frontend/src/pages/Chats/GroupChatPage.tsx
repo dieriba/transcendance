@@ -39,6 +39,7 @@ import { UserProfileBanLifeType } from "../../models/ChatContactSchema";
 import GroupMobileChat from "../../components/Chat/Group/GroupMobileChat";
 import GroupDesktopChat from "../../components/Chat/Group/GroupDesktopChat";
 import { CHATBAR_WIDTH } from "../../utils/constant";
+import { BaseUserInfoType } from "../../models/login/UserSchema";
 
 const GroupChatPage = () => {
   const theme = useTheme();
@@ -136,13 +137,13 @@ const GroupChatPage = () => {
 
       socket.on(
         GeneralEvent.REMOVE_BLOCKED_USER,
-        (data: SocketServerSucessResponse & { data: string }) => {
-          dispatch(removeBlockedUser(data.data));
+        (data: SocketServerSucessResponse & { data: BaseUserInfoType }) => {
+          dispatch(removeBlockedUser(data.data.id));
         }
       );
     }
     return () => {
-      socket.off(GeneralEvent.REMOVE_BLOCKED_USER)
+      socket.off(GeneralEvent.REMOVE_BLOCKED_USER);
       socket.off(ChatEventGroup.USER_UNRESTRICTED);
       socket.off(ChatEventGroup.GROUP_CHATROOM_DELETED);
       socket.off(ChatEventGroup.BEEN_KICKED);

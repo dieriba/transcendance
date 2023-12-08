@@ -13,7 +13,7 @@ import {
   GeneralEvent,
 } from "../../../../shared/socket.event";
 
-import { connectSocket, socket } from "../../../utils/getSocket";
+import { clearSocket, connectSocket, socket } from "../../../utils/getSocket";
 import { BaseChatroomTypeId } from "../../../models/groupChat";
 import { BaseUserInfoType } from "../../../models/login/UserSchema";
 import { Basetype } from "../../../models/BaseType";
@@ -21,14 +21,26 @@ import { Basetype } from "../../../models/BaseType";
 export const chatApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     createPrivateChatroom: builder.mutation<
-      BaseServerResponse & { data: PrivateChatroomType },
+      SocketServerSucessResponse & { data: PrivateChatroomType },
       Basetype
     >({
-      query: (data) => ({
-        url: "chat/create-private-chatroom",
-        method: "POST",
-        body: data,
-      }),
+      queryFn: (data) => {
+        return new Promise((resolve) => {
+          connectSocket();
+
+          socket.emit(ChatEventPrivateRoom.CREATE_PRIVATE_CHATROOM, data);
+
+          socket.on(GeneralEvent.SUCCESS, (data) => {
+            clearSocket([GeneralEvent.EXCEPTION, GeneralEvent.SUCCESS]);
+            resolve({ data });
+          });
+
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
+            clearSocket([GeneralEvent.EXCEPTION, GeneralEvent.SUCCESS]);
+            resolve({ error });
+          });
+        });
+      },
     }),
     sendPrivateMessage: builder.mutation<
       SocketServerSucessResponse,

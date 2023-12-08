@@ -12,6 +12,7 @@ import {
   addNewChatroom,
   setPrivateChatroom,
   updatePrivateChatroomList,
+  updateUserInfo,
   updateUserStatus,
 } from "../../redux/features/chat/chat.slice";
 import { useEffect } from "react";
@@ -27,7 +28,7 @@ import {
 import { SocketServerSucessResponse } from "../../services/type";
 import DesktopChat from "./DesktopChat";
 import MobileChat from "./MobileChat";
-import { UserUpdateStatusType } from "../../models/login/UserSchema";
+import { UpdatedAvatarRes, UserUpdateStatusType, UserUpdated } from "../../models/login/UserSchema";
 
 const Chat = () => {
   const theme = useTheme();
@@ -45,6 +46,20 @@ const Chat = () => {
       connectSocket();
 
       socket.on(
+        GeneralEvent.USER_CHANGED_USERNAME,
+        (data: { data: UserUpdated }) => {
+          dispatch(updateUserInfo(data.data));
+        }
+      );
+
+      socket.on(
+        GeneralEvent.USER_CHANGED_AVATAR,
+        (data: { data: UpdatedAvatarRes }) => {
+          dispatch(updateUserInfo(data.data));
+        }
+      );
+
+      socket.on(
         GeneralEvent.USER_UPDATE_STATUS,
         (data: SocketServerSucessResponse & { data: UserUpdateStatusType }) => {
           dispatch(updateUserStatus(data.data));
@@ -53,7 +68,11 @@ const Chat = () => {
 
       socket.on(
         ChatEventPrivateRoom.NEW_CHATROOM,
-        (data: SocketServerSucessResponse & { data: PrivateChatroomType }) => {
+        (
+          data: SocketServerSucessResponse & {
+            data: PrivateChatroomType;
+          }
+        ) => {
           dispatch(addNewChatroom(data.data));
         }
       );
@@ -69,6 +88,8 @@ const Chat = () => {
       socket.off(ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE);
       socket.off(ChatEventPrivateRoom.NEW_CHATROOM);
       socket.off(GeneralEvent.USER_UPDATE_STATUS);
+      socket.off(GeneralEvent.USER_CHANGED_USERNAME);
+      socket.off(GeneralEvent.USER_CHANGED_AVATAR);
     };
   }, [data, dispatch]);
   if (isLoading) {
