@@ -20,6 +20,14 @@ import {
 } from "../../shared/restriction.constant";
 import { BaseFriendSchema } from "./FriendsSchema";
 import { BaseUserInfoSchema } from "./login/UserSchema";
+import {
+  MAX_CHATROOM_NAME_LENGTH,
+  MAX_MESSAGE_LENGTH,
+  MAX_REASON_LENGTH,
+  MIN_CHATROOM_NAME_LENGTH,
+  MIN_MESSAGE_LENGTH,
+  MIN_REASON_LENGTH,
+} from "../../shared/error.message.constant";
 
 export const BaseChatroomIdSchema = z.object({
   chatroomId: z.string().min(1),
@@ -29,7 +37,10 @@ export type BaseChatroomTypeId = z.infer<typeof BaseChatroomIdSchema>;
 
 export const BaseChatroomSchema = z.object({
   id: z.string().min(1),
-  chatroomName: z.string().min(1),
+  chatroomName: z
+    .string()
+    .min(MIN_CHATROOM_NAME_LENGTH)
+    .max(MAX_CHATROOM_NAME_LENGTH),
   type: z.enum(groupTypes),
 });
 
@@ -48,14 +59,14 @@ export const MessageGroupSchema = z.object({
   id: z.string().min(1),
   chatroomId: z.string().min(1),
   user: BaseUserInfoSchema,
-  content: z.string().min(1),
+  content: z.string().min(MIN_MESSAGE_LENGTH).max(MAX_MESSAGE_LENGTH),
   createdAt: z.date(),
 });
 
 export const MessageGroupFormSchema = z.object({
   id: z.string().min(1).optional(),
   chatroomId: z.string().min(1).optional(),
-  content: z.string().min(1).trim(),
+  content: z.string().min(MIN_MESSAGE_LENGTH).max(MAX_MESSAGE_LENGTH).trim(),
 });
 
 export type MessageGroupFormType = z.infer<typeof MessageGroupFormSchema>;
@@ -162,7 +173,6 @@ export type GroupMembertype = z.infer<typeof GroupMembersSchema>;
 export const SetNewRoleSchema = z.object({
   id: z.string().min(1),
   chatroomId: z.string().min(1),
-  chatroomName: z.string().min(1),
   role: z.enum(roleType).optional(),
 });
 
@@ -181,7 +191,7 @@ export const RestrictUserFormSchema = z
     restriction: z.enum(restrictionType),
     duration: z.coerce.number(),
     durationUnit: z.enum(durationUnit),
-    reason: z.string().min(1).max(255),
+    reason: z.string().min(1).min(MIN_REASON_LENGTH).max(MAX_REASON_LENGTH),
   })
   .superRefine((data, ctx) => {
     if (data.duration < 1) {

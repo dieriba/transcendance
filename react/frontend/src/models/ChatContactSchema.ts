@@ -3,6 +3,10 @@ import { ProfileSchema } from "./ProfileFormSchema";
 import { BaseFriendSchema } from "./FriendsSchema";
 import { PongSchema } from "./PongSchema";
 import { BaseUserInfoSchema } from "./login/UserSchema";
+import {
+  MAX_MESSAGE_LENGTH,
+  MIN_MESSAGE_LENGTH,
+} from "../../shared/error.message.constant";
 
 export const UserSchemaWithProfile = BaseUserInfoSchema.extend({
   status: z.enum(["OFFLINE", "ONLINE", "PLAYING"]),
@@ -31,7 +35,7 @@ export type UserProfileBanLifeType = z.infer<typeof UserSchemaProfileBanLife>;
 export const MessageSchema = z.object({
   id: z.string(),
   chatroomId: z.string().min(1),
-  content: z.string(),
+  content: z.string().min(MIN_MESSAGE_LENGTH).max(MAX_MESSAGE_LENGTH),
   createdAt: z.date(),
   user: UserSchemaWithProfile,
 });

@@ -3,7 +3,7 @@ import { PaperPlaneTilt } from "phosphor-react";
 import { useTheme } from "@mui/material/styles";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useAppSelector } from "../../../redux/hooks";
+import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { RootState } from "../../../redux/store";
 import {
   ChatroomGroupType,
@@ -13,6 +13,8 @@ import {
 import ChatInput from "../ChatConversation/ChatInput";
 import { useSendGroupMessageMutation } from "../../../redux/features/groups/group.api.slice";
 import { Restriction } from "../../../models/type-enum/typesEnum";
+import { showSnackBar } from "../../../redux/features/app/app.slice";
+import { SocketServerErrorResponse } from "../../../services/type";
 
 const GroupConversationFooter = () => {
   const theme = useTheme();
@@ -25,7 +27,7 @@ const GroupConversationFooter = () => {
     (state: RootState) => state.groups
   );
   const [sendMessage] = useSendGroupMessageMutation();
-
+  const dispatch = useAppDispatch();
   const { control, handleSubmit, reset } = methods;
   const onSubmit = async (data: MessageGroupFormType) => {
     try {
@@ -35,7 +37,12 @@ const GroupConversationFooter = () => {
         chatroomId: currentGroupChatroomId,
       }).unwrap();
     } catch (error) {
-      /** */
+      dispatch(
+        showSnackBar({
+          message: (error as SocketServerErrorResponse).message,
+          severity: "error",
+        })
+      );
     }
   };
   const toShow =

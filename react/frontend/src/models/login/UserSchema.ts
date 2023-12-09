@@ -1,10 +1,21 @@
 import { z } from "zod";
 import { statusTypes } from "../type-enum/typesEnum";
 import { ProfileSchema } from "../ProfileFormSchema";
+import {
+  MIN_NICKNAME_LENGTH,
+  MAX_NICKNAME_LENGTH,
+  ERR_MSG_MAXIMUM_PASSWORD_LENGTH,
+  ERR_MSG_MINIMUM_PASSWORD_LENGTH,
+  MAX_PASSWORD_LENGTH,
+  MIN_PASSWORD_LENGTH,
+} from "../../../shared/error.message.constant";
 
-export const BaseUserSchema = z.object({
+export const BaseNickname = z.object({
+  nickname: z.string().min(MIN_NICKNAME_LENGTH).max(MAX_NICKNAME_LENGTH),
+});
+
+export const BaseUserSchema = BaseNickname.extend({
   id: z.string().min(1),
-  nickname: z.string().min(1),
 });
 
 export const UserSchema = BaseUserSchema.extend({
@@ -42,7 +53,8 @@ export const ChangePasswordSchema = z
     currentPassword: z.string().min(8),
     password: z
       .string()
-      .min(8, { message: "Password must be 8 or more characters" }),
+      .min(MIN_PASSWORD_LENGTH, { message: ERR_MSG_MINIMUM_PASSWORD_LENGTH })
+      .max(MAX_PASSWORD_LENGTH, { message: ERR_MSG_MAXIMUM_PASSWORD_LENGTH }),
     confirmPassword: z.string(),
   })
   .superRefine((data, ctx) => {

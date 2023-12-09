@@ -73,9 +73,17 @@ import { AvatarUpdateDto } from 'src/user/dto/AvatarUpdate.dto';
 import { UserIdDto, UserInfoUpdateDto } from 'src/user/dto/UserInfo.dto';
 import { PongService } from 'src/pong/pong.service';
 import { Interval } from '@nestjs/schedule';
-import { FRAME_RATE, GAME_INVITATION_TIME_LIMIT } from '../../shared/constant';
+import {
+  FRAME_RATE,
+  GAME_INVITATION_TIME_LIMIT,
+  PongTypeNormal,
+} from '../../shared/constant';
 import { CustomException } from 'src/common/custom-exception/custom-exception';
-import { UpdatePlayerPositionDto } from 'src/pong/dto/dto';
+import {
+  GameInvitationDto,
+  PongGameTypeDto,
+  UpdatePlayerPositionDto,
+} from 'src/pong/dto/dto';
 
 @UseGuards(WsAccessTokenGuard)
 @UseFilters(WsCatchAllFilter)
@@ -120,6 +128,10 @@ export class GatewayGateway {
         return;
       }
 
+      await this.userService.updateUserById(userId, {
+        status: STATUS.ONLINE,
+      });
+
       this.libService.updateUserStatus(this.server, {
         ids: [userId],
         status: STATUS.ONLINE,
@@ -147,16 +159,25 @@ export class GatewayGateway {
             },
           },
         );
+
+        await this.userService.updateUserById(userId, {
+          firstConnection: false,
+        });
       }
-      await this.userService.updateUserById(userId, {
-        status: STATUS.ONLINE,
+    }
+
+    if (this.pongService.hasUserLeavedGame(userId)) {
+      this.libService.emitBackToMyself(client, GeneralEvent.DESERTER, {
+        message: 'You leaved a game! shame on you',
+        severity: 'warning',
       });
+      this.pongService.setGameLeaver(userId, false);
     }
   }
 
   async handleDisconnect(client: SocketWithAuth) {
     const { sockets } = this.server.sockets;
-    const { id, userId } = client;
+    const { userId } = client;
 
     this.logger.log(`WS client with id: ${client.id} disconnected!`);
     this.logger.log(`Socket data: `, sockets);
@@ -171,35 +192,46 @@ export class GatewayGateway {
 
       const user = await this.userService.findUserById(userId, UserData);
 
-      if (user) {
-        await this.userService.updateUserById(userId, {
-          status: STATUS.OFFLINE,
-        });
-      }
+      if (!user) throw new WsUserNotFoundException();
+
+      await this.userService.updateUserById(userId, {
+        status: STATUS.OFFLINE,
+      });
     }
 
     const game = this.pongService.checkIfUserIsAlreadyInARoom(userId);
 
-    const allRooms = this.server.of('/').adapter.rooms;
+    if (game) {
+      if (game.hasStarted) {
+        this.libService.sendToSocket(
+          this.server,
+          game.getGameId,
+          PongEvent.USER_NO_MORE_IN_GAME,
+          {
+            severity: 'info',
+            message:
+              'Redirecting you to game page as your adversary leaved the game',
+          },
+        );
 
-    if (game?.hasStarted) {
-      this.libService.sendToSocket(
-        this.server,
-        game.getGameId,
-        PongEvent.USER_NO_MORE_IN_GAME,
-        {
-          severity: 'info',
-          message:
-            'Redirecting you to game page as your adversary leaved the game',
-        },
-      );
+        this.pongService.setGameLeaver(userId, true);
+
+        const id =
+          userId === game.getPlayer.getPlayerId
+            ? userId
+            : game.getOppenent.getPlayerId;
+        const user = await this.userService.findUserById(id, UserData);
+
+        if (user) {
+          const online = this.getAllSockeIdsByKey(id);
+          await this.prismaService.user.update({
+            where: { id },
+            data: { status: online ? STATUS.ONLINE : STATUS.OFFLINE },
+          });
+        }
+      }
       this.pongService.deleteGameRoomByGameId(game.getGameId);
-      allRooms.delete(game.getGameId);
-      return;
-    }
-
-    if (game?.getSocketIds.includes(id)) {
-      this.pongService.leaveRoom(userId);
+      this.deleteAllSocketIdsBy(game.getGameId);
     }
   }
 
@@ -948,7 +980,7 @@ export class GatewayGateway {
     @MessageBody() dieribaDto: DieribaDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
-    const { id, chatroomId, chatroomName } = dieribaDto;
+    const { id, chatroomId } = dieribaDto;
     const { userId } = client;
     await this.isDieriba(userId, chatroomId);
     if (id === userId)
@@ -962,7 +994,9 @@ export class GatewayGateway {
     ]);
 
     if (!chatroomUser)
-      throw new WsUnknownException('That user do not belong to that group');
+      throw new WsUnknownException(
+        'That user do not belong to that group or chatroom does not exist',
+      );
 
     const now = new Date();
 
@@ -997,6 +1031,10 @@ export class GatewayGateway {
         },
       }),
     ]);
+
+    const {
+      chatroom: { chatroomName },
+    } = chatroomUser;
 
     this.libService.sendToSocket(
       client,
@@ -1331,7 +1369,7 @@ export class GatewayGateway {
     @MessageBody() changeUserRoleDto: ChangeUserRoleDto,
     @ConnectedSocket() client: SocketWithAuth,
   ) {
-    const { id, role, chatroomId, chatroomName } = changeUserRoleDto;
+    const { id, role, chatroomId } = changeUserRoleDto;
     const { userId } = client;
 
     await this.isDieriba(userId, chatroomId);
@@ -1342,7 +1380,9 @@ export class GatewayGateway {
     );
 
     if (!chatroomUser)
-      throw new WsBadRequestException('User does not belong to that group');
+      throw new WsBadRequestException(
+        'User does not belong to that group Or chatroom does not exist',
+      );
 
     if (chatroomUser.role === role) {
       throw new WsBadRequestException('User already have that role');
@@ -1391,6 +1431,10 @@ export class GatewayGateway {
         }
       }
     });
+
+    const {
+      chatroom: { chatroomName },
+    } = chatroomUser;
 
     if (chatroomUser.role === ROLE.CHAT_ADMIN) {
       this.libService.sendToSocket(
@@ -2148,7 +2192,7 @@ export class GatewayGateway {
     @MessageBody() chatroomMessageDto: ChatroomMessageDto,
   ) {
     const { userId } = client;
-    const { chatroomId, content, image } = chatroomMessageDto;
+    const { chatroomId, content } = chatroomMessageDto;
     const user = await this.prismaService.user.findFirst({
       where: {
         id: userId,
@@ -2170,7 +2214,6 @@ export class GatewayGateway {
     const res = await this.prismaService.message.create({
       data: {
         content: content,
-        imageUrl: image,
         user: {
           connect: {
             id: userId,
@@ -3383,7 +3426,10 @@ export class GatewayGateway {
   }
 
   @SubscribeMessage(PongEvent.JOIN_QUEUE)
-  async joinQueue(@ConnectedSocket() client: SocketWithAuth) {
+  async joinQueue(
+    @ConnectedSocket() client: SocketWithAuth,
+    @MessageBody() { pongType }: PongGameTypeDto,
+  ) {
     const { userId } = client;
 
     const user = await this.prismaService.user.findFirst({
@@ -3410,30 +3456,45 @@ export class GatewayGateway {
     const data = await this.pongService.checkIfMatchupIsPossible(
       userId,
       client.id,
+      pongType,
     );
 
     if (data) {
-      this.libService.updateUserStatus(this.server, {
-        ids: [userId, data.creator.id as string],
-        status: STATUS.PLAYING,
-      });
+      const { room, creator } = data;
 
-      if (data.creator === undefined) throw new WsUserNotFoundException();
+      if (creator === undefined) throw new WsUserNotFoundException();
 
-      this.pongService.joinGame(this.server, client, data.room, {
-        creator: {
-          nickname: data.creator.nickname,
-          avatar: data.creator.avatar,
+      const senderSocket = this.libService.getSocket(
+        this.server,
+        creator.socketId,
+      );
+
+      if (!senderSocket) {
+        this.pongService.deleteGameRoomByGameId(room);
+        throw new WsUnknownException(
+          `${user.nickname} is currently not online`,
+        );
+      }
+
+      await this.pongService.joinGame(
+        this.server,
+        room,
+        {
+          creator: creator,
+          opponent: {
+            nickname: user.nickname,
+            avatar: user.profile.avatar,
+          },
         },
-        opponent: {
-          nickname: user.nickname,
-          avatar: user.profile.avatar,
-        },
-      });
+        userId,
+        creator.id,
+        client,
+        senderSocket as SocketWithAuth,
+      );
       return;
     }
 
-    this.pongService.createGameRoom(userId, client);
+    this.pongService.createGameRoom(userId, client.id, pongType);
 
     this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
       message: 'Please wait for an opponent...',
@@ -3442,7 +3503,7 @@ export class GatewayGateway {
 
   @SubscribeMessage(PongEvent.LEAVE_QUEUE)
   async leaveQueue(@ConnectedSocket() client: SocketWithAuth) {
-    const { id, userId } = client;
+    const { userId } = client;
 
     const user = await this.userService.findUserById(userId, UserData);
 
@@ -3450,8 +3511,8 @@ export class GatewayGateway {
 
     const game = this.pongService.checkIfUserIsAlreadyInARoom(userId);
 
-    if (game?.getSocketIds.includes(id)) {
-      this.pongService.leaveRoom(userId);
+    if (game) {
+      this.pongService.deleteGameRoomByGameId(game.getGameId);
     }
     this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS);
   }
@@ -3459,7 +3520,7 @@ export class GatewayGateway {
   @SubscribeMessage(PongEvent.SEND_GAME_INVITATION)
   async sendGameInvtation(
     @ConnectedSocket() client: SocketWithAuth,
-    @MessageBody() { id }: UserIdDto,
+    @MessageBody() { id, pongType }: GameInvitationDto,
   ) {
     const { userId } = client;
 
@@ -3528,6 +3589,7 @@ export class GatewayGateway {
       client.id,
       userId,
       id,
+      pongType,
     );
 
     if (gameInvit) {
@@ -3545,7 +3607,9 @@ export class GatewayGateway {
       id,
       PongEvent.RECEIVE_GAME_INVITATION,
       {
-        message: `${me.nickname} invited you to a pong game`,
+        message: `${me.nickname} invited you to a play ${
+          pongType === PongTypeNormal ? 'normal' : 'special'
+        } pong game`,
         data: { id: userId },
       },
     );
@@ -3607,7 +3671,11 @@ export class GatewayGateway {
       );
 
     const gameId: string = invitation.getGameId;
-    const senderSocket = this.getSocket(invitation.getSocketId);
+    const senderSocket = this.libService.getSocket(
+      this.server,
+      invitation.getSocketId,
+    );
+
     if (!senderSocket) {
       throw new WsUnknownException(`${user.nickname} is currently not online`);
     }
@@ -3618,16 +3686,23 @@ export class GatewayGateway {
       userId,
       socketId: invitation.getSocketId,
       otherSocketId: client.id,
+      pongGameType: invitation.getPongType,
     });
 
     this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS);
 
-    senderSocket.join(gameId);
-
-    this.pongService.joinGame(this.server, client, gameId, {
-      creator: { nickname: user.nickname, avatar: user.profile.avatar },
-      opponent: { nickname: me.nickname, avatar: me.profile.avatar },
-    });
+    await this.pongService.joinGame(
+      this.server,
+      gameId,
+      {
+        creator: { nickname: user.nickname, avatar: user.profile.avatar },
+        opponent: { nickname: me.nickname, avatar: me.profile.avatar },
+      },
+      userId,
+      id,
+      client,
+      senderSocket as SocketWithAuth,
+    );
   }
 
   @SubscribeMessage(PongEvent.UPDATE_PLAYER_POSITION)
@@ -3635,7 +3710,6 @@ export class GatewayGateway {
     @ConnectedSocket() client: SocketWithAuth,
     @MessageBody() { gameId, keyPressed }: UpdatePlayerPositionDto,
   ) {
-    this.logger.log('Entered');
     const { userId } = client;
     const [game, index] =
       this.pongService.getGameByGameIdAndReturnIndex(gameId);
@@ -3708,10 +3782,6 @@ export class GatewayGateway {
     return this.server.of('/').adapter.rooms.delete(key);
   }
 
-  private getSocket(socketId: string) {
-    return this.server.sockets.sockets.get(socketId);
-  }
-
   private joinOrLeaveRoom(
     userId: string,
     action: GeneralEvent.JOIN | GeneralEvent.LEAVE,
@@ -3722,12 +3792,12 @@ export class GatewayGateway {
       if (action === GeneralEvent.LEAVE) {
         socketIds.forEach((socketId) => {
           this.logger.log(`Leaving room ${room}`);
-          this.getSocket(socketId).leave(room);
+          this.libService.getSocket(this.server, socketId).leave(room);
         });
         return;
       }
       socketIds.forEach((socketId) => {
-        this.getSocket(socketId).join(room);
+        this.libService.getSocket(this.server, socketId).join(room);
       });
     }
   }

@@ -46,7 +46,6 @@ const ProtectedDashboardLayout = () => {
       connectSocket();
 
       socket.on(GeneralEvent.DISCONNECT_ME, () => {
-        
         dispatch(apiSlice.util.resetApiState());
         dispatch({ type: LOGOUT });
         // eslint-disable-next-line no-self-assign
@@ -70,6 +69,16 @@ const ProtectedDashboardLayout = () => {
         ChatEventGroup.RECEIVED_GROUP_INVITATION,
         (data: SocketServerSucessResponse & { data: ChatroomGroupType }) => {
           dispatch(addGroupInvitation({ chatroom: data.data }));
+          dispatch(
+            showSnackBar({ message: data.message, severity: data.severity })
+          );
+        }
+      );
+
+      socket.on(
+        GeneralEvent.DESERTER,
+        (data: SocketServerSucessResponse & { data: unknown }) => {
+          navigate(PATH_APP.dashboard.profile, { replace: true });
           dispatch(
             showSnackBar({ message: data.message, severity: data.severity })
           );
@@ -144,6 +153,7 @@ const ProtectedDashboardLayout = () => {
       );
 
       return () => {
+        socket.off(GeneralEvent.DESERTER);
         socket.off(GeneralEvent.DISCONNECT_ME);
         socket.off(ChatEventGroup.RECEIVED_GROUP_INVITATION);
         socket.off(FriendEvent.DELETE_FRIEND);

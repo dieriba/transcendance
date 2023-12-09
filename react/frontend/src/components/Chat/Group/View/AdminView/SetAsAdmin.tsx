@@ -49,11 +49,7 @@ const SetAsAdmin = ({ id, nickname, open, handleClose }: SetAdminProps) => {
 
   const [setDieriba, { isLoading }] = useSetNewDieribaMutation();
 
-  const onSubmit = async (data: {
-    id: string;
-    chatroomName: string;
-    chatroomId: string;
-  }) => {
+  const onSubmit = async (data: { id: string; chatroomId: string }) => {
     try {
       const response = await setDieriba(data).unwrap();
 
@@ -111,7 +107,6 @@ const SetAsAdmin = ({ id, nickname, open, handleClose }: SetAdminProps) => {
                   onSubmit({
                     id,
                     chatroomId: currentChatroom.id,
-                    chatroomName: currentChatroom.chatroomName,
                   })
                 }
               >

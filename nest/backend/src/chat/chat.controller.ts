@@ -45,11 +45,11 @@ export class ChatController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(IsRestrictedUserGuardHttp)
   @Get('get-all-user-chatroom')
-  async getAllUserChatroom(
+  async getAllUserInChatroom(
     @GetUser('userId') userId: string,
     @Query('chatroomId') chatroomId: string,
   ) {
-    return await this.chatService.getAllUserChatroom(userId, chatroomId);
+    return await this.chatService.getAllUserInChatroom(userId, chatroomId);
   }
 
   @HttpCode(HttpStatus.OK)

@@ -1,17 +1,23 @@
 import { STATUS } from '@prisma/client';
 import { Server } from 'socket.io';
 import { Injectable } from '@nestjs/common';
-import { SocketWithAuth } from 'src/auth/type';
 import { PONG_ROOM_PREFIX, PongEvent } from '../../shared/socket.event';
 import {
   GAME_INVITATION_TIME_LIMIT,
+  PongGameType,
+  PongTypeNormal,
   keyPressedType,
 } from '../../shared/constant';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
-import { Game, GameInvitation } from './class/Game';
 import { LibService } from 'src/lib/lib.service';
 import { PlayerStartGameInfo, StartGameInfo } from 'shared/types';
+import { GameInvitation } from './class/GameInvitation';
+import { IPongGame } from './class/IGame';
+import { BasicPongGame } from './class/BasicPongGame';
+import { SpecialPongGame } from './class/SpecialPongGame';
+import { SocketWithAuth } from 'src/auth/type';
+import { WsUnknownException } from 'src/common/custom-exception/ws-exception';
 
 @Injectable()
 export class PongService {
@@ -19,12 +25,28 @@ export class PongService {
     private readonly prismaService: PrismaService,
     private readonly libService: LibService,
   ) {}
-  private readonly games: Game[] = [];
+  private readonly gameLeavers: Map<string, boolean> = new Map<
+    string,
+    boolean
+  >();
+  private readonly games: IPongGame[] = [];
   private readonly gameInvitation: Map<string, GameInvitation> = new Map<
     string,
     GameInvitation
   >();
   private readonly queue: Map<string, string>[] = [];
+
+  static createGameBasedOnType(
+    gameId: string,
+    playerId: string,
+    socketId: string,
+    pongType: PongGameType,
+  ) {
+    if (pongType === PongTypeNormal)
+      return new BasicPongGame(gameId, playerId, socketId);
+
+    return new SpecialPongGame(gameId, playerId, socketId);
+  }
 
   async getLeaderboard(userId: string) {
     const user = await this.prismaService.user.findFirst({
@@ -34,7 +56,7 @@ export class PongService {
     if (!user) throw new UserNotFoundException();
 
     const players = await this.prismaService.user.findMany({
-      orderBy: [{ pong: { rating: 'desc' } }, { createdAt: 'asc' }],
+      orderBy: [{ pong: { rating: 'desc' } }],
       select: {
         id: true,
         nickname: true,
@@ -106,6 +128,7 @@ export class PongService {
     socketId: string,
     userId: string,
     to: string,
+    pongType: PongGameType,
   ): number {
     const gameInvit = this.gameInvitation.get(userId);
 
@@ -118,7 +141,7 @@ export class PongService {
 
     this.gameInvitation.set(
       userId,
-      new GameInvitation(gameId, userId, to, socketId),
+      new GameInvitation(gameId, userId, to, socketId, pongType),
     );
 
     return 0;
@@ -130,32 +153,22 @@ export class PongService {
     return res ? true : false;
   }
 
-  checkIfUserIsAlreadyInARoom(id: string): Game | undefined {
+  checkIfUserIsAlreadyInARoom(id: string): IPongGame | undefined {
     const game = this.games.find((game) => game.getPlayers.includes(id));
 
     return game;
   }
 
-  createGameRoom(userId: string, socket: SocketWithAuth): string {
+  createGameRoom(
+    userId: string,
+    socketId: string,
+    pongGameType: PongGameType,
+  ): string {
     const gameId = PONG_ROOM_PREFIX + userId;
 
-    const game = new Game(gameId, userId, socket.id);
-
-    this.games.push(game);
-
-    socket.join(gameId);
-
-    return gameId;
-  }
-
-  createSpecialGameRoom(userId: string, socket: SocketWithAuth): string {
-    const gameId = PONG_ROOM_PREFIX + userId;
-
-    const game = new Game(gameId, userId, socket.id);
-
-    this.games.push(game);
-
-    socket.join(gameId);
+    this.games.push(
+      PongService.createGameBasedOnType(gameId, userId, socketId, pongGameType),
+    );
 
     return gameId;
   }
@@ -166,16 +179,30 @@ export class PongService {
     id: string;
     socketId: string;
     otherSocketId: string;
+    pongGameType: PongGameType;
   }) {
-    const { gameId, userId, id, socketId, otherSocketId } = data;
-    const game = new Game(gameId, id, socketId);
-    game.setOponnentPlayer = userId;
+    const { gameId, userId, id, socketId, otherSocketId, pongGameType } = data;
+    const game = PongService.createGameBasedOnType(
+      gameId,
+      id,
+      socketId,
+      pongGameType,
+    );
+    game.setOponnentPlayerId = userId;
     game.setNewSocketId = otherSocketId;
     game.startGame();
     this.games.push(game);
   }
 
-  updateGameByGameId(gameId: string, game: Game) {
+  hasUserLeavedGame(userId: string) {
+    return this.gameLeavers.get(userId);
+  }
+
+  setGameLeaver(userId: string, leaver: boolean) {
+    this.gameLeavers.set(userId, leaver);
+  }
+
+  updateGameByGameId(gameId: string, game: IPongGame) {
     const index = this.games.findIndex((game) => game.getGameId === gameId);
 
     if (index !== -1) {
@@ -193,7 +220,7 @@ export class PongService {
 
   getGameByGameIdAndReturnIndex(
     gameId: string,
-  ): [game: Game | undefined, index: number] {
+  ): [game: IPongGame | undefined, index: number] {
     const index = this.games.findIndex((game) => game.getGameId === gameId);
 
     return [index === -1 ? undefined : this.games[index], index];
@@ -203,10 +230,20 @@ export class PongService {
     return this.games.find((game) => game.getGameId === gameId);
   }
 
-  deleteGameRoomByGameId(gameId: string) {
+  deleteGameRoomByGameId(gameId: string, server?: Server) {
     const index = this.games.findIndex((game) => game.getGameId === gameId);
 
     if (index === -1) return;
+
+    if (server) {
+      const socketIds = this.games[index].getSocketIds;
+
+      socketIds.map((id) => {
+        const socket = this.libService.getSocket(server, id);
+
+        socket?.leave(gameId);
+      });
+    }
 
     this.games.splice(index, 1);
   }
@@ -256,8 +293,7 @@ export class PongService {
             PongEvent.END_GAME,
             { data },
           );
-
-          this.deleteGameRoomByIndex(index);
+          this.deleteGameRoomByIndex(index, server);
           this.libService.deleteSocketRoom(server, game.getGameId);
           this.libService.updateUserStatus(server, {
             ids: [winnerId, looserId],
@@ -322,21 +358,49 @@ export class PongService {
     return { message: `${winner.nickname} won the game` };
   }
 
-  joinGame(
+  async joinGame(
     server: Server,
-    client: SocketWithAuth,
     room: string,
     {
       creator,
       opponent,
     }: { creator: PlayerStartGameInfo; opponent: PlayerStartGameInfo },
+    userId: string,
+    creatorId: string,
+    mySocket: SocketWithAuth,
+    otherSocket: SocketWithAuth,
   ) {
-    client.join(room);
     const data: StartGameInfo = {
       room,
       creator,
       opponent,
     };
+
+    console.log({ userId, creatorId });
+
+    try {
+      await this.prismaService.$transaction([
+        this.prismaService.user.update({
+          where: { id: userId },
+          data: { status: STATUS.PLAYING },
+        }),
+        this.prismaService.user.update({
+          where: { id: creatorId },
+          data: { status: STATUS.PLAYING },
+        }),
+      ]);
+    } catch (error) {
+      this.deleteGameRoomByGameId(room);
+      throw new WsUnknownException('error');
+    }
+
+    this.libService.updateUserStatus(server, {
+      ids: [userId, creator.id as string],
+      status: STATUS.PLAYING,
+    });
+
+    mySocket.join(room);
+    otherSocket.join(room);
 
     server.to(room).emit(PongEvent.LETS_PLAY, {
       data,
@@ -346,11 +410,13 @@ export class PongService {
   async checkIfMatchupIsPossible(
     userId: string,
     socketId: string,
+    pongType: PongGameType,
   ): Promise<
     { room?: string; creator: PlayerStartGameInfo | undefined } | undefined
   > {
     const index = this.games.findIndex((game) => game.getPlayers.length === 1);
-    if (index === -1) return undefined;
+    if (index === -1 || pongType !== this.games[index].getPongType)
+      return undefined;
 
     const creator = await this.prismaService.user.findFirst({
       where: { id: this.games[index].getPlayer.getPlayerId },
@@ -362,7 +428,9 @@ export class PongService {
       return { creator: undefined };
     }
 
-    this.games[index].setOponnentPlayer = userId;
+    const creatorSocketId = this.games[index].getSocketIds[0] ?? undefined;
+
+    this.games[index].setOponnentPlayerId = userId;
     this.games[index].setNewSocketId = socketId;
     this.games[index].startGame();
     return {
@@ -371,11 +439,12 @@ export class PongService {
         id: creator.id,
         nickname: creator.nickname,
         avatar: creator.profile.avatar,
+        socketId: creatorSocketId,
       },
     };
   }
 
-  updateGameByUserId(game: Game, userId: string) {
+  updateGameByUserId(game: IPongGame, userId: string) {
     const index = this.games.findIndex((game) =>
       game.getPlayers.includes(userId),
     );
@@ -385,7 +454,17 @@ export class PongService {
     }
   }
 
-  private deleteGameRoomByIndex(index: number) {
+  private deleteGameRoomByIndex(index: number, server?: Server) {
+    const { getSocketIds, getGameId } = this.games[index];
+
+    if (server) {
+      getSocketIds.map((id) => {
+        const socket = this.libService.getSocket(server, id);
+
+        socket?.leave(getGameId);
+      });
+    }
+
     this.games.splice(index, 1);
   }
 }

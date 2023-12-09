@@ -14,7 +14,7 @@ model User {
   id                     String          @id @default(uuid())
   nickname               String          @unique @db.VarChar(16)
   email                  String          @unique
-  password               String?
+  password               String?         @db.VarChar(24)
   status                 STATUS          @default(OFFLINE)
   createdAt              DateTime        @default(now())
   updatedAt              DateTime        @updatedAt
@@ -30,7 +30,7 @@ model User {
   friends                Friends[]       @relation("users")
   friendUserFriends      Friends[]       @relation("friendUsers")
 
-  receivedNotifications Notifications[]  @relation("userNotification")
+  
   blockedChatroomUser   Chatroom[]       @relation("blockedUsers")
   pong                  Pong?            @relation("pong")
   chatrooms             ChatroomUser[]
@@ -101,28 +101,19 @@ model Profile {
   lastname  String? @db.VarChar(25)
 }
 
-model Notifications {
-  id          String @id @default(uuid())
-  name        String @db.VarChar(15)
-  description String @db.VarChar(50)
-  user        User   @relation("userNotification", fields: [userId], references: [id], onDelete: Cascade)
-  userId      String
-}
 
 model Chatroom {
   id              String           @id @default(uuid())
-  chatroomName    String?          @unique @db.VarChar(30)
-  password        String?
+  chatroomName    String?          @unique @db.VarChar(20)
+  password        String?          @db.VarChar(24)
   type            TYPE
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
-  numberOfUser    Int              @default(0)
   invitedUser     InvitedUser[]    @relation("invitedUsers")
   active          Boolean          @default(true)
   users           ChatroomUser[]   @relation("chatroomUsers")
   blockedUsers    User[]           @relation("blockedUsers")
   messages        Message[]
-  groupImage      String?
   restrictedUsers RestrictedUser[]
 }
 

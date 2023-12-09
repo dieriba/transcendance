@@ -9,8 +9,10 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useSendPrivateMessageMutation } from "../../../redux/features/chat/chats.api.slice";
-import { useAppSelector } from "../../../redux/hooks";
+import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { RootState } from "../../../redux/store";
+import { showSnackBar } from "../../../redux/features/app/app.slice";
+import { SocketServerErrorResponse } from "../../../services/type";
 
 const ChatConversationFooter = () => {
   const theme = useTheme();
@@ -18,6 +20,8 @@ const ChatConversationFooter = () => {
   const methods = useForm<MessageFormType>({
     resolver: zodResolver(MessageFormSchema),
   });
+
+  const dispatch = useAppDispatch();
 
   const chatroom = useAppSelector(
     (state: RootState) => state.chat.currentChatroom
@@ -34,7 +38,12 @@ const ChatConversationFooter = () => {
         friendId: chatroom?.users[0].user.id,
       }).unwrap();
     } catch (error) {
-      /* */
+      dispatch(
+        showSnackBar({
+          message: (error as SocketServerErrorResponse).message,
+          severity: "error",
+        })
+      );
     }
   };
 

@@ -1,4 +1,18 @@
-import { IsNotEmpty, IsString, Matches, MinLength } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsNotEmpty,
+  IsString,
+  Matches,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
+import {
+  MIN_NICKNAME_LENGTH,
+  ERR_MSG_MINIMUM_NICKNAME_LENGTH,
+  MAX_NICKNAME_LENGTH,
+  ERR_MSG_MAXIMUM_NICKNAME_LENGTH,
+  REGEX_MATCH_ALPHANUM_,
+} from 'shared/error.message.constant';
 
 export class UserIdDto {
   @IsString()
@@ -7,8 +21,10 @@ export class UserIdDto {
 }
 
 export class UserInfoUpdateDto {
+  @ApiProperty()
   @IsString()
-  @MinLength(3)
-  @Matches('^[a-zA-Z][a-zA-Z0-9_.]*$')
-  nickname: string;
+  @MinLength(MIN_NICKNAME_LENGTH, { message: ERR_MSG_MINIMUM_NICKNAME_LENGTH })
+  @MaxLength(MAX_NICKNAME_LENGTH, { message: ERR_MSG_MAXIMUM_NICKNAME_LENGTH })
+  @Matches(REGEX_MATCH_ALPHANUM_)
+  readonly nickname: string;
 }

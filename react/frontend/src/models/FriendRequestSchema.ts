@@ -1,9 +1,7 @@
 import { z } from "zod";
-import { BaseUserInfoSchema } from "./login/UserSchema";
+import { BaseNickname, BaseUserInfoSchema } from "./login/UserSchema";
 
-export const FriendRequestSchema = z.object({
-  nickname: z.string().min(1),
-});
+export const FriendRequestSchema = BaseNickname;
 
 export type FriendRequestType = z.infer<typeof FriendRequestSchema>;
 

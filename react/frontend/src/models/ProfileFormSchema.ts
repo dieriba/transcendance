@@ -1,7 +1,15 @@
+import {
+  MAX_NICKNAME_LENGTH,
+  MIN_NICKNAME_LENGTH,
+} from "./../../shared/error.message.constant";
 import { z } from "zod";
 
 export const ProfileFormSchema = z.object({
-  nickname: z.string().min(3).optional(),
+  nickname: z
+    .string()
+    .min(MIN_NICKNAME_LENGTH)
+    .max(MAX_NICKNAME_LENGTH)
+    .optional(),
   fullname: z.string().optional(),
   name: z.string().optional(),
   lastName: z.string().optional(),

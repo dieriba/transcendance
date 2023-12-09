@@ -2,7 +2,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
-  DialogActions,
   Button,
   DialogProps,
   AlertColor,
@@ -13,7 +12,8 @@ import DialogI from "../Dialog/DialogI";
 import { useState } from "react";
 import { SocketServerErrorResponse } from "../../services/type";
 import { useSendGameInvitationMutation } from "../../redux/features/pong/pong.api.slice";
-import { Basetype } from "../../models/BaseType";
+import { GameInvitationType } from "../../models/PongSchema";
+import { PongTypeNormal, PongTypeSpecial } from "../../../shared/constant";
 
 interface GameInvitationProps extends DialogProps {
   id: string;
@@ -41,7 +41,7 @@ const GameInvitation = ({
 
     setOpenSnack(false);
   };
-  const handleOnClick = async (data: Basetype) => {
+  const handleOnClick = async (data: GameInvitationType) => {
     try {
       const res = await sendGameInvitation(data).unwrap();
       setSeverity("success");
@@ -56,7 +56,7 @@ const GameInvitation = ({
 
   return (
     <DialogI open={open} handleClose={handleClose}>
-      <Stack alignItems={"center"}>
+      <Stack  alignItems={"center"}>
         <DialogTitle>{`Play with ${nickname} ?`}</DialogTitle>
         {openSnack && (
           <Alert
@@ -72,17 +72,30 @@ const GameInvitation = ({
             {`Send a game Invitation to ${nickname} ?`}
           </DialogContentText>
         </DialogContent>
-        <DialogActions>
+        <Stack p={3} width={"80%"} spacing={1}>
           <Button
             fullWidth
             onClick={() => {
-              handleOnClick({ id });
+              handleOnClick({ id, pongType: PongTypeNormal });
             }}
             disabled={isLoading}
             variant="contained"
             color="inherit"
+            sx={{ textTransform: "capitalize" }}
           >
-            Yes
+            Normal Game
+          </Button>
+          <Button
+            fullWidth
+            onClick={() => {
+              handleOnClick({ id, pongType: PongTypeSpecial });
+            }}
+            disabled={isLoading}
+            variant="contained"
+            color="inherit"
+            sx={{ textTransform: "capitalize" }}
+          >
+            Special Game
           </Button>
           <Button
             fullWidth
@@ -90,9 +103,9 @@ const GameInvitation = ({
             color="inherit"
             variant="contained"
           >
-            No
+            Cancel
           </Button>
-        </DialogActions>
+        </Stack>
       </Stack>
     </DialogI>
   );

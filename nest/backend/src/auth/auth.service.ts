@@ -67,31 +67,24 @@ export class AuthService {
       user: ResponseLoginType;
     } & Tokens
   > {
-    try {
-      this.logger.log(
-        `Attempting to create new tokens for user identified by email: ${email}`,
-      );
+    this.logger.log(
+      `Attempting to create new tokens for user identified by email: ${email}`,
+    );
 
-      const tokens = await this.jwtTokenService.getTokens(id);
+    const tokens = await this.jwtTokenService.getTokens(id);
 
-      const { allowForeignToDm, profile } =
-        await this.userService.updateUserById(id, {
-          status: twoFa ? STATUS.OFFLINE : STATUS.ONLINE,
-          hashedRefreshToken: await this.argon2Service.hash(
-            tokens.refresh_token,
-          ),
-        });
+    const { allowForeignToDm, profile } = await this.userService.updateUserById(
+      id,
+      {
+        status: twoFa ? STATUS.OFFLINE : STATUS.ONLINE,
+        hashedRefreshToken: await this.argon2Service.hash(tokens.refresh_token),
+      },
+    );
 
-      return {
-        user: { id, nickname, twoFa, allowForeignToDm, profile },
-        ...tokens,
-      };
-    } catch (error) {
-      this.logger.log(
-        `Failled to create new tokens for user identified by email: ${email}`,
-      );
-      throw new InternalServerErrorException();
-    }
+    return {
+      user: { id, nickname, twoFa, allowForeignToDm, profile },
+      ...tokens,
+    };
   }
 
   async logout(id: string) {

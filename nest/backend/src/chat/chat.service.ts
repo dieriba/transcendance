@@ -305,7 +305,7 @@ export class ChatService {
     return chatroom.invitedUser;
   }
 
-  async getAllUserChatroom(userId: string, chatroomId: string) {
+  async getAllUserInChatroom(userId: string, chatroomId: string) {
     if (!chatroomId) throw new BadRequestException('Bad Request');
 
     const user = await this.prismaService.user.findFirst({

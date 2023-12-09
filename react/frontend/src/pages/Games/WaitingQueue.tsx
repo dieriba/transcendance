@@ -9,11 +9,11 @@ import {
 import DialogI from "../../components/Dialog/DialogI";
 import { useLeaveQueueMutation } from "../../redux/features/pong/pong.api.slice";
 
-interface JoinQueueProps extends DialogProps {
+interface WaitingQueueProps extends DialogProps {
   handleClose: () => void;
 }
 
-const JoinQueue = ({ handleClose, open }: JoinQueueProps) => {
+const WaitingQueue = ({ handleClose, open }: WaitingQueueProps) => {
   const [leaveQueue, leaveQueueAction] = useLeaveQueueMutation();
 
   const handleLeaveQueue = async () => {
@@ -46,4 +46,4 @@ const JoinQueue = ({ handleClose, open }: JoinQueueProps) => {
   );
 };
 
-export default JoinQueue;
+export default WaitingQueue;

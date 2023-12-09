@@ -59,12 +59,9 @@ const SetNewRole = ({
 
   const onSubmit = async () => {
     try {
-      const { chatroomName } = currentChatroom;
-
       const response = await changeUserRole({
         id,
         chatroomId: currentChatroom.id,
-        chatroomName,
         role,
       }).unwrap();
 

@@ -2,7 +2,8 @@ import { Alert, AlertColor, Button, Stack } from "@mui/material";
 import { useState } from "react";
 import { useJoinQueueMutation } from "../../redux/features/pong/pong.api.slice";
 import { SocketServerErrorResponse } from "../../services/type";
-import JoinQueue from "./JoinQueue";
+import { PongGameType, PongTypeNormal, PongTypeSpecial } from "../../../shared/constant";
+import WaitingQueue from "./WaitingQueue";
 
 const Games = () => {
   const [open, setOpen] = useState<{ queue: boolean }>({ queue: false });
@@ -22,11 +23,11 @@ const Games = () => {
     setOpenSnack(false);
   };
 
-  const [joinQueu, { isLoading }] = useJoinQueueMutation();
+  const [joinQueue, { isLoading }] = useJoinQueueMutation();
 
-  const handleJoinQueue = async () => {
+  const handleJoinQueue = async (data: { pongType: PongGameType }) => {
     try {
-      await joinQueu().unwrap();
+      await joinQueue(data).unwrap();
 
       setOpen((prev) => ({ ...prev, queue: true }));
     } catch (error) {
@@ -56,13 +57,18 @@ const Games = () => {
           )}
           <Button
             disabled={isLoading}
-            onClick={handleJoinQueue}
+            onClick={() => handleJoinQueue({ pongType: PongTypeNormal})}
             variant="contained"
             color="inherit"
           >
             Join Queue
           </Button>
-          <Button disabled={isLoading} variant="contained" color="inherit">
+          <Button
+            disabled={isLoading}
+            onClick={() => handleJoinQueue({ pongType: PongTypeSpecial })}
+            variant="contained"
+            color="inherit"
+          >
             Join Special Queue
           </Button>
           <Button variant="contained" color="inherit">
@@ -71,7 +77,7 @@ const Games = () => {
         </Stack>
       </Stack>
       {open.queue && (
-        <JoinQueue
+        <WaitingQueue
           open={open.queue}
           handleClose={() => {
             setOpen((prev) => ({ ...prev, queue: false }));

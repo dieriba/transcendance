@@ -1,21 +1,21 @@
-export const GAME_TITLE = "Pong!";
-export const TITLE_SIZE = "60px";
-export const TITLE_FONT = "Arial";
-export const MAX_DATE = "9999-12-31T23:59:59.999Z";
+export const GAME_TITLE = 'Pong!';
+export const TITLE_SIZE = '60px';
+export const TITLE_FONT = 'Arial';
+export const MAX_DATE = '9999-12-31T23:59:59.999Z';
 export const VALID_UPLOADS_MIME_TYPES = [
-  "image/jpg",
-  "image/jpeg",
-  "image/png",
+  'image/jpg',
+  'image/jpeg',
+  'image/png',
 ];
-export const GAME_SUBTITLE = "Click to play...";
-export const SUBTITLE_SIZE = "32px";
-export const SUBTITLE_FONT = "Arial";
-export type keyPressedType = "ArrowUp" | "ArrowDown";
-export const SCORE_SIZE = "60px";
-export const SCORE_FONT = "Arial";
+export const GAME_SUBTITLE = 'Click to play...';
+export const SUBTITLE_SIZE = '32px';
+export const SUBTITLE_FONT = 'Arial';
+export type keyPressedType = 'ArrowUp' | 'ArrowDown';
+export const SCORE_SIZE = '60px';
+export const SCORE_FONT = 'Arial';
 
-export const ArrowUp = "ArrowUp";
-export const ArrowDown = "ArrowDown";
+export const ArrowUp = 'ArrowUp';
+export const ArrowDown = 'ArrowDown';
 
 export const BALL_X_POSITION = 0.5;
 export const Ball_Y_POSITION = 0.5;
@@ -29,6 +29,10 @@ export const defaultBall = {
   yPosition: 0.5,
 };
 
+export const PongTypeNormal = 'NORMAL';
+export const PongTypeSpecial = 'SPECIAL';
+export const pongType = [PongTypeNormal, PongTypeSpecial] as const;
+export type PongGameType = (typeof pongType)[number];
 export const GAME_INVITATION_TIME_LIMIT = 10;
 export const GAME_INVITATION_TIME_LIMIT_SNACKBAR =
   GAME_INVITATION_TIME_LIMIT * 1000;
@@ -63,6 +67,6 @@ export const defaultOpponentPlayer = {
   speed: PLAYER_SPEED,
 };
 
-export type gameStatus = "NOT_STARTED" | "STARTED" | "IN_PROGRESS" | "FINISHED";
+export type gameStatus = 'NOT_STARTED' | 'STARTED' | 'IN_PROGRESS' | 'FINISHED';
 export const scoreToWinPongGame = 15;
 export const pongGameDuration = 15;

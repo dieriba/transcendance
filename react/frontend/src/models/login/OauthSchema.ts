@@ -1,7 +1,7 @@
 import { z } from "zod";
+import { BaseNickname } from "./UserSchema";
 
-export const OauthSchema = z.object({
-  nickname: z.string().min(3),
+export const OauthSchema = BaseNickname.extend({
   code: z.string().min(1).optional(),
 });
 

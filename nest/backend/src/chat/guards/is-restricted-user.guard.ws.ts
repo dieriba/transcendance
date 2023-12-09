@@ -30,8 +30,6 @@ export class IsRestrictedUserGuard implements CanActivate {
       context.getClass(),
     ]);
 
-    this.logger.log({ isChat });
-
     const { chatroomId } = context.switchToWs().getData();
     const { userId } = client;
     this.logger.log({ chatroomId, userId });

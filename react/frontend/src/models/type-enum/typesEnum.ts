@@ -1,23 +1,23 @@
 export const groupTypes = ["PUBLIC", "PRIVATE", "PROTECTED"] as const;
-export type GroupTypes = "PUBLIC" | "PRIVATE" | "PROTECTED";
+export type GroupTypes = typeof groupTypes[number];
 
 export const friendsType = ["ONLINE", "OFFLINE", "PLAYING"] as const;
-export type FriendsType = "ONLINE" | "OFFLINE" | "PLAYING";
+export type FriendsType = typeof friendsType[number];
 
 export const privilegeRoleType = ["DIERIBA", "CHAT_ADMIN"] as const;
-export type PrivilegeRoleType = "DIERIBA" | "CHAT_ADMIN";
+export type PrivilegeRoleType = typeof privilegeRoleType[number];
 
 export const roleType = ["DIERIBA", "CHAT_ADMIN", "REGULAR_USER"] as const;
-export type ChatRoleType = "DIERIBA" | "CHAT_ADMIN" | "REGULAR_USER";
+export type ChatRoleType = typeof roleType[number];
 
 export const restrictionType = ["MUTED", "KICKED", "BANNED"] as const;
-export type RestrictionType = "MUTED" | "KICKED" | "BANNED";
+export type RestrictionType = typeof restrictionType[number];
 
 export const durationUnit = ["MIN", "HOURS", "DAYS"] as const;
-export type DurationUnitType = "MIN" | "HOURS" | "DAYS";
+export type DurationUnitType = typeof durationUnit[number];
 
 export const statusTypes = ["ONLINE", "OFFLINE", "PLAYING"] as const;
-export type StatusType = "ONLINE" | "OFFLINE" | "PLAYING";
+export type StatusType = typeof statusTypes[number];
 
 export enum GroupTypeEnum {
   PUBLIC = "PUBLIC",

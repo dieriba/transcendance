@@ -8,13 +8,32 @@ import {
   IsOptional,
   IsPositive,
   IsString,
+  Matches,
   MaxLength,
   MinLength,
 } from 'class-validator';
 import { RESTRICTION, ROLE, TYPE } from '@prisma/client';
-import { DAYS, HOURS, MIN } from 'src/common/constant/enum.constant';
 import { isValidDuration } from '../validation-decorator/is-valid-duration.validation';
 import { ApiProperty } from '@nestjs/swagger';
+import {
+  ERR_MSG_MAXIMUM_CHATROOM_NAME_LENGTH,
+  ERR_MSG_MAXIMUM_PASSWORD_LENGTH,
+  ERR_MSG_MAXIMUM_REASON_LENGTH,
+  ERR_MSG_MAX_MESSAGE_LENGTH,
+  ERR_MSG_MINIMUM_CHATROOM_NAME_LENGTH,
+  ERR_MSG_MINIMUM_PASSWORD_LENGTH,
+  ERR_MSG_MINIMUM_REASON_LENGTH,
+  MAX_CHATROOM_NAME_LENGTH,
+  MAX_MESSAGE_LENGTH,
+  MAX_PASSWORD_LENGTH,
+  MAX_REASON_LENGTH,
+  MIN_CHATROOM_NAME_LENGTH,
+  MIN_MESSAGE_LENGTH,
+  MIN_PASSWORD_LENGTH,
+  MIN_REASON_LENGTH,
+  REGEX_MATCH_ALPHANUM_,
+} from 'shared/error.message.constant';
+import { DAYS, HOURS, MIN } from 'src/common/constant/constant';
 
 export enum DURATION_UNIT {
   MINUTES = MIN,
@@ -26,6 +45,13 @@ export class ChatRoomDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
+  @MinLength(MIN_CHATROOM_NAME_LENGTH, {
+    message: ERR_MSG_MINIMUM_CHATROOM_NAME_LENGTH,
+  })
+  @MaxLength(MAX_CHATROOM_NAME_LENGTH, {
+    message: ERR_MSG_MAXIMUM_CHATROOM_NAME_LENGTH,
+  })
+  @Matches(REGEX_MATCH_ALPHANUM_)
   chatroomName: string;
 
   @ApiProperty()
@@ -41,7 +67,8 @@ export class ChatRoomDto {
   @ApiProperty()
   @IsOptional()
   @IsString()
-  @MinLength(8)
+  @MinLength(MIN_PASSWORD_LENGTH, { message: ERR_MSG_MINIMUM_PASSWORD_LENGTH })
+  @MaxLength(MAX_PASSWORD_LENGTH, { message: ERR_MSG_MAXIMUM_PASSWORD_LENGTH })
   password: string;
 }
 
@@ -59,6 +86,8 @@ export class DmMessageDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
+  @MinLength(MIN_MESSAGE_LENGTH)
+  @MaxLength(MAX_MESSAGE_LENGTH, { message: ERR_MSG_MAX_MESSAGE_LENGTH })
   content: string;
 }
 
@@ -68,28 +97,11 @@ export class ChatroomMessageDto {
   chatroomId: string;
 
   @ApiProperty()
-  @IsString()
-  @IsOptional()
-  @IsNotEmpty()
-  image: string;
-
-  @ApiProperty()
   @IsNotEmpty()
   @IsString()
+  @MinLength(MIN_MESSAGE_LENGTH)
+  @MaxLength(MAX_MESSAGE_LENGTH, { message: ERR_MSG_MAX_MESSAGE_LENGTH })
   content: string;
-
-  @IsOptional()
-  userId: string;
-
-  @IsOptional()
-  nickname: string;
-
-  /*ONLY accept reply if type IS REPLY*/
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  @IsNotEmpty()
-  reply: string;
 }
 
 export class JoinChatroomDto {
@@ -101,6 +113,8 @@ export class JoinChatroomDto {
   @ApiProperty()
   @IsOptional()
   @IsString()
+  @MinLength(MIN_PASSWORD_LENGTH, { message: ERR_MSG_MINIMUM_PASSWORD_LENGTH })
+  @MaxLength(MAX_PASSWORD_LENGTH, { message: ERR_MSG_MAXIMUM_PASSWORD_LENGTH })
   password: string;
 }
 
@@ -109,9 +123,6 @@ export class RestrictedUsersDto {
   @IsNotEmpty()
   @IsString()
   chatroomId: string;
-
-  @IsOptional()
-  chatroomName: string;
 
   @ApiProperty()
   @IsNotEmpty()
@@ -135,14 +146,12 @@ export class RestrictedUsersDto {
 
   @ApiProperty()
   @IsString()
-  @MaxLength(255)
+  @MinLength(MIN_REASON_LENGTH, { message: ERR_MSG_MINIMUM_REASON_LENGTH })
+  @MaxLength(MAX_REASON_LENGTH, { message: ERR_MSG_MAXIMUM_REASON_LENGTH })
   reason: string;
 
   @IsOptional()
   isChatAdmin: boolean;
-
-  @IsOptional()
-  nickname: string;
 }
 
 export class UnrestrictedUsersDto {
@@ -173,10 +182,6 @@ export class ChangeUserRoleDto {
   @ApiProperty()
   @IsString()
   chatroomId: string;
-
-  @ApiProperty()
-  @IsString()
-  chatroomName: string;
 }
 
 export class DieribaDto {
@@ -189,11 +194,6 @@ export class DieribaDto {
   @IsString()
   @IsNotEmpty()
   chatroomId: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  chatroomName: string;
 }
 
 export class EditChatroomDto {
@@ -208,7 +208,8 @@ export class EditChatroomDto {
 
   @IsString()
   @IsOptional()
-  @MinLength(8)
+  @MinLength(MIN_PASSWORD_LENGTH, { message: ERR_MSG_MINIMUM_PASSWORD_LENGTH })
+  @MaxLength(MAX_PASSWORD_LENGTH, { message: ERR_MSG_MAXIMUM_PASSWORD_LENGTH })
   password: string;
 }
 

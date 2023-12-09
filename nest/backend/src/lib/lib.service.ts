@@ -26,6 +26,18 @@ export class LibService {
     server.of('/').adapter.rooms.delete(room);
   }
 
+  getSocket(server: Server, socketId: string) {
+    return server.sockets.sockets.get(socketId);
+  }
+
+  emitBackToMyself(
+    instance: SocketWithAuth,
+    emit: string,
+    object?: Partial<SocketServerResponse>,
+  ) {
+    instance.emit(emit, object);
+  }
+
   sendToSocket(
     instance: SocketWithAuth | Server,
     room: string,

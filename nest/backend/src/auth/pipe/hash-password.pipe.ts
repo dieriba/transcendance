@@ -2,7 +2,6 @@ import {
   Injectable,
   PipeTransform,
   ArgumentMetadata,
-  InternalServerErrorException,
   BadRequestException,
 } from '@nestjs/common';
 import { Argon2Service } from 'src/argon2/argon2.service';
@@ -13,13 +12,9 @@ export class HashPassword implements PipeTransform {
   constructor(private argon2Service: Argon2Service) {}
   async transform(data: CreatedUser, metadata: ArgumentMetadata) {
     if (metadata.type === 'body') {
-      try {
-        data.password = await this.argon2Service.hash(data.password);
+      data.password = await this.argon2Service.hash(data.password);
 
-        return data;
-      } catch (error) {
-        throw new InternalServerErrorException();
-      }
+      return data;
     }
 
     throw new BadRequestException();

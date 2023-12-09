@@ -1,5 +1,6 @@
-import { IsBoolean, IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { IsEnum, IsIn, IsNotEmpty, IsString } from 'class-validator';
 import { PongEvent } from '../../../shared/socket.event';
+import { PongGameType, pongType } from '../../../shared/constant';
 
 enum Position {
   ARROW_UP = PongEvent.ARROW_UP,
@@ -16,8 +17,22 @@ export class UpdatePlayerPositionDto {
   keyPressed: Position;
 }
 
+export class PongGameTypeDto {
+  @IsIn(pongType)
+  pongType: PongGameType;
+}
+
 export class GameIdDto {
   @IsString()
   @IsNotEmpty()
   gameId: string;
+}
+
+export class GameInvitationDto {
+  @IsString()
+  @IsNotEmpty()
+  id: string;
+
+  @IsIn(pongType)
+  pongType: PongGameType;
 }
