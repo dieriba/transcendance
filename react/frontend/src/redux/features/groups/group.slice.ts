@@ -151,22 +151,26 @@ export const GroupSlice = createSlice({
       if (role === "CHAT_ADMIN") {
         const user = state.chatAdmin.find((user) => user.user.id === id);
 
-        const {
-          user: { id, pong, profile, status, nickname },
-        } = user as UserGroupType;
+        if (user) {
+          const {
+            user: { id, pong, profile, status, nickname },
+          } = user as UserGroupType;
 
-        state.currentUser = {
-          id,
-          profile,
-          pong,
-          status,
-          nickname,
-        };
+          state.currentUser = {
+            id,
+            profile,
+            pong,
+            status,
+            nickname,
+          };
 
-        return;
+          return;
+        }
       }
 
       const user = state.regularUser.find((user) => user.user.id === id);
+
+      if (!user) return;
 
       const {
         user: { pong, profile, status, nickname },

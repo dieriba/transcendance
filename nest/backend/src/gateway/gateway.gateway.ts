@@ -1409,6 +1409,7 @@ export class GatewayGateway {
         chatroomName,
         ChatEventGroup.USER_ROLE_CHANGED,
         {
+          chatroomId,
           message: `${chatroomUser.user.nickname} is now a chat moderator`,
           data: { id, role: chatroomUser.role },
         },
