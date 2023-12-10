@@ -217,13 +217,20 @@ export class GatewayGateway {
         this.pongService.setGameLeaver(userId, true);
 
         const id =
-          userId === game.getPlayer.getPlayerId
-            ? userId
+          userId !== game.getPlayer.getPlayerId
+            ? game.getPlayer.getPlayerId
             : game.getOppenent.getPlayerId;
+
         const user = await this.userService.findUserById(id, UserData);
 
         if (user) {
           const online = this.getAllSockeIdsByKey(id);
+
+          this.libService.updateUserStatus(this.server, {
+            ids: [id],
+            status: online ? STATUS.ONLINE : STATUS.OFFLINE,
+          });
+
           await this.prismaService.user.update({
             where: { id },
             data: { status: online ? STATUS.ONLINE : STATUS.OFFLINE },

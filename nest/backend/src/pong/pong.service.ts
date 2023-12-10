@@ -329,6 +329,16 @@ export class PongService {
     if (!winner || !looser) return { message: undefined };
 
     await this.prismaService.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: winnerId },
+        data: { status: STATUS.ONLINE },
+      });
+
+      await tx.user.update({
+        where: { id: looserId },
+        data: { status: STATUS.ONLINE },
+      });
+
       await tx.pong.upsert({
         where: { userId: looserId },
         create: { userId: looserId, losses: 1 },
