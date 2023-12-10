@@ -23,7 +23,7 @@ export type PlayerData = { id: string; score: number } & Coordinate;
 export type UpdatedGameData = {
   player1: PlayerData;
   player2: PlayerData;
-  ball: Coordinate;
+  coordinates: Coordinate[];
 };
 
 type playerInfo = {

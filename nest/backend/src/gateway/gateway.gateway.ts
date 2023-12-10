@@ -80,6 +80,7 @@ import {
 } from '../../shared/constant';
 import { CustomException } from 'src/common/custom-exception/custom-exception';
 import {
+  GameIdDto,
   GameInvitationDto,
   PongGameTypeDto,
   UpdatePlayerPositionDto,
@@ -2308,7 +2309,10 @@ export class GatewayGateway {
       ChatroomBaseData,
     );
 
-    if (!chatroom) throw new WsChatroomNotFoundException();
+    if (!chatroom) {
+      throw new WsChatroomNotFoundException();
+    }
+
     const res = await this.prismaService.message.create({
       data: {
         content: content,
@@ -2339,34 +2343,36 @@ export class GatewayGateway {
         },
       },
     });
-    this.libService.sendToSocket(
-      this.server,
-      friendId,
-      ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE,
-      {
-        data: {
-          id: res.id,
-          chatroomId,
-          content,
-          user: res.user,
-          createdAt: res.createdAt,
-        },
-      },
-    );
 
-    this.libService.sendToSocket(
+    this.libService.sendSameEventToSockets(
       this.server,
-      userId,
       ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE,
-      {
-        data: {
-          id: res.id,
-          chatroomId,
-          content,
-          user: res.user,
-          createdAt: res.createdAt,
+      [
+        {
+          room: friendId,
+          object: {
+            data: {
+              id: res.id,
+              chatroomId,
+              content,
+              user: res.user,
+              createdAt: res.createdAt,
+            },
+          },
         },
-      },
+        {
+          room: userId,
+          object: {
+            data: {
+              id: res.id,
+              chatroomId,
+              content,
+              user: res.user,
+              createdAt: res.createdAt,
+            },
+          },
+        },
+      ],
     );
   }
 
@@ -3620,6 +3626,24 @@ export class GatewayGateway {
         data: { id: userId },
       },
     );
+  }
+
+  @SubscribeMessage(PongEvent.JOIN_BACK_CURRENT_GAME)
+  async joinCurrentGame(
+    @ConnectedSocket() client: SocketWithAuth,
+    @MessageBody() { gameId }: GameIdDto,
+  ) {
+    const game = this.pongService.getGameByGameId(gameId);
+
+    if (!game) throw new WsNotFoundException('Game not found');
+
+    if (game.endGame()) throw new WsUnknownException('Game ended');
+
+    this.libService.emitBackToMyself(client, GeneralEvent.SUCCESS, {
+      data: {
+        gameId,
+      },
+    });
   }
 
   @SubscribeMessage(PongEvent.ACCEPT_GAME_INVITATION)

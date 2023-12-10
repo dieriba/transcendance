@@ -268,7 +268,7 @@ export class PongService {
   }
 
   async gameUpdate(server: Server) {
-    this.games.forEach(async (game, index) => {
+    for (const [index, game] of this.games.entries()) {
       if (game.hasStarted) {
         game.update();
         this.libService.sendToSocket(
@@ -301,7 +301,7 @@ export class PongService {
           });
         }
       }
-    });
+    }
   }
 
   private async setPongWinner(
@@ -385,8 +385,6 @@ export class PongService {
       creator,
       opponent,
     };
-
-    console.log({ userId, creatorId });
 
     try {
       await this.prismaService.$transaction([

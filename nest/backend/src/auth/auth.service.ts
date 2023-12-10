@@ -42,6 +42,8 @@ export class AuthService {
   async signup(registerUserDto: RegisterUserDto) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { lastname, firstname, email, password, nickname } = registerUserDto;
+    console.log({ registerUserDto });
+
     try {
       this.logger.log(
         `Attempting to create new user with email: ${email} and nickname: ${nickname}`,
@@ -55,6 +57,8 @@ export class AuthService {
 
       return { success: true, message: 'User created successfully' };
     } catch (error) {
+      console.log({ error });
+
       this.logger.log(
         `Failled to create new user with email: ${email} and nickname: ${nickname}`,
       );

@@ -17,6 +17,7 @@ import { showSnackBar } from "../../redux/features/app/app.slice";
 import { SocketServerSucessResponse } from "../../services/type";
 import { StartGameInfo, UpdatedGameData } from "../../../shared/types";
 import { RootState } from "../../redux/store";
+import { setGameData } from "../../redux/features/pong/pong.slice";
 
 const Pong = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -113,10 +114,12 @@ const Pong = () => {
     connectSocket();
 
     socket.on(PongEvent.UPDATE_GAME, (data: { data: UpdatedGameData }) => {
-      const { player1, player2 } = data.data;
+      const { player1, player2, coordinates } = data.data;
       setScore({ player1: player1.score, player2: player2.score });
       context.clearRect(0, 0, canvas.width, canvas.height);
-      ball.draw(canvas, context, data.data.ball);
+      coordinates.forEach((coordinate) =>
+        ball.draw(canvas, context, coordinate)
+      );
       Player1.draw(player1);
       Player2.draw(player2);
     });
@@ -125,18 +128,9 @@ const Pong = () => {
       PongEvent.USER_NO_MORE_IN_GAME,
       (data: SocketServerSucessResponse & { data: unknown }) => {
         navigate(PATH_APP.dashboard.games, { replace: true });
+        dispatch(setGameData(undefined));
         dispatch(
           showSnackBar({ message: data.message, severity: data.severity })
-        );
-      }
-    );
-
-    socket.on(
-      PongEvent.END_GAME,
-      (data: SocketServerSucessResponse & { data: { message: string } }) => {
-        navigate(PATH_APP.dashboard.games, { replace: true });
-        dispatch(
-          showSnackBar({ message: data.data.message, severity: data.severity })
         );
       }
     );
@@ -144,7 +138,6 @@ const Pong = () => {
     return () => {
       document.removeEventListener("keydown", keyPress);
       document.removeEventListener("keyup", keyup);
-      socket.off(PongEvent.END_GAME);
       socket.off(PongEvent.UPDATE_GAME);
       socket.off(PongEvent.USER_NO_MORE_IN_GAME);
     };

@@ -14,7 +14,7 @@ model User {
   id                     String          @id @default(uuid())
   nickname               String          @unique @db.VarChar(16)
   email                  String          @unique
-  password               String?         @db.VarChar(24)
+  password               String?         
   status                 STATUS          @default(OFFLINE)
   createdAt              DateTime        @default(now())
   updatedAt              DateTime        @updatedAt
@@ -105,7 +105,7 @@ model Profile {
 model Chatroom {
   id              String           @id @default(uuid())
   chatroomName    String?          @unique @db.VarChar(20)
-  password        String?          @db.VarChar(24)
+  password        String?          
   type            TYPE
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt

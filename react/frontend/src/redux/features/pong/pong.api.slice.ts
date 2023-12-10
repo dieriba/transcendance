@@ -11,6 +11,30 @@ import { apiSlice } from "../../api/apiSlice";
 
 export const PongApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
+    joinBackCurrentGame: builder.mutation<
+      SocketServerSucessResponse & {
+        data: { gameId: string };
+      },
+      { gameId: string }
+    >({
+      queryFn: (data) => {
+        return new Promise((resolve) => {
+          connectSocket();
+
+          socket.emit(PongEvent.JOIN_BACK_CURRENT_GAME, data);
+
+          socket.on(GeneralEvent.SUCCESS, (data) => {
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
+            resolve({ data });
+          });
+
+          socket.on(GeneralEvent.EXCEPTION, (error) => {
+            clearSocket([GeneralEvent.SUCCESS, GeneralEvent.EXCEPTION]);
+            resolve({ error });
+          });
+        });
+      },
+    }),
     joinQueue: builder.mutation<
       SocketServerSucessResponse & {
         data: { gameId: string };
@@ -150,4 +174,5 @@ export const {
   useAcceptGameInvitationMutation,
   useDeclineGameInvitationMutation,
   useGetLeaderboardQuery,
+  useJoinBackCurrentGameMutation,
 } = PongApiSlice;

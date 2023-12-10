@@ -19,7 +19,6 @@ export class Ball {
   private position: Coordinate;
   private velocity: Velocity;
   private width: number;
-  private playersScore: number[] = Array(0, 0);
 
   constructor(postion: Coordinate, velocity: Velocity, radius: number) {
     this.position = postion;
@@ -63,10 +62,6 @@ export class Ball {
 
   get getVelocity(): Velocity {
     return this.velocity;
-  }
-
-  get getPlayersScore(): number[] {
-    return this.playersScore;
   }
 
   private checkCollisionWithPlayer1 = (player1: Player) => {
@@ -115,14 +110,16 @@ export class Ball {
     }
 
     if (this.position.x + BALL_HALF_WIDTH >= 1) {
-      this.playersScore[0]++;
+      player1.scored();
       this.resetBall();
     }
     if (this.position.x - BALL_HALF_WIDTH <= 0) {
-      this.playersScore[1]++;
+      player2.scored();
       this.resetBall();
     }
     this.checkCollisionWithPlayer1(player1);
     this.checkCollisionWithPlayer2(player2);
+
+    return { player1Score: player1.getScore, player2Score: player2.getScore };
   }
 }

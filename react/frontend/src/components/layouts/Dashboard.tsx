@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useNavigate } from "react-router-dom";
+import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "../sidebar/Sidebar";
 import { Stack, useMediaQuery } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
@@ -39,6 +39,8 @@ const ProtectedDashboardLayout = () => {
   const isAuthenticated = useAppSelector(
     (state: RootState) => state.user.access_token
   );
+  const gameData = useAppSelector((state: RootState) => state.pong.gameData);
+  const location = useLocation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   useEffect(() => {
@@ -51,6 +53,22 @@ const ProtectedDashboardLayout = () => {
         // eslint-disable-next-line no-self-assign
         window.location = window.location;
       });
+
+      socket.on(
+        PongEvent.END_GAME,
+        (data: SocketServerSucessResponse & { data: { message: string } }) => {
+          dispatch(setGameData(undefined));
+
+          if (location.pathname === PATH_APP.dashboard.pong)
+            navigate(PATH_APP.dashboard.games, { replace: true });
+          dispatch(
+            showSnackBar({
+              message: data.data.message,
+              severity: data.severity,
+            })
+          );
+        }
+      );
 
       socket.on(
         FriendEvent.NEW_REQUEST_RECEIVED,
@@ -78,7 +96,7 @@ const ProtectedDashboardLayout = () => {
       socket.on(
         GeneralEvent.DESERTER,
         (data: SocketServerSucessResponse & { data: unknown }) => {
-          navigate(PATH_APP.dashboard.profile, { replace: true });
+          dispatch(setGameData(undefined));
           dispatch(
             showSnackBar({ message: data.message, severity: data.severity })
           );
@@ -153,6 +171,7 @@ const ProtectedDashboardLayout = () => {
       );
 
       return () => {
+        socket.off(PongEvent.END_GAME);
         socket.off(GeneralEvent.DESERTER);
         socket.off(GeneralEvent.DISCONNECT_ME);
         socket.off(ChatEventGroup.RECEIVED_GROUP_INVITATION);
@@ -166,10 +185,17 @@ const ProtectedDashboardLayout = () => {
         socket.off(PongEvent.RECEIVE_GAME_INVITATION);
       };
     }
-  }, [navigate, isAuthenticated, dispatch]);
+  }, [navigate, isAuthenticated, dispatch, location.pathname]);
 
   const theme = useTheme();
   const onlyMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
+
+  if (
+    isAuthenticated &&
+    !gameData &&
+    location.pathname === PATH_APP.dashboard.pong
+  )
+    return <Navigate to={PATH_APP.dashboard.games} replace />;
 
   return isAuthenticated ? (
     <>

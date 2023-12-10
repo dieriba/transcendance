@@ -32,7 +32,7 @@ export class IsRestrictedUserGuard implements CanActivate {
 
     const { chatroomId } = context.switchToWs().getData();
     const { userId } = client;
-    this.logger.log({ chatroomId, userId });
+
     if (chatroomId === undefined || this.libService.checkIfString(chatroomId)) {
       throw new WsBadRequestException(
         'chatroomId property must be an non empty string',

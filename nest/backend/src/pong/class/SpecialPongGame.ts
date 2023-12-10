@@ -8,8 +8,11 @@ import {
 } from '../../../shared/constant';
 import { EndGameData } from 'shared/types';
 import { IPongGame } from './IGame';
+import { getRandomNumber } from 'shared/utils';
 
 export class SpecialPongGame extends IPongGame {
+  private balls: Ball[] = [];
+
   constructor(gameId: string, playerId: string, socketId: string) {
     super(PongTypeSpecial);
     this.setGameId = gameId;
@@ -39,14 +42,24 @@ export class SpecialPongGame extends IPongGame {
         y: defaultOpponentPlayer.speed,
       },
     );
-    this.setBall = new Ball(
-      {
-        x: defaultBall.xPosition,
-        y: defaultBall.yPosition,
-      },
-      { x: defaultBall.speed, y: defaultBall.speed },
-      defaultBall.radius,
-    );
+    const ballNumber = getRandomNumber(2, 5);
+
+    for (let index = 0; index < ballNumber; index++) {
+      this.balls.push(
+        new Ball(
+          {
+            x: defaultBall.xPosition,
+            y: defaultBall.yPosition,
+          },
+          {
+            x: index % 2 ? defaultBall.speed : defaultBall.speed * 2,
+            y: index % 2 ? defaultBall.speed : defaultBall.speed * 2,
+          },
+          defaultBall.radius,
+        ),
+      );
+    }
+
     this.pushNewPlayer(playerId);
     this.pushNewSocketId(socketId);
   }
@@ -54,7 +67,13 @@ export class SpecialPongGame extends IPongGame {
   public update() {
     const now = performance.now();
     const dt = this.getLastTime === -1 ? FRAME_RATE : now - this.getLastTime;
-    this.getBall.updatePosition(dt, this.getPlayer, this.getOppenent);
+    this.balls.forEach((ball) => {
+      const score = ball.updatePosition(dt, this.getPlayer, this.getOppenent);
+      if (score.player1Score !== this.getPlayer.getScore)
+        this.getPlayer.scored();
+      if (score.player2Score !== this.getOppenent.getScore)
+        this.getPlayer.scored();
+    });
     this.getPlayer.updatePosition(dt);
     this.getOppenent.updatePosition(dt);
     this.isAWinnerOrTimeGameLimitReached();
@@ -62,18 +81,20 @@ export class SpecialPongGame extends IPongGame {
   }
 
   public getUpdatedData(): unknown {
+    const ballPosition = this.balls.map((ball) => ball.getPosition);
+
     return {
       player1: {
         ...this.getPlayer.getPostion,
-        score: this.getBall.getPlayersScore[0],
+        score: this.getPlayer.getScore,
         id: this.getPlayer.getPlayerId,
       },
       player2: {
         ...this.getOppenent.getPostion,
-        score: this.getBall.getPlayersScore[1],
+        score: this.getOppenent.getScore,
         id: this.getOppenent.getPlayerId,
       },
-      ball: this.getBall.getPosition,
+      coordinates: ballPosition,
     };
   }
 

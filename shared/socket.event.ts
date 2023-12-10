@@ -120,4 +120,5 @@ export enum PongEvent {
   UPDATE_PLAYER_POSITION = `${pong}.update.paddle.position`,
   USER_STOP_UPDATE = `${pong}.user.stop.update`,
   END_GAME = `${pong}.end.game`,
+  JOIN_BACK_CURRENT_GAME = `${pong}.join.current.game`,
 }

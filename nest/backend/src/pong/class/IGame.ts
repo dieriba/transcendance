@@ -1,4 +1,4 @@
-import { Player, Ball } from 'shared';
+import { Player } from 'shared';
 import {
   PongGameType,
   keyPressedType,
@@ -10,7 +10,6 @@ export abstract class IPongGame {
   private pongType: PongGameType;
   private player: Player;
   private opponentPlayer: Player;
-  private ball: Ball;
   private winner: Player | undefined = undefined;
   private looser: Player | undefined = undefined;
   private activate: boolean;
@@ -33,6 +32,39 @@ export abstract class IPongGame {
   public abstract getUpdatedData(): unknown;
 
   public abstract getEndGameData(): unknown;
+
+  public isAWinnerOrTimeGameLimitReached(): void {
+    if (this.getPlayer.getScore >= scoreToWinPongGame) {
+      this.setWinner = this.getPlayer;
+      this.setLooser = this.getOppenent;
+      return;
+    }
+    if (this.getOppenent.getScore >= scoreToWinPongGame) {
+      this.setWinner = this.getOppenent;
+      this.setLooser = this.getPlayer;
+      return;
+    }
+
+    const now = new Date();
+
+    if (now >= this.getEndTime) {
+      this.setGameDurationExceeded = true;
+
+      if (this.getPlayer.getScore >= scoreToWinPongGame) {
+        this.setWinner = this.getPlayer;
+        this.setLooser = this.getOppenent;
+        return;
+      }
+
+      if (this.getOppenent.getScore >= scoreToWinPongGame) {
+        this.setWinner = this.getOppenent;
+        this.setLooser = this.getPlayer;
+        return;
+      }
+
+      this.setDraw = true;
+    }
+  }
 
   public startGame() {
     this.startedTime = new Date();
@@ -79,38 +111,6 @@ export abstract class IPongGame {
       return;
     }
     this.opponentPlayer.clearMovePosition(direction);
-  }
-
-  public isAWinnerOrTimeGameLimitReached() {
-    if (this.getBall.getPlayersScore[0] >= scoreToWinPongGame) {
-      this.setWinner = this.getPlayer;
-      this.setLooser = this.getOppenent;
-      return;
-    }
-    if (this.getBall.getPlayersScore[1] >= scoreToWinPongGame) {
-      this.setWinner = this.getOppenent;
-      this.setLooser = this.getPlayer;
-      return;
-    }
-    const now = new Date();
-
-    if (now >= this.getEndTime) {
-      this.setGameDurationExceeded = true;
-
-      if (this.getPlayer.getScore >= scoreToWinPongGame) {
-        this.setWinner = this.getPlayer;
-        this.setLooser = this.getOppenent;
-        return;
-      }
-
-      if (this.getOppenent.getScore >= scoreToWinPongGame) {
-        this.setWinner = this.getOppenent;
-        this.setLooser = this.getPlayer;
-        return;
-      }
-
-      this.setDraw = true;
-    }
   }
 
   get getPongType(): PongGameType {
@@ -177,10 +177,6 @@ export abstract class IPongGame {
     return this.looser;
   }
 
-  get getBall(): Ball {
-    return this.ball;
-  }
-
   set setNewSocketId(socketId: string) {
     this.socketsId.push(socketId);
   }
@@ -215,10 +211,6 @@ export abstract class IPongGame {
 
   set setDraw(draw: boolean) {
     this.draw = draw;
-  }
-
-  set setBall(ball: Ball) {
-    this.ball = ball;
   }
 
   set setWinner(winner: Player) {

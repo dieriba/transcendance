@@ -10,24 +10,14 @@ import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 export interface AppState {
   inQueue: boolean;
   waitingReady: boolean;
-  gameData: StartGameInfo;
+  gameData: StartGameInfo | undefined;
   users: LeaderboardType[];
 }
 
 const initialState: AppState = {
   inQueue: false,
   waitingReady: false,
-  gameData: {
-    room: "",
-    creator: {
-      nickname: "",
-      avatar: "",
-    },
-    opponent: {
-      nickname: "",
-      avatar: "",
-    },
-  },
+  gameData: undefined,
   users: [],
 };
 
@@ -41,7 +31,7 @@ const PongSlice = createSlice({
     setWaitingReady: (state, action: PayloadAction<boolean>) => {
       state.waitingReady = action.payload;
     },
-    setGameData: (state, action: PayloadAction<StartGameInfo>) => {
+    setGameData: (state, action: PayloadAction<StartGameInfo | undefined>) => {
       state.gameData = action.payload;
     },
     setLeaderboardUser: (state, action: PayloadAction<LeaderboardType[]>) => {

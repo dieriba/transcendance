@@ -10,6 +10,7 @@ import { EndGameData } from 'shared/types';
 import { IPongGame } from './IGame';
 
 export class BasicPongGame extends IPongGame {
+  private ball: Ball;
   constructor(gameId: string, playerId: string, socketId: string) {
     super(PongTypeNormal);
     this.setGameId = gameId;
@@ -51,10 +52,27 @@ export class BasicPongGame extends IPongGame {
     this.pushNewSocketId(socketId);
   }
 
+  get getBall() {
+    return this.ball;
+  }
+
+  set setBall(ball: Ball) {
+    this.ball = ball;
+  }
+
   public update() {
     const now = performance.now();
     const dt = this.getLastTime === -1 ? FRAME_RATE : now - this.getLastTime;
-    this.getBall.updatePosition(dt, this.getPlayer, this.getOppenent);
+    const score = this.getBall.updatePosition(
+      dt,
+      this.getPlayer,
+      this.getOppenent,
+    );
+
+    if (this.getPlayer.getScore !== score.player1Score) this.getPlayer.scored();
+    if (this.getOppenent.getScore !== score.player2Score)
+      this.getOppenent.scored();
+
     this.getPlayer.updatePosition(dt);
     this.getOppenent.updatePosition(dt);
     this.isAWinnerOrTimeGameLimitReached();
@@ -65,15 +83,15 @@ export class BasicPongGame extends IPongGame {
     return {
       player1: {
         ...this.getPlayer.getPostion,
-        score: this.getBall.getPlayersScore[0],
+        score: this.getPlayer.getScore,
         id: this.getPlayer.getPlayerId,
       },
       player2: {
         ...this.getOppenent.getPostion,
-        score: this.getBall.getPlayersScore[1],
+        score: this.getOppenent.getScore,
         id: this.getOppenent.getPlayerId,
       },
-      ball: this.getBall.getPosition,
+      coordinates: [this.getBall.getPosition],
     };
   }
 

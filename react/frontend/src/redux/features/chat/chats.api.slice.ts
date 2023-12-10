@@ -53,7 +53,7 @@ export const chatApiSlice = apiSlice.injectEndpoints({
           socket.emit(ChatEventPrivateRoom.SEND_PRIVATE_MESSAGE, data);
 
           socket.on(GeneralEvent.EXCEPTION, (error) => {
-            socket.off(GeneralEvent.EXCEPTION);
+            clearSocket([GeneralEvent.EXCEPTION, GeneralEvent.SUCCESS]);
             resolve({ error });
           });
         });
