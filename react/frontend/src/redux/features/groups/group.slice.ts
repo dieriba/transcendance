@@ -97,7 +97,7 @@ export const GroupSlice = createSlice({
         (user) => user.id === action.payload
       );
 
-      if (index !== -1) {
+      if (index >= 0) {
         state.blockedUser.splice(index, 1);
       }
     },
@@ -214,7 +214,11 @@ export const GroupSlice = createSlice({
       );
     },
     addNewChatroom: (state, action: PayloadAction<ChatroomGroupType>) => {
-      state.groupChatroom.unshift(action.payload);
+      const index = state.groupChatroom.findIndex(
+        (group) => group.id === action.payload.id
+      );
+
+      if (index < 0) state.groupChatroom.unshift(action.payload);
     },
     addNewChatroomUser: (
       state,
@@ -226,10 +230,15 @@ export const GroupSlice = createSlice({
       const { data, chatroomId } = action.payload;
       if (chatroomId !== state.currentGroupChatroomId) return;
 
-      state.regularUser.unshift({
-        user: { ...data, restrictedGroups: [] },
-        role: ROLE.REGULAR_USER,
-      });
+      const index = state.regularUser.findIndex(
+        (user) => user.user.id === data.id
+      );
+
+      if (index < 0)
+        state.regularUser.unshift({
+          user: { ...data, restrictedGroups: [] },
+          role: ROLE.REGULAR_USER,
+        });
     },
     updateChatroom: (state, action: PayloadAction<editGroupResponseType>) => {
       const { chatroomId, type } = action.payload;
@@ -237,14 +246,14 @@ export const GroupSlice = createSlice({
         (chatroom) => chatroom.id === chatroomId
       );
 
-      if (index !== -1) {
-        state.groupChatroom[index].type = type;
-        if (
-          state.currentChatroom &&
-          chatroomId === state.currentGroupChatroomId
-        ) {
-          state.currentChatroom.type = type;
-        }
+      if (index < 0) return;
+
+      state.groupChatroom[index].type = type;
+      if (
+        state.currentChatroom &&
+        chatroomId === state.currentGroupChatroomId
+      ) {
+        state.currentChatroom.type = type;
       }
     },
     setMyId: (state, action: PayloadAction<string>) => {
@@ -270,7 +279,7 @@ export const GroupSlice = createSlice({
         index = state.chatAdmin.findIndex(
           (moderator) => moderator.user.id === id
         );
-        if (index !== -1) {
+        if (index >= 0) {
           (state.admin as UserGroupType).role = ROLE.REGULAR_USER;
           newAdmin = state.chatAdmin.splice(index, 1)[0];
           newAdmin.role = ROLE.DIERIBA;
@@ -281,7 +290,7 @@ export const GroupSlice = createSlice({
         index = state.regularUser.findIndex(
           (regularUser) => regularUser.user.id === id
         );
-        if (index !== -1) {
+        if (index >= 0) {
           (state.admin as UserGroupType).role = ROLE.REGULAR_USER;
           newAdmin = state.regularUser.splice(index, 1)[0];
           newAdmin.role = ROLE.DIERIBA;
@@ -289,7 +298,7 @@ export const GroupSlice = createSlice({
           state.admin = newAdmin;
         }
       }
-      if (index !== -1) {
+      if (index >= 0) {
         if (state.myId === id) {
           state.role = ROLE.DIERIBA;
         } else if (state.myId === prevAdminId) {
@@ -341,7 +350,7 @@ export const GroupSlice = createSlice({
         (chatAdmin) => chatAdmin.user.id === id
       );
 
-      if (index !== -1) {
+      if (index >= 0) {
         if (isNicknameUpdated) {
           state.chatAdmin[index].user.nickname = (
             action.payload as UserUpdated
@@ -358,7 +367,7 @@ export const GroupSlice = createSlice({
         (regularUser) => regularUser.user.id === id
       );
 
-      if (index !== -1) {
+      if (index >= 0) {
         if (isNicknameUpdated) {
           state.regularUser[index].user.nickname = (
             action.payload as UserUpdated
@@ -389,13 +398,9 @@ export const GroupSlice = createSlice({
           (user) => user.user.id === newAdminId
         );
 
-        if (previousAdminIndex === -1) {
-          return;
-        }
+        if (previousAdminIndex < 0) return;
 
-        if (state.myId === newAdminId) {
-          state.role = state.admin?.role;
-        }
+        if (state.myId === newAdminId) state.role = state.admin?.role;
 
         const admin = state.chatAdmin.splice(previousAdminIndex, 1)[0];
 
@@ -405,13 +410,9 @@ export const GroupSlice = createSlice({
           (user) => user.user.id === newAdminId
         );
 
-        if (previousAdminIndex === -1) {
-          return;
-        }
+        if (previousAdminIndex < 0) return;
 
-        if (state.myId === newAdminId) {
-          state.role = state.admin?.role;
-        }
+        if (state.myId === newAdminId) state.role = state.admin?.role;
 
         const admin = state.regularUser.splice(previousAdminIndex, 1)[0];
 
@@ -438,7 +439,7 @@ export const GroupSlice = createSlice({
           (moderator) => moderator.user.id === id
         );
 
-        if (index !== -1) {
+        if (index >= 0) {
           const moderator = state.chatAdmin.splice(index, 1)[0];
           moderator.role = ROLE.REGULAR_USER;
           state.regularUser.push(moderator);
@@ -448,7 +449,7 @@ export const GroupSlice = createSlice({
           (regularUser) => regularUser.user.id === id
         );
 
-        if (index !== -1) {
+        if (index >= 0) {
           const regularUser = state.regularUser.splice(index, 1)[0];
           regularUser.role = ROLE.CHAT_ADMIN;
           regularUser.user.restrictedGroups = [];
@@ -489,7 +490,7 @@ export const GroupSlice = createSlice({
             (moderator) => moderator.user.id === id
           );
 
-          if (index !== -1) {
+          if (index >= 0) {
             state.chatAdmin.splice(index, 1);
           }
         } else {
@@ -497,7 +498,7 @@ export const GroupSlice = createSlice({
             (regularUser) => regularUser.user.id === id
           );
 
-          if (index !== -1) {
+          if (index >= 0) {
             state.regularUser.splice(index, 1);
           }
         }
@@ -507,7 +508,7 @@ export const GroupSlice = createSlice({
             (moderator) => moderator.user.id === id
           );
 
-          if (index !== -1) {
+          if (index >= 0) {
             state.chatAdmin.splice(index, 1);
             state.regularUser.push({
               ...data,
@@ -519,7 +520,7 @@ export const GroupSlice = createSlice({
             (regularUser) => regularUser.user.id === id
           );
 
-          if (index !== -1) {
+          if (index >= 0) {
             state.regularUser[index] = {
               ...data,
               role: ROLE.REGULAR_USER,
@@ -529,10 +530,15 @@ export const GroupSlice = createSlice({
       }
 
       if (state.role !== ROLE.REGULAR_USER) {
-        state.restrictedUser.push({
-          ...data,
-          role: ROLE.REGULAR_USER,
-        });
+        const index = state.restrictedUser.findIndex(
+          (user) => user.user.id === id
+        );
+
+        if (index < 0)
+          state.restrictedUser.push({
+            ...data,
+            role: ROLE.REGULAR_USER,
+          });
       }
     },
     restrict: (state, action: PayloadAction<RestrictedUserResponseType>) => {
@@ -543,7 +549,7 @@ export const GroupSlice = createSlice({
         (chatroom) => chatroom.id === chatroomId
       );
 
-      if (index !== -1) {
+      if (index >= 0) {
         if (
           data.restriction !== Restriction.MUTED &&
           state.currentGroupChatroomId == chatroomId
@@ -581,7 +587,7 @@ export const GroupSlice = createSlice({
         (chatroom) => chatroom.id === chatroomId
       );
 
-      if (index !== -1) {
+      if (index >= 0) {
         if (
           restriction !== Restriction.MUTED &&
           state.currentGroupChatroomId === chatroomId
@@ -613,14 +619,14 @@ export const GroupSlice = createSlice({
           (user) => user.user.id === id
         );
 
-        if (index !== -1) {
+        if (index >= 0) {
           state.restrictedUser.splice(index, 1)[0];
         }
       }
 
       const pos = state.regularUser.findIndex((user) => user.user.id === id);
 
-      if (pos !== -1 && !banLife) {
+      if (pos >= 0 && !banLife) {
         state.regularUser[pos] = {
           user: { ...data, restrictedGroups: [] },
           role: ROLE.REGULAR_USER,
@@ -662,7 +668,7 @@ export const GroupSlice = createSlice({
       if (role === ROLE.CHAT_ADMIN) {
         const index = state.chatAdmin.findIndex((user) => user.user.id === id);
 
-        if (index !== -1) {
+        if (index >= 0) {
           state.chatAdmin.splice(index, 1);
         }
       } else {
@@ -670,7 +676,7 @@ export const GroupSlice = createSlice({
           (user) => user.user.id === id
         );
 
-        if (index !== -1) {
+        if (index >= 0) {
           state.regularUser.splice(index, 1);
         }
       }
@@ -680,7 +686,7 @@ export const GroupSlice = createSlice({
           (user) => user.user.id === id
         );
 
-        if (index !== -1) {
+        if (index >= 0) {
           state.restrictedUser.splice(index, 1);
         }
       }
@@ -692,7 +698,7 @@ export const GroupSlice = createSlice({
         (chatroom) => chatroom.id === chatroomId
       );
 
-      if (index !== -1) {
+      if (index >= 0) {
         state.groupChatroom.splice(index, 1);
 
         if (state.currentGroupChatroomId !== chatroomId) return;
@@ -711,7 +717,7 @@ export const GroupSlice = createSlice({
         (group) => group.id === action.payload.id
       );
 
-      if (index === -1) {
+      if (index < 0) {
         state.joinableGroup.push(action.payload);
         return;
       }
@@ -726,7 +732,7 @@ export const GroupSlice = createSlice({
         (data) => data.chatroom.id === id
       );
 
-      if (index === -1) {
+      if (index < 0) {
         state.numbersOfGroupInvitation++;
         state.groupInvitation.push(action.payload);
         return;
@@ -764,7 +770,7 @@ export const GroupSlice = createSlice({
         (data) => data.chatroom.id === chatroomId
       );
 
-      if (index !== -1) {
+      if (index >= 0) {
         state.groupInvitation.splice(index, 1);
         state.numbersOfGroupInvitation--;
       }

@@ -71,7 +71,7 @@ const PongSlice = createSlice({
         (user) => user.id === action.payload.id
       );
 
-      if (index === -1) state.users.push(action.payload);
+      if (index < 0) state.users.push(action.payload);
     },
   },
 });

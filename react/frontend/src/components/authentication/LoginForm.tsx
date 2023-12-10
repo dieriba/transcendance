@@ -61,8 +61,6 @@ const LoginForm = () => {
       );
       const parse = await ResponseLoginSchema.safeParseAsync(result.data);
 
-      console.log({ twoFaParse });
-
       if (twoFaParse.success) {
         dispatch(setTwoFaId((result.data as ResponseTwoFaLoginType).id));
         navigate(PATH_APP.auth.twoFa);

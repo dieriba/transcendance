@@ -59,7 +59,7 @@ export const ChatSlice = createSlice({
 
       const index = state.chatableUsers.findIndex((user) => user.id === id);
 
-      if (index === -1) {
+      if (index < 0) {
         state.chatableUsers.unshift(action.payload);
       }
     },
@@ -77,9 +77,7 @@ export const ChatSlice = createSlice({
           (chatroom) => chatroom.id === action.payload.id
         );
 
-        console.log({ index });
-
-        if (index === -1) {
+        if (index < 0) {
           state.privateChatroom.unshift(action.payload);
           return;
         }
@@ -96,7 +94,7 @@ export const ChatSlice = createSlice({
           (chatroom) => chatroom.users[0].user.id === id
         );
 
-        if (index !== -1) {
+        if (index >= 0) {
           state.privateChatroom.splice(index, 1);
           if (state.currentChatroom?.users[0].user.id === id) {
             state.currentChatroom = undefined;
@@ -110,7 +108,7 @@ export const ChatSlice = createSlice({
           (chatroom) => chatroom.id === id
         );
 
-        if (index !== -1) {
+        if (index >= 0) {
           state.privateChatroom.splice(index, 1);
           if (state.currentChatroom?.id === id) {
             state.currentChatroom = undefined;
@@ -127,7 +125,7 @@ export const ChatSlice = createSlice({
         (chatroom) => chatroom.id === message.chatroomId
       );
 
-      if (indexToRemove === -1) return;
+      if (indexToRemove < 0) return;
 
       state.privateChatroom[indexToRemove].messages[0] = message;
 
@@ -156,7 +154,7 @@ export const ChatSlice = createSlice({
         (chatroom) => chatroom.users[0].user.id === id
       );
 
-      if (index !== -1) {
+      if (index >= 0) {
         if ("nickname" in action.payload) {
           state.privateChatroom[index].users[0].user.nickname =
             action.payload.nickname;

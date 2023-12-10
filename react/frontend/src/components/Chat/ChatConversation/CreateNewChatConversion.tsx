@@ -110,8 +110,6 @@ const CreateNewChatConversation = ({
       dispatch(setPrivateChatroomId(data.id));
       handleClose();
     } catch (error) {
-      console.log({ error });
-
       setSeverity("error");
       setMessage((error as BaseServerResponse).message);
       setOpenSnack(true);

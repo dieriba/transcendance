@@ -71,13 +71,25 @@ export const FriendsSlice = createSlice({
       state,
       action: PayloadAction<FriendReceivedRequestType>
     ) => {
-      state.receivedFriendsRequest.push(action.payload);
+      const index = state.receivedFriendsRequest.findIndex(
+        (friend) => friend.sender.id === action.payload.sender.id
+      );
+
+      if (index < 0) {
+        state.receivedFriendsRequest.push(action.payload);
+      }
     },
     addNewFriendRequestSent: (
       state,
       action: PayloadAction<FriendSentRequestType>
     ) => {
-      state.sentFriendsRequest.push(action.payload);
+      const index = state.sentFriendsRequest.findIndex(
+        (friend) => friend.recipient.id === action.payload.recipient.id
+      );
+
+      if (index < 0) {
+        state.sentFriendsRequest.push(action.payload);
+      }
     },
     deleteReceivedFriendRequest: (
       state,
@@ -96,7 +108,7 @@ export const FriendsSlice = createSlice({
       const { id } = action.payload;
       const index = state.blockedUser.findIndex((user) => user.id === id);
 
-      if (index !== -1) {
+      if (index < 0) {
         state.blockedUser.unshift(action.payload);
       }
     },
@@ -105,12 +117,18 @@ export const FriendsSlice = createSlice({
         (user) => user.id === action.payload
       );
 
-      if (index !== -1) {
+      if (index >= 0) {
         state.blockedUser.splice(index, 1);
       }
     },
     addFriend: (state, action: PayloadAction<FriendType>) => {
-      state.friends.push(action.payload);
+      const index = state.friends.findIndex(
+        (friend) => friend.friend.id === action.payload.friend.id
+      );
+
+      if (index < 0) {
+        state.friends.push(action.payload);
+      }
     },
     deleteFriend: (state, action: PayloadAction<BaseFriendType>) => {
       state.friends = state.friends.filter(
@@ -135,7 +153,7 @@ export const FriendsSlice = createSlice({
           (friend) => friend.friend.id === id
         );
 
-        if (index !== -1) {
+        if (index >= 0) {
           state.friends[index].friend.nickname = nickname;
         }
       } else if (page === "RECEIVED") {
@@ -143,7 +161,7 @@ export const FriendsSlice = createSlice({
           (friend) => friend.sender.id === id
         );
 
-        if (index !== -1) {
+        if (index >= 0) {
           state.receivedFriendsRequest[index].sender.nickname = nickname;
         }
       } else if (page === "SENT") {
@@ -151,13 +169,13 @@ export const FriendsSlice = createSlice({
           (friend) => friend.recipient.id === id
         );
 
-        if (index !== -1) {
+        if (index >= 0) {
           state.sentFriendsRequest[index].recipient.nickname = nickname;
         }
       } else {
         const index = state.blockedUser.findIndex((friend) => friend.id === id);
 
-        if (index !== -1) {
+        if (index >= 0) {
           state.blockedUser[index].nickname = nickname;
         }
       }
@@ -170,7 +188,7 @@ export const FriendsSlice = createSlice({
           (friend) => friend.friend.id === id
         );
 
-        if (index !== -1) {
+        if (index >= 0) {
           state.friends[index].friend.profile.avatar = avatar;
         }
       } else if (page === "RECEIVED") {
@@ -178,7 +196,7 @@ export const FriendsSlice = createSlice({
           (friend) => friend.sender.id === id
         );
 
-        if (index !== -1) {
+        if (index >= 0) {
           state.receivedFriendsRequest[index].sender.profile.avatar = avatar;
         }
       } else if (page === "SENT") {
@@ -186,13 +204,13 @@ export const FriendsSlice = createSlice({
           (friend) => friend.recipient.id === id
         );
 
-        if (index !== -1) {
+        if (index >= 0) {
           state.sentFriendsRequest[index].recipient.profile.avatar = avatar;
         }
       } else {
         const index = state.blockedUser.findIndex((friend) => friend.id === id);
 
-        if (index !== -1) {
+        if (index >= 0) {
           state.blockedUser[index].profile.avatar = avatar;
         }
       }
