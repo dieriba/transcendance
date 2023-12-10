@@ -6,7 +6,10 @@ import {
   Typography,
 } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
-import { useDisconnectAllExceptMeMutation, useOauthQuery } from "../../redux/features/user/user.api.slice";
+import {
+  useDisconnectAllExceptMeMutation,
+  useOauthQuery,
+} from "../../redux/features/user/user.api.slice";
 import { useQuery } from "../../hooks/useQuery";
 import { useAppDispatch } from "../../redux/hooks";
 import {
@@ -56,7 +59,7 @@ const OauthPage = () => {
     if (data) {
       login(data.data);
     }
-  }, [data, dispatch, navigate]);
+  }, [data, dispatch, navigate, disconnectAllInstanceExceptMe]);
 
   if (isFetching || isLoading) {
     return (

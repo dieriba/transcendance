@@ -1,7 +1,8 @@
 import { z } from "zod";
-import { BaseUserSchema, UserSchema } from "./UserSchema";
+import { UserSchema } from "./UserSchema";
 import { AccessTokenSchema } from "./AccessTokenSchema";
 import { ProfileSchema } from "../ProfileFormSchema";
+import { BaseSchema } from "../BaseType";
 
 export const ResponseLoginSchema = AccessTokenSchema.extend({
   user: UserSchema.extend({ profile: ProfileSchema }),
@@ -9,7 +10,7 @@ export const ResponseLoginSchema = AccessTokenSchema.extend({
 
 export type ResponseLoginType = z.infer<typeof ResponseLoginSchema>;
 
-export const ResponseTwoFaLoginSchema = BaseUserSchema.extend({
+export const ResponseTwoFaLoginSchema = BaseSchema.extend({
   twoFa: z.boolean(),
 });
 
