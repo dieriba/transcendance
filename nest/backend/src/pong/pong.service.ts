@@ -464,15 +464,16 @@ export class PongService {
 
   private deleteGameRoomByIndex(index: number, server?: Server) {
     const { getSocketIds, getGameId } = this.games[index];
+    if (this.games[index]) {
+      if (server) {
+        getSocketIds.map((id) => {
+          const socket = this.libService.getSocket(server, id);
 
-    if (server) {
-      getSocketIds.map((id) => {
-        const socket = this.libService.getSocket(server, id);
+          socket?.leave(getGameId);
+        });
+      }
 
-        socket?.leave(getGameId);
-      });
+      this.games.splice(index, 1);
     }
-
-    this.games.splice(index, 1);
   }
 }
