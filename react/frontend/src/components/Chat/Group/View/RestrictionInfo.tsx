@@ -41,6 +41,8 @@ const RestrictionInfo = ({
           value={restrictionInfo.reason}
           disabled
           fullWidth
+          multiline
+          maxRows={4}
         />
         <TextField
           label={"Restriction time start"}
