@@ -10,6 +10,9 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { RESTRICTION, ROLE, TYPE } from '@prisma/client';
 import { UserData } from 'src/common/types/user-info.type';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
+import { ChatroomIdWithUserIdDto } from './dto/chatroom.dto';
+import { ChatRoomNotFoundException } from './exception/chatroom-not-found.exception';
+import { FORBIDDEN } from 'src/common/constant/http-error.constant';
 
 @Injectable()
 export class ChatService {
@@ -490,5 +493,73 @@ export class ChatService {
     });
 
     return restrictedUser;
+  }
+
+  async getRestrictionDetatil(
+    userId: string,
+    chatroomIdWithUserIdDto: ChatroomIdWithUserIdDto,
+  ) {
+    const { id, chatroomId } = chatroomIdWithUserIdDto;
+    const [me, restrictedUser] = await Promise.all([
+      this.prismaService.user.findFirst({
+        where: { id: userId },
+        select: {
+          chatrooms: {
+            where: {
+              chatroomId,
+            },
+            select: {
+              role: true,
+            },
+          },
+        },
+      }),
+      this.prismaService.user.findFirst({
+        where: { id },
+        select: {
+          restrictedGroups: {
+            where: {
+              chatroomId,
+              restrictionTimeEnd: {
+                gt: new Date(),
+              },
+            },
+            select: {
+              admin: {
+                select: {
+                  user: {
+                    select: {
+                      nickname: true,
+                    },
+                  },
+                  role: true,
+                },
+              },
+              reason: true,
+              restriction: true,
+              restrictionTimeEnd: true,
+              restrictionTimeStart: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    if (!me || !restrictedUser) throw new UserNotFoundException();
+
+    if (me.chatrooms.length === 0) throw new ChatRoomNotFoundException();
+
+    const chatroomUser = me.chatrooms[0];
+
+    if (chatroomUser.role === ROLE.REGULAR_USER)
+      throw new CustomException(FORBIDDEN, HttpStatus.FORBIDDEN);
+
+    if (restrictedUser.restrictedGroups.length === 0)
+      throw new CustomException(
+        'User is not restricted',
+        HttpStatus.BAD_REQUEST,
+      );
+
+    return restrictedUser.restrictedGroups[0];
   }
 }

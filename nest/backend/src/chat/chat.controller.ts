@@ -1,14 +1,17 @@
 import {
+  Body,
   Controller,
   Get,
   HttpCode,
   HttpStatus,
+  Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
 import { GetUser } from 'src/common/custom-decorator/get-user.decorator';
 import { ChatService } from './chat.service';
 import { IsRestrictedUserGuardHttp } from './guards/is-restricted-user.guard.http';
+import { ChatroomIdWithUserIdDto } from './dto/chatroom.dto';
 
 @Controller('chat')
 export class ChatController {
@@ -42,7 +45,6 @@ export class ChatController {
     return await this.chatService.getAllInvitedUser(userId, chatroomId);
   }
 
-  @HttpCode(HttpStatus.OK)
   @UseGuards(IsRestrictedUserGuardHttp)
   @Get('get-all-user-chatroom')
   async getAllUserInChatroom(
@@ -52,7 +54,6 @@ export class ChatController {
     return await this.chatService.getAllUserInChatroom(userId, chatroomId);
   }
 
-  @HttpCode(HttpStatus.OK)
   @Get('get-all-chatroom-message')
   async getAllChatroomMessage(
     @GetUser('userId') userId: string,
@@ -61,12 +62,23 @@ export class ChatController {
     return await this.chatService.getAllChatroomMessage(userId, chatroomId);
   }
 
-  @HttpCode(HttpStatus.OK)
   @Get('get-all-restricted-user')
   async getAllRestrictedUser(
     @GetUser('userId') userId: string,
     @Query('chatroomId') chatroomId: string,
   ) {
     return await this.chatService.getAllRestrictedUser(userId, chatroomId);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('get-restriction-detail')
+  async getRestrictionDetatil(
+    @GetUser('userId') userId: string,
+    @Body() chatroomIdWithUserIdDto: ChatroomIdWithUserIdDto,
+  ) {
+    return await this.chatService.getRestrictionDetatil(
+      userId,
+      chatroomIdWithUserIdDto,
+    );
   }
 }

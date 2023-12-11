@@ -14,6 +14,7 @@ import { ChatRoleType } from "../../../../models/type-enum/typesEnum";
 import { useTheme } from "@mui/material/styles";
 import {
   useGetAllRestrictedUserQuery,
+  useGetRestrictionInfoMutation,
   useUnrestrictUserMutation,
 } from "../../../../redux/features/groups/group.api.slice";
 import { useAppDispatch, useAppSelector } from "../../../../redux/hooks";
@@ -22,6 +23,15 @@ import {
   unrestrictUser,
 } from "../../../../redux/features/groups/group.slice";
 import { RootState } from "../../../../redux/store";
+import {
+  BaseChatroomWithUserIdType,
+  RestrictedGroupType,
+} from "../../../../models/groupChat";
+import {
+  isFetchBaseQueryError,
+  isErrorWithMessage,
+} from "../../../../services/helpers";
+import RestrictionInfo from "./RestrictionInfo";
 interface UnrestrictUserProps {
   open: boolean;
   nickname: string;
@@ -42,6 +52,9 @@ const UnRestrictUser = ({
     }
   );
   const theme = useTheme();
+  const [restrict, setRestrict] = useState<
+    (RestrictedGroupType & { nickname: string }) | undefined
+  >(undefined);
   const [message, setMessage] = useState("");
   const [severity, setSeverity] = useState<AlertColor>("success");
   const [openSnack, setOpenSnack] = useState(false);
@@ -64,10 +77,38 @@ const UnRestrictUser = ({
   }, [data, dispatch]);
 
   const [UnrestrictUser, unrestrictedUserAction] = useUnrestrictUserMutation();
+  const [getRestrictionInfo, restrictionInfoAction] =
+    useGetRestrictionInfoMutation();
 
   const restrictedUsers = useAppSelector(
     (state: RootState) => state.groups.restrictedUser
   );
+
+  const handleGetRestrictionInfo = async (
+    restriction: BaseChatroomWithUserIdType,
+    nickname: string
+  ) => {
+    try {
+      const res = await getRestrictionInfo(restriction).unwrap();
+      setRestrict({ ...res.data, nickname });
+    } catch (error) {
+      if (isFetchBaseQueryError(error)) {
+        if (
+          error.data &&
+          typeof error.data === "object" &&
+          "message" in error.data
+        ) {
+          setMessage(error.data.message as string);
+        } else {
+          setMessage("An error has occured, please try again later!");
+        }
+      } else if (isErrorWithMessage(error)) {
+        setMessage(error.message);
+      }
+      setSeverity("error");
+      setOpenSnack(true);
+    }
+  };
 
   const handleSubmit = async (id: string) => {
     try {
@@ -77,8 +118,8 @@ const UnRestrictUser = ({
       setOpenSnack(true);
       setSeverity("success");
     } catch (error) {
-      setSeverity("error");
       setMessage((error as SocketServerErrorResponse).message);
+      setSeverity("error");
       setOpenSnack(true);
     }
   };
@@ -135,7 +176,20 @@ const UnRestrictUser = ({
                       justifyContent="space-between"
                     >
                       <Typography>{user.user.nickname}</Typography>
-                      <Button variant="contained" color="inherit">
+                      <Button
+                        onClick={() => {
+                          handleGetRestrictionInfo(
+                            {
+                              chatroomId,
+                              id: user.user.id,
+                            },
+                            user.user.nickname
+                          );
+                        }}
+                        disabled={restrictionInfoAction.isLoading}
+                        variant="contained"
+                        color="inherit"
+                      >
                         Restriction Info
                       </Button>
                       <Button
@@ -153,6 +207,15 @@ const UnRestrictUser = ({
             </Stack>
           </DialogContent>
         </DialogI>
+        {restrict && (
+          <RestrictionInfo
+            open={restrict ? true : false}
+            restrictionInfo={restrict}
+            handleClose={() => {
+              setRestrict(undefined);
+            }}
+          />
+        )}
       </>
     );
   }

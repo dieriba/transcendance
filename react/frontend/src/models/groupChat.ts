@@ -85,7 +85,7 @@ export type GroupInvitation = z.infer<typeof GroupInvitation>;
 
 export const RestrictedUserInGroupSchema = z.object({
   restriction: z.enum(restrictionType),
-  restrictionTimeEnd: z.date(),
+  restrictionTimeEnd: z.string(),
   reason: z.string().min(1),
   banLife: z.boolean().optional(),
   admin: z.object({
@@ -138,7 +138,8 @@ export const RestrictedGroupSchema = z.object({
   }),
   reason: z.string().min(1),
   restriction: z.string().min(1),
-  restrictionTimeEnd: z.date(),
+  restrictionTimeStart: z.string(),
+  restrictionTimeEnd: z.string(),
 });
 
 export type RestrictedGroupType = z.infer<typeof RestrictedGroupSchema>;

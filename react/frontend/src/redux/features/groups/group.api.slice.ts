@@ -6,6 +6,7 @@ import {
   InviteUserToGroupType,
   InvitedUserType,
   RestrictUserType,
+  RestrictedGroupType,
   SetNewRoleType,
   UserGroupType,
   UserNewRoleResponseType,
@@ -479,6 +480,16 @@ export const GroupApiSlice = apiSlice.injectEndpoints({
         url: `chat/get-all-restricted-user?chatroomId=${chatroomId}`,
       }),
     }),
+    getRestrictionInfo: builder.mutation<
+      BaseServerResponse & { data: RestrictedGroupType },
+      BaseChatroomWithUserIdType
+    >({
+      query: (data) => ({
+        url: "chat/get-restriction-detail",
+        body: data,
+        method: "POST",
+      }),
+    }),
   }),
 
   overrideExisting: false,
@@ -508,4 +519,5 @@ export const {
   useCancelGroupInvitationMutation,
   useGetAllInvitedUserQuery,
   useDeclineGroupInvitationMutation,
+  useGetRestrictionInfoMutation,
 } = GroupApiSlice;
