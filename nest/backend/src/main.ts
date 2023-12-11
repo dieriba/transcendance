@@ -23,7 +23,6 @@ async function bootstrap() {
     }),
   );
 
-  app.use(helmet({ crossOriginResourcePolicy: false }));
   app.useWebSocketAdapter(new SocketIOAdapter(app));
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalFilters(

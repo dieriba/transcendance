@@ -234,22 +234,4 @@ export class UserService {
 
     return foundUsers;
   }
-
-  async getExistingUserFriendArr(
-    userId: string,
-    usersId: string[],
-    select: UserInfo,
-  ) {
-    const foundUsers = await this.prismaService.user.findMany({
-      where: {
-        id: {
-          in: usersId,
-        },
-        friends: { some: { friendId: userId } },
-      },
-      select,
-    });
-
-    return foundUsers.map((user) => user.id);
-  }
 }

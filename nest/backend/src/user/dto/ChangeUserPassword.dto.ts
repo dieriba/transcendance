@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
 import {
   ERR_MSG_MAXIMUM_PASSWORD_LENGTH,
   ERR_MSG_MINIMUM_PASSWORD_LENGTH,
@@ -16,7 +16,7 @@ export class ChangeUserPasswordDto {
   @ApiProperty()
   @IsString()
   @MinLength(MIN_PASSWORD_LENGTH, { message: ERR_MSG_MINIMUM_PASSWORD_LENGTH })
-  @MinLength(MAX_PASSWORD_LENGTH, { message: ERR_MSG_MAXIMUM_PASSWORD_LENGTH })
+  @MaxLength(MAX_PASSWORD_LENGTH, { message: ERR_MSG_MAXIMUM_PASSWORD_LENGTH })
   @NotMatch('currentPassword', {
     message: 'New password must be different from the old one',
   })

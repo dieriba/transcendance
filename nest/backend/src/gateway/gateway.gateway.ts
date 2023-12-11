@@ -354,7 +354,26 @@ export class GatewayGateway {
     const { chatroomName } = chatroom;
     const { userId } = client;
 
-    const user = await this.userService.findUserById(client.userId, UserData);
+    const friendsArr = users ?? [];
+
+    const user = await this.prismaService.user.findFirst({
+      where: {
+        id: userId,
+      },
+      select: {
+        nickname: true,
+        friends: {
+          where: {
+            friendId: {
+              in: friendsArr,
+            },
+          },
+          select: {
+            friendId: true,
+          },
+        },
+      },
+    });
 
     if (!user) throw new WsUserNotFoundException();
 
@@ -371,11 +390,7 @@ export class GatewayGateway {
         `The chatroom name: ${chatroomName} is already taken`,
       );
 
-    const existingUserId = await this.userService.getExistingUserFriendArr(
-      userId,
-      users,
-      UserId,
-    );
+    const existingUserId = user.friends.map((friend) => friend.friendId);
 
     existingUserId.push(userId);
 
@@ -998,7 +1013,13 @@ export class GatewayGateway {
 
     const [chatroomUser, restrictedUser] = await Promise.all([
       this.chatroomUserService.findChatroomUser(chatroomId, id),
-      this.prismaService.restrictedUser.findFirst({ where: { userId: id } }),
+      this.prismaService.restrictedUser.findFirst({
+        where: {
+          userId: id,
+          chatroomId,
+          restrictionTimeEnd: { gt: new Date() },
+        },
+      }),
     ]);
 
     if (!chatroomUser)
@@ -1006,9 +1027,7 @@ export class GatewayGateway {
         'That user do not belong to that group or chatroom does not exist',
       );
 
-    const now = new Date();
-
-    if (restrictedUser && restrictedUser.restrictionTimeEnd > now)
+    if (restrictedUser)
       throw new WsBadRequestException(
         "Can't set as DIERIBA someone that is currently on a restriction, please remove the restriction first",
       );
@@ -2035,6 +2054,8 @@ export class GatewayGateway {
         'Chat does not exist or user is not part of that chat',
       );
 
+    console.log({ chatroom });
+
     this.libService.sendToSocket(
       this.server,
       client.userId,
@@ -2086,6 +2107,8 @@ export class GatewayGateway {
                 profile: {
                   select: {
                     avatar: true,
+                    lastname: true,
+                    firstname: true,
                   },
                 },
               },
