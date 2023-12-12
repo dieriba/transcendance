@@ -36,8 +36,8 @@ import {
 } from "../../models/login/ResponseLogin";
 import { useNavigate } from "react-router-dom";
 import { PATH_APP } from "../../routes/paths";
-import CustomAlert from "../Alert/CustomAlert";
 import { setMyId } from "../../redux/features/groups/group.slice";
+import { showSnackBar } from "../../redux/features/app/app.slice";
 
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -48,9 +48,8 @@ const LoginForm = () => {
   const { handleSubmit, control } = methods;
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const [login, { isLoading, error, reset }] = useLoginMutation();
+  const [login, { isLoading }] = useLoginMutation();
   const [disconnectAllInstanceExceptMe] = useDisconnectAllExceptMeMutation();
-  const [errMsg, setErrMsg] = useState("");
 
   const onSubmit = async (data: LoginFormType) => {
     try {
@@ -68,7 +67,12 @@ const LoginForm = () => {
       }
 
       if (!parse.success) {
-        setErrMsg("An error has occured, please try again later!");
+        dispatch(
+          showSnackBar({
+            message: "An error has occured, please try again later!",
+            severity: "error",
+          })
+        );
       } else {
         const data = parse.data;
         dispatch(authenticateUser(data));
@@ -80,12 +84,34 @@ const LoginForm = () => {
     } catch (err) {
       if (isFetchBaseQueryError(err)) {
         if (err.data && typeof err.data === "object" && "message" in err.data) {
-          setErrMsg(err.data.message as string);
+          dispatch(
+            showSnackBar({
+              message: err.data.message as string,
+              severity: "error",
+            })
+          );
         } else {
-          setErrMsg("An error has occured, please try again later!");
+          dispatch(
+            showSnackBar({
+              message: "An error has occured, please try again later!",
+              severity: "error",
+            })
+          );
         }
       } else if (isErrorWithMessage(err)) {
-        setErrMsg(err.message);
+        dispatch(
+          showSnackBar({
+            message: err.message,
+            severity: "error",
+          })
+        );
+      } else {
+        dispatch(
+          showSnackBar({
+            message: "An error has occured, please try again later!",
+            severity: "error",
+          })
+        );
       }
     }
   };
@@ -96,16 +122,6 @@ const LoginForm = () => {
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={3}>
-          {(error || errMsg.length > 0) && (
-            <>
-              <CustomAlert
-                severity="error"
-                reset={reset}
-                setMsg={setErrMsg}
-                msg={errMsg}
-              />
-            </>
-          )}
           <RHFTextField name="email" label="Email" control={control} />
 
           <Controller
