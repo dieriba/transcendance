@@ -1,10 +1,4 @@
-import {
-  Box,
-  Button,
-  CircularProgress,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Box, CircularProgress, Stack, Typography } from "@mui/material";
 import StackChatCompo from "../StackChatCompo";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { useEffect, useRef } from "react";
@@ -42,6 +36,7 @@ import {
   UpdatedAvatarRes,
   UserUpdated,
 } from "../../../models/login/UserSchema";
+
 export interface GroupConversationBodyProps {
   id: string;
   incoming: boolean;
@@ -60,7 +55,6 @@ const GroupConversationBody = () => {
     },
     { refetchOnMountOrArgChange: true }
   );
-
   const dispatch = useAppDispatch();
   useEffect(() => {
     if (data?.data) {
@@ -284,15 +278,12 @@ const GroupConversationBody = () => {
       <Box
         width="100%"
         sx={{ flexGrow: 1, height: "100%", overflowY: "scroll" }}
-        p={3}
+        p={4}
       >
         <Stack alignItems="center" height="100%" justifyContent="center">
           <Typography>
             {(error as SocketServerErrorResponse).message}
           </Typography>
-          <Button variant="contained" color="inherit">
-            Leave Group?
-          </Button>
         </Stack>
       </Box>
     );

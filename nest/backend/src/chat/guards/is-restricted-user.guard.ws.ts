@@ -9,7 +9,7 @@ import { RESTRICTION, ROLE } from '@prisma/client';
 import { RequestWithAuth } from 'src/auth/type';
 import {
   WsBadRequestException,
-  WsNotFoundException,
+  WsChatroomNotFoundException,
   WsUnauthorizedException,
   WsUserNotFoundException,
 } from 'src/common/custom-exception/ws-exception';
@@ -17,13 +17,13 @@ import { LibService } from 'src/lib/lib.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
-export class IsRestrictedUserGuard implements CanActivate {
+export class IsRestrictedUserGuardWs implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly libService: LibService,
     private readonly prismaService: PrismaService,
   ) {}
-  private readonly logger = new Logger(IsRestrictedUserGuard.name);
+  private readonly logger = new Logger(IsRestrictedUserGuardWs.name);
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const client: RequestWithAuth = context.switchToWs().getClient();
 
@@ -40,64 +40,52 @@ export class IsRestrictedUserGuard implements CanActivate {
         'chatroomId property must be an non empty string',
       );
     }
-
-    const user = await this.prismaService.user.findFirst({
-      where: {
-        id: userId,
-      },
-      select: {
-        chatrooms: {
-          where: {
-            chatroomId,
-          },
-          select: {
-            chatroom: {
-              select: {
-                restrictedUsers: {
-                  where: {
-                    userId,
-                    restrictionTimeEnd: {
-                      gt: new Date(),
-                    },
-                  },
-                  select: {
-                    restriction: true,
-                    restrictionTimeEnd: true,
-                    restrictionTimeStart: true,
-                  },
-                },
-                users: {
-                  where: {
-                    role: ROLE.DIERIBA,
-                  },
-                  select: {
-                    user: {
-                      select: {
-                        nickname: true,
-                        blockedUsers: {
-                          where: {
-                            id: userId,
-                          },
-                        },
-                      },
+    const [user, chatroom] = await Promise.all([
+      this.prismaService.user.findFirst({
+        where: {
+          id: userId,
+        },
+      }),
+      this.prismaService.chatroom.findFirst({
+        where: { id: chatroomId },
+        select: {
+          users: {
+            where: {
+              role: ROLE.DIERIBA,
+            },
+            select: {
+              user: {
+                select: {
+                  nickname: true,
+                  blockedUsers: {
+                    where: {
+                      id: userId,
                     },
                   },
                 },
               },
             },
           },
+          restrictedUsers: {
+            where: {
+              userId,
+              restrictionTimeEnd: {
+                gt: new Date(),
+              },
+            },
+            select: {
+              restriction: true,
+              restrictionTimeEnd: true,
+              restrictionTimeStart: true,
+            },
+          },
         },
-      },
-    });
+      }),
+    ]);
 
     if (!user) throw new WsUserNotFoundException();
 
-    const { chatrooms } = user;
-
-    if (chatrooms.length === 0)
-      throw new WsNotFoundException('Chatroom doest not exist');
-
-    const chatroom = chatrooms[0].chatroom;
+    if (!chatroom) throw new WsChatroomNotFoundException();
 
     if (chatroom.users.length && chatroom.users[0].user.blockedUsers.length)
       throw new WsUnauthorizedException(
@@ -106,7 +94,7 @@ export class IsRestrictedUserGuard implements CanActivate {
 
     const localTimeOptions = { hour12: false };
 
-    if (chatroom.restrictedUsers.length === 0) {
+    if (chatroom.restrictedUsers.length) {
       const restrictedUser = chatroom.restrictedUsers[0];
       if (isChat && restrictedUser.restriction === RESTRICTION.MUTED) {
         throw new WsUnauthorizedException(

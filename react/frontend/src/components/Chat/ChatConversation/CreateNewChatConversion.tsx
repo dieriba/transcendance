@@ -24,7 +24,7 @@ import {
   useGetAllChatableUserQuery,
 } from "../../../redux/features/chat/chats.api.slice";
 import {
-  BaseServerResponse,
+  SocketServerErrorResponse,
   SocketServerSucessResponse,
 } from "../../../services/type";
 import DialogI from "../../Dialog/DialogI";
@@ -99,6 +99,7 @@ const CreateNewChatConversation = ({
       const chatroom = privateChatroom.find(
         (chatroom) => chatroom.users[0].user.id === userId
       );
+      console.log({ data });
 
       if (chatroom) {
         dispatch(setPrivateChatroomId(chatroom.id));
@@ -111,7 +112,7 @@ const CreateNewChatConversation = ({
       handleClose();
     } catch (error) {
       setSeverity("error");
-      setMessage((error as BaseServerResponse).message);
+      setMessage((error as SocketServerErrorResponse).message);
       setOpenSnack(true);
     }
   };

@@ -9,7 +9,6 @@ import { Reflector } from '@nestjs/core';
 import { RESTRICTION, ROLE } from '@prisma/client';
 import { RequestWithAuth } from 'src/auth/type';
 import { CustomException } from 'src/common/custom-exception/custom-exception';
-import { WsUnauthorizedException } from 'src/common/custom-exception/ws-exception';
 import { LibService } from 'src/lib/lib.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ChatRoomNotFoundException } from '../exception/chatroom-not-found.exception';
@@ -22,7 +21,9 @@ export class IsRestrictedUserGuardHttp implements CanActivate {
     private readonly libService: LibService,
     private readonly prismaService: PrismaService,
   ) {}
+
   private readonly logger = new Logger(IsRestrictedUserGuardHttp.name);
+
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: RequestWithAuth = context.switchToHttp().getRequest();
 
@@ -45,99 +46,92 @@ export class IsRestrictedUserGuardHttp implements CanActivate {
         );
       }
     }
-
-    const user = await this.prismaService.user.findFirst({
-      where: {
-        id: userId,
-      },
-      select: {
-        chatrooms: {
-          where: {
-            chatroomId,
-          },
-          select: {
-            chatroom: {
-              select: {
-                restrictedUsers: {
-                  where: {
-                    userId,
-                    restrictionTimeEnd: {
-                      gt: new Date(),
-                    },
-                  },
-                  select: {
-                    restriction: true,
-                    restrictionTimeEnd: true,
-                    restrictionTimeStart: true,
-                  },
-                },
-                users: {
-                  where: {
-                    role: ROLE.DIERIBA,
-                  },
-                  select: {
-                    user: {
-                      select: {
-                        nickname: true,
-                        blockedUsers: {
-                          where: {
-                            id: userId,
-                          },
-                        },
-                      },
+    const [user, chatroom] = await Promise.all([
+      this.prismaService.user.findFirst({
+        where: {
+          id: userId,
+        },
+      }),
+      this.prismaService.chatroom.findFirst({
+        where: { id: chatroomId },
+        select: {
+          users: {
+            where: {
+              role: ROLE.DIERIBA,
+            },
+            select: {
+              user: {
+                select: {
+                  nickname: true,
+                  blockedUsers: {
+                    where: {
+                      id: userId,
                     },
                   },
                 },
               },
             },
           },
+          restrictedUsers: {
+            where: {
+              userId,
+              restrictionTimeEnd: {
+                gt: new Date(),
+              },
+            },
+            select: {
+              restriction: true,
+              restrictionTimeEnd: true,
+              restrictionTimeStart: true,
+            },
+          },
         },
-      },
-    });
+      }),
+    ]);
 
     if (!user) throw new UserNotFoundException();
 
-    const { chatrooms } = user;
-
-    if (chatrooms.length === 0) throw new ChatRoomNotFoundException();
-
-    const chatroom = chatrooms[0].chatroom;
+    if (!chatroom) throw new ChatRoomNotFoundException();
 
     if (chatroom.users.length && chatroom.users[0].user.blockedUsers.length)
-      throw new WsUnauthorizedException(
+      throw new CustomException(
         `${chatroom.users[0].user.nickname} blocked you, so you can't join that group`,
+        HttpStatus.FORBIDDEN,
       );
 
     const localTimeOptions = { hour12: false };
 
-    if (chatroom.restrictedUsers.length === 0) {
+    if (chatroom.restrictedUsers.length) {
       const restrictedUser = chatroom.restrictedUsers[0];
       if (isChat && restrictedUser.restriction === RESTRICTION.MUTED) {
-        throw new WsUnauthorizedException(
+        throw new CustomException(
           `You are muted until: ${restrictedUser.restrictionTimeEnd.toLocaleDateString(
             'fr-FR',
           )} ${restrictedUser.restrictionTimeEnd.toLocaleTimeString(
             'fr-FR',
             localTimeOptions,
           )}`,
+          HttpStatus.FORBIDDEN,
         );
       } else if (restrictedUser.restriction === RESTRICTION.KICKED)
-        throw new WsUnauthorizedException(
+        throw new CustomException(
           `You are Kicked from that room until: ${restrictedUser.restrictionTimeEnd.toLocaleDateString(
             'fr-FR',
           )} ${restrictedUser.restrictionTimeEnd.toLocaleTimeString(
             'fr-FR',
             localTimeOptions,
           )}`,
+          HttpStatus.FORBIDDEN,
         );
       else if (restrictedUser.restriction === RESTRICTION.BANNED) {
-        throw new WsUnauthorizedException(
+        throw new CustomException(
           `You are Banned from that room until: ${restrictedUser.restrictionTimeEnd.toLocaleDateString(
             'fr-FR',
           )} ${restrictedUser.restrictionTimeEnd.toLocaleTimeString(
             'fr-FR',
             localTimeOptions,
           )}`,
+          HttpStatus.FORBIDDEN,
         );
       }
     }

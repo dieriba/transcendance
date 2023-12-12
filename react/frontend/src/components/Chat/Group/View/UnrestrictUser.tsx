@@ -92,6 +92,8 @@ const UnRestrictUser = ({
       const res = await getRestrictionInfo(restriction).unwrap();
       setRestrict({ ...res.data, nickname });
     } catch (error) {
+      console.log(error);
+
       if (isFetchBaseQueryError(error)) {
         if (
           error.data &&
@@ -113,7 +115,9 @@ const UnRestrictUser = ({
   const handleSubmit = async (id: string) => {
     try {
       const res = await UnrestrictUser({ id, chatroomId }).unwrap();
+
       dispatch(unrestrictUser({ data: res.data, chatroomId }));
+
       setMessage(res.message);
       setOpenSnack(true);
       setSeverity("success");

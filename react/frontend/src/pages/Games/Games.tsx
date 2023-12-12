@@ -113,9 +113,6 @@ const Games = () => {
           >
             Join Special Queue
           </Button>
-          <Button variant="contained" color="inherit">
-            Spectate a game
-          </Button>
         </Stack>
       </Stack>
       {open.queue && (

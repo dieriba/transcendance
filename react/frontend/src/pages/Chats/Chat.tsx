@@ -10,6 +10,7 @@ import { useTheme } from "@mui/material/styles";
 import { useAppDispatch } from "../../redux/hooks";
 import {
   addNewChatroom,
+  deleteChatroomById,
   setPrivateChatroom,
   updatePrivateChatroomList,
   updateUserInfo,
@@ -28,7 +29,13 @@ import {
 import { SocketServerSucessResponse } from "../../services/type";
 import DesktopChat from "./DesktopChat";
 import MobileChat from "./MobileChat";
-import { UpdatedAvatarRes, UserUpdateStatusType, UserUpdated } from "../../models/login/UserSchema";
+import {
+  UpdatedAvatarRes,
+  UserUpdateStatusType,
+  UserUpdated,
+} from "../../models/login/UserSchema";
+import { BaseChatroomTypeId } from "../../models/groupChat";
+import { showSnackBar } from "../../redux/features/app/app.slice";
 
 const Chat = () => {
   const theme = useTheme();
@@ -83,8 +90,21 @@ const Chat = () => {
           dispatch(updatePrivateChatroomList(data.data));
         }
       );
+
+      socket.on(
+        ChatEventPrivateRoom.CLEAR_CHATROOM,
+        (data: SocketServerSucessResponse & { data: BaseChatroomTypeId }) => {
+          console.log({ data });
+
+          dispatch(deleteChatroomById(data.data.chatroomId));
+          dispatch(
+            showSnackBar({ severity: data.severity, message: data.message })
+          );
+        }
+      );
     }
     return () => {
+      socket.off(ChatEventPrivateRoom.CLEAR_CHATROOM);
       socket.off(ChatEventPrivateRoom.RECEIVE_PRIVATE_MESSAGE);
       socket.off(ChatEventPrivateRoom.NEW_CHATROOM);
       socket.off(GeneralEvent.USER_UPDATE_STATUS);

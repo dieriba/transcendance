@@ -543,39 +543,24 @@ export const GroupSlice = createSlice({
     },
     restrict: (state, action: PayloadAction<RestrictedUserResponseType>) => {
       const { chatroomId, ...data } = action.payload;
-      if (chatroomId !== state.currentGroupChatroomId) return;
 
       const index = state.groupChatroom.findIndex(
         (chatroom) => chatroom.id === chatroomId
       );
 
-      if (index >= 0) {
-        if (
-          data.restriction !== Restriction.MUTED &&
-          state.currentGroupChatroomId == chatroomId
-        ) {
-          state.currentChatroom = undefined;
-          state.currentGroupChatroomId = undefined;
-          state.messages = [];
-          state.regularUser = [];
-          state.chatAdmin = [];
-          state.admin = undefined;
-          state.role = undefined;
-        } else if (data.restriction === Restriction.MUTED) {
-          if (state.currentChatroom) {
-            state.currentChatroom.restrictedUsers.length === 0
-              ? state.currentChatroom.restrictedUsers.push(data)
-              : (state.currentChatroom.restrictedUsers[0] = data);
-          }
-        }
-
-        if (!data.banLife) {
-          state.groupChatroom[index].restrictedUsers.length === 0
-            ? state.groupChatroom[index].restrictedUsers.push(data)
-            : (state.groupChatroom[index].restrictedUsers[0] = data);
-          return;
-        }
+      if (
+        data.restriction === Restriction.BANNED ||
+        data.restriction === Restriction.KICKED
+      ) {
         state.groupChatroom.splice(index, 1);
+        return;
+      }
+
+      if (index >= 0) {
+        state.groupChatroom[index].restrictedUsers[0] = data;
+        if (state.currentChatroom?.id === chatroomId) {
+          state.currentChatroom.restrictedUsers[0] = data;
+        }
       }
     },
     unrestrict: (state, action: PayloadAction<UnrestrictType>) => {
@@ -780,9 +765,7 @@ export const GroupSlice = createSlice({
       action: PayloadAction<MessageGroupType>
     ) => {
       const message = action.payload;
-
       if (
-        message.chatroomId !== state.currentGroupChatroomId ||
         state.blockedUser.findIndex((user) => user.id === message.user.id) >= 0
       )
         return;
@@ -793,7 +776,7 @@ export const GroupSlice = createSlice({
 
       if (indexToRemove >= 0) {
         const removedObject = state.groupChatroom.splice(indexToRemove, 1)[0];
-        if (message.chatroomId === state.currentChatroom?.id)
+        if (message.chatroomId === state.currentGroupChatroomId)
           state.messages.push(message);
         removedObject.messages[0] = message;
         state.groupChatroom.unshift(removedObject);

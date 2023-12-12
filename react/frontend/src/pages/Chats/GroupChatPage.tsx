@@ -44,7 +44,7 @@ import { BaseUserInfoType } from "../../models/login/UserSchema";
 const GroupChatPage = () => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
-  const { data, isLoading, isError } = useGetAllGroupQuery(undefined, {
+  const { data, isLoading, isError, error } = useGetAllGroupQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
 
@@ -117,6 +117,8 @@ const GroupChatPage = () => {
       socket.on(
         ChatEventGroup.RECEIVE_GROUP_MESSAGE,
         (data: SocketServerSucessResponse & { data: MessageGroupType }) => {
+          console.log({ data });
+
           dispatch(updateGroupChatroomListAndMessage(data.data));
         }
       );
@@ -174,9 +176,11 @@ const GroupChatPage = () => {
       </Box>
     );
   } else if (isError || !data) {
+    console.log({ error });
+
     return (
       <Stack alignItems="center" height="100%" pt={25} justifyContent="center">
-        <Typography>An error has occured</Typography>
+        <Typography>An error has occurefd</Typography>
       </Stack>
     );
   } else {

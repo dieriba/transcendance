@@ -141,6 +141,10 @@ export const ChatSlice = createSlice({
       state.privateChatroom.forEach((chatroom) => {
         if (ids.includes(chatroom.users[0].user.id)) {
           chatroom.users[0].user.status = status;
+          if (state.currentChatroom)
+            if (ids.includes(state.currentChatroom.users[0].user.id)) {
+              state.currentChatroom.users[0].user.status = status;
+            }
         }
       });
     },

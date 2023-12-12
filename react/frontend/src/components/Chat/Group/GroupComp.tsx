@@ -198,7 +198,7 @@ const GroupComp = ({ openDialog, handleClose }: GroupCompProps) => {
               </DialogContentText>
             </DialogContent>
             <DialogActions>
-              <Button onClick={handleCloseLeave}>No</Button>
+              <Button onClick={handleCloseDelete}>No</Button>
               <Button
                 disabled={deleteGroupMutation.isLoading}
                 onClick={handleOnClickDelete}

@@ -4,7 +4,6 @@ import {
   UsePipes,
   ValidationPipe,
   Logger,
-  HttpStatus,
 } from '@nestjs/common';
 import {
   ConnectedSocket,
@@ -54,7 +53,7 @@ import {
 import { WsCatchAllFilter } from 'src/common/global-filters/ws-exception-filter';
 import { WsAccessTokenGuard } from 'src/common/guards/ws.guard';
 import { ChatroomBaseData } from 'src/common/types/chatroom-info-type';
-import { UserData, UserId } from 'src/common/types/user-info.type';
+import { UserData } from 'src/common/types/user-info.type';
 import { LibService } from 'src/lib/lib.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserService } from 'src/user/user.service';
@@ -65,10 +64,8 @@ import {
 import { IsFriendExistWs } from 'src/friends/pipe/is-friend-exist-ws.pipe';
 import { FriendsService } from 'src/friends/friends.service';
 import { CheckGroupCreationValidity } from 'src/chat/pipes/check-group-creation-validity.pipe';
-import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
-import { ChatRoomNotFoundException } from 'src/chat/exception/chatroom-not-found.exception';
 import { ChatRoute } from 'src/common/custom-decorator/metadata.decorator';
-import { IsRestrictedUserGuard } from 'src/chat/guards/is-restricted-user.guard.ws';
+import { IsRestrictedUserGuardWs } from 'src/chat/guards/is-restricted-user.guard.ws';
 import { AvatarUpdateDto } from 'src/user/dto/AvatarUpdate.dto';
 import { UserIdDto, UserInfoUpdateDto } from 'src/user/dto/UserInfo.dto';
 import { PongService } from 'src/pong/pong.service';
@@ -78,7 +75,6 @@ import {
   GAME_INVITATION_TIME_LIMIT,
   PongTypeNormal,
 } from '../../shared/constant';
-import { CustomException } from 'src/common/custom-exception/custom-exception';
 import {
   GameIdDto,
   GameInvitationDto,
@@ -493,7 +489,7 @@ export class GatewayGateway {
       },
     });
 
-    if (!chatroom) throw new ChatRoomNotFoundException();
+    if (!chatroom) throw new WsChatroomNotFoundException();
 
     if (type !== TYPE.PROTECTED && chatroom.type === type)
       throw new WsBadRequestException('Chatroom already of that type');
@@ -907,6 +903,16 @@ export class GatewayGateway {
             chatroomId,
           },
         },
+        blockedBy: {
+          none: {
+            id: userId,
+          },
+        },
+        blockedUsers: {
+          none: {
+            id: userId,
+          },
+        },
         restrictedGroups: {
           none: {
             AND: [
@@ -915,7 +921,7 @@ export class GatewayGateway {
               },
               {
                 restriction: {
-                  notIn: [RESTRICTION.MUTED, RESTRICTION.KICKED],
+                  in: [RESTRICTION.KICKED, RESTRICTION.BANNED],
                 },
               },
               {
@@ -1013,10 +1019,12 @@ export class GatewayGateway {
 
     const [chatroomUser, restrictedUser] = await Promise.all([
       this.chatroomUserService.findChatroomUser(chatroomId, id),
-      this.prismaService.restrictedUser.findFirst({
+      this.prismaService.restrictedUser.findUnique({
         where: {
-          userId: id,
-          chatroomId,
+          userId_chatroomId: {
+            userId,
+            chatroomId,
+          },
           restrictionTimeEnd: { gt: new Date() },
         },
       }),
@@ -1401,15 +1409,47 @@ export class GatewayGateway {
 
     await this.isDieriba(userId, chatroomId);
 
-    const chatroomUser = await this.chatroomUserService.findChatroomUser(
-      chatroomId,
-      id,
-    );
+    const user = await this.prismaService.user.findFirst({
+      where: {
+        id,
+      },
+      select: {
+        nickname: true,
+        chatrooms: {
+          where: {
+            chatroomId,
+          },
+          select: {
+            role: true,
+            chatroom: {
+              select: {
+                chatroomName: true,
+                restrictedUsers: {
+                  where: {
+                    userId: id,
+                    restrictionTimeEnd: {
+                      gt: new Date(),
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
 
-    if (!chatroomUser)
-      throw new WsBadRequestException(
-        'User does not belong to that group Or chatroom does not exist',
+    if (!user) throw new WsUserNotFoundException();
+
+    if (user.chatrooms.length === 0) throw new WsChatroomNotFoundException();
+
+    const chatroomUser = user.chatrooms[0];
+
+    if (chatroomUser.chatroom.restrictedUsers.length) {
+      throw new WsUnauthorizedException(
+        'Cannot change role of restricted user please unrestrict them first',
       );
+    }
 
     if (chatroomUser.role === role) {
       throw new WsBadRequestException('User already have that role');
@@ -1470,7 +1510,7 @@ export class GatewayGateway {
         ChatEventGroup.USER_ROLE_CHANGED,
         {
           chatroomId,
-          message: `${chatroomUser.user.nickname} is no longer a chat moderator`,
+          message: `${user.nickname} is no longer a chat moderator`,
           data: { id, role: chatroomUser.role },
         },
       );
@@ -1481,14 +1521,14 @@ export class GatewayGateway {
         ChatEventGroup.USER_ROLE_CHANGED,
         {
           chatroomId,
-          message: `${chatroomUser.user.nickname} is now a chat moderator`,
+          message: `${user.nickname} is now a chat moderator`,
           data: { id, role: chatroomUser.role },
         },
       );
     }
 
     this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
-      message: `${chatroomUser.user.nickname} is now a ${
+      message: `${user.nickname} is now a ${
         role === ROLE.CHAT_ADMIN ? 'moderator' : 'regular user'
       }`,
       data: { id, role: chatroomUser.role },
@@ -1546,12 +1586,14 @@ export class GatewayGateway {
     if (userToRestrict.user.id === userId)
       throw new WsBadRequestException('Cannot restrict myself');
 
-    if (chatroomUser.role !== ROLE.DIERIBA) {
-      if (
-        userToRestrict.role === ROLE.DIERIBA ||
-        userToRestrict.role === ROLE.CHAT_ADMIN
-      )
-        throw new WsBadRequestException('Cannot Restrict chat admin');
+    if (
+      chatroomUser.role !== ROLE.DIERIBA &&
+      (userToRestrict.role === ROLE.DIERIBA ||
+        userToRestrict.role === ROLE.CHAT_ADMIN)
+    ) {
+      throw new WsBadRequestException(
+        'Cannot Restrict chat admin or DIERIBA as chat admin',
+      );
     }
 
     const restrictionTimeStart = new Date();
@@ -1721,17 +1763,15 @@ export class GatewayGateway {
     @ConnectedSocket() client: SocketWithAuth,
   ) {
     const { userId } = client;
+    const { isChatAdmin, chatroomId, id } = unrestrictedUserDto;
 
     const [chatroomUser, restrictedUser] = await Promise.all([
-      this.chatroomUserService.findChatroomUser(
-        unrestrictedUserDto.chatroomId,
-        userId,
-      ),
+      this.chatroomUserService.findChatroomUser(chatroomId, userId),
       this.prismaService.restrictedUser.findUnique({
         where: {
           userId_chatroomId: {
-            userId: unrestrictedUserDto.id,
-            chatroomId: unrestrictedUserDto.chatroomId,
+            userId: id,
+            chatroomId: chatroomId,
           },
         },
         select: {
@@ -1747,6 +1787,8 @@ export class GatewayGateway {
               profile: {
                 select: {
                   avatar: true,
+                  lastname: true,
+                  firstname: true,
                 },
               },
               friends: {
@@ -1763,8 +1805,6 @@ export class GatewayGateway {
 
     unrestrictedUserDto.isChatAdmin =
       chatroomUser.role === ROLE.CHAT_ADMIN ? true : false;
-
-    const { isChatAdmin, chatroomId, id } = unrestrictedUserDto;
 
     if (!chatroomUser)
       throw new WsNotFoundException(
@@ -1864,7 +1904,11 @@ export class GatewayGateway {
       ChatEventGroup.USER_UNRESTRICTED,
       {
         data: {
-          user: { ...user, banLife: restrictedUser.banLife, chatroomId },
+          user: {
+            ...user,
+            banLife: restrictedUser.banLife,
+            chatroomId,
+          },
         },
       },
     );
@@ -1874,7 +1918,10 @@ export class GatewayGateway {
       client.userId,
       GeneralEvent.SUCCESS,
       {
-        data: { ...user, banLife: restrictedUser.banLife },
+        data: {
+          ...user,
+          banLife: restrictedUser.banLife,
+        },
         message: `${user.nickname} is no longer ${restriction}`,
       },
     );
@@ -1913,6 +1960,17 @@ export class GatewayGateway {
         active: true,
         type: {
           not: TYPE.DM,
+        },
+        restrictedUsers: {
+          none: {
+            userId,
+            restrictionTimeEnd: {
+              gt: new Date(),
+            },
+            restriction: {
+              in: [RESTRICTION.KICKED, RESTRICTION.BANNED],
+            },
+          },
         },
       },
       select: {
@@ -1994,16 +2052,12 @@ export class GatewayGateway {
   }
 
   @SubscribeMessage(ChatEventGroup.REQUEST_ALL_CHATROOM_MESSAGE)
-  @UseGuards(IsRestrictedUserGuard)
+  @UseGuards(IsRestrictedUserGuardWs)
   async getGroupChatroomMessage(
     @ConnectedSocket() client: SocketWithAuth,
     @MessageBody('chatroomId') chatroomId: string,
   ) {
     const { userId } = client;
-    const user = await this.userService.findUserById(userId, UserData);
-
-    if (!user) throw new WsUserNotFoundException();
-
     const chatroom = await this.prismaService.chatroom.findFirst({
       where: {
         id: chatroomId,
@@ -2049,13 +2103,6 @@ export class GatewayGateway {
       },
     });
 
-    if (!chatroom)
-      throw new WsNotFoundException(
-        'Chat does not exist or user is not part of that chat',
-      );
-
-    console.log({ chatroom });
-
     this.libService.sendToSocket(
       this.server,
       client.userId,
@@ -2075,7 +2122,7 @@ export class GatewayGateway {
   }
 
   @SubscribeMessage(ChatEventGroup.JOIN_CHATROOM)
-  @UseGuards(IsRestrictedUserGuard)
+  @UseGuards(IsRestrictedUserGuardWs)
   async joinChatroom(
     @MessageBody() joinChatroomDto: JoinChatroomDto,
     @ConnectedSocket() client: SocketWithAuth,
@@ -2147,9 +2194,8 @@ export class GatewayGateway {
         );
       } else if (chatroom.type === TYPE.PROTECTED) {
         if (!joinChatroomDto.password)
-          throw new CustomException(
+          throw new WsBadRequestException(
             'Password is needed for protected room',
-            HttpStatus.BAD_REQUEST,
           );
 
         const match = await this.argon2Service.compare(
@@ -2217,7 +2263,7 @@ export class GatewayGateway {
 
   @SubscribeMessage(ChatEventGroup.SEND_GROUP_MESSAGE)
   @ChatRoute()
-  @UseGuards(IsRestrictedUserGuard)
+  @UseGuards(IsRestrictedUserGuardWs)
   async sendMessageToChatroom(
     @ConnectedSocket() client: SocketWithAuth,
     @MessageBody() chatroomMessageDto: ChatroomMessageDto,
@@ -2233,7 +2279,7 @@ export class GatewayGateway {
       },
     });
 
-    if (!user) throw new UserNotFoundException();
+    if (!user) throw new WsUserNotFoundException();
 
     const chatroom = await this.chatroomService.findChatroom(
       chatroomId,
@@ -2775,7 +2821,20 @@ export class GatewayGateway {
           },
           messages: {
             orderBy: {
-              createdAt: 'asc',
+              createdAt: 'desc',
+            },
+            select: {
+              id: true,
+              chatroomId: true,
+              user: {
+                select: {
+                  id: true,
+                  nickname: true,
+                  profile: { select: { avatar: true } },
+                },
+              },
+              content: true,
+              createdAt: true,
             },
             take: 1,
           },
@@ -3243,6 +3302,7 @@ export class GatewayGateway {
               user: {
                 select: {
                   id: true,
+                  pong: true,
                   nickname: true,
                   status: true,
                   profile: {
@@ -3260,29 +3320,26 @@ export class GatewayGateway {
                       friendId: true,
                     },
                   },
-                  friendRequestsReceived: {
-                    where: {
-                      senderId: userId,
-                    },
-                    select: {
-                      recipientId: true,
-                    },
-                  },
-                  friendRequestsSent: {
-                    where: {
-                      recipientId: userId,
-                    },
-                    select: {
-                      senderId: true,
-                    },
-                  },
                 },
               },
             },
           },
           messages: {
             orderBy: {
-              createdAt: 'asc',
+              createdAt: 'desc',
+            },
+            select: {
+              id: true,
+              chatroomId: true,
+              user: {
+                select: {
+                  id: true,
+                  nickname: true,
+                  profile: { select: { avatar: true } },
+                },
+              },
+              content: true,
+              createdAt: true,
             },
             take: 1,
           },
@@ -3290,24 +3347,22 @@ export class GatewayGateway {
       }),
     ]);
 
-    if (!me || !user) throw new UserNotFoundException();
+    if (!me || !user) throw new WsUserNotFoundException();
 
     if (me.blockedUsers.length > 0) {
-      throw new CustomException(
+      throw new WsUnauthorizedException(
         "You can't create a conversation with user, you blocked",
-        HttpStatus.FORBIDDEN,
       );
     }
 
     if (me.blockedBy.length > 0) {
-      throw new CustomException(
+      throw new WsBadRequestException(
         "You can't create a conversation with user that blocked you",
-        HttpStatus.FORBIDDEN,
       );
     }
 
+    const { active, ...data } = chatroom;
     if (chatroom) {
-      const { active, ...data } = chatroom;
       if (!active) {
         await this.prismaService.chatroom.update({
           where: { id: chatroom.id },
@@ -3363,14 +3418,15 @@ export class GatewayGateway {
       },
       select: {
         id: true,
+        active: true,
         users: {
           select: {
             user: {
               select: {
                 id: true,
+                pong: true,
                 nickname: true,
                 status: true,
-                pong: true,
                 profile: {
                   select: {
                     avatar: true,
@@ -3386,29 +3442,26 @@ export class GatewayGateway {
                     friendId: true,
                   },
                 },
-                friendRequestsReceived: {
-                  where: {
-                    senderId: userId,
-                  },
-                  select: {
-                    recipientId: true,
-                  },
-                },
-                friendRequestsSent: {
-                  where: {
-                    recipientId: userId,
-                  },
-                  select: {
-                    senderId: true,
-                  },
-                },
               },
             },
           },
         },
         messages: {
           orderBy: {
-            createdAt: 'asc',
+            createdAt: 'desc',
+          },
+          select: {
+            id: true,
+            chatroomId: true,
+            user: {
+              select: {
+                id: true,
+                nickname: true,
+                profile: { select: { avatar: true } },
+              },
+            },
+            content: true,
+            createdAt: true,
           },
           take: 1,
         },
@@ -3845,7 +3898,6 @@ export class GatewayGateway {
     if (socketIds) {
       if (action === GeneralEvent.LEAVE) {
         socketIds.forEach((socketId) => {
-          this.logger.log(`Leaving room ${room}`);
           this.libService.getSocket(this.server, socketId).leave(room);
         });
         return;

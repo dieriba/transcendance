@@ -74,7 +74,8 @@ const EditGroup = ({ open, handleClose }: EditGroupProps) => {
     }
   };
 
-  const protectedType = watch("type");
+  const protectedType = watch("type") ?? type;
+
   const [showPassword, setShowPassword] = useState(false);
 
   const theme = useTheme();

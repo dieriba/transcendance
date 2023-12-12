@@ -1,7 +1,7 @@
 import { Avatar, DialogTitle, Divider, Stack, Tooltip } from "@mui/material";
 import { GameController, Trash, User } from "phosphor-react";
-import { useAppDispatch, useAppSelector } from "../../redux/hooks";
-import { useEffect, useState } from "react";
+import { useAppSelector } from "../../redux/hooks";
+import { useState } from "react";
 import { PrivateChatroomType } from "../../models/ChatContactSchema";
 import { RootState } from "../../redux/store";
 import DialogI from "../Dialog/DialogI";
@@ -11,12 +11,7 @@ import BlockUserDialog from "../friends/BlockFriendDialog";
 import DeleteFriendDialog from "../friends/DeleteFriendDialog";
 import ButtonDialogOutlined from "../Button/ButtonDialogOutlined";
 import UserProfile from "../Profile/UserProfile";
-import { connectSocket, socket } from "../../utils/getSocket";
-import { ChatEventPrivateRoom } from "../../../shared/socket.event";
-import { BaseChatroomTypeId } from "../../models/groupChat";
-import { deleteChatroomById } from "../../redux/features/chat/chat.slice";
-import { SocketServerSucessResponse } from "../../services/type";
-import { showSnackBar } from "../../redux/features/app/app.slice";
+
 import StyledBadge from "../Badge/StyledBadge";
 
 interface ChatContactInfoProps {
@@ -26,23 +21,6 @@ interface ChatContactInfoProps {
 
 const ChatContactInfo = ({ openDialog, handleClose }: ChatContactInfoProps) => {
   const theme = useTheme();
-  const dispatch = useAppDispatch();
-  useEffect(() => {
-    connectSocket();
-    socket.on(
-      ChatEventPrivateRoom.CLEAR_CHATROOM,
-      (data: SocketServerSucessResponse & { data: BaseChatroomTypeId }) => {
-        dispatch(deleteChatroomById(data.data.chatroomId));
-        dispatch(
-          showSnackBar({ severity: data.severity, message: data.message })
-        );
-      }
-    );
-
-    return () => {
-      socket.off(ChatEventPrivateRoom.CLEAR_CHATROOM);
-    };
-  }, [dispatch]);
 
   const [open, setOpen] = useState<{
     block: boolean;
