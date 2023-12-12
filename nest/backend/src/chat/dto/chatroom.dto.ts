@@ -31,7 +31,7 @@ import {
   MIN_MESSAGE_LENGTH,
   MIN_PASSWORD_LENGTH,
   MIN_REASON_LENGTH,
-  REGEX_MATCH_ALPHANUM_,
+  REGEX_GROUP_NAME,
 } from 'shared/error.message.constant';
 import { DAYS, HOURS, MIN } from 'src/common/constant/constant';
 
@@ -51,7 +51,7 @@ export class ChatRoomDto {
   @MaxLength(MAX_CHATROOM_NAME_LENGTH, {
     message: ERR_MSG_MAXIMUM_CHATROOM_NAME_LENGTH,
   })
-  @Matches(REGEX_MATCH_ALPHANUM_)
+  @Matches(REGEX_GROUP_NAME)
   chatroomName: string;
 
   @ApiProperty()

@@ -1,4 +1,5 @@
-export const REGEX_MATCH_ALPHANUM_ = '^[a-zA-Z][a-zA-Z0-9_]*$';
+export const REGEX_NICKNAME = '^[a-zA-Z][a-zA-Z0-9_]*$';
+export const REGEX_GROUP_NAME = '^[a-zA-Z0-9_]*$';
 
 export const MIN_NICKNAME_LENGTH = 3;
 export const MAX_NICKNAME_LENGTH = 16;
@@ -23,7 +24,6 @@ export const ERR_MSG_MAXIMUM_CHATROOM_NAME_LENGTH = `chatroom name must have at 
 export const MIN_MESSAGE_LENGTH = 1;
 export const MAX_MESSAGE_LENGTH = 255;
 export const ERR_MSG_MAX_MESSAGE_LENGTH = `Message can contains at most ${MAX_MESSAGE_LENGTH} charactes`;
-
 
 export const MIN_REASON_LENGTH = 10;
 export const MAX_REASON_LENGTH = 255;

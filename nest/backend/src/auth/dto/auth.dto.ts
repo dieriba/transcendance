@@ -20,7 +20,7 @@ import {
   MIN_NAME_LENGTH,
   MIN_NICKNAME_LENGTH,
   MIN_PASSWORD_LENGTH,
-  REGEX_MATCH_ALPHANUM_,
+  REGEX_NICKNAME,
 } from 'shared/error.message.constant';
 
 export class RegisterUserDto {
@@ -42,7 +42,7 @@ export class RegisterUserDto {
   @IsString()
   @MinLength(MIN_NICKNAME_LENGTH, { message: ERR_MSG_MINIMUM_NICKNAME_LENGTH })
   @MaxLength(MAX_NICKNAME_LENGTH, { message: ERR_MSG_MAXIMUM_NICKNAME_LENGTH })
-  @Matches(REGEX_MATCH_ALPHANUM_)
+  @Matches(REGEX_NICKNAME)
   readonly nickname: string;
 
   @ApiProperty()
