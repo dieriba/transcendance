@@ -554,7 +554,7 @@ export class GatewayGateway {
       this.libService.sendToSocket(
         this.server,
         GeneralEvent.BROADCAST,
-        ChatEventGroup.DELETE_JOINABLE_GROUP,
+        ChatEventGroup.DELETE_GROUP,
         {
           data: { chatroomId },
         },
@@ -768,6 +768,16 @@ export class GatewayGateway {
           },
         },
       },
+      select: {
+        users: {
+          where: {
+            role: ROLE.DIERIBA,
+          },
+          select: {
+            userId: true,
+          },
+        },
+      },
     });
 
     this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
@@ -775,15 +785,16 @@ export class GatewayGateway {
       message: 'Invitation successfully declined',
     });
 
-    this.libService.sendToSocket(
-      this.server,
-      chatroom.chatroomName,
-      ChatEventGroup.USER_DECLINED_INVITATION,
-      {
-        data: { id: userId },
-        message: `${user.nickname} declined group invitation`,
-      },
-    );
+    if (chatroom.users.length)
+      this.libService.sendToSocket(
+        this.server,
+        chatroom.users[0].userId,
+        ChatEventGroup.USER_DECLINED_INVITATION,
+        {
+          data: { id: userId },
+          message: `${user.nickname} declined group invitation`,
+        },
+      );
   }
 
   @SubscribeMessage(ChatEventGroup.CANCEL_USER_INVITATION)
@@ -833,7 +844,7 @@ export class GatewayGateway {
     this.libService.sendToSocket(
       this.server,
       id,
-      ChatEventGroup.DELETE_USER_INVITATION,
+      ChatEventGroup.DELETE_GROUP_INVITATION,
       {
         data: { chatroomId },
       },
@@ -1146,6 +1157,15 @@ export class GatewayGateway {
       message: 'chatroom deleted',
     });
 
+    this.libService.sendToSocket(
+      this.server,
+      GeneralEvent.BROADCAST,
+      ChatEventGroup.DELETE_GROUP,
+      {
+        data: { chatroomId },
+      },
+    );
+
     this.libService.deleteSocketRoom(this.server, chatroomName);
   }
 
@@ -1309,7 +1329,7 @@ export class GatewayGateway {
           this.libService.sendToSocket(
             this.server,
             GeneralEvent.BROADCAST,
-            ChatEventGroup.DELETE_JOINABLE_GROUP,
+            ChatEventGroup.DELETE_GROUP,
             {
               data: { chatroomId },
             },

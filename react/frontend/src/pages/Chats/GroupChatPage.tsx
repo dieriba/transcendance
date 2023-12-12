@@ -18,6 +18,8 @@ import { useGetAllGroupQuery } from "../../redux/features/groups/group.api.slice
 import {
   addNewChatroom,
   deleteChatroom,
+  deleteGroupInvitation,
+  deleteJoinableGroup,
   leaveChatroom,
   removeBlockedUser,
   restrict,
@@ -143,8 +145,17 @@ const GroupChatPage = () => {
           dispatch(removeBlockedUser(data.data.id));
         }
       );
+
+      socket.on(
+        ChatEventGroup.DELETE_GROUP,
+        (data: SocketServerSucessResponse & { data: BaseChatroomTypeId }) => {
+          dispatch(deleteJoinableGroup(data.data.chatroomId));
+          dispatch(deleteGroupInvitation(data.data.chatroomId));
+        }
+      );
     }
     return () => {
+      socket.off(ChatEventGroup.DELETE_GROUP);
       socket.off(GeneralEvent.REMOVE_BLOCKED_USER);
       socket.off(ChatEventGroup.USER_UNRESTRICTED);
       socket.off(ChatEventGroup.GROUP_CHATROOM_DELETED);

@@ -71,14 +71,14 @@ const GroupInvitation = ({ open, handleClose }: GroupInvitationProps) => {
       connectSocket();
 
       socket.on(
-        ChatEventGroup.DELETE_USER_INVITATION,
+        ChatEventGroup.DELETE_GROUP_INVITATION,
         (data: SocketServerSucessResponse & { data: BaseChatroomTypeId }) => {
           dispatch(deleteGroupInvitation(data.data.chatroomId));
         }
       );
 
       return () => {
-        socket.off(ChatEventGroup.DELETE_USER_INVITATION);
+        socket.off(ChatEventGroup.DELETE_GROUP_INVITATION);
       };
     }
   }, [data, dispatch]);
