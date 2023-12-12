@@ -34,6 +34,6 @@ export class WsCatchAllFilter implements ExceptionFilter {
     const wsException = new WsUnknownException(exception.message);
     console.log({ error: wsException.getError() });
 
-    socket.emit('exception', { message: 'Internal server error' });
+    socket.emit('exception', { message: 'Bad Request' });
   }
 }
