@@ -4,16 +4,15 @@ import {
   DialogContentText,
   Button,
   DialogProps,
-  AlertColor,
-  Alert,
   Stack,
 } from "@mui/material";
 import DialogI from "../Dialog/DialogI";
-import { useState } from "react";
 import { SocketServerErrorResponse } from "../../services/type";
 import { useSendGameInvitationMutation } from "../../redux/features/pong/pong.api.slice";
 import { GameInvitationType } from "../../models/PongSchema";
 import { PongTypeNormal, PongTypeSpecial } from "../../../shared/constant";
+import { showSnackBar } from "../../redux/features/app/app.slice";
+import { useAppDispatch } from "../../redux/hooks";
 
 interface GameInvitationProps extends DialogProps {
   id: string;
@@ -28,45 +27,29 @@ const GameInvitation = ({
   nickname,
 }: GameInvitationProps) => {
   const [sendGameInvitation, { isLoading }] = useSendGameInvitationMutation();
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState<AlertColor>("success");
-  const [openSnack, setOpenSnack] = useState(false);
-  const handleCloseSnack = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setOpenSnack(false);
-  };
+  const dispatch = useAppDispatch();
   const handleOnClick = async (data: GameInvitationType) => {
     try {
       const res = await sendGameInvitation(data).unwrap();
-      setSeverity("success");
-      setMessage(res.message);
-      setOpenSnack(true);
+      dispatch(
+        showSnackBar({
+          message: res.message,
+        })
+      );
     } catch (error) {
-      setSeverity("error");
-      setMessage((error as SocketServerErrorResponse).message);
-      setOpenSnack(true);
+      dispatch(
+        showSnackBar({
+          message: (error as SocketServerErrorResponse).message,
+          severity: "error",
+        })
+      );
     }
   };
 
   return (
     <DialogI open={open} handleClose={handleClose}>
-      <Stack  alignItems={"center"}>
+      <Stack alignItems={"center"}>
         <DialogTitle>{`Play with ${nickname} ?`}</DialogTitle>
-        {openSnack && (
-          <Alert
-            onClose={handleCloseSnack}
-            severity={severity}
-            sx={{ maxWidth: "90%" }}
-          >
-            {message}
-          </Alert>
-        )}
         <DialogContent>
           <DialogContentText id="alert-dialog-slide-description">
             {`Send a game Invitation to ${nickname} ?`}

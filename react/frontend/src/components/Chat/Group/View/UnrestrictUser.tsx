@@ -1,8 +1,6 @@
 import {
   Stack,
   DialogContent,
-  Alert,
-  AlertColor,
   CircularProgress,
   Typography,
   Button,
@@ -32,6 +30,7 @@ import {
   isErrorWithMessage,
 } from "../../../../services/helpers";
 import RestrictionInfo from "./RestrictionInfo";
+import { showSnackBar } from "../../../../redux/features/app/app.slice";
 interface UnrestrictUserProps {
   open: boolean;
   nickname: string;
@@ -51,24 +50,11 @@ const UnRestrictUser = ({
       refetchOnMountOrArgChange: true,
     }
   );
+  const dispatch = useAppDispatch();
   const theme = useTheme();
   const [restrict, setRestrict] = useState<
     (RestrictedGroupType & { nickname: string }) | undefined
   >(undefined);
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState<AlertColor>("success");
-  const [openSnack, setOpenSnack] = useState(false);
-  const dispatch = useAppDispatch();
-  const handleCloseSnack = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setOpenSnack(false);
-  };
 
   useEffect(() => {
     if (data?.data) {
@@ -100,15 +86,28 @@ const UnRestrictUser = ({
           typeof error.data === "object" &&
           "message" in error.data
         ) {
-          setMessage(error.data.message as string);
+          dispatch(
+            showSnackBar({
+              message: error.data.message as string,
+              severity: "error",
+            })
+          );
         } else {
-          setMessage("An error has occured, please try again later!");
+          dispatch(
+            showSnackBar({
+              message: "An error has occured, please try again later!",
+              severity: "error",
+            })
+          );
         }
       } else if (isErrorWithMessage(error)) {
-        setMessage(error.message);
+        dispatch(
+          showSnackBar({
+            message: error.message,
+            severity: "error",
+          })
+        );
       }
-      setSeverity("error");
-      setOpenSnack(true);
     }
   };
 
@@ -118,13 +117,14 @@ const UnRestrictUser = ({
 
       dispatch(unrestrictUser({ data: res.data, chatroomId }));
 
-      setMessage(res.message);
-      setOpenSnack(true);
-      setSeverity("success");
+      dispatch(showSnackBar({ message: res.message }));
     } catch (error) {
-      setMessage((error as SocketServerErrorResponse).message);
-      setSeverity("error");
-      setOpenSnack(true);
+      dispatch(
+        showSnackBar({
+          message: (error as SocketServerErrorResponse).message,
+          severity: "error",
+        })
+      );
     }
   };
 
@@ -149,15 +149,6 @@ const UnRestrictUser = ({
               p={2}
             >
               <Stack spacing={2}>
-                {openSnack && (
-                  <Alert
-                    onClose={handleCloseSnack}
-                    severity={severity}
-                    sx={{ width: "100%" }}
-                  >
-                    {message}
-                  </Alert>
-                )}
                 {restrictedUsers.length === 0 ? (
                   <Stack
                     width="100%"

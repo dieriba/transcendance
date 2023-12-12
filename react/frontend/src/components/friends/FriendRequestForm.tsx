@@ -1,11 +1,4 @@
-import {
-  Stack,
-  DialogContent,
-  DialogTitle,
-  Button,
-  AlertColor,
-  Alert,
-} from "@mui/material";
+import { Stack, DialogContent, DialogTitle, Button } from "@mui/material";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useTheme } from "@mui/material/styles";
@@ -16,8 +9,9 @@ import {
   FriendRequestType,
 } from "../../models/FriendRequestSchema";
 import { useSendFriendRequestMutation } from "../../redux/features/friends/friends.api.slice";
-import { useState } from "react";
 import { SocketServerErrorResponse } from "../../services/type";
+import { showSnackBar } from "../../redux/features/app/app.slice";
+import { useAppDispatch } from "../../redux/hooks";
 
 interface CreateGroupProps {
   open: boolean;
@@ -30,33 +24,23 @@ const FriendRequestForm = ({ open, handleClose }: CreateGroupProps) => {
   });
   const [sendFriendRequest, { isLoading }] = useSendFriendRequestMutation();
 
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState<AlertColor>("success");
-  const [openSnack, setOpenSnack] = useState(false);
-
-  const handleCloseSnack = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setOpenSnack(false);
-  };
-
   const theme = useTheme();
-
+  const dispatch = useAppDispatch();
   const onSubmit = async (data: FriendRequestType) => {
     try {
       const res = await sendFriendRequest(data).unwrap();
-      setSeverity("success");
-      setMessage(res.message);
-      setOpenSnack(true);
+      dispatch(
+        showSnackBar({
+          message: res.message,
+        })
+      );
     } catch (error) {
-      setSeverity("error");
-      setMessage((error as SocketServerErrorResponse).message);
-      setOpenSnack(true);
+      dispatch(
+        showSnackBar({
+          message: (error as SocketServerErrorResponse).message,
+          severity: "error",
+        })
+      );
     }
   };
 
@@ -65,15 +49,6 @@ const FriendRequestForm = ({ open, handleClose }: CreateGroupProps) => {
       <DialogTitle>Add new Friend </DialogTitle>
       <DialogContent>
         <Stack spacing={2} p={2}>
-          {openSnack && (
-            <Alert
-              onClose={handleCloseSnack}
-              severity={severity}
-              sx={{ width: "100%" }}
-            >
-              {message}
-            </Alert>
-          )}
           <form onSubmit={handleSubmit(onSubmit)}>
             <Stack spacing={3}>
               <RHFTextField

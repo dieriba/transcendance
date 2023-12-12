@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Alert, AlertColor, Button, Stack } from "@mui/material";
+import { Button, Stack } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { ResponseLoginSchema } from "../../../models/login/ResponseLogin";
 import {
@@ -14,7 +14,6 @@ import {
   useDisconnectAllExceptMeMutation,
   useValidateOtpMutation,
 } from "../../../redux/features/user/user.api.slice";
-import { useState } from "react";
 import { setMyId } from "../../../redux/features/groups/group.slice";
 import {
   authenticateUser,
@@ -25,6 +24,7 @@ import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { useNavigate } from "react-router-dom";
 import { RootState } from "../../../redux/store";
 import RHFTextField from "../../../components/controlled-components/RHFTextField";
+import { showSnackBar } from "../../../redux/features/app/app.slice";
 
 const TwoFaPage = () => {
   const { reset, handleSubmit, control } = useForm<ValidateOtpType>({
@@ -33,20 +33,6 @@ const TwoFaPage = () => {
   const navigate = useNavigate();
 
   const [validate2Fa, { isLoading }] = useValidateOtpMutation();
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState<AlertColor>("success");
-  const [openSnack, setOpenSnack] = useState(false);
-
-  const handleCloseSnack = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setOpenSnack(false);
-  };
 
   const handleNavigate = () => {
     dispatch(setTwoFaId(undefined));
@@ -62,9 +48,12 @@ const TwoFaPage = () => {
       const parse = await ResponseLoginSchema.safeParseAsync(result.data);
 
       if (!parse.success) {
-        setMessage("An error has occured, please try again later!");
-        setSeverity("error");
-        setOpenSnack(true);
+        dispatch(
+          showSnackBar({
+            message: "An error has occured, please try again later!",
+            severity: "error",
+          })
+        );
       } else {
         reset();
         const data = parse.data;
@@ -75,8 +64,6 @@ const TwoFaPage = () => {
         navigate(PATH_APP.dashboard.profile, { replace: true });
       }
     } catch (err) {
-      setSeverity("error");
-      setOpenSnack(true);
       if (isFetchBaseQueryError(err)) {
         if (
           err.data &&
@@ -84,15 +71,30 @@ const TwoFaPage = () => {
           ("message" in err.data || "error" in err.data)
         ) {
           if ("message" in err.data) {
-            setMessage(err.data.message as string);
+            dispatch(
+              showSnackBar({
+                message: err.data.message as string,
+                severity: "error",
+              })
+            );
             return;
           }
-          setMessage(err.data.error as string);
+          dispatch(
+            showSnackBar({
+              message: err.data.error as string,
+              severity: "error",
+            })
+          );
         } else {
-          setMessage("An error has occured, please try again later!");
+          dispatch(
+            showSnackBar({
+              message: "An error has occured, please try again later!",
+              severity: "error",
+            })
+          );
         }
       } else if (isErrorWithMessage(err)) {
-        setMessage(err.message);
+        dispatch(showSnackBar({ message: err.message, severity: "error" }));
       }
     }
   };
@@ -101,15 +103,6 @@ const TwoFaPage = () => {
     <>
       <form onSubmit={handleSubmit(onSubmitTwoFa)}>
         <Stack spacing={2}>
-          {openSnack && (
-            <Alert
-              onClose={handleCloseSnack}
-              severity={severity}
-              sx={{ width: "100%" }}
-            >
-              {message}
-            </Alert>
-          )}
           <RHFTextField name="token" label="token" control={control} />
           <Button
             disabled={isLoading}

@@ -5,7 +5,7 @@ import { ProfileSchema } from "../ProfileFormSchema";
 import { BaseSchema } from "../BaseType";
 
 export const ResponseLoginSchema = AccessTokenSchema.extend({
-  user: UserSchema.extend({ profile: ProfileSchema }),
+  user: UserSchema.extend({ profile: ProfileSchema, oauth: z.boolean() }),
 });
 
 export type ResponseLoginType = z.infer<typeof ResponseLoginSchema>;

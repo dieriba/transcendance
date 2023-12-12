@@ -1,6 +1,4 @@
 import {
-  Alert,
-  AlertColor,
   Avatar,
   Box,
   Button,
@@ -40,6 +38,7 @@ import { SocketServerErrorResponse } from "../../services/type";
 import RHFTextField from "../../components/controlled-components/RHFTextField";
 import { RootState } from "../../redux/store";
 import { CHATBAR_WIDTH } from "../../utils/constant";
+import { showSnackBar } from "../../redux/features/app/app.slice";
 const ProfilePage = () => {
   const theme = useTheme();
   const user = useAppSelector((state: RootState) => state.user.user);
@@ -47,9 +46,6 @@ const ProfilePage = () => {
   const [file, setFile] = useState<File>();
   const [image, setImage] = useState<string | undefined>(undefined);
   const [changeAvatar, { isLoading }] = useChangeAvatarMutation();
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState<AlertColor>("success");
-  const [openSnack, setOpenSnack] = useState(false);
   const [notifyNewProfilePic] = useNotifyNewProfilePicMutation();
   const VisuallyHiddenInput = styled("input")({
     clip: "rect(0 0 0 0)",
@@ -73,16 +69,6 @@ const ProfilePage = () => {
 
   const onlyMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
 
-  const handleCloseSnack = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setOpenSnack(false);
-  };
   const [updateUser, updateUserAction] = useUpdateUserMutation();
   const loadImage = (file: Blob) =>
     new Promise<string>((resolve, reject) => {
@@ -112,21 +98,39 @@ const ProfilePage = () => {
 
       dispatch(setNewAvatarSrc(data.data));
       await notifyNewProfilePic({ avatar: data.data }).unwrap();
-      setMessage(message);
-      setSeverity("success");
-      setOpenSnack(true);
+      dispatch(showSnackBar({ message }));
     } catch (err) {
-      setSeverity("error");
-      setOpenSnack(true);
-
-      if (isErrorWithMessage(err)) {
-        setMessage(err.message);
-      } else if (isFetchBaseQueryError(err)) {
-        if (err.data && typeof err.data === "object" && "message" in err.data) {
-          setMessage(err.data.message as string);
+      if (isFetchBaseQueryError(err)) {
+        if (
+          err.data &&
+          typeof err.data === "object" &&
+          ("message" in err.data || "error" in err.data)
+        ) {
+          if ("message" in err.data) {
+            dispatch(
+              showSnackBar({
+                message: err.data.message as string,
+                severity: "error",
+              })
+            );
+            return;
+          }
+          dispatch(
+            showSnackBar({
+              message: err.data.error as string,
+              severity: "error",
+            })
+          );
         } else {
-          setMessage("An error has occured, please try again later!");
+          dispatch(
+            showSnackBar({
+              message: "An error has occured, please try again later!",
+              severity: "error",
+            })
+          );
         }
+      } else if (isErrorWithMessage(err)) {
+        dispatch(showSnackBar({ message: err.message, severity: "error" }));
       }
     }
   };
@@ -136,13 +140,14 @@ const ProfilePage = () => {
       const res = await updateUser(data).unwrap();
 
       dispatch(setNewNickname(res.data.nickname));
-      setMessage(res.message);
-      setSeverity("success");
-      setOpenSnack(true);
+      dispatch(showSnackBar({ message: res.message }));
     } catch (err) {
-      setMessage((err as SocketServerErrorResponse).message);
-      setSeverity("error");
-      setOpenSnack(true);
+      dispatch(
+        showSnackBar({
+          message: (err as SocketServerErrorResponse).message,
+          severity: "error",
+        })
+      );
     }
   };
 
@@ -165,15 +170,6 @@ const ProfilePage = () => {
             <Stack direction="row" alignItems="center" spacing={3}>
               <Typography variant="h5">Profile</Typography>
             </Stack>
-            {openSnack && (
-              <Alert
-                onClose={handleCloseSnack}
-                severity={severity}
-                sx={{ width: "100%" }}
-              >
-                <Typography variant="caption">{message}</Typography>
-              </Alert>
-            )}
             <Stack spacing={2} alignItems={"center"}>
               {image ? (
                 <>

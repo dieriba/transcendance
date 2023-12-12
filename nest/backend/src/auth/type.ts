@@ -22,6 +22,7 @@ export type ResponseLoginType = {
   twoFa: boolean;
   profile: Partial<Profile>;
   allowForeignToDm: boolean;
+  oauth: boolean;
 };
 
 export type UserToken = { id: string; twoFa: boolean };

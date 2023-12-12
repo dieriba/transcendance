@@ -5,14 +5,13 @@ import QrCode from "./QrCode";
 import { RootState } from "../../../redux/store";
 import { useAppSelector } from "../../../redux/hooks";
 import Disable2Fa from "./Disable2Fa";
-export type Render = "DISABLE" | "UPDATE" | undefined;
 
 const TwoFa = () => {
   const [data, setData] = useState<{
     qrCode: string | undefined;
     otpTempSecret: string;
-    render: Render | undefined;
-  }>({ qrCode: undefined, otpTempSecret: "", render: undefined });
+    disable: boolean;
+  }>({ qrCode: undefined, otpTempSecret: "", disable: false });
 
   const [getQrCode, { isLoading }] = useGetQrCodeMutation();
 
@@ -28,11 +27,11 @@ const TwoFa = () => {
   const twoFa = useAppSelector((state: RootState) => state.user.user?.twoFa);
 
   const clearState = () => {
-    setData({ qrCode: undefined, otpTempSecret: "", render: undefined });
+    setData({ qrCode: undefined, otpTempSecret: "", disable: false });
   };
 
-  const handleRender = (render: Render) => {
-    setData((prev) => ({ ...prev, render }));
+  const handleRender = () => {
+    setData((prev) => ({ ...prev, disable: true }));
   };
 
   return (
@@ -40,35 +39,19 @@ const TwoFa = () => {
       <Stack>
         {twoFa ? (
           <>
-            {data.render === undefined ? (
-              <Stack spacing={1}>
-                <Button
-                  onClick={() => {
-                    handleRender("UPDATE");
-                  }}
-                  fullWidth
-                  variant="contained"
-                  color="inherit"
-                >
-                  Update 2Fa
-                </Button>
-                <Button
-                  onClick={() => {
-                    handleRender("DISABLE");
-                  }}
-                  fullWidth
-                  variant="contained"
-                  color="inherit"
-                >
-                  Disable 2Fa
-                </Button>
-              </Stack>
-            ) : data.render === "DISABLE" ? (
+            {data.disable === false ? (
+              <Button
+                onClick={handleRender}
+                fullWidth
+                variant="contained"
+                color="inherit"
+              >
+                Disable 2Fa
+              </Button>
+            ) : (
               <>
                 <Disable2Fa clearState={clearState} />
               </>
-            ) : (
-              <></>
             )}
           </>
         ) : (

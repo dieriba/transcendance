@@ -1,7 +1,5 @@
 import {
   Stack,
-  Alert,
-  AlertColor,
   CircularProgress,
   Typography,
   Avatar,
@@ -9,7 +7,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { RootState } from "../../../../../redux/store";
 import { useAppDispatch, useAppSelector } from "../../../../../redux/hooks";
 import {
@@ -28,6 +26,7 @@ import { X } from "phosphor-react";
 import { connectSocket, socket } from "../../../../../utils/getSocket";
 import { ChatEventGroup } from "../../../../../../shared/socket.event";
 import { Basetype } from "../../../../../models/BaseType";
+import { showSnackBar } from "../../../../../redux/features/app/app.slice";
 
 const InvitedUser = () => {
   const { currentGroupChatroomId, invitedUser } = useAppSelector(
@@ -38,20 +37,8 @@ const InvitedUser = () => {
     refetchOnMountOrArgChange: true,
   });
   const theme = useTheme();
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState<AlertColor>("success");
-  const [openSnack, setOpenSnack] = useState(false);
-  const dispatch = useAppDispatch();
-  const handleCloseSnack = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
 
-    setOpenSnack(false);
-  };
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     if (data?.data) {
@@ -78,13 +65,18 @@ const InvitedUser = () => {
     try {
       const res = await cancelGroupInvitation({ id, chatroomId }).unwrap();
       dispatch(deleteInvitedUser(id));
-      setMessage(res.message);
-      setOpenSnack(true);
-      setSeverity("success");
+      dispatch(
+        showSnackBar({
+          message: res.message,
+        })
+      );
     } catch (error) {
-      setSeverity("error");
-      setMessage((error as SocketServerErrorResponse).message);
-      setOpenSnack(true);
+      dispatch(
+        showSnackBar({
+          message: (error as SocketServerErrorResponse).message,
+          severity: "error",
+        })
+      );
     }
   };
 
@@ -105,15 +97,6 @@ const InvitedUser = () => {
           p={2}
         >
           <Stack spacing={2}>
-            {openSnack && (
-              <Alert
-                onClose={handleCloseSnack}
-                severity={severity}
-                sx={{ width: "100%" }}
-              >
-                {message}
-              </Alert>
-            )}
             {invitedUser.length === 0 ? (
               <Stack
                 width="100%"

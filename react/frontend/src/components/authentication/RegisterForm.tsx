@@ -2,7 +2,6 @@ import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RegisterSchema, RegisterFormType } from "../../models/RegisterSchema";
 import {
-  AlertColor,
   Button,
   CircularProgress,
   IconButton,
@@ -15,39 +14,59 @@ import { useState } from "react";
 import { Stack } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import RHFTextField from "../controlled-components/RHFTextField";
-import CustomAlert from "../Alert/CustomAlert";
 import { useRegisterMutation } from "../../redux/features/user/user.api.slice";
 import {
   isErrorWithMessage,
   isFetchBaseQueryError,
 } from "../../services/helpers";
+import { useAppDispatch } from "../../redux/hooks";
+import { showSnackBar } from "../../redux/features/app/app.slice";
 const RegisterForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [severity, setSeverity] = useState<AlertColor>("error");
-  const [message, setMessage] = useState("");
   const methods = useForm<RegisterFormType>({
     resolver: zodResolver(RegisterSchema),
   });
 
-  const [register, { isLoading, error, reset }] = useRegisterMutation();
+  const dispatch = useAppDispatch();
+  const [register, { isLoading }] = useRegisterMutation();
   const { control, handleSubmit } = methods;
   const onSubmit: SubmitHandler<RegisterFormType> = async (data) => {
     try {
       const result = await register(data).unwrap();
-      setSeverity("success");
-      setMessage(result.message);
+      dispatch(showSnackBar({ message: result.message }));
     } catch (err) {
-      setSeverity("error");
       if (isFetchBaseQueryError(err)) {
         if (err.data && typeof err.data === "object" && "message" in err.data) {
-          setMessage(err.data.message as string);
+          dispatch(
+            showSnackBar({
+              message: err.data.message as string,
+              severity: "error",
+            })
+          );
         } else {
-          setMessage("An error has occured, please try again later!");
+          dispatch(
+            showSnackBar({
+              message: "An error has occured, please try again later!",
+              severity: "error",
+            })
+          );
         }
       } else if (isErrorWithMessage(err)) {
-        setMessage(err.message);
-      } else setMessage("An error has occured, please try again later!");
+        dispatch(
+          showSnackBar({
+            message: err.message,
+            severity: "error",
+          })
+        );
+      } else {
+        dispatch(
+          showSnackBar({
+            message: "An error has occured, please try again later!",
+            severity: "error",
+          })
+        );
+      }
     }
   };
   const theme = useTheme();
@@ -55,16 +74,6 @@ const RegisterForm = () => {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={3}>
-        {(error || message.length > 0) && (
-          <>
-            <CustomAlert
-              severity={severity}
-              reset={reset}
-              msg={message}
-              setMsg={setMessage}
-            />
-          </>
-        )}
         <RHFTextField name="lastname" label="Lastname" control={control} />
         <RHFTextField name="firstname" label="Firstname" control={control} />
         <RHFTextField name="nickname" label="Nickname" control={control} />

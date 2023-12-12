@@ -6,6 +6,7 @@ export interface User {
   nickname: string | undefined;
   allowForeignToDm: boolean;
   twoFa: boolean;
+  oauth: boolean;
   profile: {
     avatar?: string | undefined | null;
     lastname: string;
@@ -23,6 +24,7 @@ const initialState: UserInfo = {
   user: {
     id: undefined,
     nickname: undefined,
+    oauth: false,
     twoFa: false,
     allowForeignToDm: false,
     profile: {

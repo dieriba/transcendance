@@ -4,8 +4,6 @@ import {
   DialogTitle,
   CircularProgress,
   Typography,
-  Alert,
-  AlertColor,
   Button,
 } from "@mui/material";
 import DialogI from "../../Dialog/DialogI";
@@ -30,6 +28,7 @@ import { RootState } from "../../../redux/store";
 import GroupIcon from "./GroupIcon";
 import { Plus } from "phosphor-react";
 import ProtectedGroupForm from "./ProtectedGroupForm";
+import { showSnackBar } from "../../../redux/features/app/app.slice";
 
 interface JoinGroupProps {
   open: boolean;
@@ -37,22 +36,9 @@ interface JoinGroupProps {
 }
 
 const JoinGroup = ({ open, handleClose }: JoinGroupProps) => {
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState<AlertColor>("success");
-  const [openSnack, setOpenSnack] = useState(false);
   const [joinGroup, joinGroupAction] = useJoinGroupMutation();
   const [openForm, setOpenForm] = useState(false);
   const [chatroomId, setChatroomId] = useState("");
-  const handleCloseSnack = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setOpenSnack(false);
-  };
 
   const { data, isLoading, isError } = useGetAllJoinableGroupQuery(undefined, {
     refetchOnMountOrArgChange: true,
@@ -83,13 +69,14 @@ const JoinGroup = ({ open, handleClose }: JoinGroupProps) => {
       dispatch(deleteJoinableGroup(chatroomId));
       dispatch(deleteGroupInvitation(chatroomId));
       dispatch(addNewChatroom({ ...res.data, restrictedUsers: [] }));
-      setSeverity("success");
-      setMessage(res.message);
-      setOpenSnack(true);
+      dispatch(showSnackBar({ message: res.message }));
     } catch (error) {
-      setSeverity("error");
-      setMessage((error as SocketServerErrorResponse).message);
-      setOpenSnack(true);
+      dispatch(
+        showSnackBar({
+          message: (error as SocketServerErrorResponse).message,
+          severity: "error",
+        })
+      );
     }
   };
   const groups = useAppSelector(
@@ -114,15 +101,6 @@ const JoinGroup = ({ open, handleClose }: JoinGroupProps) => {
         <DialogI maxWidth="sm" open={open} handleClose={handleClose}>
           <DialogTitle>Join group</DialogTitle>
           <DialogContent>
-            {openSnack && (
-              <Alert
-                onClose={handleCloseSnack}
-                severity={severity}
-                sx={{ width: "100%" }}
-              >
-                {message}
-              </Alert>
-            )}
             <Stack p={2}>
               {groups.length === 0 ? (
                 <Stack alignItems="center" justifyContent="center">

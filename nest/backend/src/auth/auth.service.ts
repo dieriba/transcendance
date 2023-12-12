@@ -86,7 +86,7 @@ export class AuthService {
     );
 
     return {
-      user: { id, nickname, twoFa, allowForeignToDm, profile },
+      user: { id, nickname, twoFa, allowForeignToDm, profile, oauth: false },
       ...tokens,
     };
   }
@@ -238,6 +238,7 @@ export class AuthService {
           twoFa: twoFa?.otpEnabled ? true : false,
           allowForeignToDm,
           profile,
+          oauth: true,
         },
         ...tokens,
       };

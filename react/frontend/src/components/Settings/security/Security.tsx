@@ -5,6 +5,8 @@ import { a11yProps } from "../../../utils/allyProps";
 import DialogI from "../../Dialog/DialogI";
 import CustomTabPanel from "../../table-panel/CustomTablePanel";
 import TwoFa from "./TwoFa";
+import { useAppSelector } from "../../../redux/hooks";
+import { RootState } from "../../../redux/store";
 
 interface SecurityProps {
   open: boolean;
@@ -16,6 +18,7 @@ const Security = ({ open, handleClose }: SecurityProps) => {
   const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
+  const oauth = useAppSelector((state: RootState) => state.user.user?.oauth);
 
   return (
     <>
@@ -28,14 +31,16 @@ const Security = ({ open, handleClose }: SecurityProps) => {
             aria-label="basic tabs example"
           >
             <Tab label="2fa" {...a11yProps(0)} />
-            <Tab label="Change password" {...a11yProps(1)} />
+            {!oauth && <Tab label="Change password" {...a11yProps(1)} />}
           </Tabs>
           <CustomTabPanel value={value} index={0}>
             <TwoFa />
           </CustomTabPanel>
-          <CustomTabPanel value={value} index={1}>
-            <ChangePassword />
-          </CustomTabPanel>
+          {!oauth && (
+            <CustomTabPanel value={value} index={1}>
+              <ChangePassword />
+            </CustomTabPanel>
+          )}
         </DialogContent>
       </DialogI>
     </>

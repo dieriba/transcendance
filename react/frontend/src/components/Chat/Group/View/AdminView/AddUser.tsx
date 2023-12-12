@@ -1,6 +1,4 @@
 import {
-  Alert,
-  AlertColor,
   Autocomplete,
   Button,
   CircularProgress,
@@ -12,7 +10,7 @@ import { useTheme } from "@mui/material/styles";
 import { Controller, useForm } from "react-hook-form";
 import CustomTextField from "../../../../CustomTextField/CustomTextField";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   AddNewUserToGroupType,
   AddNewUserToGroupSchema,
@@ -23,6 +21,7 @@ import { useAddUserMutation } from "../../../../../redux/features/groups/group.a
 import { useAppDispatch, useAppSelector } from "../../../../../redux/hooks";
 import { SocketServerErrorResponse } from "../../../../../services/type";
 import { RootState } from "../../../../../redux/store";
+import { showSnackBar } from "../../../../../redux/features/app/app.slice";
 
 const AddUser = () => {
   const { data, isLoading, isError } = useGetAllFriendsQuery(undefined, {
@@ -58,31 +57,18 @@ const AddUser = () => {
 
       const res = await addUser(data).unwrap();
 
-      setSeverity("success");
-      setMessage(res.message);
-      setOpenSnack(true);
+      dispatch(showSnackBar({ message: res.message }));
     } catch (error) {
-      setSeverity("error");
-      setMessage((error as SocketServerErrorResponse).message);
-      setOpenSnack(true);
+      dispatch(
+        showSnackBar({
+          message: (error as SocketServerErrorResponse).message,
+          severity: "error",
+        })
+      );
     }
   };
   const theme = useTheme();
 
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState<AlertColor>("success");
-  const [openSnack, setOpenSnack] = useState(false);
-
-  const handleCloseSnack = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setOpenSnack(false);
-  };
   if (isLoading) {
     return (
       <Stack alignItems="center" height="100%" pt={25} justifyContent="center">
@@ -103,15 +89,6 @@ const AddUser = () => {
           spacing={2}
           p={2}
         >
-          {message?.length > 0 && openSnack && (
-            <Alert
-              onClose={handleCloseSnack}
-              severity={severity}
-              sx={{ width: "100%" }}
-            >
-              {message}
-            </Alert>
-          )}
           <form onSubmit={handleSubmit(onSubmit)}>
             <Stack spacing={2}>
               <Controller

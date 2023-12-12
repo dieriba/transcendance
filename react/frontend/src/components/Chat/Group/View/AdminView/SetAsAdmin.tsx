@@ -1,6 +1,4 @@
 import {
-  Alert,
-  AlertColor,
   Button,
   CircularProgress,
   DialogContent,
@@ -10,13 +8,13 @@ import {
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import DialogI from "../../../../Dialog/DialogI";
-import { useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../../../../redux/hooks";
 import { RootState } from "../../../../../redux/store";
 import { SocketServerErrorResponse } from "../../../../../services/type";
 import { setNewAdmin } from "../../../../../redux/features/groups/group.slice";
 import { useSetNewDieribaMutation } from "../../../../../redux/features/groups/group.api.slice";
 import { ChatroomGroupType } from "../../../../../models/groupChat";
+import { showSnackBar } from "../../../../../redux/features/app/app.slice";
 
 interface SetAdminProps {
   open: boolean;
@@ -26,27 +24,12 @@ interface SetAdminProps {
 }
 
 const SetAsAdmin = ({ id, nickname, open, handleClose }: SetAdminProps) => {
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState<AlertColor>("success");
-  const [openSnack, setOpenSnack] = useState(false);
-  const theme = useTheme();
-  const handleCloseSnack = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setOpenSnack(false);
-  };
-
   const dispatch = useAppDispatch();
 
   const currentChatroom = useAppSelector(
     (state: RootState) => state.groups.currentChatroom as ChatroomGroupType
   );
-
+  const theme = useTheme();
   const [setDieriba, { isLoading }] = useSetNewDieribaMutation();
 
   const onSubmit = async (data: { id: string; chatroomId: string }) => {
@@ -57,10 +40,18 @@ const SetAsAdmin = ({ id, nickname, open, handleClose }: SetAdminProps) => {
         setNewAdmin({ data: response.data, chatroomId: data.chatroomId })
       );
       handleClose();
+      dispatch(
+        showSnackBar({
+          message: response.message,
+        })
+      );
     } catch (error) {
-      setSeverity("error");
-      setMessage((error as SocketServerErrorResponse).message);
-      setOpenSnack(true);
+      dispatch(
+        showSnackBar({
+          message: (error as SocketServerErrorResponse).message,
+          severity: "error",
+        })
+      );
     }
   };
 
@@ -76,15 +67,6 @@ const SetAsAdmin = ({ id, nickname, open, handleClose }: SetAdminProps) => {
             spacing={2}
             p={2}
           >
-            {openSnack && (
-              <Alert
-                onClose={handleCloseSnack}
-                severity={severity}
-                sx={{ width: "100%" }}
-              >
-                {message}
-              </Alert>
-            )}
             <Typography>{`This action is not reversible and will set ${
               nickname.toUpperCase() as string
             } as new chat admin and YOU as regular group user, are you sure to continue?`}</Typography>

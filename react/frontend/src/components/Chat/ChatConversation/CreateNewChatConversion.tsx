@@ -1,15 +1,13 @@
 import {
   Stack,
   DialogContent,
-  Alert,
-  AlertColor,
   CircularProgress,
   Typography,
   Button,
   Avatar,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { RootState } from "../../../redux/store";
 import {
@@ -32,6 +30,7 @@ import { Basetype } from "../../../models/BaseType";
 import { connectSocket, socket } from "../../../utils/getSocket";
 import { GeneralEvent } from "../../../../shared/socket.event";
 import { BaseUserInfoType } from "../../../models/login/UserSchema";
+import { showSnackBar } from "../../../redux/features/app/app.slice";
 
 interface CreateNewChatConversationProps {
   open: boolean;
@@ -47,20 +46,7 @@ const CreateNewChatConversation = ({
   });
   const theme = useTheme();
   const [createNewChat] = useCreatePrivateChatroomMutation();
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState<AlertColor>("success");
-  const [openSnack, setOpenSnack] = useState(false);
   const dispatch = useAppDispatch();
-  const handleCloseSnack = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setOpenSnack(false);
-  };
 
   useEffect(() => {
     if (data?.data) {
@@ -110,9 +96,12 @@ const CreateNewChatConversation = ({
       dispatch(setPrivateChatroomId(data.id));
       handleClose();
     } catch (error) {
-      setSeverity("error");
-      setMessage((error as SocketServerErrorResponse).message);
-      setOpenSnack(true);
+      dispatch(
+        showSnackBar({
+          message: (error as SocketServerErrorResponse).message,
+          severity: "error",
+        })
+      );
     }
   };
 
@@ -141,15 +130,6 @@ const CreateNewChatConversation = ({
               p={2}
             >
               <Stack spacing={2}>
-                {openSnack && (
-                  <Alert
-                    onClose={handleCloseSnack}
-                    severity={severity}
-                    sx={{ width: "100%" }}
-                  >
-                    {message}
-                  </Alert>
-                )}
                 {chatableUsers.length === 0 ? (
                   <Stack
                     width="100%"

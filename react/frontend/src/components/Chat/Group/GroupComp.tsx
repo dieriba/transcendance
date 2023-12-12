@@ -6,8 +6,6 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  AlertColor,
-  Alert,
 } from "@mui/material";
 import { Trash } from "phosphor-react";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
@@ -23,6 +21,7 @@ import {
   useLeaveGroupMutation,
 } from "../../../redux/features/groups/group.api.slice";
 import { useTheme } from "@mui/material/styles";
+import { showSnackBar } from "../../../redux/features/app/app.slice";
 interface GroupCompProps {
   openDialog: boolean;
   handleClose: () => void;
@@ -35,16 +34,6 @@ const GroupComp = ({ openDialog, handleClose }: GroupCompProps) => {
     delete: false,
   });
   const theme = useTheme();
-  const handleCloseSnack = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setOpenSnack(false);
-  };
 
   const role = useAppSelector(
     (state: RootState) => state.groups.role
@@ -58,10 +47,6 @@ const GroupComp = ({ openDialog, handleClose }: GroupCompProps) => {
     setOpen((prev) => ({ ...prev, leave: false }));
   };
 
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState<AlertColor>("success");
-  const [openSnack, setOpenSnack] = useState(false);
-
   const handleCloseDelete = () => {
     setOpen((prev) => ({ ...prev, delete: false }));
   };
@@ -74,13 +59,14 @@ const GroupComp = ({ openDialog, handleClose }: GroupCompProps) => {
       const res = await leaveGroup({ chatroomId }).unwrap();
 
       dispatch(leaveChatroom({ chatroomId: res.data.chatroomId }));
-      setSeverity("success");
-      setMessage(res.message);
-      setOpenSnack(true);
+      dispatch(showSnackBar({ message: res.message }));
     } catch (error) {
-      setSeverity("error");
-      setMessage((error as SocketServerErrorResponse).message);
-      setOpenSnack(true);
+      dispatch(
+        showSnackBar({
+          message: (error as SocketServerErrorResponse).message,
+          severity: "error",
+        })
+      );
     }
   };
 
@@ -89,13 +75,14 @@ const GroupComp = ({ openDialog, handleClose }: GroupCompProps) => {
       const res = await deleteGroup({ chatroomId }).unwrap();
 
       dispatch(leaveChatroom({ chatroomId: res.data.chatroomId }));
-      setSeverity("success");
-      setMessage(res.message);
-      setOpenSnack(true);
+      dispatch(showSnackBar({ message: res.message }));
     } catch (error) {
-      setSeverity("error");
-      setMessage((error as SocketServerErrorResponse).message);
-      setOpenSnack(true);
+      dispatch(
+        showSnackBar({
+          message: (error as SocketServerErrorResponse).message,
+          severity: "error",
+        })
+      );
     }
   };
 
@@ -155,15 +142,6 @@ const GroupComp = ({ openDialog, handleClose }: GroupCompProps) => {
           <DialogI open={open.leave} handleClose={handleCloseLeave}>
             <DialogTitle>Leave Group?</DialogTitle>
             <DialogContent>
-              {openSnack && (
-                <Alert
-                  onClose={handleCloseSnack}
-                  severity={severity}
-                  sx={{ width: "100%" }}
-                >
-                  {message}
-                </Alert>
-              )}
               <DialogContentText id="alert-dialog-slide-description">
                 {role === ROLE.DIERIBA
                   ? "Do you really want to leave that group, Please note that upon leaving the group, your privileges will be forfeited and randomly transferred to another user if present. If no users remain in the group, it will be deleted."
@@ -182,15 +160,6 @@ const GroupComp = ({ openDialog, handleClose }: GroupCompProps) => {
           <DialogI open={open.delete} handleClose={handleCloseDelete}>
             <DialogTitle>Delete Group?</DialogTitle>
             <DialogContent>
-              {openSnack && (
-                <Alert
-                  onClose={handleCloseSnack}
-                  severity={severity}
-                  sx={{ width: "100%" }}
-                >
-                  {message}
-                </Alert>
-              )}
               <DialogContentText id="alert-dialog-slide-description">
                 Please be aware that deleting your group will result in the loss
                 of all messages and the removal of all users from the group,

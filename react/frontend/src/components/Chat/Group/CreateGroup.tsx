@@ -10,8 +10,6 @@ import {
   ButtonGroup,
   CircularProgress,
   Typography,
-  Alert,
-  AlertColor,
 } from "@mui/material";
 import DialogI from "../../Dialog/DialogI";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,6 +29,7 @@ import { SocketServerErrorResponse } from "../../../services/type";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { setFriends } from "../../../redux/features/friends/friends.slice";
 import { RootState } from "../../../redux/store";
+import { showSnackBar } from "../../../redux/features/app/app.slice";
 
 interface CreateGroupProps {
   open: boolean;
@@ -44,21 +43,6 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
     });
 
   const [createGroupChat, groupMutation] = useCreateGroupMutation();
-
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState<AlertColor>("success");
-  const [openSnack, setOpenSnack] = useState(false);
-
-  const handleCloseSnack = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setOpenSnack(false);
-  };
 
   const { data, isLoading, isError } = useGetAllFriendsQuery(undefined, {
     refetchOnMountOrArgChange: true,
@@ -80,15 +64,14 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
           .map((friend) => friend.friend.id);
 
       const res = await createGroupChat(data).unwrap();
-
-      setSeverity("success");
-      setMessage(res.message);
-      setOpenSnack(true);
+      dispatch(showSnackBar({ message: res.message }));
     } catch (error) {
-
-      setSeverity("error");
-      setMessage((error as SocketServerErrorResponse).message);
-      setOpenSnack(true);
+      dispatch(
+        showSnackBar({
+          message: (error as SocketServerErrorResponse).message,
+          severity: "error",
+        })
+      );
     }
   };
 
@@ -118,15 +101,6 @@ const CreateGroup = ({ open, handleClose }: CreateGroupProps) => {
           <DialogTitle>Create New Group</DialogTitle>
           <DialogContent>
             <Stack spacing={2} p={2}>
-              {openSnack && (
-                <Alert
-                  onClose={handleCloseSnack}
-                  severity={severity}
-                  sx={{ width: "100%" }}
-                >
-                  {message}
-                </Alert>
-              )}
               <form onSubmit={handleSubmit(onSubmit)}>
                 <Stack spacing={3}>
                   <RHFTextField

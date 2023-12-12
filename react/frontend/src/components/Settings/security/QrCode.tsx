@@ -1,6 +1,4 @@
 import {
-  Alert,
-  AlertColor,
   Box,
   Button,
   Divider,
@@ -15,7 +13,6 @@ import {
 } from "../../../models/login/UserSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
 import {
   isFetchBaseQueryError,
   isErrorWithMessage,
@@ -25,6 +22,7 @@ import RHFTextField from "../../controlled-components/RHFTextField";
 import { useAppDispatch } from "../../../redux/hooks";
 import { updatedTwoFa } from "../../../redux/features/user/user.slice";
 import { useTheme } from "@mui/material/styles";
+import { showSnackBar } from "../../../redux/features/app/app.slice";
 interface QrCodeProps {
   qrCode: string;
   secret: string;
@@ -35,22 +33,8 @@ const QrCode = ({ qrCode, secret }: QrCodeProps) => {
     resolver: zodResolver(ValidateOtpSchema),
   });
   const theme = useTheme();
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState<AlertColor>("success");
-  const [openSnack, setOpenSnack] = useState(false);
   const dispatch = useAppDispatch();
   const [enable2Fa, { isLoading }] = useEnable2FaMutation();
-
-  const handleCloseSnack = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setOpenSnack(false);
-  };
 
   const onlyMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -59,51 +43,53 @@ const QrCode = ({ qrCode, secret }: QrCodeProps) => {
       const res = await enable2Fa(data).unwrap();
 
       dispatch(updatedTwoFa(true));
-      setSeverity("success");
-      setMessage(res.message);
-      setOpenSnack(true);
-    } catch (error) {
-      if (isFetchBaseQueryError(error)) {
+      dispatch(showSnackBar({ message: res.message }));
+    } catch (err) {
+      if (isFetchBaseQueryError(err)) {
         if (
-          error.data &&
-          typeof error.data === "object" &&
-          ("message" in error.data || "error" in error.data)
+          err.data &&
+          typeof err.data === "object" &&
+          ("message" in err.data || "error" in err.data)
         ) {
-          if ("message" in error.data) {
-            setMessage(error.data.message as string);
-          } else {
-            setMessage(error.data.error as string);
+          if ("message" in err.data) {
+            dispatch(
+              showSnackBar({
+                message: err.data.message as string,
+                severity: "error",
+              })
+            );
+            return;
           }
+          dispatch(
+            showSnackBar({
+              message: err.data.error as string,
+              severity: "error",
+            })
+          );
         } else {
-          setMessage("An error has occured, please try again later!");
+          dispatch(
+            showSnackBar({
+              message: "An error has occured, please try again later!",
+              severity: "error",
+            })
+          );
         }
-      } else if (isErrorWithMessage(error)) {
-        setMessage(error.message);
+      } else if (isErrorWithMessage(err)) {
+        dispatch(showSnackBar({ message: err.message, severity: "error" }));
       }
-      setOpenSnack(true);
-      setSeverity("error");
     }
   };
 
   return (
     <Stack p={1} spacing={2} alignContent={"flex-start"}>
-      {openSnack && (
-        <Alert
-          onClose={handleCloseSnack}
-          severity={severity}
-          sx={{ width: "100%" }}
-        >
-          {message}
-        </Alert>
-      )}
-      <Typography textAlign={'center'}>You are almost there!</Typography>
+      <Typography textAlign={"center"}>You are almost there!</Typography>
       <Stack
         direction={onlyMediumScreen ? "column" : "row"}
         alignItems={"center"}
       >
         <Code size={100} />
         <Stack>
-          <Typography textAlign={'center'}>
+          <Typography textAlign={"center"}>
             Please use your authentication app such as Google Authenticator to
             scan the below QR code
           </Typography>

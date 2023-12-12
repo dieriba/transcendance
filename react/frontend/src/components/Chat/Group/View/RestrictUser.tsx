@@ -5,14 +5,11 @@ import {
   Button,
   TextField,
   ButtonGroup,
-  Alert,
-  AlertColor,
   Typography,
 } from "@mui/material";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { useTheme } from "@mui/material/styles";
-import { useState } from "react";
 import {
   RestrictUserFormSchema,
   RestrictUserType,
@@ -41,6 +38,7 @@ import {
 import { useRestrictUserMutation } from "../../../../redux/features/groups/group.api.slice";
 import { useAppDispatch } from "../../../../redux/hooks";
 import { addRestrictedUser } from "../../../../redux/features/groups/group.slice";
+import { showSnackBar } from "../../../../redux/features/app/app.slice";
 interface RestrictUserProps {
   open: boolean;
   nickname: string;
@@ -62,21 +60,6 @@ const RestrictUser = ({
     resolver: zodResolver(RestrictUserFormSchema),
   });
 
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState<AlertColor>("success");
-  const [openSnack, setOpenSnack] = useState(false);
-
-  const handleCloseSnack = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setOpenSnack(false);
-  };
-
   const restrictionWatcher = watch("restriction");
 
   const [restrictUser, { isLoading }] = useRestrictUserMutation();
@@ -92,13 +75,14 @@ const RestrictUser = ({
       dispatch(
         addRestrictedUser({ data: res.data, chatroomId: data.chatroomId })
       );
-      setMessage(res.message);
-      setOpenSnack(true);
-      setSeverity("success");
+      dispatch(showSnackBar({ message: res.message }));
     } catch (error) {
-      setSeverity("error");
-      setMessage((error as SocketServerErrorResponse).message);
-      setOpenSnack(true);
+      dispatch(
+        showSnackBar({
+          message: (error as SocketServerErrorResponse).message,
+          severity: "error",
+        })
+      );
     }
   };
 
@@ -115,16 +99,6 @@ const RestrictUser = ({
                 sx={{ backgroundColor: theme.palette.background.paper }}
                 spacing={2}
               >
-                {openSnack && (
-                  <Alert
-                    onClose={handleCloseSnack}
-                    severity={severity}
-                    sx={{ width: "100%" }}
-                  >
-                    {message}
-                  </Alert>
-                )}
-
                 <Stack sx={{ backgroundColor: theme.palette.background.paper }}>
                   <Typography variant="caption">Restriction: </Typography>
                   <Controller

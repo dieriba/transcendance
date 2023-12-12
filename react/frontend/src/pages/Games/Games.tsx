@@ -1,4 +1,4 @@
-import { Alert, AlertColor, Button, Stack } from "@mui/material";
+import { Button, Stack } from "@mui/material";
 import { useState } from "react";
 import {
   useJoinBackCurrentGameMutation,
@@ -21,23 +21,9 @@ import { PATH_APP } from "../../routes/paths";
 const Games = () => {
   const [open, setOpen] = useState<{ queue: boolean }>({ queue: false });
   const gameData = useAppSelector((state: RootState) => state.pong.gameData);
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState<AlertColor>("success");
-  const [openSnack, setOpenSnack] = useState(false);
   const navigate = useNavigate();
-  const handleCloseSnack = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setOpenSnack(false);
-  };
-
-  const [joinQueue, { isLoading }] = useJoinQueueMutation();
   const dispatch = useAppDispatch();
+  const [joinQueue, { isLoading }] = useJoinQueueMutation();
   const [joinBackGame, joinBackMutation] = useJoinBackCurrentGameMutation();
   const handleJoinQueue = async (data: { pongType: PongGameType }) => {
     try {
@@ -45,9 +31,12 @@ const Games = () => {
 
       setOpen((prev) => ({ ...prev, queue: true }));
     } catch (error) {
-      setSeverity("error");
-      setMessage((error as SocketServerErrorResponse).message);
-      setOpenSnack(true);
+      dispatch(
+        showSnackBar({
+          message: (error as SocketServerErrorResponse).message,
+          severity: "error",
+        })
+      );
     }
   };
 
@@ -75,15 +64,6 @@ const Games = () => {
         justifyContent={"center"}
       >
         <Stack width={"300px"} spacing={1}>
-          {openSnack && (
-            <Alert
-              onClose={handleCloseSnack}
-              severity={severity}
-              sx={{ width: "100%" }}
-            >
-              {message}
-            </Alert>
-          )}
           {gameData && (
             <Button
               disabled={joinBackMutation.isLoading}

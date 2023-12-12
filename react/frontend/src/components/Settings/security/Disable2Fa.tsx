@@ -1,5 +1,4 @@
-import { Alert, AlertColor, Button, Stack } from "@mui/material";
-import { useState } from "react";
+import { Button, Stack } from "@mui/material";
 import { useDisable2FaMutation } from "../../../redux/features/user/user.api.slice";
 import {
   ValidateOtpSchema,
@@ -14,6 +13,7 @@ import {
 import RHFTextField from "../../controlled-components/RHFTextField";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { showSnackBar } from "../../../redux/features/app/app.slice";
 
 interface Disable2FaProps {
   clearState: () => void;
@@ -25,21 +25,6 @@ const Disable2Fa = ({ clearState }: Disable2FaProps) => {
   });
   const [disable2Fa, { isLoading }] = useDisable2FaMutation();
 
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState<AlertColor>("success");
-  const [openSnack, setOpenSnack] = useState(false);
-
-  const handleCloseSnack = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setOpenSnack(false);
-  };
-
   const dispatch = useAppDispatch();
   const onSubmitTwoFa = async (data: ValidateOtpType) => {
     try {
@@ -48,8 +33,6 @@ const Disable2Fa = ({ clearState }: Disable2FaProps) => {
       dispatch(updatedTwoFa(false));
       clearState();
     } catch (err) {
-      setSeverity("error");
-      setOpenSnack(true);
       if (isFetchBaseQueryError(err)) {
         if (
           err.data &&
@@ -57,15 +40,30 @@ const Disable2Fa = ({ clearState }: Disable2FaProps) => {
           ("message" in err.data || "error" in err.data)
         ) {
           if ("message" in err.data) {
-            setMessage(err.data.message as string);
+            dispatch(
+              showSnackBar({
+                message: err.data.message as string,
+                severity: "error",
+              })
+            );
             return;
           }
-          setMessage(err.data.error as string);
+          dispatch(
+            showSnackBar({
+              message: err.data.error as string,
+              severity: "error",
+            })
+          );
         } else {
-          setMessage("An error has occured, please try again later!");
+          dispatch(
+            showSnackBar({
+              message: "An error has occured, please try again later!",
+              severity: "error",
+            })
+          );
         }
       } else if (isErrorWithMessage(err)) {
-        setMessage(err.message);
+        dispatch(showSnackBar({ message: err.message, severity: "error" }));
       }
     }
   };
@@ -74,15 +72,6 @@ const Disable2Fa = ({ clearState }: Disable2FaProps) => {
     <>
       <form onSubmit={handleSubmit(onSubmitTwoFa)}>
         <Stack spacing={2}>
-          {openSnack && (
-            <Alert
-              onClose={handleCloseSnack}
-              severity={severity}
-              sx={{ width: "100%" }}
-            >
-              {message}
-            </Alert>
-          )}
           <RHFTextField name="token" label="token" control={control} />
           <Button
             disabled={isLoading}

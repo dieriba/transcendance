@@ -5,16 +5,14 @@ import {
   DialogActions,
   Button,
   DialogProps,
-  AlertColor,
-  Alert,
 } from "@mui/material";
 import { BaseChatroomWithUserIdType } from "../../../../models/groupChat";
 import DialogI from "../../../Dialog/DialogI";
 import { useAppDispatch } from "../../../../redux/hooks";
-import { useState } from "react";
 import { leaveChatroom } from "../../../../redux/features/groups/group.slice";
 import { SocketServerErrorResponse } from "../../../../services/type";
 import { useLeaveGroupMutation } from "../../../../redux/features/groups/group.api.slice";
+import { showSnackBar } from "../../../../redux/features/app/app.slice";
 
 interface LeaveGroupProps extends DialogProps {
   id: string;
@@ -30,19 +28,6 @@ const LeaveGroup = ({
   chatroomName,
   chatroomId,
 }: LeaveGroupProps) => {
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState<AlertColor>("success");
-  const [openSnack, setOpenSnack] = useState(false);
-  const handleCloseSnack = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setOpenSnack(false);
-  };
   const [leaveGroup, { isLoading }] = useLeaveGroupMutation();
   const dispatch = useAppDispatch();
   const handleOnClick = async (data: BaseChatroomWithUserIdType) => {
@@ -52,13 +37,11 @@ const LeaveGroup = ({
       const res = await leaveGroup(data).unwrap();
 
       dispatch(leaveChatroom(res.data));
-      setMessage(res.message);
-      setOpenSnack(true);
-      setSeverity("success");
+      dispatch(showSnackBar({ message: res.message }));
     } catch (error) {
-      setSeverity("error");
-      setMessage((error as SocketServerErrorResponse).message);
-      setOpenSnack(true);
+      dispatch(
+        showSnackBar({ message: (error as SocketServerErrorResponse).message })
+      );
     }
   };
 
@@ -66,15 +49,6 @@ const LeaveGroup = ({
     <DialogI open={open} handleClose={handleClose}>
       <DialogTitle>{`Leave ${chatroomName} ?`}</DialogTitle>
       <DialogContent>
-        {openSnack && (
-          <Alert
-            onClose={handleCloseSnack}
-            severity={severity}
-            sx={{ width: "100%" }}
-          >
-            {message}
-          </Alert>
-        )}
         <DialogContentText id="alert-dialog-slide-description">
           {`Do you really wanna leave ${chatroomName} ?`}
         </DialogContentText>

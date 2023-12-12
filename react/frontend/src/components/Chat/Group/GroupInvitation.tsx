@@ -4,12 +4,10 @@ import {
   DialogTitle,
   CircularProgress,
   Typography,
-  Alert,
-  AlertColor,
   Button,
 } from "@mui/material";
 import DialogI from "../../Dialog/DialogI";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   SocketServerErrorResponse,
   SocketServerSucessResponse,
@@ -31,6 +29,7 @@ import { BaseChatroomTypeId } from "../../../models/groupChat";
 import { RootState } from "../../../redux/store";
 import GroupIcon from "./GroupIcon";
 import { Plus, X } from "phosphor-react";
+import { showSnackBar } from "../../../redux/features/app/app.slice";
 
 interface GroupInvitationProps {
   open: boolean;
@@ -38,23 +37,10 @@ interface GroupInvitationProps {
 }
 
 const GroupInvitation = ({ open, handleClose }: GroupInvitationProps) => {
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState<AlertColor>("success");
-  const [openSnack, setOpenSnack] = useState(false);
   const [acceptGroupInvitation, acceptGroupInvitationAction] =
     useAcceptGroupInvitaionMutation();
   const [declineGroupInvitation, declineGroupInvitationAction] =
     useDeclineGroupInvitationMutation();
-  const handleCloseSnack = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setOpenSnack(false);
-  };
 
   const { data, isLoading, isError } = useGetAllGroupInvitationQuery(
     undefined,
@@ -89,13 +75,14 @@ const GroupInvitation = ({ open, handleClose }: GroupInvitationProps) => {
       }).unwrap();
       dispatch(deleteGroupInvitation(chatroomId));
       dispatch(addNewChatroom({ ...res.data, restrictedUsers: [] }));
-      setSeverity("success");
-      setMessage(res.message);
-      setOpenSnack(true);
+      dispatch(showSnackBar({ message: res.message }));
     } catch (error) {
-      setSeverity("error");
-      setMessage((error as SocketServerErrorResponse).message);
-      setOpenSnack(true);
+      dispatch(
+        showSnackBar({
+          message: (error as SocketServerErrorResponse).message,
+          severity: "error",
+        })
+      );
     }
   };
 
@@ -105,13 +92,14 @@ const GroupInvitation = ({ open, handleClose }: GroupInvitationProps) => {
         chatroomId,
       }).unwrap();
       dispatch(deleteGroupInvitation(chatroomId));
-      setSeverity("success");
-      setMessage(res.message);
-      setOpenSnack(true);
+      dispatch(showSnackBar({ message: res.message }));
     } catch (error) {
-      setSeverity("error");
-      setMessage((error as SocketServerErrorResponse).message);
-      setOpenSnack(true);
+      dispatch(
+        showSnackBar({
+          message: (error as SocketServerErrorResponse).message,
+          severity: "error",
+        })
+      );
     }
   };
   const groupInvitation = useAppSelector(
@@ -140,15 +128,6 @@ const GroupInvitation = ({ open, handleClose }: GroupInvitationProps) => {
         <DialogI maxWidth="sm" open={open} handleClose={handleClose}>
           <DialogTitle>Group Invitation</DialogTitle>
           <DialogContent>
-            {openSnack && (
-              <Alert
-                onClose={handleCloseSnack}
-                severity={severity}
-                sx={{ width: "100%" }}
-              >
-                {message}
-              </Alert>
-            )}
             <Stack p={2}>
               {groupInvitation.length === 0 ? (
                 <Stack alignItems="center" justifyContent="center">

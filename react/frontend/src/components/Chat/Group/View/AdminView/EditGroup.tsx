@@ -8,8 +8,6 @@ import {
   TextField,
   ButtonGroup,
   CircularProgress,
-  Alert,
-  AlertColor,
 } from "@mui/material";
 import DialogI from "../../../../Dialog/DialogI";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,6 +26,7 @@ import { RootState } from "../../../../../redux/store";
 import { useEditGroupMutation } from "../../../../../redux/features/groups/group.api.slice";
 import { ChatroomGroupType } from "../../../../../models/groupChat";
 import { updateChatroom } from "../../../../../redux/features/groups/group.slice";
+import { showSnackBar } from "../../../../../redux/features/app/app.slice";
 
 interface EditGroupProps {
   open: boolean;
@@ -41,20 +40,7 @@ const EditGroup = ({ open, handleClose }: EditGroupProps) => {
   const { type, id } = useAppSelector(
     (state: RootState) => state.groups.currentChatroom as ChatroomGroupType
   );
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState<AlertColor>("success");
-  const [openSnack, setOpenSnack] = useState(false);
 
-  const handleCloseSnack = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setOpenSnack(false);
-  };
   const dispatch = useAppDispatch();
 
   const [editGroup, { isLoading }] = useEditGroupMutation();
@@ -64,13 +50,18 @@ const EditGroup = ({ open, handleClose }: EditGroupProps) => {
       editData.chatroomId = id;
       const { message, data } = await editGroup(editData).unwrap();
       dispatch(updateChatroom(data));
-      setSeverity("success");
-      setMessage(message);
-      setOpenSnack(true);
+      dispatch(
+        showSnackBar({
+          message: message,
+        })
+      );
     } catch (error) {
-      setSeverity("error");
-      setMessage((error as SocketServerErrorResponse).message);
-      setOpenSnack(true);
+      dispatch(
+        showSnackBar({
+          message: (error as SocketServerErrorResponse).message,
+          severity: "error",
+        })
+      );
     }
   };
 
@@ -93,15 +84,6 @@ const EditGroup = ({ open, handleClose }: EditGroupProps) => {
             spacing={2}
             p={2}
           >
-            {openSnack && (
-              <Alert
-                onClose={handleCloseSnack}
-                severity={severity}
-                sx={{ width: "100%" }}
-              >
-                {message}
-              </Alert>
-            )}
             <form onSubmit={handleSubmit(onSubmit)}>
               <Stack spacing={3}>
                 <Controller

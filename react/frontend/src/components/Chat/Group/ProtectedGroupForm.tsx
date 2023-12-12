@@ -6,8 +6,6 @@ import {
   IconButton,
   InputAdornment,
   TextField,
-  Alert,
-  AlertColor,
 } from "@mui/material";
 import DialogI from "../../Dialog/DialogI";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,6 +25,7 @@ import {
   addNewChatroom,
   deleteJoinableGroup,
 } from "../../../redux/features/groups/group.slice";
+import { showSnackBar } from "../../../redux/features/app/app.slice";
 
 interface ProtectGroupFormProps {
   chatroomId: string;
@@ -45,21 +44,6 @@ const ProtectedGroupForm = ({
 
   const [joinProtectedGroup, { isLoading }] = useJoinGroupMutation();
 
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState<AlertColor>("success");
-  const [openSnack, setOpenSnack] = useState(false);
-
-  const handleCloseSnack = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setOpenSnack(false);
-  };
-
   const dispatch = useAppDispatch();
   const onSubmit = async (data: JoinProtectedGroupFormType) => {
     try {
@@ -70,13 +54,14 @@ const ProtectedGroupForm = ({
 
       dispatch(deleteJoinableGroup(chatroomId));
       dispatch(addNewChatroom({ ...res.data, restrictedUsers: [] }));
-      setSeverity("success");
-      setMessage(res.message);
-      setOpenSnack(true);
+      dispatch(showSnackBar({ message: res.message }));
     } catch (error) {
-      setSeverity("error");
-      setMessage((error as SocketServerErrorResponse).message);
-      setOpenSnack(true);
+      dispatch(
+        showSnackBar({
+          message: (error as SocketServerErrorResponse).message,
+          severity: "error",
+        })
+      );
     }
   };
 
@@ -90,15 +75,6 @@ const ProtectedGroupForm = ({
         <DialogTitle>Password</DialogTitle>
         <DialogContent>
           <Stack spacing={2} p={2}>
-            {openSnack && (
-              <Alert
-                onClose={handleCloseSnack}
-                severity={severity}
-                sx={{ width: "100%" }}
-              >
-                {message}
-              </Alert>
-            )}
             <form onSubmit={handleSubmit(onSubmit)}>
               <Stack spacing={3}>
                 <Controller

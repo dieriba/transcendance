@@ -1,7 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  Alert,
-  AlertColor,
   Button,
   IconButton,
   InputAdornment,
@@ -22,11 +20,10 @@ import {
   isFetchBaseQueryError,
   isErrorWithMessage,
 } from "../../../services/helpers";
+import { showSnackBar } from "../../../redux/features/app/app.slice";
+import { useAppDispatch } from "../../../redux/hooks";
 
 const ChangePassword = () => {
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState<AlertColor>("success");
-  const [openSnack, setOpenSnack] = useState(false);
   const theme = useTheme();
   const { control, handleSubmit } = useForm<ChangePasswordType>({
     resolver: zodResolver(ChangePasswordSchema),
@@ -37,61 +34,52 @@ const ChangePassword = () => {
     confirmPassword: boolean;
   }>({ current: false, confirmPassword: false, password: false });
 
-  const handleCloseSnack = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setOpenSnack(false);
-  };
-
   const [changePassword, { isLoading }] = useChangePasswordMutation();
-
+  const dispatch = useAppDispatch();
   const onSubmit = async (data: ChangePasswordType) => {
     try {
       const res = await changePassword(data).unwrap();
 
-      setSeverity("success");
-      setMessage(res.message);
-      setOpenSnack(true);
-    } catch (error) {
-      if (isFetchBaseQueryError(error)) {
+      dispatch(showSnackBar({ message: res.message }));
+    } catch (err) {
+      if (isFetchBaseQueryError(err)) {
         if (
-          error.data &&
-          typeof error.data === "object" &&
-          ("message" in error.data || "error" in error.data)
+          err.data &&
+          typeof err.data === "object" &&
+          ("message" in err.data || "error" in err.data)
         ) {
-          if ("message" in error.data) {
-            setMessage(error.data.message as string);
-          } else {
-            setMessage(error.data.error as string);
+          if ("message" in err.data) {
+            dispatch(
+              showSnackBar({
+                message: err.data.message as string,
+                severity: "error",
+              })
+            );
+            return;
           }
+          dispatch(
+            showSnackBar({
+              message: err.data.error as string,
+              severity: "error",
+            })
+          );
         } else {
-          setMessage("An error has occured, please try again later!");
+          dispatch(
+            showSnackBar({
+              message: "An error has occured, please try again later!",
+              severity: "error",
+            })
+          );
         }
-      } else if (isErrorWithMessage(error)) {
-        setMessage(error.message);
+      } else if (isErrorWithMessage(err)) {
+        dispatch(showSnackBar({ message: err.message, severity: "error" }));
       }
-      setOpenSnack(true);
-      setSeverity("error");
     }
   };
 
   return (
     <>
       <Stack spacing={2} p={2}>
-        {openSnack && (
-          <Alert
-            onClose={handleCloseSnack}
-            severity={severity}
-            sx={{ width: "100%" }}
-          >
-            {message}
-          </Alert>
-        )}
         <form onSubmit={handleSubmit(onSubmit)}>
           <Stack spacing={3}>
             <Controller

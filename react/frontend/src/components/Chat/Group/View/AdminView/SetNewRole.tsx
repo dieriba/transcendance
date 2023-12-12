@@ -1,6 +1,4 @@
 import {
-  Alert,
-  AlertColor,
   Button,
   CircularProgress,
   DialogContent,
@@ -10,7 +8,6 @@ import {
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import DialogI from "../../../../Dialog/DialogI";
-import { useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../../../../redux/hooks";
 import { RootState } from "../../../../../redux/store";
 import { SocketServerErrorResponse } from "../../../../../services/type";
@@ -18,6 +15,7 @@ import { useSetNewRoleMutation } from "../../../../../redux/features/groups/grou
 import { ChatroomGroupType } from "../../../../../models/groupChat";
 import { setNewRole } from "../../../../../redux/features/groups/group.slice";
 import { ChatRoleType } from "../../../../../models/type-enum/typesEnum";
+import { showSnackBar } from "../../../../../redux/features/app/app.slice";
 
 interface SetNewRoleProps {
   open: boolean;
@@ -34,20 +32,7 @@ const SetNewRole = ({
   role,
   handleClose,
 }: SetNewRoleProps) => {
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState<AlertColor>("success");
-  const [openSnack, setOpenSnack] = useState(false);
   const theme = useTheme();
-  const handleCloseSnack = (
-    _event?: React.SyntheticEvent | Event,
-    reason?: string
-  ) => {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setOpenSnack(false);
-  };
 
   const dispatch = useAppDispatch();
 
@@ -69,10 +54,18 @@ const SetNewRole = ({
         setNewRole({ data: response.data, chatroomId: currentChatroom.id })
       );
       handleClose();
+      dispatch(
+        showSnackBar({
+          message: response.message,
+        })
+      );
     } catch (error) {
-      setSeverity("error");
-      setMessage((error as SocketServerErrorResponse).message);
-      setOpenSnack(true);
+      dispatch(
+        showSnackBar({
+          message: (error as SocketServerErrorResponse).message,
+          severity: "error",
+        })
+      );
     }
   };
 
@@ -88,15 +81,6 @@ const SetNewRole = ({
             spacing={2}
             p={2}
           >
-            {openSnack && (
-              <Alert
-                onClose={handleCloseSnack}
-                severity={severity}
-                sx={{ width: "100%" }}
-              >
-                {message}
-              </Alert>
-            )}
             <Typography>{`This action will set ${
               nickname.toUpperCase() as string
             } as new moderator , do you want to continue?`}</Typography>
