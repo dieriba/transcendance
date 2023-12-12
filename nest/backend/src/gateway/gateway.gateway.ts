@@ -1154,7 +1154,7 @@ export class GatewayGateway {
 
     this.libService.sendToSocket(this.server, userId, GeneralEvent.SUCCESS, {
       data: { chatroomId },
-      message: 'chatroom deleted',
+      message: `chatroom ${chatroomName} deleted`,
     });
 
     this.libService.sendToSocket(
