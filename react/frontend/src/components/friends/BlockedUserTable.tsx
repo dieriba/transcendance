@@ -74,6 +74,7 @@ const BlockedUserTable = () => {
         }
       );
       return () => {
+        socket.off(GeneralEvent.NEW_BLOCKED_USER);
         socket.off(GeneralEvent.REMOVE_BLOCKED_USER);
       };
     }

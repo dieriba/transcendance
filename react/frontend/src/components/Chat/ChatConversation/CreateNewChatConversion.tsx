@@ -99,7 +99,6 @@ const CreateNewChatConversation = ({
       const chatroom = privateChatroom.find(
         (chatroom) => chatroom.users[0].user.id === userId
       );
-      console.log({ data });
 
       if (chatroom) {
         dispatch(setPrivateChatroomId(chatroom.id));
