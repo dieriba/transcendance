@@ -3361,8 +3361,8 @@ export class GatewayGateway {
       );
     }
 
-    const { active, ...data } = chatroom;
     if (chatroom) {
+      const { active, ...data } = chatroom;
       if (!active) {
         await this.prismaService.chatroom.update({
           where: { id: chatroom.id },
