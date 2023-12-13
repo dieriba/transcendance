@@ -10,6 +10,7 @@ import * as cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -30,10 +31,14 @@ async function bootstrap() {
     new HttpExceptionFilter(),
     new PrismaExceptionFilter(httpAdapterHost),
   );
-  app.enableCors({
-    origin: [`http://localhost:${clientPort}`],
+  const corsOptions: CorsOptions = {
+    origin: `http://localhost:5173`,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
-  });
+  };
+  app.setGlobalPrefix('/api');
+  app.enableCors(corsOptions);
   app.useStaticAssets(join(__dirname, '../..', 'public/avatar'));
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
   app.use(cookieParser());

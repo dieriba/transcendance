@@ -12,8 +12,9 @@ import { Response, Request } from 'express';
 export class HttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(HttpExceptionFilter.name);
   catch(exception: HttpException, host: ArgumentsHost) {
-    this.logger.log('Excepetion catched in HttpExceptionFilter');
+    this.logger.log('Exception catched in HttpExceptionFilter');
     const ctx = host.switchToHttp();
+
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 

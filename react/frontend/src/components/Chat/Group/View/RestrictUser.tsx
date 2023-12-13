@@ -225,7 +225,7 @@ const RestrictUser = ({
                         <TextField
                           error={!!error}
                           onChange={onChange}
-                          value={value}
+                          value={value ?? 1}
                           type="number"
                           sx={{
                             "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":

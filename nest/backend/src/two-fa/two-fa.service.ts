@@ -86,6 +86,7 @@ export class TwoFaService {
         twoFa: boolean;
         allowForeignToDm: boolean;
         profile: Partial<Profile>;
+        oauth: boolean;
       };
     } & Tokens
   > {
@@ -130,7 +131,14 @@ export class TwoFaService {
     });
 
     return {
-      user: { id, nickname, twoFa: true, profile, allowForeignToDm },
+      user: {
+        id,
+        nickname,
+        twoFa: true,
+        profile,
+        allowForeignToDm,
+        oauth: true,
+      },
       ...tokens,
     };
   }
