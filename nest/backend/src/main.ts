@@ -15,6 +15,7 @@ import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.int
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const clientPort = parseInt(process.env.FRONTEND_PORT);
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -31,8 +32,9 @@ async function bootstrap() {
     new HttpExceptionFilter(),
     new PrismaExceptionFilter(httpAdapterHost),
   );
+  app.use(helmet({ crossOriginResourcePolicy: false }));
   const corsOptions: CorsOptions = {
-    origin: `http://localhost:5173`,
+    origin: `http://localhost:${clientPort}`,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,

@@ -27,5 +27,7 @@ declare namespace NodeJS {
     BACKEND_DOMAIN_AVATAR: string;
     TWO_FACTOR_AUTHENTICATION_APP_NAME: string;
     REACT_DOCKER_ADRESS: string;
+    REQUEST_LIMIT: string;
+    REQUEST_NUMBER: string;
   }
 }

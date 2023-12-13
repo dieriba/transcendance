@@ -15,13 +15,19 @@ import { FriendsModule } from './friends/friends.module';
 import { ChatroomModule } from './chatroom/chatroom.module';
 import { ChatroomUserModule } from './chatroom-user/chatroom-user.module';
 import { UploadFilesModule } from './upload-files/upload-files.module';
-import { PongService } from './pong/pong.service';
 import { PongController } from './pong/pong.controller';
 import { PongModule } from './pong/pong.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: parseInt(process.env.REQUEST_NUMBER),
+        limit: parseInt(process.env.REQUEST_LIMIT),
+      },
+    ]),
     AuthModule,
     UserModule,
     PrismaModule,
@@ -45,7 +51,10 @@ import { PongModule } from './pong/pong.module';
       provide: APP_INTERCEPTOR,
       useClass: ResponseMessageInterceptor,
     },
-    PongService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
   controllers: [PongController],
 })
