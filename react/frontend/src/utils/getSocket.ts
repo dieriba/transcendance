@@ -6,7 +6,7 @@ let socket: Socket;
 const connectSocket = () => {
   const state: RootState = store.getState();
   if (!socket) {
-    socket = io("http://localhost:9000", {
+    socket = io("/", {
       auth: (cb) => {
         cb({ token: state.user.access_token });
       },

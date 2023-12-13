@@ -12,6 +12,11 @@ export default defineConfig({
         target: 'http://backend:3000',
         changeOrigin: true,
       },
+      '/socket.io': {
+        changeOrigin: true,
+        target: 'ws://backend:9000',
+        ws: true,
+      },
     },
     host: true,
     port: 5173,
