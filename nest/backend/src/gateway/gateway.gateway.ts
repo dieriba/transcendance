@@ -116,7 +116,6 @@ export class GatewayGateway {
     console.log({ rooms });
 
     const room = this.getAllSockeIdsByKey(userId);
-
     if (room.size === 1) {
       const user = await this.userService.findUserById(userId, UserData);
 
@@ -189,7 +188,7 @@ export class GatewayGateway {
 
       const user = await this.userService.findUserById(userId, UserData);
 
-      if (!user) throw new WsUserNotFoundException();
+      if (!user) return;
 
       await this.userService.updateUserById(userId, {
         status: STATUS.OFFLINE,

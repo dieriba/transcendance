@@ -38,6 +38,7 @@ export class IsRestrictedUserGuardWs implements CanActivate {
     if (chatroomId === undefined || this.libService.checkIfString(chatroomId)) {
       throw new WsBadRequestException(
         'chatroomId property must be an non empty string',
+        { chatroomId },
       );
     }
     const [user, chatroom] = await Promise.all([
@@ -83,13 +84,14 @@ export class IsRestrictedUserGuardWs implements CanActivate {
       }),
     ]);
 
-    if (!user) throw new WsUserNotFoundException();
+    if (!user) throw new WsUserNotFoundException({ chatroomId });
 
-    if (!chatroom) throw new WsChatroomNotFoundException();
+    if (!chatroom) throw new WsChatroomNotFoundException({ chatroomId });
 
     if (chatroom.users.length && chatroom.users[0].user.blockedUsers.length)
       throw new WsUnauthorizedException(
         `${chatroom.users[0].user.nickname} blocked you, so you can't join that group`,
+        { chatroomId },
       );
 
     const localTimeOptions = { hour12: false };
@@ -104,6 +106,7 @@ export class IsRestrictedUserGuardWs implements CanActivate {
             'fr-FR',
             localTimeOptions,
           )}`,
+          { chatroomId },
         );
       } else if (restrictedUser.restriction === RESTRICTION.KICKED)
         throw new WsUnauthorizedException(
@@ -113,8 +116,11 @@ export class IsRestrictedUserGuardWs implements CanActivate {
             'fr-FR',
             localTimeOptions,
           )}`,
+          { chatroomId },
         );
       else if (restrictedUser.restriction === RESTRICTION.BANNED) {
+        console.log('ok');
+
         throw new WsUnauthorizedException(
           `You are Banned from that room until: ${restrictedUser.restrictionTimeEnd.toLocaleDateString(
             'fr-FR',
@@ -122,6 +128,7 @@ export class IsRestrictedUserGuardWs implements CanActivate {
             'fr-FR',
             localTimeOptions,
           )}`,
+          { chatroomId },
         );
       }
     }

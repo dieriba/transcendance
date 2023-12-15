@@ -306,6 +306,9 @@ export const GroupSlice = createSlice({
         }
       }
     },
+    clearCurrentChatroom: (state) => {
+      state.currentChatroom = undefined;
+    },
     updateUserInfo: (
       state,
       action: PayloadAction<UserUpdated | UpdatedAvatarRes>
@@ -553,6 +556,10 @@ export const GroupSlice = createSlice({
         data.restriction === Restriction.KICKED
       ) {
         state.groupChatroom.splice(index, 1);
+        if (chatroomId === state.currentGroupChatroomId) {
+          state.currentGroupChatroomId = undefined;
+          state.currentChatroom = undefined;
+        }
         return;
       }
 
@@ -841,6 +848,7 @@ export const {
   updateUserInfo,
   addBlockedUser,
   removeBlockedUser,
+  clearCurrentChatroom,
 } = GroupSlice.actions;
 
 export default GroupSlice.reducer;

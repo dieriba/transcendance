@@ -153,7 +153,7 @@ model InvitedUser {
 }
 
 model RestrictedUser {
-  admin                ChatroomUser @relation(fields: [adminId, chatroomId], references: [userId, chatroomId])
+  admin                ChatroomUser @relation(fields: [adminId, chatroomId], references: [userId, chatroomId], onDelete: Cascade)
   adminId              String
   user                 User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId               String

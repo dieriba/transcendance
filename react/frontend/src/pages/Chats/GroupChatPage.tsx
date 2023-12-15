@@ -1,10 +1,4 @@
-import {
-  Box,
-  CircularProgress,
-  Stack,
-  Typography,
-  useMediaQuery,
-} from "@mui/material";
+import { Box, CircularProgress, Stack, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useAppDispatch } from "../../redux/hooks";
 import { useEffect } from "react";
@@ -24,10 +18,12 @@ import {
   removeBlockedUser,
   restrict,
   setGroupChatroom,
+  setGroupChatroomId,
   unrestrict,
   unrestrictUser,
   updateChatroom,
   updateGroupChatroomListAndMessage,
+  clearCurrentChatroom,
 } from "../../redux/features/groups/group.slice";
 import {
   BaseChatroomTypeId,
@@ -185,11 +181,13 @@ const GroupChatPage = () => {
       </Box>
     );
   } else if (isError || !data) {
-    return (
-      <Stack alignItems="center" height="100%" pt={25} justifyContent="center">
-        <Typography>An error has occurefd</Typography>
-      </Stack>
-    );
+    if (typeof error === "object" && "data" in error) {
+      console.log((error.data as BaseChatroomTypeId).chatroomId);
+      dispatch(setGroupChatroomId(undefined));
+      dispatch(clearCurrentChatroom());
+      dispatch(deleteChatroom((error.data as BaseChatroomTypeId).chatroomId));
+      window.location = window.location;
+    }
   } else {
     return onlyMediumScreen ? <GroupMobileChat /> : <GroupDesktopChat />;
   }
