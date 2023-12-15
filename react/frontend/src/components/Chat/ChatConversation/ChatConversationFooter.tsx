@@ -38,8 +38,6 @@ const ChatConversationFooter = () => {
         friendId: chatroom?.users[0].user.id,
       }).unwrap();
     } catch (error) {
-      console.log({ error });
-
       dispatch(
         showSnackBar({
           message: (error as SocketServerErrorResponse).message,

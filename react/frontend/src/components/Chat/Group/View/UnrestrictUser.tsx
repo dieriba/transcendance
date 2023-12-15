@@ -78,8 +78,6 @@ const UnRestrictUser = ({
       const res = await getRestrictionInfo(restriction).unwrap();
       setRestrict({ ...res.data, nickname });
     } catch (error) {
-      console.log(error);
-
       if (isFetchBaseQueryError(error)) {
         if (
           error.data &&

@@ -39,8 +39,6 @@ export class WsAccessTokenGuard implements CanActivate {
 
       return true;
     } catch (error) {
-      console.log({ error });
-
       client.disconnect(true);
       throw new WsUnauthorizedException(GeneralEvent.TOKEN_NOT_VALID);
     }

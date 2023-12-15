@@ -42,7 +42,6 @@ export class AuthService {
   async signup(registerUserDto: RegisterUserDto) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { lastname, firstname, email, password, nickname } = registerUserDto;
-    console.log({ registerUserDto });
 
     try {
       this.logger.log(
@@ -57,8 +56,6 @@ export class AuthService {
 
       return { success: true, message: 'User created successfully' };
     } catch (error) {
-      console.log({ error });
-
       this.logger.log(
         `Failled to create new user with email: ${email} and nickname: ${nickname}`,
       );
@@ -151,14 +148,6 @@ export class AuthService {
     formData.append('redirect_uri', process.env.REDIRECT_URI);
     formData.append('code', process.env.code);
 
-    console.log({
-      client_secret: process.env.CLIENT_SECRET,
-      client_id: process.env.CLIENT_ID,
-      grant_type: process.env.GRANT_TYPE,
-      redirect_uri: process.env.REDIRECT_URI,
-      code: code,
-    });
-
     const response = await this.httpService.axiosRef.post(
       process.env.TOKEN_URI,
       {
@@ -175,8 +164,6 @@ export class AuthService {
         validateStatus: () => true,
       },
     );
-
-    console.log({ response });
 
     if (response?.status == HttpStatusCode.Unauthorized) {
       throw new UnauthorizedException(

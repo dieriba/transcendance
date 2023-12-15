@@ -50,7 +50,6 @@ const LoginForm = () => {
   const navigate = useNavigate();
   const [login, { isLoading }] = useLoginMutation();
   const [disconnectAllInstanceExceptMe] = useDisconnectAllExceptMeMutation();
-  console.log(import.meta.env.OAUTH_URL);
 
   const onSubmit = async (data: LoginFormType) => {
     try {

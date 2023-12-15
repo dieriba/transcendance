@@ -53,8 +53,6 @@ const createTokenMiddleware =
 
       next();
     } catch (error) {
-      console.log({ error });
-
       next(new WsException(GeneralEvent.TOKEN_NOT_VALID));
     }
   };
