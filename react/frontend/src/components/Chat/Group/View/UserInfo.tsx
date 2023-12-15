@@ -39,14 +39,9 @@ const UserInfo = ({
               disableElevation
               color="inherit"
             >
-              <Tooltip
-                placement="top"
-                title={`Banned by ${restrictedUser.admin.user.nickname}`}
-              >
-                <Typography variant="caption">
-                  {restrictedUser.restriction}
-                </Typography>
-              </Tooltip>
+              <Typography variant="caption">
+                {restrictedUser.restriction}
+              </Typography>
             </Button>
           </Box>
         )}

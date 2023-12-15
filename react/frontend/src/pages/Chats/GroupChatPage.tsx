@@ -182,11 +182,9 @@ const GroupChatPage = () => {
     );
   } else if (isError || !data) {
     if (typeof error === "object" && "data" in error) {
-      console.log((error.data as BaseChatroomTypeId).chatroomId);
       dispatch(setGroupChatroomId(undefined));
       dispatch(clearCurrentChatroom());
       dispatch(deleteChatroom((error.data as BaseChatroomTypeId).chatroomId));
-      window.location = window.location;
     }
   } else {
     return onlyMediumScreen ? <GroupMobileChat /> : <GroupDesktopChat />;

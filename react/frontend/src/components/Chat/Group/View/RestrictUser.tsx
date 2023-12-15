@@ -68,6 +68,8 @@ const RestrictUser = ({
   const dispatch = useAppDispatch();
   const onSubmit = async (data: RestrictUserType) => {
     try {
+      if (data.duration === undefined) data.duration = 1;
+
       data.id = id;
       data.chatroomId = chatroomId;
       const res = await restrictUser(data).unwrap();

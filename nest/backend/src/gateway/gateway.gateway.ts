@@ -1336,6 +1336,16 @@ export class GatewayGateway {
           this.libService.deleteSocketRoom(this.server, chatroomName);
           return;
         }
+
+        await tx.restrictedUser.delete({
+          where: {
+            userId_chatroomId: {
+              userId: newAdmin.userId,
+              chatroomId,
+            },
+          },
+        });
+
         const { role } = await tx.chatroomUser.update({
           where: {
             userId_chatroomId: {
@@ -1347,6 +1357,7 @@ export class GatewayGateway {
             role: ROLE.DIERIBA,
           },
         });
+
         await tx.chatroomUser.delete({
           where: {
             userId_chatroomId: {
@@ -2688,7 +2699,7 @@ export class GatewayGateway {
   @SubscribeMessage(FriendEvent.REQUEST_ACCEPTED)
   async acceptFriend(
     @ConnectedSocket() client: SocketWithAuth,
-    @MessageBody(IsFriendExistWs) body: FriendsTypeDto,
+    @MessageBody() body: FriendsTypeDto,
   ) {
     const { friendId } = body;
     const { userId } = client;
@@ -3041,8 +3052,10 @@ export class GatewayGateway {
   @SubscribeMessage(FriendEvent.BLOCK_FRIEND)
   async blockUser(
     @ConnectedSocket() client: SocketWithAuth,
-    @MessageBody(IsFriendExistWs) body: FriendsTypeDto,
+    @MessageBody() body: FriendsTypeDto,
   ) {
+    console.log({ body });
+
     const { friendId } = body;
     const { userId } = client;
 
@@ -3119,6 +3132,7 @@ export class GatewayGateway {
       friendRequestsReceived.length > 0
         ? friendRequestsReceived
         : friendRequestsSent;
+    console.log({ chatroom });
 
     await this.prismaService.$transaction(async (tx) => {
       if (chatroom) {
@@ -3211,25 +3225,28 @@ export class GatewayGateway {
           data: { blockedUsers: { connect: { id: friendId } } },
         });
       }
-      this.libService.sendSameEventToSockets(
-        this.server,
-        ChatEventPrivateRoom.CLEAR_CHATROOM,
-        [
-          {
-            room: userId,
-            object: {
-              data: { chatroomId: chatroom.id },
-              message: `${user.nickname} blocked!`,
+
+      if (chatroom) {
+        this.libService.sendSameEventToSockets(
+          this.server,
+          ChatEventPrivateRoom.CLEAR_CHATROOM,
+          [
+            {
+              room: userId,
+              object: {
+                data: { chatroomId: chatroom.id },
+                message: `${user.nickname} blocked!`,
+              },
             },
-          },
-          { room: friendId, object: { data: { chatroomId: chatroom.id } } },
-        ],
-      );
+            { room: friendId, object: { data: { chatroomId: chatroom.id } } },
+          ],
+        );
+      }
     });
 
     this.libService.sendToSocket(
       this.server,
-      client.userId,
+      userId,
       GeneralEvent.NEW_BLOCKED_USER,
       { data: user },
     );
@@ -3245,7 +3262,7 @@ export class GatewayGateway {
   @SubscribeMessage(FriendEvent.UNBLOCK_FRIEND)
   async unblockUser(
     @ConnectedSocket() client: SocketWithAuth,
-    @MessageBody(IsFriendExistWs) body: FriendsTypeDto,
+    @MessageBody() body: FriendsTypeDto,
   ) {
     const { friendId } = body;
     const { userId } = client;
@@ -3840,7 +3857,7 @@ export class GatewayGateway {
     const [game, index] =
       this.pongService.getGameByGameIdAndReturnIndex(gameId);
 
-    if (index === -1) throw new WsGameNotFoundException();
+    if (index === -1) return;
 
     if (!game.getPlayers.includes(userId))
       throw new WsUnauthorizedException('You are not allowed to move paddle!');
@@ -3856,7 +3873,7 @@ export class GatewayGateway {
     const { userId } = client;
     const game = this.pongService.getGameByGameId(gameId);
 
-    if (!game) throw new WsGameNotFoundException();
+    if (!game) return;
 
     if (!game.getPlayers.includes(userId))
       throw new WsUnauthorizedException('You are not allowed to move paddle!');

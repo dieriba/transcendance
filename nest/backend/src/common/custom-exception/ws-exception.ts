@@ -58,6 +58,6 @@ export class WsChatroomNotFoundException extends WsNotFoundException {
 
 export class WsGameNotFoundException extends WsNotFoundException {
   constructor(data?: { chatroomId: string }) {
-    super('Chatroom Not Found', data);
+    super('Game Not Found', data);
   }
 }

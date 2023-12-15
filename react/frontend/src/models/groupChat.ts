@@ -190,7 +190,7 @@ export const RestrictUserFormSchema = z
     id: z.string().optional(),
     chatroomId: z.string().optional(),
     restriction: z.enum(restrictionType),
-    duration: z.coerce.number(),
+    duration: z.any(),
     durationUnit: z.enum(durationUnit),
     reason: z.string().min(1).min(MIN_REASON_LENGTH).max(MAX_REASON_LENGTH),
   })

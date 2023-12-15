@@ -41,7 +41,7 @@ export class IsRestrictedUserGuardWs implements CanActivate {
         { chatroomId },
       );
     }
-    const [user, chatroom] = await Promise.all([
+    const [user, chatroom, me] = await Promise.all([
       this.prismaService.user.findFirst({
         where: {
           id: userId,
@@ -82,13 +82,16 @@ export class IsRestrictedUserGuardWs implements CanActivate {
           },
         },
       }),
+      await this.prismaService.chatroomUser.findUnique({
+        where: { userId_chatroomId: { userId, chatroomId } },
+      }),
     ]);
 
     if (!user) throw new WsUserNotFoundException({ chatroomId });
 
     if (!chatroom) throw new WsChatroomNotFoundException({ chatroomId });
 
-    if (chatroom.users.length && chatroom.users[0].user.blockedUsers.length)
+    if (chatroom.users.length && chatroom.users[0].user.blockedUsers.length && !me)
       throw new WsUnauthorizedException(
         `${chatroom.users[0].user.nickname} blocked you, so you can't join that group`,
         { chatroomId },
@@ -119,8 +122,6 @@ export class IsRestrictedUserGuardWs implements CanActivate {
           { chatroomId },
         );
       else if (restrictedUser.restriction === RESTRICTION.BANNED) {
-        console.log('ok');
-
         throw new WsUnauthorizedException(
           `You are Banned from that room until: ${restrictedUser.restrictionTimeEnd.toLocaleDateString(
             'fr-FR',

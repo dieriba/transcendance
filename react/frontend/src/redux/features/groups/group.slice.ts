@@ -283,6 +283,7 @@ export const GroupSlice = createSlice({
           (state.admin as UserGroupType).role = ROLE.REGULAR_USER;
           newAdmin = state.chatAdmin.splice(index, 1)[0];
           newAdmin.role = ROLE.DIERIBA;
+          newAdmin.user.restrictedGroups = [];
           state.regularUser.push(state.admin as UserGroupType);
           state.admin = newAdmin;
         }
@@ -294,6 +295,7 @@ export const GroupSlice = createSlice({
           (state.admin as UserGroupType).role = ROLE.REGULAR_USER;
           newAdmin = state.regularUser.splice(index, 1)[0];
           newAdmin.role = ROLE.DIERIBA;
+          newAdmin.user.restrictedGroups = [];
           state.regularUser.push(state.admin as UserGroupType);
           state.admin = newAdmin;
         }

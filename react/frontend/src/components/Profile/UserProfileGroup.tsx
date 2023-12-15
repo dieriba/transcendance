@@ -65,6 +65,7 @@ const UserProfileGroup = ({
     victory = pong.victory;
     losses = pong.losses;
   }
+  console.log({ currentUser });
 
   const isBlocked = blockedUser.find((user) => user.id === id);
 
