@@ -6,6 +6,7 @@ interface ImportMetaEnv {
   readonly VITE_REACT_APP_API_URL: string;
   readonly VITE_WS_SERVER: string;
   readonly VITE_UPLOAD_PATH_URI: string;
+  readonly OAUTH_URL: string;
   // more env variables...
 }
 

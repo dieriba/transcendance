@@ -58,8 +58,8 @@ services:
       dockerfile: frontend.dockerfile
     restart: unless-stopped
     image: react:v1
-    environment:
-      - VITE_BACKEND_HOST_URL="http://backend:3000"
+    env_file:
+      .env
     volumes:
       - ./react/frontend:/app:rw
       - /app/node_modules

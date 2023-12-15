@@ -143,12 +143,21 @@ export class AuthService {
     | { id: string; twoFa: boolean }
   > {
     const formData = new FormData();
+    console.log({ code });
 
     formData.append('client_secret', process.env.CLIENT_SECRET);
     formData.append('client_id', process.env.CLIENT_ID);
     formData.append('grant_type', process.env.GRANT_TYPE);
     formData.append('redirect_uri', process.env.REDIRECT_URI);
     formData.append('code', process.env.code);
+
+    console.log({
+      client_secret: process.env.CLIENT_SECRET,
+      client_id: process.env.CLIENT_ID,
+      grant_type: process.env.GRANT_TYPE,
+      redirect_uri: process.env.REDIRECT_URI,
+      code: code,
+    });
 
     const response = await this.httpService.axiosRef.post(
       process.env.TOKEN_URI,
@@ -166,6 +175,8 @@ export class AuthService {
         validateStatus: () => true,
       },
     );
+
+    console.log({ response });
 
     if (response?.status == HttpStatusCode.Unauthorized) {
       throw new UnauthorizedException(
