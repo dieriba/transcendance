@@ -91,7 +91,11 @@ export class IsRestrictedUserGuardWs implements CanActivate {
 
     if (!chatroom) throw new WsChatroomNotFoundException({ chatroomId });
 
-    if (chatroom.users.length && chatroom.users[0].user.blockedUsers.length && !me)
+    if (
+      chatroom.users.length &&
+      chatroom.users[0].user.blockedUsers.length &&
+      !me
+    )
       throw new WsUnauthorizedException(
         `${chatroom.users[0].user.nickname} blocked you, so you can't join that group`,
         { chatroomId },

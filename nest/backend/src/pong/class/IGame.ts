@@ -4,6 +4,7 @@ import {
   keyPressedType,
   pongGameDuration,
   scoreToWinPongGame,
+  scoreToWinSpecialPongGame,
 } from '../../../shared/constant';
 
 export abstract class IPongGame {
@@ -22,8 +23,15 @@ export abstract class IPongGame {
   private gameDurationExceed: boolean = false;
   private draw: boolean = false;
   private lastTime: number = -1;
+  private toWin: number;
 
   constructor(type: PongGameType) {
+    if (type === 'NORMAL') {
+      this.toWin = scoreToWinPongGame;
+    } else {
+      this.toWin = scoreToWinSpecialPongGame;
+    }
+
     this.pongType = type;
   }
 
@@ -34,12 +42,12 @@ export abstract class IPongGame {
   public abstract getEndGameData(): unknown;
 
   public isAWinnerOrTimeGameLimitReached(): void {
-    if (this.getPlayer.getScore >= scoreToWinPongGame) {
+    if (this.getPlayer.getScore >= this.toWin) {
       this.setWinner = this.getPlayer;
       this.setLooser = this.getOppenent;
       return;
     }
-    if (this.getOppenent.getScore >= scoreToWinPongGame) {
+    if (this.getOppenent.getScore >= this.toWin) {
       this.setWinner = this.getOppenent;
       this.setLooser = this.getPlayer;
       return;
@@ -50,13 +58,13 @@ export abstract class IPongGame {
     if (now >= this.getEndTime) {
       this.setGameDurationExceeded = true;
 
-      if (this.getPlayer.getScore >= scoreToWinPongGame) {
+      if (this.getPlayer.getScore >= this.toWin) {
         this.setWinner = this.getPlayer;
         this.setLooser = this.getOppenent;
         return;
       }
 
-      if (this.getOppenent.getScore >= scoreToWinPongGame) {
+      if (this.getOppenent.getScore >= this.toWin) {
         this.setWinner = this.getOppenent;
         this.setLooser = this.getPlayer;
         return;

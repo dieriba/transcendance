@@ -13,6 +13,7 @@ import { LibService } from 'src/lib/lib.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ChatRoomNotFoundException } from '../exception/chatroom-not-found.exception';
 import { UserNotFoundException } from 'src/common/custom-exception/user-not-found.exception';
+import { WsUnauthorizedException } from 'src/common/custom-exception/ws-exception';
 
 @Injectable()
 export class IsRestrictedUserGuardHttp implements CanActivate {
@@ -46,7 +47,7 @@ export class IsRestrictedUserGuardHttp implements CanActivate {
         );
       }
     }
-    const [user, chatroom] = await Promise.all([
+    const [user, chatroom, me] = await Promise.all([
       this.prismaService.user.findFirst({
         where: {
           id: userId,
@@ -87,16 +88,23 @@ export class IsRestrictedUserGuardHttp implements CanActivate {
           },
         },
       }),
+      await this.prismaService.chatroomUser.findUnique({
+        where: { userId_chatroomId: { userId, chatroomId } },
+      }),
     ]);
 
     if (!user) throw new UserNotFoundException();
 
     if (!chatroom) throw new ChatRoomNotFoundException();
 
-    if (chatroom.users.length && chatroom.users[0].user.blockedUsers.length)
-      throw new CustomException(
+    if (
+      chatroom.users.length &&
+      chatroom.users[0].user.blockedUsers.length &&
+      !me
+    )
+      throw new WsUnauthorizedException(
         `${chatroom.users[0].user.nickname} blocked you, so you can't join that group`,
-        HttpStatus.FORBIDDEN,
+        { chatroomId },
       );
 
     const localTimeOptions = { hour12: false };

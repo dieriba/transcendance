@@ -19,7 +19,7 @@ export const ArrowDown = 'ArrowDown';
 
 export const BALL_X_POSITION = 0.5;
 export const Ball_Y_POSITION = 0.5;
-export const BALL_VELOCITY = 0.0006;
+export const BALL_VELOCITY = 0.0007;
 export const SPEED_FACTOR = BALL_VELOCITY / 10;
 export const RESIZE_FACTOR = 1.3;
 export const defaultBall = {
@@ -68,5 +68,6 @@ export const defaultOpponentPlayer = {
 };
 
 export type gameStatus = 'NOT_STARTED' | 'STARTED' | 'IN_PROGRESS' | 'FINISHED';
-export const scoreToWinPongGame = 15;
+export const scoreToWinPongGame = 5;
+export const scoreToWinSpecialPongGame = 15;
 export const pongGameDuration = 15;

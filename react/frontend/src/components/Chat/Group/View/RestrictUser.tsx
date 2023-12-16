@@ -69,6 +69,7 @@ const RestrictUser = ({
   const onSubmit = async (data: RestrictUserType) => {
     try {
       if (data.duration === undefined) data.duration = 1;
+      else data.duration = Number(data.duration);
 
       data.id = id;
       data.chatroomId = chatroomId;
@@ -228,13 +229,13 @@ const RestrictUser = ({
                           error={!!error}
                           onChange={onChange}
                           value={value ?? 1}
-                          type="number"
+                          type="text"
                           sx={{
                             "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
                               {
                                 display: "none",
                               },
-                            "& input[type=number]": {
+                            "& input[type=text]": {
                               MozAppearance: "textfield",
                             },
                           }}

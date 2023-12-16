@@ -48,7 +48,6 @@ import {
   WsNotFoundException,
   WsUserNotFoundException,
   WsChatroomNotFoundException,
-  WsGameNotFoundException,
 } from 'src/common/custom-exception/ws-exception';
 import { WsCatchAllFilter } from 'src/common/global-filters/ws-exception-filter';
 import { WsAccessTokenGuard } from 'src/common/guards/ws.guard';
@@ -1032,7 +1031,7 @@ export class GatewayGateway {
       this.prismaService.restrictedUser.findUnique({
         where: {
           userId_chatroomId: {
-            userId,
+            userId: id,
             chatroomId,
           },
           restrictionTimeEnd: { gt: new Date() },
@@ -1337,15 +1336,25 @@ export class GatewayGateway {
           return;
         }
 
-        await tx.restrictedUser.delete({
+        const restrictedUser = await tx.restrictedUser.findUnique({
           where: {
             userId_chatroomId: {
-              userId: newAdmin.userId,
               chatroomId,
+              userId: newAdmin.userId,
             },
           },
         });
 
+        if (restrictedUser) {
+          await tx.restrictedUser.delete({
+            where: {
+              userId_chatroomId: {
+                userId: newAdmin.userId,
+                chatroomId,
+              },
+            },
+          });
+        }
         const { role } = await tx.chatroomUser.update({
           where: {
             userId_chatroomId: {
@@ -2102,7 +2111,7 @@ export class GatewayGateway {
         messages: {
           where: {
             user: {
-              blockedUsers: {
+              blockedBy: {
                 none: {
                   id: userId,
                 },
@@ -3505,7 +3514,6 @@ export class GatewayGateway {
         },
       },
     });
-
 
     const firstArrUser = userId === newChatroom.users[0].user.id;
     const secondArrUser = !firstArrUser;
