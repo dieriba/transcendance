@@ -140,7 +140,6 @@ export class AuthService {
     | { id: string; twoFa: boolean }
   > {
     const formData = new FormData();
-    console.log({ code });
 
     formData.append('client_secret', process.env.CLIENT_SECRET);
     formData.append('client_id', process.env.CLIENT_ID);
@@ -191,10 +190,12 @@ export class AuthService {
         nickname: existingUser ? data.login : generateUsername('', 3, 16),
       };
 
+      console.log({ data });
+
       const profile: Profile = {
         firstname: data.first_name,
         lastname: data.last_name,
-        avatar: undefined,
+        avatar: data.image.link,
       };
 
       const {
@@ -202,12 +203,7 @@ export class AuthService {
         nickname,
         twoFa,
         profile: { avatar },
-      } = await this.userService.createOrReturn42User(
-        tx,
-        user,
-        profile,
-        UserData,
-      );
+      } = await this.userService.createOrReturn42User(tx, user, profile);
 
       if (twoFa?.otpEnabled) {
         return { id, twoFa: true };

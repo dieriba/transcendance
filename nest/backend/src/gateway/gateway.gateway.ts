@@ -3409,6 +3409,8 @@ export class GatewayGateway {
       const firstArrUser = userId === chatroom.users[0].user.id;
       const secondArrUser = !firstArrUser;
 
+      console.log({ data });
+
       this.libService.sendSameEventToSockets(
         this.server,
         ChatEventPrivateRoom.NEW_CHATROOM,
@@ -3503,6 +3505,7 @@ export class GatewayGateway {
         },
       },
     });
+
 
     const firstArrUser = userId === newChatroom.users[0].user.id;
     const secondArrUser = !firstArrUser;

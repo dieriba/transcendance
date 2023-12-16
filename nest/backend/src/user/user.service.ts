@@ -163,18 +163,31 @@ export class UserService {
     >,
     user: ApiUser,
     profile: Profile,
-    select: UserInfo,
   ) {
     const foundUser = await tx.user.findUnique({
       where: { email: user.email },
-      select,
+      select: {
+        id: true,
+        nickname: true,
+        twoFa: true,
+        profile: { select: { lastname: true, firstname: true, avatar: true } },
+      },
     });
 
     if (foundUser) return foundUser;
 
     const newUser = await tx.user.create({
-      data: { ...user, profile: { create: profile }, pong: { create: {} } },
-      select,
+      data: {
+        ...user,
+        profile: { create: { ...profile } },
+        pong: { create: {} },
+      },
+      select: {
+        id: true,
+        nickname: true,
+        twoFa: true,
+        profile: { select: { lastname: true, firstname: true, avatar: true } },
+      },
     });
 
     return newUser;
