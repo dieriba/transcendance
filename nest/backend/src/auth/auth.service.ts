@@ -190,8 +190,6 @@ export class AuthService {
         nickname: existingUser ? data.login : generateUsername('', 3, 16),
       };
 
-      console.log({ data });
-
       const profile: Profile = {
         firstname: data.first_name,
         lastname: data.last_name,

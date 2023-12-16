@@ -3063,8 +3063,6 @@ export class GatewayGateway {
     @ConnectedSocket() client: SocketWithAuth,
     @MessageBody() body: FriendsTypeDto,
   ) {
-    console.log({ body });
-
     const { friendId } = body;
     const { userId } = client;
 
@@ -3141,8 +3139,6 @@ export class GatewayGateway {
       friendRequestsReceived.length > 0
         ? friendRequestsReceived
         : friendRequestsSent;
-    console.log({ chatroom });
-
     await this.prismaService.$transaction(async (tx) => {
       if (chatroom) {
         await tx.chatroom.update({
@@ -3417,8 +3413,6 @@ export class GatewayGateway {
 
       const firstArrUser = userId === chatroom.users[0].user.id;
       const secondArrUser = !firstArrUser;
-
-      console.log({ data });
 
       this.libService.sendSameEventToSockets(
         this.server,
