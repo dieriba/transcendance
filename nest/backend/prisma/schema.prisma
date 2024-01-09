@@ -183,18 +183,6 @@ model TwoFa {
   userId   String  @unique
 }
 
-enum Gender {
-  MALE
-  FEMALE
-  OTHER
-  GENDERFLUID
-  NON_BINARY
-  MULTIGENDER
-  TRANSGENDER
-  DOG
-  HORSE
-}
-
 enum ROLE {
   DIERIBA
   CHAT_ADMIN
